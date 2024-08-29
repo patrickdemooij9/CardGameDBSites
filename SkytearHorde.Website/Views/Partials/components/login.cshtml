@@ -1,0 +1,48 @@
+﻿@using SkytearHorde.Business.Controllers;
+@using SkytearHorde.Entities.Models.PostModels;
+@using SkytearHorde.Entities.Models.ViewModels;
+@model LoginViewModel
+
+@using (Html.BeginUmbracoForm<AccountController>("Login", null, new { @class = "login" }, FormMethod.Post, false))
+{
+    <h1 class="mb-2">Login</h1>
+    <div class="form-field">
+        @Html.LabelFor(it => it.PostModel.Email)
+        @Html.TextBoxFor(it => it.PostModel.Email, new {@class = "form-input text-black"})
+        @Html.ValidationMessageFor(it => it.PostModel.Email)
+    </div>
+
+    <div class="form-field">
+        @Html.LabelFor(it => it.PostModel.Password)
+        @Html.PasswordFor(it => it.PostModel.Password, new {@class = "form-input text-black"})
+        @Html.ValidationMessageFor(it => it.PostModel.Password)
+    </div>
+
+    <div class="form-field">
+        <label>
+            @Html.CheckBoxFor(it => it.PostModel.RememberMe)
+            <span>Remember me</span>
+        </label>
+        @Html.ValidationMessageFor(it => it.PostModel.RememberMe)
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn">
+            Login
+        </button>
+
+        @if (Model.RegisterPage != null)
+        {
+            <a class="no-underline" href="@Model.RegisterPage.Url()">
+                Register
+            </a>
+        }
+
+        @if (Model.ForgotPasswordPage != null)
+        {
+            <a class="no-underline" href="@Model.ForgotPasswordPage.Url()">
+                Forgot password
+            </a>
+        }
+    </div>
+}

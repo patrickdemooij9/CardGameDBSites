@@ -1,0 +1,95 @@
+﻿@using SkytearHorde.Business.Controllers;
+@using SkytearHorde.Business.Services;
+@using SkytearHorde.Entities.Models.PostModels;
+@inherits UmbracoViewPage
+@inject DeckListService _deckListService
+@inject DeckService _deckService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var listIdString = Context.Request.Query["id"].ToString();
+
+    if (string.IsNullOrWhiteSpace(listIdString) || !int.TryParse(listIdString, out var id))
+    {
+        Context.Response.StatusCode = 404;
+        return;
+    }
+
+    var list = _deckListService.Get(id);
+    if (list is null || list.CreatedBy != User.Identity?.GetUserId<int>())
+    {
+        Context.Response.StatusCode = 404;
+        return;
+    }
+
+    var postModel = new EditListPostModel
+            {
+                Id = list.Id,
+                Name = list.Name,
+                Description = list.Description,
+                DeckItems = list.DeckIds.Select(it => new EditListItemPostModel
+                {
+                    DeckId = it,
+                    Enabled = true
+                }).ToArray()
+            };
+
+    var decks = _deckService.Get(list.DeckIds).ToDictionary(it => it.Id, it => it);
+}
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+@using (Html.BeginUmbracoForm<ListController>("HandleEdit"))
+{
+    <div class="create-deck-form">
+        @Html.HiddenFor(it => postModel.Id)
+        <div class="container px-4 md:px-8">
+            <div class="row">
+                <div class="col-12">
+                    <h1>Edit your list</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="form-field">
+                        @Html.LabelFor(it => postModel.Name)
+                        @Html.TextBoxFor(it => postModel.Name, string.Empty, new {@class = "form-input"})
+                        @Html.ValidationMessageFor(it => postModel.Name)
+                    </div>
+                    <div class="form-field">
+                        @Html.LabelFor(it => postModel.Description)
+                        @Html.TextAreaFor(it => postModel.Description, new {@class = "form-input medium"})
+                        @Html.ValidationMessageFor(it => postModel.Description)
+                    </div>
+                    <h2>Decks</h2>
+                    @for (var i = 0; i < postModel.DeckItems.Length; i++)
+                    {
+                        @Html.HiddenFor(it => postModel.DeckItems[i].DeckId)
+
+                        @if (decks.ContainsKey(postModel.DeckItems[i].DeckId))
+                        {
+                            <div x-data="{ show: true }">
+                                <input type="hidden" name="postModel.DeckItems[@i].Enabled" x-model="show" />
+                                <div class="deck-box small" x-show="show">
+                                    @Html.HiddenFor(it => postModel.DeckItems[i].Enabled)
+                                    <div class="deck-content">
+                                        <div class="deck-info">
+                                            <h3>@decks[postModel.DeckItems[i].DeckId].Name</h3>
+                                            <button class="btn danger" type="button" x-on:click="show = false;">Remove from list</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="action-bar">
+        <div class="container px-4 md:px-8">
+            <div class="row actions">
+                <button type="submit" class="btn">Save</button>
+            </div>
+        </div>
+    </div>
+}

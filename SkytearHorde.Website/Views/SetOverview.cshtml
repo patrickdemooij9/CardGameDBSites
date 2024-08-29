@@ -1,0 +1,36 @@
+﻿@using SkytearHorde.Business.Services
+@using SkytearHorde.Entities.Enums
+@using SkytearHorde.Entities.Models.ViewModels
+@using Umbraco.Cms.Web.Common.Security
+@inherits UmbracoViewPage<SetOverview>
+@inject MemberManager _memberManager
+@inject CollectionService _collectionService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var description = Model.Description?.ToString();
+    var isLoggedIn = _memberManager.IsLoggedIn();
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8 mb-6">
+    <h1>@Model.Title.IfNullOrWhiteSpace("Sets")</h1>
+    @if (!string.IsNullOrWhiteSpace(description))
+    {
+        @Html.Raw(description)
+    }
+
+    @if (isLoggedIn)
+    {
+        var progress = _collectionService.CalculateCollectionProgress();
+        <div id="progress-bar">
+            @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(progress))
+        </div>
+        <small>Your progress towards a full collection.</small>
+    }
+</div>
+
+<div class="container px-4 md:px-8">
+    @await Html.PartialAsync("~/Views/Partials/components/collectionSetOverview.cshtml")
+</div>

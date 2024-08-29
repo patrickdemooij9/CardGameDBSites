@@ -1,0 +1,334 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Helpers;
+@using SkytearHorde.Business.Middleware;
+@using SkytearHorde.Business.Services;
+@using SkytearHorde.Entities.Enums;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Models;
+@using Umbraco.Cms.Core.Security;
+@inherits UmbracoViewPage<CreateDeck>
+@inject DeckService _deckService
+@inject CardService _cardService
+@inject IMemberManager _memberManager
+@inject IAbilityFormatter _abilityFormatter
+@inject ISiteAccessor _siteAccesor
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    if (!_memberManager.IsLoggedIn())
+    {
+        Context.Response.Redirect("/login", false);
+        return;
+    }
+
+    var startingDecks = _deckService.GetStartingDecks();
+
+    var selectedStartingDeckId = Context.Request.Query["startingDeck"].ToString();
+
+    var selectedDeck = startingDecks.FirstOrDefault(it => it.StartingDeckId.ToString() == selectedStartingDeckId);
+    if (!string.IsNullOrWhiteSpace(Context.Request.Query["id"]))
+    {
+        if (!int.TryParse(Context.Request.Query["id"].ToString(), out var existingDeckId))
+        {
+            Context.Response.Redirect("/", false);
+            return;
+        }
+
+        var deck = _deckService.Get(existingDeckId, DeckStatus.None);
+        var currentMemberId = int.Parse((await _memberManager.GetCurrentMemberAsync())!.Id);
+        if (deck is null || deck.CreatedBy != currentMemberId)
+        {
+            Context.Response.Redirect("/", false);
+            return;
+        }
+        var mainCard = deck.Cards.Select(it => _cardService.Get(it.CardId)!).First(it => it.GetMultipleCardAttributeValue("Grouping")?.Contains("Castle") is true);
+        selectedDeck = startingDecks.FirstOrDefault(it => it.InitialCards.Any(c => c.Id == mainCard.BaseId))!;
+        selectedDeck.Id = deck.Id;
+        selectedDeck.DeckName = deck.Name;
+        selectedDeck.DeckDescription = deck.Description;
+
+        var initialCards = selectedDeck.InitialCards.ToList();
+        foreach(var card in deck.Cards.Where(it => selectedDeck.InitialCards.Any(c => c.Id != it.CardId)))
+        {
+            var cardViewModel = selectedDeck.AllCards.FirstOrDefault(it => it.Id == card.CardId);
+            if (cardViewModel is null)
+            {
+                continue;
+            }
+
+            cardViewModel.StartingAmount = card.Amount;
+            initialCards.Add(cardViewModel);
+        }
+        selectedDeck.InitialCards = initialCards.ToArray();
+    }
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+@if (selectedDeck is null)
+{
+    <div class="container px-4 md:px-8">
+        <div class="row">
+            <h1>Choose your castle</h1>
+        </div>
+        <div class="row">
+            @foreach (var deck in startingDecks)
+            {
+                var mainCard = deck.InitialCards.First();
+
+                <div class="col-12 col-md-6">
+                    <div class="card">
+                        <a class="card-header" href="?startingDeck=@deck.StartingDeckId">
+                            <div class="card-image">
+                                <img src="@(mainCard.ImageUrl.GetCropUrl(width: 500, height: 150, imageCropMode: ImageCropMode.Crop))&ranchor=top" />
+                            </div>
+                            <div class="info">
+                                <p class="name">@mainCard.Name</p>
+                            </div>
+                        </a>
+                        <div class="card-body">
+                            <div class="info">
+                                <p>@_abilityFormatter.TranslateSpecialChars(mainCard.Ability)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <form asp-controller="Deck" asp-action="CreateDeck" x-on:submit="submitForm" method="post" class="create-deck-form" x-data="createDeck(@Json.Serialize(selectedDeck).ToHtmlString())">
+        <input type="hidden" name="data" x-model="dataString"/>
+        <input type="hidden" name="siteId" value="@_siteAccesor.GetSiteId()"/>
+        <div class="container px-4 md:px-8">
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <div class="card deck-preview">
+                        <div class="card-header">
+                            <div class="card-image">
+                                <img :src="getMainCard().imageUrl" />
+                            </div>
+                            <div class="info">
+                                <p class="name" x-text="deckName"></p>
+                                <p class="hero" x-text="getMainCard().name"></p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info">
+                                <div class="row">
+                                    <div class="col-12 col-sm-4">
+                                        <template x-for="type in ['Castle']">
+                                            <div class="card-group">
+                                                <b x-text="type"></b>
+                                                <template x-for="item in getSelectedCards(type)">
+                                                    <div class="card-name tooltip-starter">
+                                                        <img class="class-image" :src="item.card.overviewImage">
+                                                        <span x-text="item.amount"></span>
+                                                        <span>x</span>
+                                                        <span x-text="item.card.name"></span>
+                                                        <div class="tooltip">
+                                                            <div class="detail-container">
+                                                                <div class="heading">
+                                                                    <h2 x-text="item.card.name"></h2>
+                                                                </div>
+                                                                <div class="info">
+                                                                    <div class="content">
+                                                                        <template x-for="group in item.card.abilityGroups">
+                                                                            <div class="area">
+                                                                                <h3 x-text="group.name"></h3>
+                                                                                <template x-for="ability in group.abilities">
+                                                                                    <p x-html="ability"></p>
+                                                                                </template>
+                                                                            </div>
+                                                                        </template>
+                                                                    </div>
+                                                                    <img class="thumbnail" :src="item.card.thumbnailUrl"loading="lazy">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="isEmpty(type)">
+                                                    <p><i>No cards selected</i></p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <template x-for="type in ['Ally']">
+                                            <div class="card-group">
+                                                <b x-text="type"></b>
+                                                <template x-for="item in getSelectedCards(type)">
+                                                    <div class="card-name tooltip-starter">
+                                                        <img class="class-image" :src="item.card.overviewImage">
+                                                        <span x-text="item.amount"></span>
+                                                        <span>x</span>
+                                                        <span x-text="item.card.name"></span>
+                                                        <div class="tooltip">
+                                                            <div class="detail-container">
+                                                                <div class="heading">
+                                                                    <h2 x-text="item.card.name"></h2>
+                                                                </div>
+                                                                <div class="info">
+                                                                    <div class="content">
+                                                                        <template x-for="group in item.card.abilityGroups">
+                                                                            <div class="area">
+                                                                                <h3 x-text="group.name"></h3>
+                                                                                <template x-for="ability in group.abilities">
+                                                                                    <p x-html="ability"></p>
+                                                                                </template>
+                                                                            </div>
+                                                                        </template>
+                                                                    </div>
+                                                                    <img class="thumbnail" :src="item.card.thumbnailUrl" loading="lazy">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="isEmpty(type)">
+                                                    <p><i>No cards selected</i></p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <template x-for="type in ['Spell', 'Tower', 'Attachment']">
+                                            <div class="card-group">
+                                                <b x-text="type"></b>
+                                                <template x-for="item in getSelectedCards(type)">
+                                                    <div class="card-name tooltip-starter">
+                                                        <img class="class-image" :src="item.card.overviewImage">
+                                                        <span x-text="item.amount"></span>
+                                                        <span>x</span>
+                                                        <span x-text="item.card.name"></span>
+                                                        <div class="tooltip">
+                                                            <div class="detail-container">
+                                                                <div class="heading">
+                                                                    <h2 x-text="item.card.name"></h2>
+                                                                </div>
+                                                                <div class="info">
+                                                                    <div class="content">
+                                                                        <template x-for="group in item.card.abilityGroups">
+                                                                            <div class="area">
+                                                                                <h3 x-text="group.name"></h3>
+                                                                                <template x-for="ability in group.abilities">
+                                                                                    <p x-html="ability"></p>
+                                                                                </template>
+                                                                            </div>
+                                                                        </template>
+                                                                    </div>
+                                                                    <img class="thumbnail" :src="item.card.thumbnailUrl"loading="lazy">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="isEmpty(type)">
+                                                    <p><i>No cards selected</i></p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="col-12 deck-rules">
+                                        <p><b>Deck rules</b></p>
+                                        <p :class="validDeckAmount() ? 'valid' : 'invalid'">
+                                            <span class="icon success"
+                                              :class="validDeckAmount() ? 'success' : 'error'"></span>
+                                            <span>Your deck needs 40 cards. (You have <span x-text="currentDeckAmount(true)"></span> now)</span>
+                                        </p>
+                                        <p :class="validLegendaryAmount() ? 'valid' : 'invalid'">
+                                            <span class="icon success"
+                                              :class="validLegendaryAmount() ? 'success' : 'error'"></span>
+                                            <span>
+                                                Your deck can include a maximum of 2 legendary cards. (You have <span x-text="cardCountOfRarity('Legendary')"></span> now)
+                                            </span>
+                                        </p>
+                                        <p :class="validMythicAmount() ? 'valid' : 'invalid'">
+                                            <span class="icon success"
+                                              :class="validMythicAmount() ? 'success' : 'error'"></span>
+                                            <span>
+                                                Your deck can include a maximum of 6 mythic cards. (You have <span x-text="cardCountOfRarity('Mythic')"></span> now)
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="row">
+                        <div class="detail-panel">
+                            <h2>Details</h2>
+                            <div class="form-field">
+                                <label>Name of your deck</label>
+                                <input type="text" id="name" class="form-input" x-model="name" />
+                            </div>
+                            <div class="form-field">
+                                <label class="with-action">
+                                    <span>Description</span>
+                                    <button class="btn preview-button" x-show="!markdownPreview" x-on:click="toggleMarkdownPreview" type="button">Preview</button>
+                                    <button class="btn preview-button danger" x-show="markdownPreview" x-on:click="toggleMarkdownPreview" type="button">Stop preview</button>
+                                </label>
+                                <textarea id="description" class="form-input" x-model="description" x-show="!markdownPreview"></textarea>
+                                <div class="markdown-preview form-input" x-show="markdownPreview" x-html="markdownPreviewText">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="row">
+                        <h2>Choose your cards</h2>
+                    </div>
+
+                    <div class="row">
+                        <template x-for="item in cards">
+                            <div class="col-6 col-sm-3">
+                                <div class="card">
+                                    <div class="card-header small">
+                                        <div class="card-image">
+                                            <img :src="item.imageUrl" />
+                                        </div>
+                                        <div class="info">
+                                            <p class="name" x-text="item.name"></p>
+                                            <p class="hero">
+                                                <span>Max</span>
+                                                <span x-text="item.maxAmount"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="info">
+                                            <button type="button" class="btn danger"
+                                                x-on:click="removeCard(item.id)">
+                                                -
+                                            </button>
+                                            <button type="button" class="btn" x-on:click="addCard(item.id)"
+                                                x-bind:disabled="maxReached(item)">
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <div class="container px-4 md:px-8">
+                <div class="row actions">
+                    <button type="submit" name="publish" value="false" class="btn btn-outline" x-bind:disabled="!isValidForSave()">Save</button>
+                    <button type="submit" name="publish" value="true" class="btn" x-bind:disabled="!isValidDeck()">Publish</button>
+                </div>
+            </div>
+        </div>
+    </form>
+}

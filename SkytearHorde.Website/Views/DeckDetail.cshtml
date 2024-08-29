@@ -1,0 +1,299 @@
+﻿@using FormBuilder.Core.Extensions;
+@using FormBuilder.Core.Models.ViewModels;
+@using SkytearHorde.Business.Controllers;
+@using SkytearHorde.Business.Exports;
+@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Helpers;
+@using SkytearHorde.Business.Services;
+@using SkytearHorde.Entities.Models.Business;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Cache;
+@using Umbraco.Cms.Core.Models;
+@using Umbraco.Cms.Core.Services;
+@inherits UmbracoViewPage<DeckDetail>
+@inject DeckService _deckService
+@inject SettingsService _settingsService
+@inject DeckListService _deckListService
+@inject IRequestCache _requestCache
+@inject CardPageService _cardPageService
+@inject IMemberService _memberService
+@inject MemberInfoService _memberInfoService
+@inject CommentService _commentService
+@inject CardService _cardService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var deck = _requestCache.Get("Deck") as Deck;
+    if (deck is null)
+    {
+        Context.Response.StatusCode = 404;
+        return;
+    }
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+@if (!Model.UseNewDisplay)
+{
+    var deckSettings = _settingsService.GetDeckSettings();
+    var squadSettings = _settingsService.GetSquadSettings(deck.TypeId);
+
+    var mainCards = _deckService.GetMainCards(deck).ToArray();
+    var mainCard = mainCards[0];
+
+    var loggedIn = Context.User.Identity?.IsAuthenticated is true;
+
+    var hasDescription = !string.IsNullOrWhiteSpace(deck.Description);
+    var createdBy = deck.CreatedBy.HasValue ? _memberService.GetById(deck.CreatedBy.Value)?.Name : "Anonymous";
+    var deckIsLiked = _memberInfoService.GetMemberInfo()?.LikedDecks.Contains(deck.Id) is true;
+    var comments = _commentService.GetByDeck(deck.Id);
+    var currentUserId = Context.User.Identity?.GetUserId<int>();
+
+    <div class="container px-4 md:px-8 py-4" x-data="{ 'showModal': false }" x-on:keydown.escape="showModal = false">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="md:w-1/5 shrink-0">
+                <div class="bg-white p-4 rounded">
+                    <div class="flex justify-between align-center gap-2 pb-2">
+                        <h1 class="text-lg">@deck.Name</h1>
+                        <div id="deck-like-@deck.Id">
+                            @await Html.PartialAsync("~/Views/Partials/components/deckLike.cshtml", new DeckLikeViewModel
+                   {
+                       DeckId = deck.Id,
+                       AmountOfLikes = deck.AmountOfLikes,
+                       Like = loggedIn ? deckIsLiked : deck.AmountOfLikes > 0,
+                       IsAllowedToLike = loggedIn
+                   })
+                        </div>
+                    </div>
+                    @if (mainCard != null && !Model.UseSquadView)
+                    {
+                        <img class="mb-4" src="@(mainCard.Image?.Url())" />
+                    }
+                    <p>Created by @createdBy on @deck.CreatedDate.ToShortDateString()</p>
+                    @if (loggedIn && Model.ShowListOption)
+                    {
+                        <c-button size="Medium" class="mt-4" x-on:click="showModal = true;">
+                            <div class="flex gap-2 align-center">
+                                <svg stroke="currentColor" fill="currentColor" viewBox="0 0 24 24" height="1em" width="1em"><path fill="currentColor" d="M0,12a1.5,1.5,0,0,0,1.5,1.5h8.75a.25.25,0,0,1,.25.25V22.5a1.5,1.5,0,0,0,3,0V13.75a.25.25,0,0,1,.25-.25H22.5a1.5,1.5,0,0,0,0-3H13.75a.25.25,0,0,1-.25-.25V1.5a1.5,1.5,0,0,0-3,0v8.75a.25.25,0,0,1-.25.25H1.5A1.5,1.5,0,0,0,0,12Z"></path></svg>
+                                <p>Add to list</p>
+                            </div>
+                        </c-button>
+                    }
+
+                    @foreach (var exportType in Model.ExportTypes.ToItems<IDeckExportType>())
+                    {
+                        if (exportType is DeckExportGroup)
+                        {
+                            <c-button size="Medium" class="mt-4 w-full js-open-modal" js-modal="modal-@exportType.GetIdentifier()">
+                                <div class="flex gap-2 align-center">
+                                    <p>@exportType.DisplayName</p>
+                                </div>
+                            </c-button>
+                        }
+                        else
+                        {
+                            <c-button size="Medium" is-link="true" class="mt-4 w-full" href="/umbraco/api/export/export?deckId=@deck.Id&exportId=@exportType.Key" target="_blank">
+                                <div class="flex gap-2 align-center">
+                                    <p>@exportType.DisplayName</p>
+                                </div>
+                            </c-button>
+                        }
+                    }
+
+                    @if (Model.EnableForcetable)
+                    {
+                        <c-button size="Medium" is-link="true" class="mt-4 w-full" href="/umbraco/api/export/ExportForceTable?deckId=@deck.Id">
+                            <div class="flex gap-2 align-center">
+                                <p>Try on forcetable</p>
+                            </div>
+                        </c-button>
+                    }
+                </div>
+            </div>
+            <div class="w-full">
+                <div class="bg-white p-4 rounded">
+                    <div class="flex flex-col justify-between md:flex-row gap-8 pb-4">
+                        @if (hasDescription)
+                        {
+                            <div>
+                                <h3 class="text-lg pb-2">Description</h3>
+                                <div class="content">
+                                    @Html.Raw(MarkdownHelper.ToHtml(deck.Description))
+                                </div>
+                            </div>
+                        }
+                        @if (!Model.UseSquadView)
+                        {
+                            var cards = deck.Cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull();
+                            var deckCardGroups = Model.Groups.ToItems<DeckCardGroup>().Select(it => new DeckCardGroupViewModel
+                    {
+                        Deck = deck,
+                        Group = it,
+                        Cards = new SortingHelper(cards.Where(c => c.MatchesRequirements(it.Conditions.ToItems<ISquadRequirementConfig>().ToArray()))).Sort(it.Sorting.ToItems<SortOption>().ToArray()).ToArray(),
+                        SquadSettings = squadSettings
+                    });
+
+                            <div class="flex flex-col @(hasDescription ? "md:w-1/3" : "md:flex-row w-full") shrink-0">
+
+                                @foreach (var group in DeckCardGroupHelper.GroupByCardCount(deckCardGroups.ToArray(), 10))
+                                {
+                                    <div class="@(hasDescription ? "" : "sm:w-1/3")">
+                                        @foreach (var item in group)
+                                        {
+                                            @await Html.PartialAsync("/Views/Partials/components/deckCardGroup.cshtml", item)
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            var useTooltips = Model.EnableSquadTooltips;
+
+                            <div class="grid grid-cols-1 gap-4 @(hasDescription ? "md:w-1/3 md:grid-cols-1" : "w-full md:grid-cols-2") shrink-0">
+                                @foreach (var squad in squadSettings.Squads.ToItems<SquadConfig>())
+                                {
+                                    var slotId = 0;
+
+                                    <div class="squad">
+                                        <h3 class="text-lg pb-2">@squad.Label</h3>
+                                        <div class="flex gap-2 squads">
+                                            @foreach (var slot in squad.Slots.ToItems<SquadSlotConfig>())
+                                            {
+                                                @foreach (var deckCard in deck.Cards.Where(it => it.GroupId.Equals(squad.SquadId) && it.SlotId.Equals(slotId)))
+                                                {
+                                                    var card = _cardService.Get(deckCard.CardId)!;
+                                                    <a href="@_cardPageService.GetUrl(card)" class="image no-underline">
+                                                        <div class="image @(useTooltips ? "cursor-source" : string.Empty)" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
+                                                            @if (card.Image != null)
+                                                            {
+                                                                <img src="@card.Image.GetCropUrl(width: 300, imageCropMode: ImageCropMode.BoxPad)" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="missing-card-image">
+                                                                    <h2>@card.DisplayName</h2>
+                                                                    <p>No image yet</p>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </a>
+                                                }
+
+                                                slotId++;
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <hr />
+                    <div>
+                        @await Html.PartialAsync("~/Views/Partials/components/commentSection.cshtml", new CommentComponentViewModel("Deck", deck.Id)
+               {
+                   Comments = comments
+               })
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (loggedIn)
+        {
+            var deckLists = _deckListService.GetByUser(Context.User.Identity!.GetUserId<int>()).Where(it => !it.DeckIds.Contains(deck.Id)).ToArray();
+            <div class="modal-overlay" x-show="showModal">
+                <div class="modal">
+                    <div class="modal-title">
+                        <h2>Add deck to your list</h2>
+                    </div>
+                    @using (Html.BeginUmbracoForm("HandleSubmit", "List"))
+                    {
+                        <input type="hidden" name="DeckId" value="@deck.Id" />
+
+                        <p>Add this deck to an existing list or create a new one</p>
+                        @if (deckLists.Length > 0)
+                        {
+                            <div class="input">
+                                <div class="form-field">
+                                    @foreach (var list in deckLists)
+                                    {
+                                        <label>
+                                            <input type="radio" name="ExistingListId" value="@list.Id" />
+                                            <span>@list.Name</span>
+                                        </label>
+                                    }
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn">Add</button>
+                                </div>
+                            </div>
+                        }
+                        <div class="input">
+                            <div class="form-field">
+                                <input type="text" placeholder="New list" class="form-input" name="NewListName" />
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn" name="CreateNewList" value="true">Create new list</button>
+                                <button type="button" class="btn danger" x-on:click="showModal = false;">Cancel</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    @await Html.PartialAsync("~/Views/Partials/components/decks/heroDeckDetail.cshtml")
+}
+
+@if (!Model.UseSquadView || Model.EnableSquadTooltips)
+{
+    <div id="cursor-image" class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"></div>
+}
+
+@foreach (var exportGroup in Model.ExportTypes.OfType<BlockListItem<DeckExportGroup>>().Select(it => it.Content))
+{
+    <dialog id="modal-@exportGroup.Key" class="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+        <form class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 sm:ml-4 sm:mt-0">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900">@exportGroup.Title</h3>
+                                <div class="mt-2 mb-2">
+                                    <p class="text-sm">@exportGroup.Description</p>
+                                </div>
+                                @foreach (var item in exportGroup.Items.ToItems<DeckExportGroupItem>())
+                                {
+                                    var exportItem = item.ExportType.ToItems<IDeckExportType>().First();
+                                    <h3 class="text-base font-semibold leading-6 text-gray-900">
+                                        @item.Title
+                                    </h3>
+                                    <div class="mt-2 mb-2">
+                                        @item.Description
+                                        <c-button size="Medium" class="mt-4 @(exportItem.IsCopyToClipboard ? "js-copy-clipboard-button" : "")" is-link="true" href="/umbraco/api/export/export?deckId=@deck.Id&exportId=@exportItem.Key" target="_blank">
+                                            <div class="flex gap-2 align-center">
+                                                <p>
+                                                    @exportItem.DisplayName
+                                                </p>
+                                            </div>
+                                        </c-button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button formmethod="dialog" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </dialog>
+}

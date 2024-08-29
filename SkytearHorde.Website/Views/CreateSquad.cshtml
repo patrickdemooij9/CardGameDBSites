@@ -1,0 +1,11 @@
+﻿@using SkytearHorde.ViewComponents;
+@using Umbraco.Cms.Core.Security;
+@inherits UmbracoViewPage<CreateSquad>
+@inject IMemberManager _memberManager
+@{
+    Layout = "_masterTemplate.cshtml";
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+@(await Component.InvokeAsync<CreateSquadViewComponent>(Model))

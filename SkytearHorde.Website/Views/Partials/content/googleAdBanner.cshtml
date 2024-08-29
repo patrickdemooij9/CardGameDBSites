@@ -1,0 +1,10 @@
+﻿@using SkytearHorde.Business.Middleware;
+@using Microsoft.AspNetCore.Http;
+@model BlockGridItem<GoogleAdBanner>
+
+<div class="w-full flex justify-center">
+    <div>
+        @Html.Raw(Model.Content.Script)
+        <p class="text-base underline"><a href="/why-ads">Why ads?</a></p>
+    </div>
+</div>

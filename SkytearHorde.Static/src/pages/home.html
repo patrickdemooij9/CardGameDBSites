@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Test</title>
+</head>
+
+<body>
+    ${require('/components/navigation.html')}
+
+    <div class="container-fluid header">
+        <div class="row header-inner">
+            <img src="/images/SkytearHordeLogo.png"/>
+        </div>
+    </div>
+    <div class="container push-up">
+        <div class="row justify-center title light">
+            <h2>Popular decks</h2>
+        </div>
+        <div class="row card-overview">
+            <div class="col-12 col-md-4">
+                ${require('/components/card.html')}
+            </div>
+            <div class="col-12 col-md-4">
+                ${require('/components/card.html')}
+            </div>
+            <div class="col-12 col-md-4">
+                ${require('/components/card.html')}
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row justify-center title">
+            <h2>Newest decks</h2>
+        </div>
+        <div class="row card-overview">
+            <div class="col-12 col-md-4">
+                ${require('/components/card.html')}
+            </div>
+            <div class="col-12 col-md-4">
+                ${require('/components/card.html')}
+            </div>
+            <div class="col-12 col-md-4">
+                ${require('/components/card.html')}
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2>Welcome!</h2>
+                <p>This website contains a list of all the cards that are currently available for Skytear Horde.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/dist/js/main-bundle.js"></script>
+</body>
+
+</html>

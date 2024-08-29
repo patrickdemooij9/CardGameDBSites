@@ -1,0 +1,12 @@
+﻿@using SkytearHorde.Business.Services;
+@inherits UmbracoViewPage<BlockGridItem<SkillDisplay>>
+@inject SkillSetService _skillSetService
+@{
+    var skillIds = Model.Content.SkillIds?.Select(it => int.Parse(it)).ToArray() ?? Array.Empty<int>();
+}
+
+<div class="skilldisplay">
+    <skillset-stats skillset="@await _skillSetService.GetSkillSetData(Model.Content.SkillsetID)" entries='@Json.Serialize(await _skillSetService.GetOrganizationData(Model.Content.OrganizationID, skillIds))'>
+</div>
+
+<script type="module" src="/js/skillset-stats.js" asp-append-version="true"></script>

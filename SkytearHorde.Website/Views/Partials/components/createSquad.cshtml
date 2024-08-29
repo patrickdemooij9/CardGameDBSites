@@ -1,0 +1,363 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels.Squad;
+@model CreateSquadTeamOverviewViewModel
+<form asp-controller="Squad" asp-action="CreateSquad" ref="form" method="post" id="builder" class="hidden bg-white" data-builder="@Json.Serialize(Model.Team).ToHtmlString()">
+    <input type="hidden" name="data" v-model="dataString" />
+    <input type="hidden" name="publish" v-model="publish" />
+    <input type="hidden" name="siteId" value="@Model.Team.SiteId" />
+
+    <div class="container">
+        <div class="flex gap-4 sticky top-0 z-10 text-md bg-white p-4 md:hidden">
+            <button class="border-b-2 px-2 py-1" type="button" :class="currentTab === 'squad' ? 'border-2 border-main-color rounded-lg' : ''" v-on:click="clickTab('squad')">
+                <span>
+                    Deck {{getDeckAmount(squad)}} / {{getMaxDeckAmount(squad)}}
+                </span>
+            </button>
+            <button class="border-b-2 px-2 py-1" type="button" :class="currentTab === 'cards' ? 'border-2 border-main-color rounded-lg' : ''" v-on:click="clickTab('cards')">
+                Cards
+            </button>
+            <button class="border-b-2 px-2 py-1" type="button" :class="currentTab === 'details' ? 'border-2 border-main-color rounded-lg' : ''" v-on:click="clickTab('details')">
+                Details
+            </button>
+        </div>
+        <div class="flex">
+            <div class="md:flex md:flex-col md:w-1/3 w-full shrink-0 bg-white" :class="currentTab !== 'squad' ? 'hidden' : 'block'">
+                <div class="sticky top-0">
+                    <div class="md:overflow-auto px-4 md:px-8 py-4 tooltip-container" id="squad-panel">
+                        <h1 class="text-base mb-2">Create deck</h1>
+                        <input type="text" id="name" class="form-input w-full" v-model="name" maxlength="60" placeholder="Name" />
+                        <div class="squad-column mt-4" v-for="squad in squads">
+                            <div class="flex align-center justify-between">
+                                <h3 class="text-base">{{squad.name}}</h3>
+                                <p>{{getSquadAmount(squad)}} / {{getMaxSquadAmount(squad)}}</p>
+                            </div>
+                            <hr />
+                            <div class="mt-2" v-for="slot in getAvailableSlots(squad)">
+                                <div v-if="getCardsBySlot(slot).length > 0">
+                                    <div v-for="group in slot.cardGroups">
+                                        <div v-if="group.cardIds.length > 0">
+                                            <h2 class="text-sm mb-1" v-if="group.displayName">{{ group.displayName }}</h2>
+                                            <div v-for="item in getOrderedGroupCards(group)" class="flex align-center border border-gray-300 w-full rounded mb-2 cursor-pointer tooltip-starter" :class="slot.displaySize === 'Small' ? 'py-1' : '' " v-on:click="selectCharacter(item.card)">
+                                                <img v-for="iconUrl in item.card.iconUrls" class="rounded-md" :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'" :src="iconUrl" />
+                                                <div class="flex grow justify-between px-4 md-py-1">
+                                                    <div class="flex gap-4 align-center justify-between grow mr-2 cursor-source" :data-cursor-image="getMainImageUrl(item.card)">
+                                                        <span class="name">{{item.card.name}}</span>
+                                                        <span v-if="getAbilityValueByType(item.card, 'Points').length > 0">({{Math.abs(getAbilityValueByType(item.card, 'Points'))}})</span>
+                                                        <span class="shrink-0" v-if="slot.numberMode">{{item.amount}} x</span>
+                                                    </div>
+                                                    <a v-if="!slot.numberMode && !slot.disableRemoval && item.allowRemoval" href="#" class="flex align-center justify-center ml-2 no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(item.card)">
+                                                        <i class="ph ph-trash"></i>
+                                                    </a>
+                                                    <div v-if="slot.numberMode && !slot.disableRemoval && item.allowRemoval" class="flex align-center gap-2">
+                                                        <a href="#" class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(item.card)">
+                                                            <i class="ph ph-minus"></i>
+                                                        </a>
+                                                        <a href="#" class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline" :class="(isSlotFilled(slot) || isSlotFillForCard(slot, item.card)) ? 'bg-gray-300 cursor-not-allowed' : ''" v-on:click.prevent.stop="addToSquad(squad, slot, item.card)">
+                                                            <i class="ph ph-plus"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="tooltip w-48">
+                                                    <img class="thumbnail" :src="getMainImageUrl(item.card)" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="!isSlotFilled(slot)" class="flex align-center justify-center w-full h-12 border border-dashed border-gray-300 bg-gray-100 hover:bg-gray-300 cursor-pointer px-4 py-2 rounded" v-on:click="clickSlot(squad, slot, true)">
+                                    <span>{{slot.label}}</span>
+                                </div>
+                            </div>
+                            <div class="deck-rules">
+                                <p v-if="!hasEnoughPoints(squad)" class="invalid">
+                                    <i class="ph ph-warning"></i>
+                                    <span>Your squad has {{Math.abs(pointsLeft(squad))}} points too many.</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <button v-if="isLoggedIn" v-on:click="submitForm(false)" type="button" name="publish" value="false" class="btn btn-outline" v-bind:disabled="!isValidForSave()">Save</button>
+                            <button type="button" v-on:click="submitForm(true)" name="publish" value="true" class="btn" v-bind:disabled="!isValidDeck()">Publish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="md:block px-4 md:px-8 py-4 grow bg-gray-100" :class="currentTab === 'squad' ? 'hidden' : ''">
+                <div class="gap-4 text-lg hidden md:flex">
+                    <button class="hover:border-b-2 hover:border-main-color" type="button" :class="currentTab === 'cards' || currentTab === 'squad' ? 'border-b-2 border-main-color' : ''" v-on:click="clickTab('cards')">
+                        Cards
+                    </button>
+                    <button class="hover:border-b-2 hover:border-main-color" type="button" :class="currentTab === 'details' ? 'border-b-2 border-main-color' : ''" v-on:click="clickTab('details')">
+                        Details
+                    </button>
+                </div>
+                <div :class="getViewStateForTab('cards')">
+                    <div class="mt-4">
+                        <div class="flex gap-4">
+                            <div class="flex grow h-10 overflow-hidden rounded border border-solid border-gray-300">
+                                <input class="pl-4 py-4 grow" name="search" type="text" placeholder="Search..." v-model="search" v-on:keyup.enter="handleSearchInput" />
+                                <button class="flex justify-center align-center w-8 text-lg px-3 bg-white" type="button" v-on:click="updateFilteredCards">
+                                    <i class="ph ph-magnifying-glass"></i>
+                                </button>
+                            </div>
+                            <button class="flex justify-center align-center w-10 text-lg p-2 bg-main-color text-white rounded hover:bg-main-color-hover" type="button" v-on:click="showFilters = !showFilters">
+                                <i class="ph ph-faders"></i>
+                            </button>
+                        </div>
+                        <div class="py-4 border-b-2 border-gray-300" v-show="showFilters" style="display: none">
+                            <div class="flex gap-4">
+                                @foreach (var filter in Model.Filters.Where(it => it.IsInline))
+                                {
+                                    <div>
+                                        <p class="font-bold">@filter.Name</p>
+                                        <div class="flex align-center gap-2">
+                                            @foreach (var item in filter.Items)
+                                            {
+                                                <div class="flex">
+                                                    <input type="checkbox" class="filter peer invisible w-0 h-0" id="@item.Value" name="@filter.Alias" value="@item.Value" @(item.IsChecked ? "checked" : string.Empty) v-on:change="updateFilter($event)" />
+                                                    <label for="@item.Value" class="p-0.5 rounded cursor-pointer overflow-hidden hover:bg-main-color peer-checked:bg-main-color">
+                                                        <img class="w-8" src="@item.IconUrl" />
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="flex gap-4 mt-4">
+                                @foreach (var filter in Model.Filters.Where(it => !it.IsInline))
+                                {
+                                    <div class="rounded bg-main-color text-white js-filter">
+                                        <button type="button" class="flex gap-2 py-2 px-4 align-center" v-on:click="toggleFilter('@filter.Alias')">
+                                            <span>@filter.Name</span>
+                                            <i class="ph ph-caret-down"></i>
+                                        </button>
+                                        <div class="absolute mt-2 z-10 max-h-72 bg-main-color rounded overflow-auto scrollbar:!w-1.5 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 md:shadow-xl" :class="{ 'invisible': openFilter != '@filter.Alias' }">
+                                            @foreach (var item in filter.Items)
+                                            {
+                                                <label for="@item.Value" class="flex align-center gap-2 px-3 py-2 cursor-pointer hover:bg-main-color-hover">
+                                                    <input type="checkbox" class="filter h-4 w-4 bg-white rounded appearance-none checked:bg-checked checked:bg-black" id="@item.Value" name="@filter.Alias" value="@item.Value" @(item.IsChecked ? "checked" : string.Empty) v-on:change="updateFilter($event)">
+                                                    <p>
+                                                        @item.Name
+                                                        @if (!string.IsNullOrWhiteSpace(item.IconUrl))
+                                                        {
+                                                            <img class="class-image" src="@item.IconUrl" />
+                                                        }
+                                                    </p>
+                                                </label>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                <template v-if="selectedSlot && selectedSlot.additionalFilterRequirements?.length > 0">
+                                    <div class="rounded bg-main-color text-white">
+                                        <button type="button" class="flex gap-2 py-2 px-4 align-center" v-on:click="addSlotAdditionalFilterRequirements()">
+                                            <span>Only show valid aspects</span>
+                                        </button>
+                                    </div>
+                                </template>
+                                <template v-if="ownedCharacters.length > 0">
+                                    <div class="flex gap-2 rounded bg-main-color text-white py-2 px-4">
+                                        <input type="checkbox" id="onlyShowOwned" v-model="onlyShowOwned" />
+                                        <label for="onlyShowOwned">Only show owned cards</label>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-8 justify-between py-4 md:flex-row">
+                            <div class="flex flex-wrap align-center gap-2">
+                                <template v-for="filter in filters">
+                                    <template v-for="filterItem in filter.filterItems">
+                                        <div v-if="filterItem.option === 1" class="rounded-md border-2 border-main-color p-1 cursor-pointer" v-on:click="removeFilter(filterItem)">
+                                            <p class="text-xs">
+                                                <span>{{filter.key}}</span>
+                                                :
+                                                <span>{{filterItem.value}}</span>
+                                                <button type="button">
+                                                    <i class="ph ph-x align-middle"></i>
+                                                </button>
+                                            </p>
+                                        </div>
+                                    </template>
+                                </template>
+                                <template v-for="filter in additionalFilterRequirements">
+                                    <div class="rounded-md border-2 border-main-color p-1 cursor-pointer" v-on:click="removeAdditionalFilter(filter)">
+                                        <p class="text-xs">
+                                            <span>Aspect filter</span>
+                                            <button type="button">
+                                                <i class="ph ph-x align-middle"></i>
+                                            </button>
+                                        </p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="grid lg:grid-cols-5 md:grid-cols-4 grid-cols-2 gap-4" v-show="!loadingCards">
+                            <div v-for="character in characters" :key="character.id" class="squad-select" v-show="isShownInOverview(character) && isVisible(character)">
+                                <a href="#" class="no-underline" v-on:click.prevent="selectCharacter(character)">
+                                    <div class="image">
+                                        <img v-if="hasMainImage(character)" height="300" width="200" :src="getMainImageUrl(character)" loading="lazy" />
+                                        <div v-if="!hasMainImage(character)" class="missing-card-image">
+                                            <h2 v-text="character.name"></h2>
+                                            <p>No image yet</p>
+                                        </div>
+                                    </div>
+                                    <div class="overlay">
+                                        <div class="info-bar">
+                                            <div class="info-icon">
+                                                <i class="ph ph-info"></i>
+                                            </div>
+                                        </div>
+                                        <div class="squad-actions" v-if="!preselectFirstSlot">
+                                            <div v-for="location in character.validLocations" class="flex justify-between" :class="{ 'w-full': (location.slot.maxCards > 1 || location.slot.minCards > 1) }" v-show="isLocationVisible(location)">
+                                                <div>
+                                                    <div v-if="character.presentInSlot?.slot === location.slot && isCardAllowedToRemove(location.slot, character)">
+                                                        <button v-if="!location.slot.numberMode" v-on:click.prevent.stop="removeCharacterFromSquad(character)" type="button">
+                                                            <span>Remove</span>
+                                                        </button>
+                                                        <button v-if="location.slot.numberMode" v-on:click.prevent.stop="removeCharacterFromSquad(character)" type="button">
+                                                            <span>-</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div v-if="isLocationAllowed(location)">
+                                                    <div v-if="(character.presentInSlot?.slot !== location.slot || !isSlotFillForCard(location.slot, character))">
+                                                        <button v-if="!location.slot.numberMode" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, character)" type="button">
+                                                            <span>Add to {{location.squad.name}}</span>
+                                                        </button>
+                                                        <button v-if="location.slot.numberMode && !isSlotFilled(location.slot)" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, character)" type="button">
+                                                            <span>+</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div class="squad-actions mt-2" v-if="preselectFirstSlot">
+                                    <div v-for="location in character.validLocations" class="flex justify-between w-full" v-show="isLocationVisible(location)">
+                                        <div>
+                                            <button v-on:click.prevent.stop="removeCharacterFromSquad(character)" type="button" v-if="!location.slot.disableRemoval" :disabled="!isCardAllowedToRemove(location.slot, character)">
+                                                <span v-if="!location.slot.numberMode">Remove</span>
+                                                <span v-else-if="location.slot.numberMode">-</span>
+                                            </button>
+                                        </div>
+                                        <div class="flex align-center" v-if="location.slot.numberMode">
+                                            <span>{{getCharacterAmount(location.slot, character)}}/{{getMaxSizeForSlot(character)}}</span>
+                                        </div>
+                                        <div>
+                                            <button v-on:click.prevent.stop="addToSquad(location.squad, location.slot, character)" type="button" :disabled="!isLocationAllowed(location) || isSlotFillForCard(location.slot, character)">
+                                                <span v-if="!location.slot.numberMode">Add</span>
+                                                <span v-else-if="location.slot.numberMode">+</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-20 flex justify-center relative" style="display:none;" v-show="loadingCards">
+                            <div role="status" class="flex flex-col gap-4 align-center absolute top-2/4">
+                                <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" /><path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" /></svg>
+                                <span>Loading your favorite cards...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div :class="currentTab === 'details' ? '' : 'hidden'">
+                    <div class="form-field">
+                        <label class="with-action">
+                            <span>Description</span>
+                            <button class="btn preview-button" v-show="!markdownPreview" v-on:click="toggleMarkdownPreview" type="button">Preview</button>
+                            <button class="btn preview-button danger" v-show="markdownPreview" v-on:click="toggleMarkdownPreview" type="button">Stop preview</button>
+                        </label>
+                        <textarea id="description" class="form-input h-32" v-model="description" v-show="!markdownPreview"></textarea>
+                        <div class="markdown-preview form-input h-32" v-show="markdownPreview" v-html="markdownPreviewText">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div v-if="selectedCharacter" class="modal-overlay">
+        <div class="modal-wrapper">
+            <div class="modal card-modal">
+                <div class="close-button" v-on:click.prevent="closeModal(true)">
+                    <i class="ph ph-x"></i>
+                </div>
+
+                <div class="image-switcher flex flex-col">
+                    <div class="card-image grow">
+                        <img :src="selectedCharacterImage.imageUrl" />
+                    </div>
+                    <div v-if="selectedCharacter.images.length > 1" class="switcher mt-4">
+                        <div v-for="image in selectedCharacter.images" class="switch-item" :class="selectedCharacterImage === image ? 'active' : ''" v-on:click="selectImage(image)">
+                            <span>{{image.label}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-content">
+                    <h2 class="text-lg">{{selectedCharacter.name}}</h2>
+                    @foreach (var display in Model.Details)
+                    {
+                        var ability = display.Ability as CardAttribute;
+                        var namePosition = display.NamePosition.IfNullOrWhiteSpace("Inline");
+
+                        <div v-if="selectedCharacter !== undefined && hasAbility(selectedCharacter, '@ability.Name')" class="mb-2">
+                            @if (namePosition.Equals("Heading"))
+                            {
+                                <h3>@ability.DisplayName:</h3>
+                            }
+                            <p>
+                                @if (namePosition.Equals("Inline"))
+                                {
+                                    <b>@ability.DisplayName: </b>
+                                }
+                                <span v-html="getAbilityDisplayByType(selectedCharacter, '@ability.Name')"></span>
+                            </p>
+                        </div>
+                    }
+
+                    <div class="modal-actions squad-actions">
+                        <div v-for="location in selectedCharacter.validLocations" class="flex gap-2 justify-between">
+                            <div v-if="selectedCharacter.presentInSlot?.slot === location.slot && isCardAllowedToRemove(location.slot, selectedCharacter)">
+                                <button v-if="selectedCharacter.presentInSlot.slot.maxCards === 1" v-on:click.prevent.stop="removeCharacterFromSquad(selectedCharacter)" type="button">
+                                    <span>Remove</span>
+                                </button>
+                                <button v-if="selectedCharacter.presentInSlot.slot.maxCards > 1 || selectedCharacter.presentInSlot.slot.minCards > 1" v-on:click.prevent.stop="removeCharacterFromSquad(selectedCharacter)" type="button">
+                                    <span>-</span>
+                                </button>
+                            </div>
+                            <div v-if="location.isAllowed && (selectedCharacter.presentInSlot?.slot !== location.slot || !isSlotFillForCard(location.slot, selectedCharacter))">
+                                <button v-if="location.slot.maxCards === 1" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, selectedCharacter)" type="button">
+                                    <span>Add to {{location.squad.name}}</span>
+                                </button>
+                                <button v-if="(location.slot.maxCards > 1 || location.slot.minCards > 1) && !isSlotFillForCard(location.slot, selectedCharacter) && !isSlotFilled(location.slot)" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, selectedCharacter)" type="button">
+                                    <span>+</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div id="cursor-image" class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"></div>
+
+<script>
+    window.onscroll = function () {
+        if (document.body.scrollTop > 56 || document.documentElement.scrollTop > 56) {
+            document.getElementById("squad-panel").classList.add("scrolled");
+        } else {
+            document.getElementById("squad-panel").classList.remove("scrolled");
+        }
+    };
+</script>
+
+<script type="module" src="/js/index.js" asp-append-version="true"></script>

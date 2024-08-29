@@ -1,0 +1,47 @@
+﻿@using SkytearHorde.Business.Services;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Models.Business;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Services;
+@inherits UmbracoViewPage<BlockGridItem<CommentActivity>>
+@inject CommentService _commentService
+@inject DeckService _deckService
+@inject CardService _cardService
+@inject CardPageService _cardPageService
+@inject IMemberService _memberService
+@inject ISiteService _siteService
+@{
+    var comments = _commentService.GetLatest(Model.Content.AmountOfComments);
+}
+<div class="flex justify-center mb-4 z-10 w-full">
+    @await Html.PartialAsync("/Views/Partials/atoms/header.cshtml", new HeaderViewModel(Model.Content.Title, HeaderSize.H2))
+</div>
+<div class="bg-white w-full p-4 rounded">
+    @foreach (var comment in comments)
+    {
+        var source = "";
+        var url = "";
+        if (comment is DeckComment deckComment)
+        {
+            var deck = _deckService.Get(deckComment.DeckId)!;
+            if (deck is null) continue;
+            source = deck.Name;
+            url = $"{_siteService.GetDeckOverview(deck.TypeId).Url()}{deck.Id}";
+        }
+        else if (comment is CardComment cardComment)
+        {
+            var card = _cardService.Get(cardComment.CardId)!;
+            source = card.DisplayName;
+            url = _cardPageService.GetUrl(card);
+        }
+        var userDisplayName = _memberService.GetById(comment.CreatedBy)?.Name;
+
+        <div class="hover:bg-gray-50 p-1 mb-2">
+            <a href="@url" class="w-full ">
+                <p class="font-bold">@userDisplayName - @source</p>
+                <hr/>
+                <p>@comment.Comment</p>
+            </a>
+        </div>
+    }
+</div>

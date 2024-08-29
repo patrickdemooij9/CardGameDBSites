@@ -1,0 +1,13 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Helpers;
+@using SkytearHorde.Entities.Models.ViewModels;
+@model CardDetailDisplayViewModel
+@inject IAbilityFormatter _abilityFormatter
+@{
+    var value = Model.AbilityValue as HeaderTextItemAbilityValue;
+}
+@foreach (var item in value.Items.ToItems<HeaderTextItem>())
+{
+    <p><b>@Html.Raw(_abilityFormatter.TranslateSpecialChars(item.Header))</b></p>
+    <p>@Html.Raw(_abilityFormatter.TranslateSpecialChars(item.Text))</p>
+}

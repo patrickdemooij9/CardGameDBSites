@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Test</title>
+</head>
+
+<body>
+    ${require('/components/navigation.html')}
+
+    <div class="container card-overview" x-data="cardOverview({
+        cards: [{
+            name: 'Test Card',
+            url: '/cards/test',
+            imageUrl: '/images/TestCastle.png',
+            abilities: [{
+                type: 'Faction',
+                label: 'Label',
+                value: 'Value'
+            },{
+                type: 'type',
+                label: 'Castle',
+                value: 'castle'
+            },{
+                type: 'expansion',
+                label: 'Core set',
+                value: 'coreSet'
+            }]
+        },{
+            name: 'Test Card2',
+            url: '/cards/test',
+            imageUrl: '/images/TestCastle.png',
+            abilities: [{
+                type: 'Faction',
+                label: 'Label',
+                value: 'Value'
+            },{
+                type: 'expansion',
+                label: 'Core set',
+                value: 'coreSet'
+            }]
+        },{
+            name: 'Test Card3',
+            url: '/cards/test',
+            imageUrl: '/images/TestCastle.png',
+            abilities: [{
+                type: 'Faction',
+                label: 'Label',
+                value: 'Value'
+            },{
+                type: 'expansion',
+                label: 'Second set',
+                value: 'secondSet'
+            }]
+        }],
+        abilities: [{
+            label: 'Type',
+            value: 'type'
+        },{
+            label: 'Traits',
+            value: 'traits'
+        },{
+            label: 'Cost',
+            label: 'cost'
+        },{
+            label: 'Attack',
+            value: 'attack'
+        },{
+            label: 'Health',
+            value: 'health'
+        }]
+    })">
+        <div class="row justify-center">
+            <h1>Cards</h1>
+        </div>
+        <div class="row">
+            <div class="col-12 button-row">
+                <div class="button-row-left">
+                    <div class="dropdown" :class="expansionDropdownOpen ? 'active' : ''">
+                        <div class="dropdown-label" x-on:click="toggleExpansionDropdown()">
+                            <span>Expansion</span>
+                            <span class="icon chevron-down-black"></span>
+                        </div>
+                        <div class="dropdown-content">
+                            <template x-for="ability in getAllAbilities('expansion')">
+                                <div class="select-item">
+                                    <input type="checkbox" class="select-item" id="firstExpansion">
+                                    <label for="firstExpansion">First Expansion</label>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="dropdown" :class="factionDropdownOpen ? 'active' : ''">
+                        <div class="dropdown-label" x-on:click="togglefactionDropdown()">
+                            <span>Factions</span>
+                            <span class="icon chevron-down-black"></span>
+                        </div>
+                        <div class="dropdown-content">
+                            <div class="select-item">
+                                <input type="checkbox" class="select-item" id="firstExpansion">
+                                <label for="firstExpansion">First Expansion</label>
+                                <img class="class-image" src="/images/liothan.png">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-row-right">
+                    <div class="dropdown">
+                        <div class="dropdown-label">
+                            <span>Layout</span>
+                            <span class="icon chevron-down-black"></span>
+                        </div>
+                        <div class="dropdown-content">
+                            <button class="select-item">Test</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row image-grid">
+            <div class="col-12">
+                <div class="flex-table">
+                    <div class="flex-row table-header">
+                        <div class="flex-cell">
+                            Name
+                        </div>
+                        <template x-for="ability in model.abilities">
+                            <div class="flex-cell" x-text="ability.label">
+                            </div>
+                        </template>
+                    </div>
+                    <template x-for="card in getFilteredCards()">
+                        <a href="/test" class="flex-row table-body">
+                            <div class="flex-cell" data-name="Name" x-text="card.name">
+                            </div>
+
+                            <template x-for="ability in model.abilities">
+                                <div class="flex-cell" x-bind:data-name="ability.label">
+                                    <template x-if="hasAbility(card, ability.value)">
+                                        <span x-text="getAbility(card, ability.value).label"></span>
+                                    </template>
+                                    <template x-if="hasAbility(card, ability.value) != true">
+                                        <span>-</span>
+                                    </template>
+                                </div>
+                            </template>
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/dist/js/main-bundle.js"></script>
+</body>
+
+</html>

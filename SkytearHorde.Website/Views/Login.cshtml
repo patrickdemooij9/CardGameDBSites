@@ -1,0 +1,15 @@
+﻿@using SkytearHorde.ViewComponents;
+@inherits UmbracoViewPage<Login>
+@{
+	Layout = "_masterTemplate.cshtml";
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8">
+    <div class="row">
+        <div class="login-wrapper">
+            @(await Component.InvokeAsync<LoginViewComponent>(Model))
+        </div>
+    </div>
+</div>

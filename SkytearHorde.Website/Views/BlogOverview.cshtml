@@ -1,0 +1,48 @@
+﻿@using SkytearHorde.Business.Services;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits UmbracoViewPage<BlogOverview>
+@inject ContentCreatorService _contentCreatorService
+@inject ISiteService _siteService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    if (!int.TryParse(Context.Request.Query["page"].ToString(), out var page))
+    {
+        page = 1;
+    }
+
+    var creatorBlogs = _contentCreatorService.GetBlogPosts(30, (page - 1) * 30);
+    var creators = _contentCreatorService.GetAll().ToDictionary(it => it.Id, it => it);
+    var settings = _siteService.GetSettings().FirstChild<SiteSettings>();
+}
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8">
+    <div class="mb-6">
+        <h1>Community posts</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p>@Model.Description</p>
+        }
+    </div>
+
+    <div class="grid grid-cols-3 gap-4">
+        @foreach (var blog in creatorBlogs)
+        {
+            var creator = blog.CreatorId != -1 ? creators[blog.CreatorId] : null;
+
+            @await Html.PartialAsync("/Views/Partials/components/card.cshtml", new CardViewModel{
+        Title = blog.Title,
+        ImageUrl = blog.ImageUrl ?? settings.DefaultCreatorImage?.Url(),
+        Author = creator?.DisplayName ?? settings.DefaultCreatorName,
+        Date = blog.PublishedDate,
+        Url = blog.Url,
+        Tags = new CardTag[]{ new CardTag(creator?.TagType ?? "Blog post") }
+        })
+        }
+    </div>
+</div>
+
+@await Html.PartialAsync("/Views/Partials/components/footer.cshtml")

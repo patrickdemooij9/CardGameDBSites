@@ -1,0 +1,9 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Helpers;
+@using SkytearHorde.Entities.Models.ViewModels;
+@model CardDetailDisplayViewModel
+@inject IAbilityFormatter _abilityFormatter
+@{
+    var value = Model.AbilityValue as TextAbilityValue;
+}
+@Html.Raw(_abilityFormatter.TranslateSpecialChars(value.GetAbilityValue()))

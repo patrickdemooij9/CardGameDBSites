@@ -1,0 +1,70 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels
+@model CardOverviewRowDataModel
+<div class="flex-row table-body">
+    <a class="flex-cell no-underline cursor-source" href="@Model.Card.Url" data-name="Name" data-cursor-image="@(Model.Card.Image?.GetCropUrl(width: 400))">
+        @Model.Card.Name
+    </a>
+
+    @foreach (var ability in Model.AbilitiesToShow)
+    {
+        if (ability.Key == "Collection" && Model.Card.Collection != null)
+        {
+            var collection = Model.Card.Collection;
+            var baseCardAmount = Model.Card.Collection.GetAmount(Model.Card.GetMainVariant().Id);
+            <div class="flex-cell" data-name="Normal">
+                <form class="flex align-center gap-2 js-ajax-form-submit" asp-controller="Collection" asp-action="UpdateCardCollection">
+                    <input type="hidden" name="variantId" value="@Model.Card.GetMainVariant().Id" />
+
+                    <button class="border rounded bg-gray-100 p-1" name="amount" value="@(baseCardAmount - 1)"><i class="ph ph-minus"></i></button>
+                    <p>@baseCardAmount</p>
+                    <button class="border rounded bg-gray-100 p-1" name="amount" value="@(baseCardAmount + 1)"><i class="ph ph-plus"></i></button>
+                </form>
+            </div>
+            @foreach (var variantType in Model.VariantTypes)
+            {
+                var variant = Model.Card.Variants.FirstOrDefault(it => it.TypeId == variantType.Id);
+                <div class="flex-cell" data-name="@variantType.DisplayName">
+                    @if (variant != null && collection.HasVariant(variant.Id))
+                    {
+                        var amount = collection.GetAmount(variant.Id);
+                        <form class="flex align-center gap-2 js-ajax-form-submit" asp-controller="Collection" asp-action="UpdateCardCollection">
+                            <input type="hidden" name="cardId" value="@Model.Card.BaseId" />
+                            <input type="hidden" name="variantId" value="@(variant.Id)" />
+
+                            <button class="border rounded bg-gray-100 p-1" name="amount" value="@(amount - 1)"><i class="ph ph-minus"></i></button>
+                            <p>@amount</p>
+                            <button class="border rounded bg-gray-100 p-1" name="amount" value="@(amount + 1)"><i class="ph ph-plus"></i></button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p>-</p>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            var value = Model.Card.GetAbilityByType(ability.Key);
+            <div class="flex-cell" data-name="@ability.Value">
+                @if (value is null)
+                {
+                    <text>-</text>
+                }
+                else
+                {
+                    @value.Label
+                }
+            </div>
+        }
+    }
+
+    @if (Model.ShowCollection && Model.Card.Collection != null)
+    {
+        <div class="flex-cell" data-name="Collection">
+            <button class="btn btn-outline flex justify-center" hx-get="/umbraco/api/collection/rendermanagemodal?cardId=@(Model.Card.BaseId)&setId=@(Model.Card.SetId)" hx-target="#collection-modal">
+                <i class="ph ph-books"></i>
+            </button>
+        </div>
+    }
+</div>

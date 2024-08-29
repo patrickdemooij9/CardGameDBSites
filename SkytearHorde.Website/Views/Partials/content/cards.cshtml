@@ -1,0 +1,35 @@
+﻿@using SkytearHorde.Business.Services;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Models.Business;
+@using SkytearHorde.Entities.Models.Business.Repository
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Services;
+@inherits UmbracoViewPage<BlockGridItem<Cards>>
+@inject DeckService _deckService
+@inject IMemberService _memberService
+@inject ISiteService _siteService
+@{
+    IEnumerable<Deck> decks;
+    if (Model.Content.Type?.Equals("MostPopular") is true)
+    {
+        decks = _deckService.GetHottestDecks(Model.Content.TypeId, Model.Content.Amount);
+    }
+    else
+    {
+        var request = new DeckPagedRequest(Model.Content.TypeId)
+                {
+                    Page = 1,
+                    Take = Model.Content.Amount
+                };
+        decks = _deckService.GetAll(request).Items!;
+    }
+}
+<div class="flex mb-4 z-10 w-full @(Model.Content.HasLightTitle ? "text-white" : string.Empty)">
+    @await Html.PartialAsync("/Views/Partials/atoms/header.cshtml", new HeaderViewModel(Model.Content.Title, HeaderSize.H2))
+</div>
+<div class="grid grid-cols-1 auto-rows-fr lg:grid-cols-@Model.Content.AmountPerRow md:grid-cols-2 gap-4 w-full">
+    @foreach (var deck in decks)
+    {
+        @await Html.PartialAsync("/Views/Partials/components/deckCard.cshtml", deck)
+    }
+</div>

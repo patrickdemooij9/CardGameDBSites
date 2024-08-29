@@ -1,0 +1,24 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Helpers;
+@using SkytearHorde.Entities.Models.ViewModels;
+@model CardDetailDisplayViewModel
+@inject IAbilityFormatter _abilityFormatter
+@{
+    var value = Model.AbilityValue as MultiTextAbilityValue;
+}
+@if (Model.ShowAsTags)
+{
+    @foreach (var item in value?.Values ?? Enumerable.Empty<string>())
+    {
+        @if (string.IsNullOrWhiteSpace(Model.OverviewPageUrl))
+        {
+            <p class="p-1 rounded bg-main-color text-white inline-block text-xs">@Html.Raw(_abilityFormatter.TranslateSpecialChars(item))</p>            
+        }else{
+            <a href="@Model.OverviewPageUrl?@value.Ability.Name=@item" class="p-1 rounded bg-main-color text-white inline-block text-xs no-underline">@Html.Raw(_abilityFormatter.TranslateSpecialChars(item))</a>
+        }
+    }
+}
+else
+{
+    @Html.Raw(_abilityFormatter.TranslateSpecialChars(string.Join(", ", value.Values ?? Enumerable.Empty<string>())))   
+}

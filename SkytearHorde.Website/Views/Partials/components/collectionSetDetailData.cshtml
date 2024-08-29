@@ -1,0 +1,66 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Models;
+@model CollectionSetDetailViewModel
+<div class="container px-4 md:px-8 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6" x-show="!listStyle">
+    @foreach (var card in Model.Cards)
+    {
+        <div>
+            <a href="@card.Card.Url" class="no-underline">
+                @if (card.Card.Image is null)
+                {
+                    <div class="missing-card-image">
+                        <h2>@card.Card.Name</h2>
+                        <p>No image yet</p>
+                    </div>
+                }
+                else
+                {
+                    <img src="@(card.Card.Image?.GetCropUrl(width: 300, imageCropMode: ImageCropMode.BoxPad))" loading="lazy">
+
+                }
+            </a>
+            @if (Model.AllowCardCollecting)
+            {
+                <div class="flex mt-2 gap-2 align-center justify-between">
+                    <p class="grow"><span id="total-count-@card.Card.BaseId">@card.GetTotalAmount()</span> copies</p>
+                    <button class="btn btn-outline flex justify-center" hx-get="/umbraco/api/collection/rendermanagemodal?cardId=@(card.Card.BaseId)&setId=@(card.Card.SetId)" hx-target="#collection-modal">
+                        <i class="ph ph-books"></i>
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</div>
+<div class="container px-4 md:px-8 flex-table grid grid-rows-2" x-show="listStyle">
+    <div class="flex-row table-header">
+        <div class="flex-cell grow">
+            Name
+        </div>
+        @if (Model.AllowCardCollecting)
+        {
+            <div class="flex-cell">
+                Normal
+            </div>
+            @foreach (var variant in Model.VariantTypes)
+            {
+                <div class="flex-cell">
+                    @variant.DisplayName
+                </div>
+            }
+        }
+    </div>
+    @foreach (var card in Model.Cards)
+    {
+        <div id="row-@card.Card.BaseId">
+            @await Html.PartialAsync("~/Views/Partials/components/collectionSetDetailRow.cshtml", new CollectionSetDetailRow(card)
+   {
+       AllowCardCollecting = Model.AllowCardCollecting,
+       VariantTypes = Model.VariantTypes
+   })
+        </div>
+    }
+</div>
+
+<div id="collection-modal">
+
+</div>

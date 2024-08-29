@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Test</title>
+</head>
+
+<body>
+    <nav class="navbar" x-data="{ open: false }" :class="open ? 'active': ''">
+    <div class="container">
+        <div class="row center-items">
+            <div class="col-md-3 col-6 logo">
+                <a href="/" class="nav-link">Skytear Horde</a>
+            </div>
+            <div class="col-9 nav-content">
+                <div class="nav-links">
+                    <div class="nav-dropdown">
+                        <a href="/dist/pages/decks.html" class="nav-link with-icon">
+                            <span>Decks</span>
+                            <span class="icon chevron-down"></span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>All decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>Create deck</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">Cards</a>
+                </div>
+                <div class="nav-actions">
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-link with-icon">
+                            <span class="icon login"></span>
+                            <span>Login</span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">
+                        <span class="icon search"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="col-6 mobile-content">
+                <div id="hamburger" class="hamburger" aria-label="Show navigation" x-on:click="open = !open">
+                    <div class="top-bun"></div>
+                    <div class="meat"></div>
+                    <div class="bottom-bun"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <div class="container-fluid header">
+        <div class="row header-inner">
+            <img src="/images/SkytearHordeLogo.png"/>
+        </div>
+    </div>
+    <div class="container push-up">
+        <div class="row justify-center title light">
+            <h2>Popular decks</h2>
+        </div>
+        <div class="row card-overview">
+            <div class="col-12 col-md-4">
+                <div class="card">
+    <a class="card-header" href="#">
+        <div class="card-image">
+            <img src="/images/TestCastle.png"/>
+        </div>
+        <div class="info">
+            <p class="name">Name of the deck</p>
+            <p class="hero">The Frostbide Stronghold</p>
+        </div>
+    </a>
+    <div class="card-body">
+        <div class="info">
+            <div class="author">
+                <p>By <a href="#">Patrick</a></p>
+            </div>
+            <div class="date">
+                3 days ago
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+    <a class="card-header" href="#">
+        <div class="card-image">
+            <img src="/images/TestCastle.png"/>
+        </div>
+        <div class="info">
+            <p class="name">Name of the deck</p>
+            <p class="hero">The Frostbide Stronghold</p>
+        </div>
+    </a>
+    <div class="card-body">
+        <div class="info">
+            <div class="author">
+                <p>By <a href="#">Patrick</a></p>
+            </div>
+            <div class="date">
+                3 days ago
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+    <a class="card-header" href="#">
+        <div class="card-image">
+            <img src="/images/TestCastle.png"/>
+        </div>
+        <div class="info">
+            <p class="name">Name of the deck</p>
+            <p class="hero">The Frostbide Stronghold</p>
+        </div>
+    </a>
+    <div class="card-body">
+        <div class="info">
+            <div class="author">
+                <p>By <a href="#">Patrick</a></p>
+            </div>
+            <div class="date">
+                3 days ago
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row justify-center title">
+            <h2>Newest decks</h2>
+        </div>
+        <div class="row card-overview">
+            <div class="col-12 col-md-4">
+                <div class="card">
+    <a class="card-header" href="#">
+        <div class="card-image">
+            <img src="/images/TestCastle.png"/>
+        </div>
+        <div class="info">
+            <p class="name">Name of the deck</p>
+            <p class="hero">The Frostbide Stronghold</p>
+        </div>
+    </a>
+    <div class="card-body">
+        <div class="info">
+            <div class="author">
+                <p>By <a href="#">Patrick</a></p>
+            </div>
+            <div class="date">
+                3 days ago
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+    <a class="card-header" href="#">
+        <div class="card-image">
+            <img src="/images/TestCastle.png"/>
+        </div>
+        <div class="info">
+            <p class="name">Name of the deck</p>
+            <p class="hero">The Frostbide Stronghold</p>
+        </div>
+    </a>
+    <div class="card-body">
+        <div class="info">
+            <div class="author">
+                <p>By <a href="#">Patrick</a></p>
+            </div>
+            <div class="date">
+                3 days ago
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+    <a class="card-header" href="#">
+        <div class="card-image">
+            <img src="/images/TestCastle.png"/>
+        </div>
+        <div class="info">
+            <p class="name">Name of the deck</p>
+            <p class="hero">The Frostbide Stronghold</p>
+        </div>
+    </a>
+    <div class="card-body">
+        <div class="info">
+            <div class="author">
+                <p>By <a href="#">Patrick</a></p>
+            </div>
+            <div class="date">
+                3 days ago
+            </div>
+        </div>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2>Welcome!</h2>
+                <p>This website contains a list of all the cards that are currently available for Skytear Horde.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/dist/js/main-bundle.js"></script>
+</body>
+
+</html>

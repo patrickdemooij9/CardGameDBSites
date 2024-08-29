@@ -1,0 +1,45 @@
+﻿@using SkytearHorde.Business.Controllers
+@using SkytearHorde.Entities.Models.ViewModels
+@model CollectionSetDetailRow
+
+<div class="flex-row table-body">
+    <a href="@Model.Item.Card.Url" class="flex-cell cursor-pointer no-underline grow cursor-source" data-name="Name" data-cursor-image="@(Model.Item.Card.Image?.GetCropUrl(width: 400))">
+        @Model.Item.Card.Name
+    </a>
+
+    @if (Model.AllowCardCollecting)
+    {
+        var baseVariant = Model.Item.Card.GetMainVariant();
+        var baseAmount = Model.Item.GetAmount(baseVariant.Id);
+        <div class="flex-cell" data-name="Normal">
+            <form class="flex align-center gap-2 js-ajax-form-submit" asp-controller="Collection" asp-action="UpdateCardCollection">
+                <input type="hidden" name="variantId" value="@baseVariant.Id" />
+
+                <button class="border rounded bg-gray-100 p-1" name="amount" value="@(baseAmount - 1)"><i class="ph ph-minus"></i></button>
+                <p>@baseAmount</p>
+                <button class="border rounded bg-gray-100 p-1" name="amount" value="@(baseAmount + 1)"><i class="ph ph-plus"></i></button>
+            </form>
+        </div>
+        @foreach (var variantType in Model.VariantTypes)
+        {
+            var variant = Model.Item.Card.GetVariant(variantType.Id);
+            <div class="flex-cell" data-name="@variantType.DisplayName">
+                @if (variant != null && Model.Item.HasVariant(variant.Id))
+                {
+                    var amount = Model.Item.GetAmount(variant.Id);
+                    <form class="flex align-center gap-2 js-ajax-form-submit" asp-controller="Collection" asp-action="UpdateCardCollection">
+                        <input type="hidden" name="variantId" value="@(variant.Id)" />
+
+                        <button class="border rounded bg-gray-100 p-1" name="amount" value="@(amount - 1)"><i class="ph ph-minus"></i></button>
+                        <p>@amount</p>
+                        <button class="border rounded bg-gray-100 p-1" name="amount" value="@(amount + 1)"><i class="ph ph-plus"></i></button>
+                    </form>
+                }
+                else
+                {
+                    <p>-</p>
+                }
+            </div>
+        }
+    }
+</div>

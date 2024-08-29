@@ -1,0 +1,45 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Entities.Models.ViewModels;
+@inherits UmbracoViewPage<CardViewModel>
+
+<div class="card">
+    <a class="card-header no-underline" href="@Model.Url">
+        <div class="card-image">
+            <img src="@(Model.ImageUrl)" loading="lazy" />
+        </div>
+        <div class="info">
+            <p class="name">@Model.Title</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Subtitle))
+            {
+                <p class="hero">@Model.Subtitle</p>
+            }
+        </div>
+        @if (Model.Tags.Length > 0)
+        {
+            <div class="absolute right-0 bottom-0 m-2">
+                @foreach (var tag in Model.Tags)
+                {
+                    <div class="bg-main-color py-1 px-2 rounded text-xs">
+                        @tag.Name
+                    </div>
+                }
+            </div>
+        }
+    </a>
+    <div class="card-body">
+        <div class="info">
+            @if (!string.IsNullOrWhiteSpace(Model.Author))
+            {
+                <div class="author">
+                    <p>By <a class="no-underline" href="#">@Model.Author</a></p>
+                </div>
+            }
+            @if (Model.Date != null)
+            {
+                <div class="date">
+                    Created @Model.Date.Value.DateOffsetHumanReadable()
+                </div>
+            }
+        </div>
+    </div>
+</div>

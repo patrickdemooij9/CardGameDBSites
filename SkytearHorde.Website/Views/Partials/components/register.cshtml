@@ -1,0 +1,63 @@
+﻿@using SkytearHorde.Business.Controllers;
+@using SkytearHorde.Entities.Models.PostModels;
+@model RegisterPostModel
+
+@using (Html.BeginUmbracoForm<AccountController>("Register", null, new { @class = "login" }))
+{
+    <input type="hidden" class="recaptcha" name="recaptcha"/>
+
+    <h1>Register</h1>
+    <div class="form-field">
+        @Html.LabelFor(it => it.UserName)
+        @Html.TextBoxFor(it => it.UserName, new {@class = "form-input text-black"})
+        @Html.ValidationMessageFor(it => it.UserName)
+    </div>
+    
+    <div class="form-field">
+        @Html.LabelFor(it => it.Email)
+        @Html.TextBoxFor(it => it.Email, new {@class = "form-input text-black"})
+        @Html.ValidationMessageFor(it => it.Email)
+    </div>
+
+    <div class="form-field">
+        @Html.LabelFor(it => it.Password)
+        @Html.PasswordFor(it => it.Password, new {@class = "form-input text-black"})
+        @Html.ValidationMessageFor(it => it.Password)
+    </div>
+
+    <div class="form-field">
+        <label>
+            @Html.CheckBoxFor(it => it.TermAndConditions)
+            <span>By registering, you agree to the <a href="/terms-and-conditions" class="white-link no-underline">terms and conditions</a></span>
+        </label>
+        @Html.ValidationMessageFor(it => it.TermAndConditions)
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn no-underline">
+            Register
+        </button>
+
+        <a href="/login" class="no-underline">
+            Login
+        </a>
+    </div>
+}
+
+<script src="https://www.google.com/recaptcha/api.js?render=6LfoAPIjAAAAAO0AyBgnvhpCHgEWTnTneKbGcyk0"></script>
+<script>
+    for (item of document.getElementsByClassName("recaptcha")) {
+        const form = item.closest("form");
+        if (form) {
+            form.addEventListener("submit", event => {
+                event.preventDefault();
+                grecaptcha.ready(function () {
+                    grecaptcha.execute('6LfoAPIjAAAAAO0AyBgnvhpCHgEWTnTneKbGcyk0', { action: 'submit' }).then(function (token) {
+                        item.value = token;
+                        form.submit();
+                    });
+                });
+            });;
+        }
+    }
+</script>

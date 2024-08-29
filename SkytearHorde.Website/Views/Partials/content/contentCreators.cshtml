@@ -1,0 +1,24 @@
+﻿@using SkytearHorde.Business.Extensions;
+@inherits UmbracoViewPage<BlockGridItem<ContentCreators>>
+@{
+    var creators = Model.Content.Creators.ToItems<ContentCreator>();
+}
+
+<div class="row justify-center title">
+    <h2>@Model.Content.Title</h2>
+</div>
+<div class="row justify-center mb-1">
+    <p>Are you interested in following people that talk/play about Skytear Horde? Below you can find content creators for the game.</p>
+</div>
+@foreach(var creator in creators){
+    <div class="col-6 col-md-3">
+        <a class="creator no-underline" href="@creator.Url.Url" target="_blank">
+            <div class="creator-image">
+                <img src="@creator.Image.GetCropUrl(height: 100, width: 100)"/>
+            </div>
+            <div class="creator-info">
+                <p>@creator.DisplayName</p>
+            </div>
+        </a>
+    </div>
+}

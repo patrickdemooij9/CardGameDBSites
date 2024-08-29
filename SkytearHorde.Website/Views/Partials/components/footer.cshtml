@@ -1,0 +1,23 @@
+﻿@using SkytearHorde.Business.Services.Site;
+@using Umbraco.Cms.Core.Models;
+@inject ISiteService _siteService
+@{
+    var siteSettings = _siteService.GetSettings().FirstChild<SiteSettings>();
+}
+
+<div class="mt-auto md:flex px-4 md:px-8 bg-main-color @(siteSettings.TextColorWhite ? "text-white" : "text-black")">
+    <div class="py-4 md:w-2/3 text-sm">
+        <p>@siteSettings.FooterText</p>
+    </div>
+    <div class="pl-4 py-4">
+        <p class="font-bold">Other sites</p>
+        <ul>
+            @foreach (var link in siteSettings.FooterLinks ?? Enumerable.Empty<Link>())
+            {
+                <li>
+                    <a href="@link.Url" target="@link.Target">@link.Name</a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

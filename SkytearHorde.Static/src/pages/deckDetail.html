@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Test</title>
+</head>
+
+<body>
+    ${require('/components/navigation.html')}
+
+    <div class="container deck-detail-section">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-image">
+                            <img src="/images/TestCastle2.png" />
+                        </div>
+                        <div class="info">
+                            <p class="name">My deck name</p>
+                            <p class="hero">Something something</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info">
+                            <div class="row">
+                                <div class="col-12 col-sm-4">
+                                    <div class="card-group">
+                                        <b>Castle</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>1x Castle</span>
+                                            ${require('/components/cardTooltip.html')}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <div class="card-group">
+                                        <b>Ally</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>3x Ally</span>
+                                            ${require('/components/cardTooltip.html')}
+                                        </div>
+                                        <div class="card-name tooltip-starter">
+                                            <span>2x Ally</span>
+                                            ${require('/components/cardTooltip.html')}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <div class="card-group">
+                                        <b>Tower</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>3x Ally</span>
+                                            ${require('/components/cardTooltip.html')}
+                                        </div>
+                                        <div class="card-name tooltip-starter">
+                                            <span>2x Ally</span>
+                                            ${require('/components/cardTooltip.html')}
+                                        </div>
+                                    </div>
+                                    <div class="card-group">
+                                        <b>Attachment</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>3x Ally</span>
+                                            ${require('/components/cardTooltip.html')}
+                                        </div>
+                                        <div class="card-name tooltip-starter">
+                                            <span>2x Ally</span>
+                                            ${require('/components/cardTooltip.html')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="deck-detail">
+                    <h2 class="title">Details</h2>
+                    <div class="content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+﻿@using SkytearHorde.Business.Services;
+@using Umbraco.Cms.Core.Security;
+@inherits UmbracoViewPage<AccountLists>
+@inject IMemberManager _memberManager
+@inject DeckListService _deckListService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var currentUser = await _memberManager.GetCurrentMemberAsync();
+    if (currentUser is null)
+    {
+        Context.Response.Redirect("/login");
+        return;
+    }
+
+    var lists = _deckListService.GetByUser(int.Parse(currentUser.Id));
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8">
+    <div class="row justify-center">
+        <h1>Lists</h1>
+    </div>
+    <div class="row mb-1">
+        <div class="col-12">
+            <p>Lists are collections of decks. You can create your own and add decks that are interesting to you or visit any of the lists created by the community. To create your own list, go to a deck and click the "Add to list" button.</p>
+        </div>
+    </div>
+    <div class="row">
+        @foreach (var list in lists)
+        {
+            <div class="col-12">
+                <div class="deck-box small">
+                    <div class="deck-content">
+                        <div class="deck-info">
+                            <h3>@list.Name</h3>
+                            <p>Contains @list.DeckIds.Count decks.</p>
+                        </div>
+                        <div class="deck-actions">
+                            <a class="btn no-underline" href="/list/@list.Id">View</a>
+                            <a class="btn no-underline" href="/edit-list?id=@list.Id">Edit</a>
+                            <!--<button class="btn danger">Delete</button>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

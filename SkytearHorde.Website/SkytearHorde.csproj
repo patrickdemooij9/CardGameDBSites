@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="App_Plugins\Importer\importer.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App_Plugins\Importer\importer.controller.js" />
+    <None Include="App_Plugins\Importer\package.manifest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="7.1.2" />
+    <PackageReference Include="FluentForms.Umbraco" Version="0.1.0-alpha001" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.8.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.8.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.8.0" />
+    <PackageReference Include="Our.Umbraco.Slimsy" Version="5.1.2" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
+    <PackageReference Include="Sentry" Version="4.5.0" />
+    <PackageReference Include="Sentry.AspNetCore" Version="4.5.0" />
+    <PackageReference Include="Sentry.OpenTelemetry" Version="4.5.0" />
+    <PackageReference Include="Sentry.Profiling" Version="4.5.0" />
+    <PackageReference Include="SeoToolkit.Umbraco" Version="3.5.0" />
+    <PackageReference Include="SeoToolkit.Umbraco.Sitemap.Core" Version="3.5.0" />
+    <PackageReference Include="Umbraco.Cms" Version="13.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Opt-in to app-local ICU to ensure consistent globalization APIs across different platforms -->
+    <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="68.2.0.9" />
+    <PackageReference Include="uSync" Version="13.2.1" />
+    <ProjectReference Include="..\AdServer\AdServer.csproj" />
+    <ProjectReference Include="..\SkytearHorde.Business\SkytearHorde.Business.csproj" />
+    <RuntimeHostConfigurationOption Include="System.Globalization.AppLocalIcu" Value="68.2.0.9" Condition="$(RuntimeIdentifier.StartsWith('linux')) or $(RuntimeIdentifier.StartsWith('win')) or ('$(RuntimeIdentifier)' == '' and !$([MSBuild]::IsOSPlatform('osx')))" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Razor files are needed for the backoffice to work correctly -->
+    <CopyRazorGenerateFilesToPublishDirectory>true</CopyRazorGenerateFilesToPublishDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Remove RazorCompileOnBuild and RazorCompileOnPublish when not using ModelsMode InMemoryAuto -->
+    <RazorCompileOnBuild>true</RazorCompileOnBuild>
+    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+  </PropertyGroup>
+  
+</Project>

@@ -1,0 +1,40 @@
+﻿@using SkytearHorde.Business.Services;
+@using SkytearHorde.Entities.Enums
+@using SkytearHorde.Entities.Models.ViewModels;
+@using SkytearHorde.ViewComponents;
+@inherits UmbracoViewPage<CardOverview>
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var description = Model.Description?.ToString();
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+@if (Model.ShowAdBanner)
+{
+    <div class="container px-4 md:px-8 pb-8 mb-8 bg-gray-200">
+        <div class="row">
+            <div class="md:mx-16 w-full" data-banner>
+                <div class="h-32"></div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="container px-4 md:px-8 mb-6">
+    <h1>@Model.Title.IfNullOrWhiteSpace("Cards")</h1>
+    @if (!string.IsNullOrWhiteSpace(description))
+    {
+        @Html.Raw(description)
+    }
+</div>
+@(
+await Component.InvokeAsync<OverviewViewComponent>(new
+{
+    page = Model,
+    overviewDataSourceKey = OverviewDataSourceKey.CardOverview
+})
+)
+
+@await Html.PartialAsync("/Views/Partials/components/footer.cshtml")

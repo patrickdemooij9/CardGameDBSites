@@ -1,0 +1,27 @@
+﻿@using SkytearHorde.Business.Services;
+@using SkytearHorde.Entities.Models.ViewModels;
+@inherits UmbracoViewPage<DeckCardGroupViewModel>
+@inject DeckService _deckService
+<div class="card-group md:pr-8">
+    <b>@Model.Group.Header
+        @if (!Model.Group.HideAmount)
+        {
+            <span> (@Model.Cards.Sum(it => Model.Deck.GetDeckCard(it.BaseId)!.Amount))</span>
+        }
+    </b>
+    @foreach (var card in Model.Cards)
+    {
+        var deckCard = Model.Deck.GetDeckCard(card.BaseId)!;
+        <div class="flex w-full card-name cursor-source" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
+            <span class="w-8 shrink-0">@deckCard.Amount x</span>
+            <span class="grow">@card.DisplayName</span>
+            <div class="shrink-0">
+                @foreach (var imageUrl in _deckService.GetOverviewImageForCard(card, Model.SquadSettings))
+                {
+                    <img src="@imageUrl" class="class-image">
+                }
+            </div>            
+        </div>
+    }
+
+</div>

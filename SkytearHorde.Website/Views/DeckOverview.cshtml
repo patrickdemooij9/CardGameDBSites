@@ -1,0 +1,38 @@
+﻿@using SkytearHorde.Business.Services;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Enums
+@using SkytearHorde.Entities.Models.ViewModels;
+@using SkytearHorde.ViewComponents
+@using Umbraco.Cms.Core.Services;
+@inherits UmbracoViewPage<DeckOverview>
+@inject DeckService _deckService
+@inject IMemberService _memberService
+@inject ISiteService _siteService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var description = Model.Description?.ToString();
+}
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8 mb-16">
+    <div class="row justify-center">
+        <div class="section-title">
+            <h1>@Model.Title</h1>
+            @if (!string.IsNullOrWhiteSpace(description))
+            {
+                @Html.Raw(description)
+            }
+        </div>
+    </div>
+    
+    @(
+        await Component.InvokeAsync<OverviewViewComponent>(new
+        {
+            page = Model,
+            overviewDataSourceKey = OverviewDataSourceKey.DeckOverview
+        })
+        )
+</div>
+
+@await Html.PartialAsync("/Views/Partials/components/footer.cshtml")

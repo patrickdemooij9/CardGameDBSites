@@ -1,0 +1,32 @@
+﻿@using SkytearHorde.Business.Services;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Models.Business;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Services;
+@inherits UmbracoViewPage<BlockGridItem<ContentCreatorBlogs>>
+@inject ContentCreatorService _contentCreatorService
+@inject ISiteService _siteService
+@{
+    var creatorBlogs = _contentCreatorService.GetBlogPosts(Model.Content.Amount, 0);
+    var creators = _contentCreatorService.GetAll().ToDictionary(it => it.Id, it => it);
+    var settings = _siteService.GetSettings().FirstChild<SiteSettings>();
+}
+<div class="row justify-center title">
+    <h2>@Model.Content.Title</h2>
+</div>
+@foreach (var blog in creatorBlogs)
+{
+    var creator = blog.CreatorId != -1 ? creators[blog.CreatorId] : null;
+
+    <div class="col-12 col-md-4">
+        @await Html.PartialAsync("/Views/Partials/components/card.cshtml", new CardViewModel{
+    Title = blog.Title,
+    ImageUrl = blog.ImageUrl ?? settings.DefaultCreatorImage?.Url(),
+    Author = creator?.DisplayName ?? settings.DefaultCreatorName,
+    Date = blog.PublishedDate,
+    Url = blog.Url,
+    Tags = new CardTag[]{ new CardTag(creator?.TagType ?? "Blog post") } 
+    })
+    </div>
+
+}

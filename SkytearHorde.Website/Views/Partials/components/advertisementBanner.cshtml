@@ -1,0 +1,28 @@
+﻿@using AdServer.Models;
+@model Ad
+@{
+    var random = new Random();
+
+    var graphic = Model.Graphics.Length == 1 ? Model.Graphics[0] : Model.Graphics[random.Next(0, Model.Graphics.Length)];
+
+    var desktopImage = graphic.DesktopImageUrl;
+    var tabletImage = graphic.TabletImageUrl;
+    var mobileImage = graphic.MobileImageUrl;
+}
+
+<div class="flex justify-center">
+    <div class="w-fit">
+        <a href="/adredirect?id=@Model.Id" class="block no-underline" target="_blank">
+            <picture>
+                <source srcset="@desktopImage" media="(min-width: 768px)" />
+                <source srcset="@tabletImage" media="(min-width: 426px)" />
+                <source srcset="@mobileImage" />
+                <img src="@desktopImage" />
+            </picture>
+        </a>
+        @if (Model.ShowAdExplanation)
+        {
+            <p class="text-sm"><a href="/why-ads">Why ads?</a></p>
+        }
+    </div>
+</div>

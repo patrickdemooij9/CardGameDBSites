@@ -1,0 +1,71 @@
+﻿@using SkytearHorde.Business.Services
+@using SkytearHorde.Business.Services.Site
+@using SkytearHorde.Entities.Models.ViewModels
+@using Umbraco.Cms.Core.Security
+@inject CardService _cardService
+@inject IMemberManager _memberManager
+@inject CollectionService _collectionService
+@inject SettingsService _settingsService
+@inject ISiteService _siteService
+@{
+    var sets = _cardService.GetAllSets().ToArray();
+    var isLoggedIn = _memberManager.IsLoggedIn();
+
+    var currentSets = !isLoggedIn ? Array.Empty<int>() : _collectionService.GetSets().Select(it => it.SetId).ToArray();
+    var collectionSettings = _settingsService.GetCollectionSettings();
+    var setOverview = _siteService.GetSetOverview();
+    if (setOverview is null)
+    {
+        return;
+    }
+}
+<div class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
+    @foreach (var set in sets)
+    {
+        <div class="flex flex-col gap-2 rounded-md border-2 border-gray-300 bg-white p-4">
+            <a href="@setOverview.Url()@set.UrlSegment" class="flex gap-2 items-baseline text-base no-underline">
+                <h2 class="text-base font-bold">@set.DisplayName</h2>
+                @if (!string.IsNullOrWhiteSpace(set.SetCode))
+                {
+                    <i class="text-xs">@set.SetCode</i>
+                }
+            </a>
+            <div class="flex justify-between">
+                <img class="h-16" src="@(set.DisplayImage?.Url())" />
+                <div class="flex flex-col justify-center">
+                    @foreach (var info in set.ExtraInformation ?? Enumerable.Empty<string>())
+                    {
+                        <span class="text-sm">@info</span>
+                    }
+                </div>
+            </div>
+            <div class="flex justify-between gap-4">
+                <div class="grow self-center">
+                    @if (isLoggedIn)
+                    {
+                        if (collectionSettings.AllowSetCollecting)
+                        {
+                            <div id="collection-@set.Id">
+                                @await Html.PartialAsync("~/Views/Partials/components/collectionButton.cshtml", new CollectionButtonViewModel()
+                                {
+                                    SetId = set.Id,
+                                    ToAdd = !currentSets.Contains(set.Id)
+                                })
+                            </div>
+                        }
+                        else if (collectionSettings.AllowCardCollecting)
+                        {
+                            var setProgress = _collectionService.CalculateCollectionProgressBySet(set.Id, out var totalCards, out var collectionCards);
+                            @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(setProgress)
+                            {
+                                Description = $"{collectionCards}/{totalCards}"
+                            })
+                        }
+                    }
+                </div>
+                <a href="@setOverview.Url()@set.UrlSegment" class="btn btn-outline flex gap-2 align-center px-2 py-1 bg-white"><i class="ph ph-chart-bar"></i>Details</a>
+            </div>
+
+        </div>
+    }
+</div>

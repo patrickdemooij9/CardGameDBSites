@@ -1,0 +1,34 @@
+﻿@using SkytearHorde.Entities.Models.Business
+@using SkytearHorde.Entities.Models.ViewModels
+@using Umbraco.Cms.Core.Models
+@model DeckOverviewDataModel
+<div class="grid grid-cols-1 auto-rows-fr lg:grid-cols-@Model.DecksPerRow md:grid-cols-2 gap-4 w-full">
+    @foreach (var deck in Model.Decks.Items)
+    {
+        @await Html.PartialAsync("/Views/Partials/components/deckCard.cshtml", deck)
+    }
+</div>
+
+@if (Model.Decks.TotalPages > 1)
+{
+    <div class="mt-8 row justify-center">
+        <div class="pagination overflow-hidden">
+            @if (Model.Page > 1)
+            {
+                <a href="@Model.BaseUrl?page=@(Model.Page - 1)" class="page no-underline" x-on:click.prevent="setPageNumber(@(Model.Page - 1))">Previous</a>
+            }
+            @for (var i = Model.Page - 2; i <= Model.Page + 2; i++)
+            {
+                if (i < 1 || i > Model.Decks.TotalPages)
+                {
+                    continue;
+                }
+                <a href="@Model.BaseUrl?page=@(i)" class="page no-underline @(i == Model.Page ? "bg-main-color text-white" : "")" x-on:click.prevent="setPageNumber(@(i))">@(i)</a>
+            }
+            @if (Model.Page < Model.Decks.TotalPages)
+            {
+                <a href="@Model.BaseUrl?page=@(Model.Page + 1)" class="page no-underline" x-on:click.prevent="setPageNumber(@(Model.Page + 1))">Next</a>
+            }
+        </div>
+    </div>
+}

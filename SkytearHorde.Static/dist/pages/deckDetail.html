@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.lineicons.com/3.0/lineicons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Test</title>
+</head>
+
+<body>
+    <nav class="navbar" x-data="{ open: false }" :class="open ? 'active': ''">
+    <div class="container">
+        <div class="row center-items">
+            <div class="col-md-3 col-6 logo">
+                <a href="/" class="nav-link">Skytear Horde</a>
+            </div>
+            <div class="col-9 nav-content">
+                <div class="nav-links">
+                    <div class="nav-dropdown">
+                        <a href="/dist/pages/decks.html" class="nav-link with-icon">
+                            <span>Decks</span>
+                            <span class="icon chevron-down"></span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>All decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>Create deck</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">Cards</a>
+                </div>
+                <div class="nav-actions">
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-link with-icon">
+                            <span class="icon login"></span>
+                            <span>Login</span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">
+                        <span class="icon search"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="col-6 mobile-content">
+                <div id="hamburger" class="hamburger" aria-label="Show navigation" x-on:click="open = !open">
+                    <div class="top-bun"></div>
+                    <div class="meat"></div>
+                    <div class="bottom-bun"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <div class="container deck-detail-section">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-image">
+                            <img src="/images/TestCastle2.png" />
+                        </div>
+                        <div class="info">
+                            <p class="name">My deck name</p>
+                            <p class="hero">Something something</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info">
+                            <div class="row">
+                                <div class="col-12 col-sm-4">
+                                    <div class="card-group">
+                                        <b>Castle</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>1x Castle</span>
+                                            <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <div class="card-group">
+                                        <b>Ally</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>3x Ally</span>
+                                            <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                        </div>
+                                        <div class="card-name tooltip-starter">
+                                            <span>2x Ally</span>
+                                            <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <div class="card-group">
+                                        <b>Tower</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>3x Ally</span>
+                                            <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                        </div>
+                                        <div class="card-name tooltip-starter">
+                                            <span>2x Ally</span>
+                                            <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                        </div>
+                                    </div>
+                                    <div class="card-group">
+                                        <b>Attachment</b>
+                                        <div class="card-name tooltip-starter">
+                                            <span>3x Ally</span>
+                                            <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                        </div>
+                                        <div class="card-name tooltip-starter">
+                                            <span>2x Ally</span>
+                                            <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="deck-detail">
+                    <h2 class="title">Details</h2>
+                    <div class="content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

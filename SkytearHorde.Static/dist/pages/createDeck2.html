@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Test</title>
+</head>
+
+<body>
+    <nav class="navbar" x-data="{ open: false }" :class="open ? 'active': ''">
+    <div class="container">
+        <div class="row center-items">
+            <div class="col-md-3 col-6 logo">
+                <a href="/" class="nav-link">Skytear Horde</a>
+            </div>
+            <div class="col-9 nav-content">
+                <div class="nav-links">
+                    <div class="nav-dropdown">
+                        <a href="/dist/pages/decks.html" class="nav-link with-icon">
+                            <span>Decks</span>
+                            <span class="icon chevron-down"></span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>All decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>Create deck</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">Cards</a>
+                </div>
+                <div class="nav-actions">
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-link with-icon">
+                            <span class="icon login"></span>
+                            <span>Login</span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">
+                        <span class="icon search"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="col-6 mobile-content">
+                <div id="hamburger" class="hamburger" aria-label="Show navigation" x-on:click="open = !open">
+                    <div class="top-bun"></div>
+                    <div class="meat"></div>
+                    <div class="bottom-bun"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <form @submit="submitForm" method="post" class="create-deck-form" x-data="createDeck({
+        startingDeckId: '1',
+        name: 'My amazing deck',
+        description: '',
+        allCards: [{
+            id: 1,
+            name: 'Test castle',
+            group: 'Tower',
+            maxAmount: 1,
+            imageUrl: '/images/TestCastle.png',
+            thumbnailUrl: '/images/TestCastle.png',
+            rarity: 'Legendary',
+            startingAmount: 1,
+            overviewImage: '/images/kurumo.png',
+            abilityGroups: [
+                {
+                    name: 'Card attributes',
+                    abilities: ['<b>Type:</b> Castle', '<b>Health:</b> 20']
+                },
+                {
+                    name: 'Card ability',
+                    abilities: ['<b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.']
+                }
+            ]
+        },
+        {
+            id: 2,
+            name: 'Test card 2',
+            group: 'Tower',
+            maxAmount: 1,
+            imageUrl: '/images/TestCastle.png',
+            thumbnailUrl: '/images/TestCastle.png',
+            rarity: 'Legendary',
+            startingAmount: 1,
+            overviewImage: '/images/liothan.png',
+            abilityGroups: [
+                {
+                    name: 'Card attributes',
+                    abilities: ['<b>Type:</b> Castle', '<b>Health:</b> 20']
+                },
+                {
+                    name: 'Card ability',
+                    abilities: ['<b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.']
+                }
+            ]
+        },
+        {
+            id: 3,
+            name: 'Test card 3',
+            group: 'Ally',
+            maxAmount: 2,
+            imageUrl: '/images/TestCastle.png',
+            thumbnailUrl: '/images/TestCastle.png',
+            rarity: 'Legendary',
+            startingAmount: 1,
+            overviewImage: '/images/nupten.png',
+            abilityGroups: [
+                {
+                    name: 'Card attributes',
+                    abilities: ['<b>Type:</b> Castle', '<b>Health:</b> 20']
+                },
+                {
+                    name: 'Card ability',
+                    abilities: ['<b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.']
+                }
+            ]
+        },
+        {
+            id: 4,
+            name: 'Test card 4',
+            group: 'Attachment',
+            maxAmount: 1,
+            imageUrl: '/images/TestCastle.png',
+            thumbnailUrl: '/images/TestCastle.png',
+            rarity: 'Mythic',
+            startingAmount: 1,
+            overviewImage: '/images/taulot.png',
+            abilityGroups: [
+                {
+                    name: 'Card attributes',
+                    abilities: ['<b>Type:</b> Castle', '<b>Health:</b> 20']
+                },
+                {
+                    name: 'Card ability',
+                    abilities: ['<b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.']
+                }
+            ]
+        },
+        {
+            id: 5,
+            name: 'Test card 5',
+            group: 'Attachment',
+            maxAmount: 50,
+            imageUrl: '/images/TestCastle.png',
+            thumbnailUrl: '/images/TestCastle.png',
+            rarity: 'Rare',
+            startingAmount: 1,
+            overviewImage: '/images/kurumo.png',
+            abilityGroups: [
+                {
+                    name: 'Card attributes',
+                    abilities: ['<b>Type:</b> Castle', '<b>Health:</b> 20']
+                },
+                {
+                    name: 'Card ability',
+                    abilities: ['<b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.']
+                }
+            ]
+        },
+        {
+            id: 6,
+            name: 'Test card 6',
+            group: 'Ally',
+            maxAmount: 2,
+            imageUrl: '/images/TestCastle.png',
+            thumbnailUrl: '/images/TestCastle.png',
+            rarity: 'Base',
+            startingAmount: 1,
+            overviewImage: '/images/kurumo.png',
+            abilityGroups: [
+                {
+                    name: 'Card attributes',
+                    abilities: ['<b>Type:</b> Castle', '<b>Health:</b> 20']
+                },
+                {
+                    name: 'Card ability',
+                    abilities: ['<b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.']
+                }
+            ]
+        }],
+        initialCards: [{
+            id: 10,
+            name: 'The Frostbide Stronghold',
+            group: 'Castle',
+            maxAmount: 1,
+            imageUrl: '/images/TestCastle.png',
+            thumbnailUrl: '/images/TestCastle.png',
+            rarity: 'None',
+            startingAmount: 1,
+            overviewImage: '/images/kurumo.png',
+            abilityGroups: [
+                {
+                    name: 'Card attributes',
+                    abilities: ['<b>Type:</b> Castle', '<b>Health:</b> 20']
+                },
+                {
+                    name: 'Card ability',
+                    abilities: ['<b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.']
+                }
+            ]
+        }]
+    })">
+
+        <input type="hidden" name="data" x-model="dataString" maxlength="60" />
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <div class="card deck-preview">
+                        <div class="card-header">
+                            <div class="card-image">
+                                <img :src="getMainCard().imageUrl" />
+                            </div>
+                            <div class="info">
+                                <p class="name" x-text="deckName"></p>
+                                <p class="hero" x-text="getMainCard().name"></p>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info">
+                                <div class="row">
+                                    <div class="col-12 col-sm-4">
+                                        <template x-for="type in ['Castle']">
+                                            <div class="card-group">
+                                                <b x-text="type"></b>
+                                                <template x-for="item in getSelectedCards(type)">
+                                                    <div class="card-name tooltip-starter">
+                                                        <img class="class-image" :src="item.card.overviewImage">
+                                                        <span x-text="item.amount"></span>
+                                                        <span>x</span>
+                                                        <span x-text="item.card.name"></span>
+                                                        <div class="tooltip">
+                                                            <div class="detail-container">
+                                                                <div class="heading">
+                                                                    <h2 x-text="item.card.name"></h2>
+                                                                </div>
+                                                                <div class="info">
+                                                                    <div class="content">
+                                                                        <template x-for="group in item.card.abilityGroups">
+                                                                            <div class="area">
+                                                                                <h3 x-text="group.name"></h3>
+                                                                                <template x-for="ability in group.abilities">
+                                                                                    <p x-html="ability"></p>
+                                                                                </template>
+                                                                            </div>
+                                                                        </template>
+                                                                    </div>
+                                                                    <img class="thumbnail" :src="item.card.thumbnailUrl" loading="lazy">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="isEmpty(type)">
+                                                    <p><i>No cards selected</i></p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <template x-for="type in ['Ally']">
+                                            <div class="card-group">
+                                                <b x-text="type"></b>
+                                                <template x-for="item in getSelectedCards(type)">
+                                                    <p class="card-name">
+                                                        <img class="class-image" :src="item.card.overviewImage">
+                                                        <span x-text="item.amount"></span>
+                                                        <span>x</span>
+                                                        <span x-text="item.card.name"></span>
+                                                        
+                                                    </p>
+                                                </template>
+                                                <template x-if="isEmpty(type)">
+                                                    <p><i>No cards selected</i></p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <template x-for="type in ['Tower', 'Attachment']">
+                                            <div class="card-group">
+                                                <b x-text="type"></b>
+                                                <template x-for="item in getSelectedCards(type)">
+                                                    <p class="card-name">
+                                                        <img class="class-image" :src="item.card.overviewImage">
+                                                        <span x-text="item.amount"></span>
+                                                        <span>x</span>
+                                                        <span x-text="item.card.name"></span>
+                                                        <div class="tooltip">
+    <div class="detail-container">
+        <div class="heading">
+            <h2>The Frostbite Stronghold</h2>
+        </div>
+        <div class="info">
+            <div class="content">
+                <div class="area">
+                    <h3>Card attributes</h3>
+                    <p><b>Type:</b> Castle</p>
+                    <p><b>Health:</b> 20</p>
+                </div>
+                <div class="area">
+                    <h3>Card ability</h3>
+                    <p><b>Exhaust, Pay 1 mana:</b> The weakest ally and the monster engaged with it strike each other.</p>
+                </div>
+            </div>
+            <img class="thumbnail" src="/images/TestCastle2.png">
+        </div>
+    </div>
+</div>
+                                                    </p>
+                                                </template>
+                                                <template x-if="isEmpty(type)">
+                                                    <p><i>No cards selected</i></p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="col-12 deck-rules">
+                                        <p><b>Deck rules</b></p>
+                                        <p :class="validDeckAmount() ? 'valid' : 'invalid'">
+                                            <span class="icon success"
+                                                :class="validDeckAmount() ? 'success' : 'error'"></span>
+                                            <span>Your deck needs 40 cards. (You have <span x-text="currentDeckAmount(true)"></span> now)</span>
+                                        </p>
+                                        <p :class="validLegendaryAmount() ? 'valid' : 'invalid'">
+                                            <span class="icon success"
+                                                :class="validLegendaryAmount() ? 'success' : 'error'"></span>
+                                            <span>Your deck can include a maximum of 2 legendary cards. (You have <span
+                                                    x-text="cardCountOfRarity('Legendary')"></span> now)</span>
+                                        </p>
+                                        <p :class="validMythicAmount() ? 'valid' : 'invalid'">
+                                            <span class="icon success"
+                                                :class="validMythicAmount() ? 'success' : 'error'"></span>
+                                            <span>Your deck can include a maximum of 6 mythic cards. (You have <span
+                                                    x-text="cardCountOfRarity('Mythic')"></span> now)</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="row">
+                        <div class="detail-panel">
+                            <h2>Details</h2>
+                            <div class="form-field">
+                                <label>
+                                    Name of your deck
+                                </label>
+                                <input type="text" id="name" class="form-input" x-model="name" />
+                            </div>
+                            <div class="form-field">
+                                <label class="with-action">
+                                    <span>Description</span>
+                                    <button class="btn preview-button" x-show="!markdownPreview" x-on:click="toggleMarkdownPreview" type="button">Preview</button>
+                                    <button class="btn preview-button danger" x-show="markdownPreview" x-on:click="toggleMarkdownPreview" type="button">Stop preview</button>
+                                </label>
+                                <textarea id="description" class="form-input" x-model="description" x-show="!markdownPreview"></textarea>
+                                <div class="markdown-preview form-input" x-show="markdownPreview" x-html="markdownPreviewText">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="col-12 col-md-6">
+                    <div class="row">
+                        <div class="tab-container">
+                            <div class="tab active">
+                                <p>Cards</p>
+                            </div>
+                            <div class="tab">
+                                <p>Detail</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>-->
+                
+                <div class="col-12">
+                    <div class="row">
+                        <h2>Choose your cards</h2>
+                    </div>
+                    <div class="row">
+                        <template x-for="item in cards">
+                            <div class="col-6 col-sm-3">
+                                <div class="card">
+                                    <div class="card-header small">
+                                        <div class="card-image">
+                                            <img :src="item.imageUrl" />
+                                        </div>
+                                        <div class="info">
+                                            <p class="name" x-text="item.name"></p>
+                                            <p class="hero">
+                                                <span>Max</span>
+                                                <span x-text="item.maxAmount"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="info">
+                                            <button type="button" class="btn danger"
+                                                x-on:click="removeCard(item.id)">-</button>
+                                            <button type="button" class="btn" x-on:click="addCard(item.id)"
+                                                x-bind:disabled="maxReached(item)">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <div class="container">
+                <div class="row actions">
+                    <button type="submit" name="publish" value="false" class="btn outline" x-bind:disabled="!isValidForSave()">Save</button>
+                    <button type="submit" name="publish" value="true" class="btn" x-bind:disabled="!isValidDeck()">Publish</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <script src="/dist/js/main-bundle.js"></script>
+</body>
+
+</html>

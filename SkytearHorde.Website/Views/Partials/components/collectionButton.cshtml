@@ -1,0 +1,20 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels
+@model CollectionButtonViewModel
+@if (Model.ToAdd){
+    <form asp-controller="Collection" asp-action="AddSetToCollection" class="js-ajax-form-submit">
+        <input type="hidden" name="setId" value="@Model.SetId" />
+        <button class="btn px-2 py-1" type="submit">
+            Add to collection
+        </button>
+    </form>
+}
+else
+{
+    <form asp-controller="Collection" asp-action="RemoveSetFromCollection" class="js-ajax-form-submit">
+        <input type="hidden" name="setId" value="@Model.SetId" />
+        <button class="btn danger px-2 py-1" type="submit">
+            Remove
+        </button>
+    </form>
+}
+

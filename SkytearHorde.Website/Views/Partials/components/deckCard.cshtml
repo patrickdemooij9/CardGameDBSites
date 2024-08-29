@@ -1,0 +1,191 @@
+﻿@using SeoToolkit.Umbraco.Common.Core.Services.SettingsService;
+@using SkytearHorde.Business.Controllers;
+@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Middleware;
+@using SkytearHorde.Business.Services;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Models.Business;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Services;
+@inject SettingsService _settingsService
+@inject ISiteService _siteService
+@inject DeckService _deckService
+@inject IMemberService _memberService
+@inject ISiteAccessor _siteAccessor
+@inject MemberInfoService _memberInfoService
+@inject CollectionService _collectionService
+@inject CardPriceService _cardPriceService
+@inject CardService _cardService
+@model Deck
+@{
+    var squadSettings = _settingsService.GetSquadSettings(Model.TypeId);
+    var author = Model.CreatedBy is null ? "Anonymous" : _memberService.GetById(Model.CreatedBy.Value)?.Name;
+
+    var mainCards = _deckService.GetMainCards(Model).ToArray();
+    if (mainCards.Length == 0)
+    {
+        mainCards = squadSettings.Squads.ToItems<SquadConfig>()
+            .SelectMany((squad) => squad.Slots
+                .ToItems<SquadSlotConfig>()
+                .Select((it, index) => Model.Cards.FirstOrDefault(c => c.GroupId == squad.SquadId && c.SlotId == index)))
+            .WhereNotNull()
+            .Select(it => _cardService.Get(it.CardId)!)
+            .ToArray();
+    }
+
+    var memberInfo = _memberInfoService.GetMemberInfo();
+    var deckIsLiked = memberInfo?.LikedDecks.Contains(Model.Id) is true;
+}
+@if (squadSettings is null || squadSettings.UseDeckDisplay)
+{
+    var mainCard = mainCards[0];
+    var colors = _deckService.GetColorsByDeck(Model);
+
+    <div class="card">
+        <a class="card-header no-underline" href="@_siteService.GetDeckOverview(Model.TypeId).Url()@Model.Id">
+            <div class="card-image @(mainCards.Length > 1 ? "flex justify-center" : "") before:content-[''] before:bg-gradient-to-b before:from-black before:to-white before:absolute before:w-full before:h-full">
+                @foreach (var imageCard in mainCards)
+                {
+                    <slimsy-picture media-item="imageCard.Image" crop-alias="CardImage" image-crop-anchor="Top" render-lqip="true" css-class="opacity-50 w-full"></slimsy-picture>
+                }
+            </div>
+            <div class="info w-full">
+                <div class="flex align-center justify-between gap-4">
+                    <p class="name">@Model.Name</p>
+                    <div id="deck-like-@Model.Id" class="self-start p-1">
+                        @await Html.PartialAsync("~/Views/Partials/components/deckLike.cshtml", new DeckLikeViewModel
+               {
+                   DeckId = Model.Id,
+                   AmountOfLikes = Model.AmountOfLikes,
+                   Like = memberInfo?.IsLoggedIn is true ? deckIsLiked : Model.AmountOfLikes > 0,
+                   IsAllowedToLike = memberInfo?.IsLoggedIn is true
+               })
+                    </div>
+                </div>
+                @if (mainCards.Length == 1)
+                {
+                    <p class="hero">@mainCard.DisplayName</p>
+                }
+            </div>
+        </a>
+        @if (colors.Count > 0 && squadSettings?.ShowDeckColors is true)
+        {
+            var totalItems = colors.Sum(it => it.Value);
+            <div class="flex h-1">
+                @foreach (var color in colors)
+                {
+                    <div style="background-color: #@color.Key.ToHex(); width:@(((double)color.Value / totalItems) * 100)%"></div>
+                }
+            </div>
+        }
+        <div class="card-body">
+            <div class="info">
+                <div class="author">
+                    <p>By <a class="no-underline" href="#">@author</a></p>
+                </div>
+                <div class="date">
+                    Created @Model.CreatedDate.DateOffsetHumanReadable()
+                </div>
+            </div>
+        </div>
+    </div>
+
+    return;
+}
+else if (squadSettings.UseCompactDeckDisplay)
+{
+    <div class="flex flex-col">
+        <a href="@_siteService.GetDeckOverview(Model.TypeId).Url()@Model.Id" class="block px-2 py-2 border rounded bg-white no-underline hover:border-main-color">
+            <div class="flex items-center justify-between">
+                <p class="font-bold">@Model.Name</p>
+                <div class="flex gap-2 shrink-0">
+                    <div id="deck-like-@Model.Id" class="self-start p-1">
+                        @await Html.PartialAsync("~/Views/Partials/components/deckLike.cshtml", new DeckLikeViewModel
+               {
+                   DeckId = Model.Id,
+                   AmountOfLikes = Model.AmountOfLikes,
+                   Like = memberInfo?.IsLoggedIn is true ? deckIsLiked : Model.AmountOfLikes > 0,
+                   IsAllowedToLike = memberInfo?.IsLoggedIn is true
+               })
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <p class="shrink-0 flex align-center" title="Has a description">
+                            <i class="ph ph-notepad"></i>
+                        </p>
+                    }
+                </div>
+            </div>
+            <p class="text-xs"><i>@squadSettings.TypeDisplayName</i></p>
+            <div class="flex items-center justify-between mt-4">
+                <div class="flex gap-2">
+                    @foreach (var imageCard in mainCards)
+                    {
+                        <img class="w-12 rounded-full" src="@imageCard.Image?.GetCropUrl("icon")" />
+                    }
+                </div>
+                <div class="text-right">
+                    @if (memberInfo?.IsLoggedIn is true)
+                    {
+                        <div>Collection: @_collectionService.CalculateDeckCollection(Model).ToString("0.00")%</div>
+                    }
+                    
+                    @if (_settingsService.GetSiteSettings().AllowPricing)
+                    {
+                        <div class="flex justify-end mt-1">
+                            <p class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white">
+                                $@_cardPriceService.GetPriceByDeck(Model).ToString("0.00")
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </a>
+        <div class="flex justify-between px-2 text-xs mt-1">
+            <p>By <a class="no-underline" href="#">@author</a></p>
+            <p>Created @Model.CreatedDate.DateOffsetHumanReadable()</p>
+        </div>
+    </div>
+    return;
+}
+<a href="@_siteService.GetDeckOverview(Model.TypeId).Url()@Model.Id" class="no-underline">
+    <div class="flex flex-col justify-between border border-main-color rounded-md px-4 py-3 bg-white h-full">
+        <div class="border-b border-gray-300">
+            <div class="flex justify-between align-center pb-1">
+                <h5>@Model.Name</h5>
+                <div class="flex gap-2 shrink-0">
+                    <div id="deck-like-@Model.Id">
+                        @await Html.PartialAsync("~/Views/Partials/components/deckLike.cshtml", new DeckLikeViewModel
+                   {
+                       DeckId = Model.Id,
+                       AmountOfLikes = Model.AmountOfLikes,
+                       Like = memberInfo?.IsLoggedIn is true ? deckIsLiked : Model.AmountOfLikes > 0,
+                       IsAllowedToLike = memberInfo?.IsLoggedIn is true
+                   })
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <p class="shrink-0 flex align-center" title="Has a description">
+                            <i class="ph ph-notepad"></i>
+                        </p>
+                    }
+                </div>
+            </div>
+            <div class="text-xs">
+                <p>Created by @author</p>
+                <p>@Model.CreatedDate.DateOffsetHumanReadable()</p>
+            </div>
+        </div>
+        <div class="grid grid-row-2 gap-2 mt-2">
+            @foreach (var cardGroup in mainCards.InGroupsOf(squadSettings.AmountOfSquadCards))
+            {
+                <div class="grid grid-cols-@squadSettings.AmountOfSquadCards gap-2">
+                    @foreach (var card in cardGroup)
+                    {
+                        <slimsy-picture media-item="card.Image" width="300" render-lqip="true"></slimsy-picture>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</a>

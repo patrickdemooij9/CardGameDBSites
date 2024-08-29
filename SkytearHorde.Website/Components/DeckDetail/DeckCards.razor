@@ -1,0 +1,85 @@
+﻿@using SkytearHorde.Business.Extensions
+@using SkytearHorde.Business.Helpers
+@using SkytearHorde.Business.Services
+@using SkytearHorde.Entities.Models.Business
+@inject DeckService _deckService
+@inject CollectionService _collectionService
+@inject IHttpContextAccessor httpContextAccessor
+
+@foreach (var group in Groups)
+{
+    var cardsGroup = new SortingHelper(Cards.Where(c => c.MatchesRequirements(group.Conditions.ToItems<ISquadRequirementConfig>().ToArray()))).Sort(group.Sorting.ToItems<SortOption>().ToArray()).ToArray();
+    if (cardsGroup.Length == 0) continue;
+
+    <h3 class="text-sm mt-4 mb-2">@group.Header (@cardsGroup.Length)</h3>
+    <div class="md:grid grid-flow-col grid-cols-2 gap-2" style="grid-template-rows: repeat(@(Math.Ceiling(cardsGroup.Length / 2d)), 1fr);">
+        @foreach (var card in cardsGroup)
+        {
+            var deckCard = Deck.GetDeckCard(card.BaseId)!;
+
+            <div class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source" data-cursor-image="@card.Image?.GetCropUrl(width: 400)">
+                <div class="flex gap-2">
+                    @if (_isLoggedIn)
+                    {
+                        var collectionAmount = GetAmountFromCollection(card.BaseId);
+                        <span class="flex gap-0.5 js-collection-info font-bold" style="display:none;">
+                            <span class="@(collectionAmount >= deckCard.Amount ? "text-green-600" : "text-red-600")">@collectionAmount</span>
+                            <span>/</span>
+                            <span>@deckCard.Amount</span>
+                        </span>
+                    }
+                    <span class="js-collection-info">@deckCard.Amount x</span>
+                    <div class="flex justify-center bg-contain bg-no-repeat h-5 w-[18px] text-white font-bold" style="background-image: url('/images/icon-cost.png')">
+                        <span>@card.GetCost()</span>
+                    </div>
+                    <div class="flex gap-2">
+                        @foreach (var imageUrl in _deckService.GetOverviewImageForCard(card, SquadSettings))
+                        {
+                            <img src="@imageUrl" class="w-5 h-5">
+                        }
+                    </div>
+                </div>
+                <span>@card.DisplayName</span>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public DeckCardGroup[] Groups { get; set; }
+
+    [Parameter, EditorRequired]
+    public Entities.Models.Business.Card[] Cards { get; set; }
+
+    [Parameter, EditorRequired]
+    public Deck Deck { get; set; }
+
+    [Parameter, EditorRequired]
+    public SquadSettings SquadSettings { get; set; }
+
+    private Dictionary<int, int> _ownedCards { get; set; }
+    private bool _isLoggedIn { get; set; }
+
+    private int GetAmountFromCollection(int cardId)
+    {
+        if (_ownedCards.TryGetValue(cardId, out var result))
+            return result;
+        return 0;
+    }
+
+    protected override void OnInitialized()
+    {
+        _isLoggedIn = httpContextAccessor.HttpContext!.User.Identity?.IsAuthenticated is true;
+        if (_isLoggedIn)
+        {
+            _ownedCards = _collectionService.GetCards()
+                .GroupBy(it => it.CardId)
+                .ToDictionary(it => it.Key, it => it.Sum(c => c.Amount));
+        }
+        else
+        {
+            _ownedCards = new Dictionary<int, int>();
+        }
+    }
+}

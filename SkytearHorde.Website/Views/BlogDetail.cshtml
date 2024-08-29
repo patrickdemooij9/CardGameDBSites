@@ -1,0 +1,25 @@
+﻿@inherits UmbracoViewPage<BlogDetail>
+@{
+    Layout = "_masterTemplate.cshtml";
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container-fluid relative mb-16">
+    <figure class="absolute top-0 left-0 w-full h-full overflow-hidden after:bg-black/60 after:absolute after:w-full after:h-full after:top-0 after:left-0">
+        <img class="h-full object-cover md:h-min md:object-none" src="@(Model.Image?.GetCropUrl("Header"))" />
+    </figure>
+    <div class="container text-white z-10 relative py-8 px-4">
+        <h1 class="pb-4">@Model.Title</h1>
+        <div class="pb-4">
+            @Model.Description
+        </div>
+        <p>@Model.Author - @Model.PublishDate.ToShortDateString()</p>
+    </div>
+</div>
+
+<div class="container px-4 md:px-8">
+    @await Html.PartialAsync("/Views/Partials/content/_grid.cshtml", Model.Grid)
+</div>
+
+@await Html.PartialAsync("/Views/Partials/components/footer.cshtml")

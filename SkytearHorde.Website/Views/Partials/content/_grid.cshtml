@@ -1,0 +1,5 @@
+﻿@inherits UmbracoViewPage<BlockGridModel>
+
+    @foreach(var item in Model){
+        @await Html.PartialAsync($"/Views/Partials/content/{item.Content.ContentType.Alias}.cshtml", item);
+    }

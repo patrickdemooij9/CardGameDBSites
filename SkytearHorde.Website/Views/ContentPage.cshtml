@@ -1,0 +1,8 @@
+﻿@inherits UmbracoViewPage<ContentPage>
+@{
+	Layout = "_masterTemplate.cshtml";
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+@await Html.PartialAsync("/Views/Partials/content/_grid.cshtml", Model.Grid)
+@await Html.PartialAsync("/Views/Partials/components/footer.cshtml")

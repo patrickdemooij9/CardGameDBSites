@@ -1,0 +1,24 @@
+﻿@using SkytearHorde.Business.Middleware;
+@using Microsoft.AspNetCore.Http;
+@inherits UmbracoViewPage<BlockGridItem<OneColumnLayout>>
+@{
+    //Ugly!
+    if (Model.Areas.FirstOrDefault()?.FirstOrDefault()?.Content is GoogleAdBanner)
+    {
+        if (Context.Session.GetString(CountryMiddleware.CountrySession) != "US")
+        {
+            return;
+        }
+    }
+}
+<div class="container px-4 md:px-8 mb-16 @(Model.Content.IsPushedUp ? "push-up" : string.Empty)">
+    <div class="row">
+        @foreach (var area in Model.Areas)
+        {
+            @foreach (var component in area)
+            {
+                @await Html.PartialAsync($"/Views/Partials/content/{component.Content.ContentType.Alias}.cshtml", component)
+            }
+        }
+    </div>
+</div>

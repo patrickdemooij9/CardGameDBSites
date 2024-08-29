@@ -1,0 +1,12 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Helpers;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Models;
+@model CardTooltipViewModel
+@inject IAbilityFormatter _abilityFormatter
+@{
+    var cardAttributes = Model.Card.Attributes.ToItems<IAbilityValue>().Where(it => !((CardAttribute)it.Ability).HideFromTooltip).ToArray();
+}
+<div class="tooltip w-48 rounded-lg @(Model.AlignLeft ? "left" : string.Empty)">
+    <img class="thumbnail" src="@Model.Card.Image.GetCropUrl(width: 400)" loading="lazy">
+</div>

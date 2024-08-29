@@ -1,0 +1,62 @@
+﻿@using SkytearHorde.Business.Exports
+@using SkytearHorde.Business.Services
+@inject CardService _cardService
+<div class="flex md:flex-row flex-col gap-4 text-xs">
+    @if (ShowForceTable)
+    {
+        <a class="flex align-center gap-1 no-underline" href="/umbraco/api/export/ExportForceTable?deckId=@DeckId">
+            <i class="ph ph-crown"></i>
+            <p>Try on ForceTable</p>
+        </a>
+    }
+    @foreach (var exportType in ExportTypes)
+    {
+        if (exportType is DeckExportGroup)
+        {
+            <div class="flex align-center gap-1 js-open-modal cursor-pointer" js-modal="modal-@exportType.GetIdentifier()">
+                <i class="ph ph-@exportType.IconName"></i>
+                <p>@exportType.DisplayName</p>
+            </div>
+        }
+        else if (exportType is DeckMissingCardsExport && MissingCards != null)
+        {
+            <form method="post" action="https://api.tcgplayer.com/massentry?productline=Star Wars Unlimited">
+                <input type="hidden" name="c" value="@GetMissingCardsString()">
+                <input type="hidden" name="affiliateurl" value="https://tcgplayer.pxf.io/c/4924415/1780961/21018">
+                <button type="submit" class="flex align-center gap-1">
+                    <i class="ph ph-@exportType.IconName"></i>
+                    <p>@exportType.DisplayName</p>
+                </button>
+            </form>
+        }
+        else
+        {
+            <a class="flex align-center gap-1 no-underline" href="/umbraco/api/export/export?deckId=@DeckId&exportId=@exportType.Key" target="_blank">
+                <i class="ph ph-@exportType.IconName"></i>
+                <p>@exportType.DisplayName</p>
+            </a>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int DeckId { get; set; }
+
+    [Parameter, EditorRequired]
+    public IDeckExportType[] ExportTypes { get; set; }
+
+    [Parameter]
+    public Dictionary<Entities.Models.Business.Card, int>? MissingCards { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool ShowForceTable { get; set; }
+
+    public string GetMissingCardsString()
+    {
+        if (MissingCards is null) return string.Empty;
+
+        var sets = _cardService.GetAllSets().ToDictionary(it => it.Id, it => it.SetCode);
+        return string.Join("||", MissingCards.Select(it => $"{it.Value} {it.Key.DisplayName} [{sets[it.Key.SetId]}]"));
+    }
+}

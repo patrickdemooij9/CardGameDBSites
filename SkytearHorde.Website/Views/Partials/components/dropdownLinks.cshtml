@@ -1,0 +1,25 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels;
+@model DropdownLinksModel
+@{
+    var hasChildren = Model.Links.Count > 0;
+}
+<div class="@(hasChildren ? "group" : string.Empty)">
+    <p class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0 ">
+        <a href="@Model.Url" class="no-underline">@Model.Name</a>
+        @if (!string.IsNullOrWhiteSpace(Model.Icon))
+        {
+            <i class="ph ph-@(Model.Icon)"></i>
+        }
+    </p>
+    @if (hasChildren)
+    {
+        <div class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:-mt-2 hidden">
+            @foreach (var child in Model.Links)
+            {
+                <a href="@child.Value" class="px-6 py-3 rounded-md no-underline hover:text-slate-400">
+                    @child.Key
+                </a>
+            }
+        </div>
+    }
+</div>

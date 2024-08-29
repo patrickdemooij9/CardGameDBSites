@@ -1,0 +1,45 @@
+﻿@using SkytearHorde.Business.Helpers;
+@using SkytearHorde.Business.Services;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Services;
+@inherits UmbracoViewPage<ListDetail>
+@inject DeckListService _deckListService
+@inject DeckService _deckService
+@inject IMemberService _memberService
+@inject ISiteService _siteService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var listId = int.Parse(Context.Request.Path.Value.TrimStart("/list/").ToString());
+    var list = _deckListService.Get(listId);
+
+    if (list is null)
+    {
+        Context.Response.StatusCode = 404;
+        return;
+    }
+
+    var decks = _deckService.Get(list.DeckIds);
+}
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8">
+    <div class="row justify-center">
+        <h1>@list.Name</h1>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(list.Description))
+    {
+        <div class="row mb-1">
+            <div class="col-12">
+                <p>@Html.Raw(MarkdownHelper.ToHtml(list.Description))</p>
+            </div>
+        </div>
+    }
+    <div class="grid grid-cols-1 auto-rows-fr md:grid-cols-3 gap-4 w-full">
+        @foreach (var deck in decks)
+        {
+            @await Html.PartialAsync("/Views/Partials/components/deckCard.cshtml", deck)
+        }
+    </div>
+</div>

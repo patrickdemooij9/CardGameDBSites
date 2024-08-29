@@ -1,0 +1,154 @@
+﻿@using SkytearHorde.Business.Exports
+@using SkytearHorde.Business.Helpers
+@using SkytearHorde.Business.Services
+@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Components.DeckDetail
+@using SkytearHorde.Entities.Models.Business
+@using SkytearHorde.Entities.Models.ViewModels
+@using Umbraco.Cms.Core.Cache
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Services
+@inherits UmbracoViewPage<DeckDetail>
+@inject IRequestCache _requestCache
+@inject IMemberService _memberService
+@inject MemberInfoService _memberInfoService
+@inject SettingsService _settingsService
+@inject CardPriceService _cardPriceService
+@inject DeckService _deckService
+@inject CardService _cardService
+@inject CollectionService _collectionService
+@inject CommentService _commentService
+@{
+    var deck = (_requestCache.Get("Deck") as Deck)!;
+
+    var loggedIn = Context.User.Identity?.IsAuthenticated is true;
+
+    var hasDescription = !string.IsNullOrWhiteSpace(deck.Description);
+    var createdBy = deck.CreatedBy.HasValue ? _memberService.GetById(deck.CreatedBy.Value)?.Name : "Anonymous";
+    var squadSettings = _settingsService.GetSquadSettings(deck.TypeId);
+    var siteSettings = _settingsService.GetSiteSettings();
+    var deckIsLiked = _memberInfoService.GetMemberInfo()?.LikedDecks.Contains(deck.Id) is true;
+    var deckCost = _cardPriceService.GetPriceByDeck(deck);
+
+    var showPrices = siteSettings.AllowPricing;
+
+    var mainCards = _deckService.GetMainCards(deck).ToArray();
+
+    var cards = deck.Cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().ToArray();
+    var groups = Model.Groups.ToItems<DeckCardGroup>().ToArray();
+    var exportTypes = Model.ExportTypes.ToItems<IDeckExportType>().ToArray();
+    var comments = _commentService.GetByDeck(deck.Id);
+
+    var missingCards = new Dictionary<SkytearHorde.Entities.Models.Business.Card, int>();
+    if (exportTypes.OfType<DeckMissingCardsExport>().Any())
+    {
+        if (loggedIn)
+        {
+            var collectionItems = _collectionService.GetCards()
+                    .GroupBy(it => it.CardId)
+                    .ToDictionary(it => it.Key, it => it.Sum(c => c.Amount));
+            foreach (var deckCard in deck.Cards)
+            {
+                var card = cards.First(c => c.BaseId == deckCard.CardId);
+                if (!collectionItems.TryGetValue(deckCard.CardId, out var amount))
+                {
+                    missingCards.Add(card, deckCard.Amount);
+                    continue;
+                }
+                if (amount >= deckCard.Amount) continue;
+                missingCards.Add(card, deckCard.Amount - amount);
+            }
+        }
+        else
+        {
+            foreach (var deckCard in deck.Cards)
+            {
+                var card = cards.First(c => c.BaseId == deckCard.CardId);
+                missingCards.Add(card, deckCard.Amount);
+            }
+        }
+    }
+}
+<div class="container px-4 md:px-8 py-4">
+    <div class="p-4 bg-white rounded">
+        <div class="flex">
+            <div class="grow">
+                <h1 class="text-lg pb-0">@deck.Name</h1>
+                <p class="text-xs">By @createdBy</p>
+                <div class="flex align-center gap-2 mt-2">
+                    <p class="border rounded py-1 px-2">@squadSettings.TypeDisplayName</p>
+                    <div id="deck-like-@deck.Id">
+                        @await Html.PartialAsync("~/Views/Partials/components/deckLike.cshtml", new DeckLikeViewModel
+                   {
+                       DeckId = deck.Id,
+                       AmountOfLikes = deck.AmountOfLikes,
+                       Like = loggedIn ? deckIsLiked : deck.AmountOfLikes > 0,
+                       IsAllowedToLike = loggedIn
+                   })
+                    </div>
+                </div>
+            </div>
+            @if (showPrices)
+            {
+                <div class="shrink-0">
+                    <p class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white">
+                        $@deckCost.ToString("0.00")
+                    </p>
+                </div>
+            }
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4 mt-8">
+            @foreach (var mainCard in mainCards)
+            {
+                <div class="md:w-max @(mainCards.Length > 1 ? "w-2/5" : string.Empty)">
+                    <img class="w-48" src="@mainCard.Image?.GetCropUrl(width: 400, imageCropMode: ImageCropMode.BoxPad))" />
+                    <p class="text-center"><small>@mainCard.DisplayName</small></p>
+                </div>
+            }
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-8 mt-8">
+            <div class="md:w-2/3 shrink-0">
+                <div class="flex align-center justify-between gap-4">
+                    <h2 class="text-lg">Decklist</h2>
+                    @if (loggedIn)
+                    {
+                        <div>
+                            <input type="checkbox" id="compare-collection" data-toggle=".js-collection-info" />
+                            <label for="compare-collection">Compare with collection</label>
+                        </div>
+                    }
+                </div>
+                <hr class="my-2" />
+                <component type="typeof(DeckActions)" render-mode="Static"
+                           param-DeckId=deck.Id
+                           param-ExportTypes=exportTypes
+                           param-ShowForceTable=Model.EnableForcetable
+                           param-MissingCards=missingCards />
+
+                <component type="typeof(DeckCards)" render-mode="Static"
+                           param-Deck=deck
+                           param-Groups=groups
+                           param-Cards=cards
+                           param-SquadSettings=squadSettings />
+            </div>
+            @if (hasDescription)
+            {
+                <div>
+                    <h2 class="text-lg pb-2">Description</h2>
+                    <div class="content">
+                        @Html.Raw(MarkdownHelper.ToHtml(deck.Description))
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="pt-4">
+            @await Html.PartialAsync("~/Views/Partials/components/commentSection.cshtml", new CommentComponentViewModel("Deck", deck.Id)
+       {
+           Comments = comments
+       })
+        </div>
+    </div>
+</div>

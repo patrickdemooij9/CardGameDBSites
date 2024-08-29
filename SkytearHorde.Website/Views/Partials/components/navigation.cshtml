@@ -1,0 +1,84 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Entities.Constants;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Security;
+@inherits UmbracoViewPage
+@inject IMemberManager _memberManager
+@inject ISiteService _siteService
+@{
+    var isLoggedIn = _memberManager.IsLoggedIn();
+    var siteSettings = _siteService.GetSettings().FirstChild<SiteSettings>();
+    var loginPage = Model.Root().FirstChild<Login>();
+}
+
+<nav class="h-14 bg-main-color text-base z-20 border-b border-nav-color @(siteSettings.TextColorWhite ? "md:text-white" : "md:text-black")" x-data="{ open: false }" :class="open ? 'active': ''">
+    <div class="container md:px-8">
+        <div class="flex justify-between overflow-auto">
+            <a href="@Model.Root().Url()" class="ml-2 no-underline">
+                <img src="@(siteSettings.NavigationLogo?.Url())" class="h-14 py-2 pr-8" />
+            </a>
+
+            <div class="grow md:justify-between md:flex @(Model is CreateSquad ? "hidden" : string.Empty)" :class="open ? 'fixed top-14 bg-slate-50 h-full w-full z-20 flex-col' : 'hidden'">
+                <div class="flex flex-col mt-4 mx-2 md:gap-8 md:h-full md:flex-row md:mt-0">
+                    @foreach (var item in siteSettings?.Navigation.ToItems<NavigationItem>() ?? Enumerable.Empty<NavigationItem>())
+                    {
+                        if (item.Link is null) { continue; }
+                        var viewModel = new DropdownLinksModel()
+                {
+                    Name = item.Link.Name!,
+                    Url = item.Link.Url!
+                };
+
+                        foreach (var childItem in item.DropdownItems.ToItems<NavigationItem>().ToArray())
+                        {
+                            if (childItem.Link is null) continue;
+                            viewModel.Links.Add(childItem.Link.Name!, childItem.Link.Url!);
+                            viewModel.Icon = IconType.CaretDown;
+                        }
+
+                        @await Html.PartialAsync("~/Views/Partials/components/dropdownLinks.cshtml", viewModel)
+                    }
+                </div>
+
+                @if (siteSettings.ShowLogin && loginPage != null)
+                {
+                    var loggedInUser = await _memberManager.GetCurrentMemberAsync();
+                    var accountPage = Model.Root().FirstChild<AccountPage>();
+                    var firstAccountPageChild = accountPage?.FirstChild();
+
+                    var viewModel = new DropdownLinksModel
+                {
+                    Name = loggedInUser?.Name ?? "Login",
+                    Url = loggedInUser != null && firstAccountPageChild != null ? firstAccountPageChild.Url() : loginPage.Url(),
+                    Icon = loggedInUser is null ? IconType.Login : IconType.User
+                };
+                    if (loggedInUser != null && accountPage != null && accountPage.Children().Count() > 0)
+                    {
+                        @foreach (var childPage in accountPage.Children())
+                        {
+                            viewModel.Links.Add(childPage.Name, childPage.Url());
+                        }
+                    }
+
+                    <div class="flex mx-2">
+                        @await Html.PartialAsync("~/Views/Partials/components/dropdownLinks.cshtml", viewModel)
+
+                        <!--
+                        <a href="#" class="nav-link">
+                            <span class="icon search"></span>
+                        </a>
+                        -->
+                    </div>
+                }
+            </div>
+            <div class="md:hidden w-8 mobile-content flex center-items mr-2 @(Model is CreateSquad ? "hidden" : string.Empty)" x-on:click="open = !open">
+                <div id="hamburger" class="hamburger" aria-label="Show navigation">
+                    <div class="top-bun" :class="open ? 'rotate-45' : ''"></div>
+                    <div class="meat" :class="open ? 'scale-y-0' : ''"></div>
+                    <div class="bottom-bun" :class="open ? '-rotate-45' : ''"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

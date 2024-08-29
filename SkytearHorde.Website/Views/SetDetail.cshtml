@@ -1,0 +1,39 @@
+﻿@using SkytearHorde.Business.Services.Site
+@using SkytearHorde.Entities.Enums
+@using SkytearHorde.ViewComponents
+@inherits UmbracoViewPage<Set>
+@inject ISiteService _siteService
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var cardOverview = _siteService.GetCardOverview();
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8 mb-12">
+    <div class="flex md:flex-row flex-col gap-6">
+        <div class="">
+            <img src="@Model.DisplayImage?.Url()" />
+        </div>
+        <div class="w-full">
+            <h1 class="mb-2">@Model.DisplayName</h1>
+            <div>
+                @foreach(var info in Model.ExtraInformation ?? Enumerable.Empty<string>())
+                {
+                    <p>@info.Replace("{childCount}", Model.Children.Count().ToString())</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@(
+await Component.InvokeAsync<OverviewViewComponent>(new
+{
+    page = Model,
+    overviewDataSourceKey = OverviewDataSourceKey.CollectionSetDetail
+})
+)
+
+<div id="cursor-image" class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"></div>

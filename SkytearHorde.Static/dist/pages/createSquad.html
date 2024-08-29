@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/style.css">
+    <title>Test</title>
+
+    <style>
+        :root{
+            --main-color: red;
+        }
+    </style>
+
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+    <nav class="navbar" x-data="{ open: false }" :class="open ? 'active': ''">
+    <div class="container">
+        <div class="row center-items">
+            <div class="col-md-3 col-6 logo">
+                <a href="/" class="nav-link">Skytear Horde</a>
+            </div>
+            <div class="col-9 nav-content">
+                <div class="nav-links">
+                    <div class="nav-dropdown">
+                        <a href="/dist/pages/decks.html" class="nav-link with-icon">
+                            <span>Decks</span>
+                            <span class="icon chevron-down"></span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>All decks</span>
+                            </a>
+                            <a href="#" class="nav-link">
+                                <span>Create deck</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">Cards</a>
+                </div>
+                <div class="nav-actions">
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-link with-icon">
+                            <span class="icon login"></span>
+                            <span>Login</span>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="#" class="nav-link">
+                                <span>My decks</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="nav-link">
+                        <span class="icon search"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="col-6 mobile-content">
+                <div id="hamburger" class="hamburger" aria-label="Show navigation" x-on:click="open = !open">
+                    <div class="top-bun"></div>
+                    <div class="meat"></div>
+                    <div class="bottom-bun"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <form @submit="submitForm" method="post" class="create-deck-form" x-data="createSquad({
+        id: 1,
+        name: '',
+        isLoggedIn: true,
+        squads: [{
+            id: 1,
+            name: 'Squad 1',
+            slots: [{
+                characterId: null,
+                label: 'Primary Unit',
+                requirements: [{
+                    type: 'Unit Type',
+                    value: 'Primary'
+                }]
+            }, {
+                characterId: null,
+                label: 'Secondary Unit',
+                requirements: [{
+                    type: 'Unit Type',
+                    value: 'Secondary'
+                }]
+            }, {
+                characterId: null,
+                label: 'Support Unit',
+                requirements: [{
+                    type: 'Unit Type',
+                    value: 'Support'
+                }]
+            }],
+            requirements: [{
+                type: 'Era'
+            }]
+        },{
+            id: 2,
+            name: 'Squad 2',
+            slots: [{
+                characterId: null,
+                label: 'Primary Unit',
+                requirements: [{
+                    type: 'Unit Type',
+                    value: 'Primary'
+                }]
+            }, {
+                characterId: null,
+                label: 'Secondary Unit',
+                requirements: [{
+                    type: 'Unit Type',
+                    value: 'Secondary'
+                }]
+            }, {
+                characterId: null,
+                label: 'Support Unit',
+                requirements: [{
+                    type: 'Unit Type',
+                    value: 'Support'
+                }]
+            }],
+            requirements: [{
+                type: 'Era'
+            }]
+        }],
+        allCharacters: [{
+            id: 1,
+            name: 'Bo-Katan',
+            abilities: [{
+                displayName: 'Unit Type',
+                type: 'Unit Type',
+                value: 'Primary'
+            },{
+                displayName: 'Abilities',
+                type: 'Abilities',
+                value: ''
+            },{
+                displayName: 'Points',
+                type: 'Points',
+                value: '6'
+            },{
+                displayName: 'Era',
+                type: 'Era',
+                value: 'Galactic'
+            }],
+            iconUrl: './../../images/BoKatanIcon.png',
+            images: [{
+                label: 'Front',
+                imageUrl: './../../images/BoKatan.png',
+                isPrimaryImage: true
+            },{
+                label: 'Abilities',
+                imageUrl: './../../images/BoKatanAbilities.png'
+            },{
+                label: 'Stance',
+                imageUrl: './../../images/BoKatanStance.png'
+            }]
+        },{
+            id: 2,
+            name: 'Anakin',
+            abilities: [{
+                displayName: 'Unit Type',
+                type: 'Unit Type',
+                value: 'Support'
+            },{
+                displayName: 'Points',
+                type: 'Points',
+                value: '-3'
+            },{
+                displayName: 'Era',
+                type: 'Era',
+                value: 'Galactic'
+            }],
+            iconUrl: './../../images/BoKatanIcon.png',
+            images: [{
+                label: 'Front',
+                imageUrl: './../../images/BoKatan.png',
+                isPrimaryImage: true
+            },{
+                label: 'Abilities',
+                imageUrl: './../../images/BoKatanAbilities.png'
+            },{
+                label: 'Stance',
+                imageUrl: './../../images/BoKatanStance.png'
+            }]
+        }, {
+            id: 3,
+            name: 'SomethingSomething',
+            abilities: [{
+                displayName: 'Unit Type',
+                type: 'Unit Type',
+                value: 'Secondary'
+            },{
+                displayName: 'Points',
+                type: 'Points',
+                value: '-4'
+            },{
+                displayName: 'Era',
+                type: 'Era',
+                value: 'Republic'
+            }],
+            iconUrl: './../../images/BoKatanIcon.png',
+            images: [{
+                label: 'Front',
+                imageUrl: './../../images/BoKatan.png',
+                isPrimaryImage: true
+            },{
+                label: 'Abilities',
+                imageUrl: './../../images/BoKatanAbilities.png'
+            },{
+                label: 'Stance',
+                imageUrl: './../../images/BoKatanStance.png'
+            }]
+        }]
+    })">
+    <input type="hidden" name="data" x-model="dataString" />
+        <div class="container">
+
+            <div class="tabs">
+                <div class="tab" :class="currentTab === 'squad' ? 'is-active' : ''" x-on:click="clickTab('squad')">
+                    <span>Squad</span>
+                </div>
+                <div class="tab" :class="currentTab === 'details' ? 'is-active' : ''" x-on:click="clickTab('details')">
+                    <span>Details</span>
+                </div>
+            </div>
+
+            <template x-if="currentTab === 'squad'">
+                <div class="tab-detail">
+                    <div class="form-field">
+                        <label>
+                            <h3>Strike team name</h3>
+                        </label>
+                        <input type="text" id="name" class="form-input" x-model="name" maxlength="60" />
+                    </div>
+                    <div class="squad-builder mb-1">
+                        <template x-for="squad in squads">
+                            <div class="squad-column">
+                                <h3 x-text="squad.name"></h3>
+                                <template x-for="slot in squad.slots">
+                                    <div>
+                                        <template x-if="slot.characterId">
+                                            <div class="squad-picker-result">
+                                                <div class="info">
+                                                    <img :src="getCharacterById(slot.characterId).iconUrl"/>
+                                                    <span class="name" x-text="getCharacterById(slot.characterId).name"></span>
+                                                    <span>(<span x-text="Math.abs(getAbilityValueByType(getCharacterById(slot.characterId), 'Points'))"></span>)</span>
+                                                </div>
+                                                <a href="#" class="remove-button" x-on:click.prevent="removeFromSquad(slot)">
+                                                    <i class="ph ph-trash"></i>
+                                                </a>
+                                            </div>
+                                        </template>
+                                        <template x-if="slot.characterId == undefined">
+                                            <div class="squad-picker" x-on:click="clickSlot()">
+                                                <span x-text="slot.label"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                                <div class="deck-rules">
+                                    <template x-if="!hasEnoughPoints(squad)">
+                                        <p class="invalid">
+                                            <i class="ph ph-warning"></i>
+                                            <span>Your squad has <span x-text="Math.abs(pointsLeft(squad))"></span> points too many.</span>
+                                        </p>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="squad-selection" id="allCharacters">
+                        <h3>All characters</h3>
+                        <div class="image-grid-2">
+                            <template x-for="character in characters">
+                                <a href="#" class="squad-select" x-on:click.prevent="selectCharacter(character)">
+                                    <div class="image">
+                                        <template x-if="hasMainImage(character)">
+                                            <img :src="getMainImageUrl(character)"/>
+                                        </template>
+                                        <template x-if="!hasMainImage(character)">
+                                            <div class="missing-card-image">
+                                                <h2 x-text="character.name"></h2>
+                                                <p>No image yet</p>
+                                            </div>
+                                        </template>
+                                    </div>
+    
+                                    <div class="overlay">
+                                        <div class="info-bar">
+                                            <div class="info-icon">
+                                                <i class="ph ph-info"></i>
+                                            </div>
+                                        </div>
+                                        <div class="squad-actions">
+                                            <template x-if="!isPresentInSquad(character)">
+                                                <template x-for="squad in squads">
+                                                    <template x-if="getCharacterSpotValidForSquad(squad, character)">
+                                                        <button x-on:click.prevent.stop="addToSquad(squad, character)" type="button">
+                                                            <span>Add to <span x-text="squad.name"></span></span>
+                                                        </button>
+                                                    </template>
+                                                </template>
+                                            </template>
+                                            <template x-if="isPresentInSquad(character)">
+                                                <button x-on:click.prevent.stop="removeCharacterFromSquad(character)" type="button">
+                                                    <span>Remove from squad</span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template x-if="currentTab === 'details'">
+                <div class="tab-detail">
+                    <div class="form-field">
+                        <label>
+                            <h3>Strike team name</h3>
+                        </label>
+                        <input type="text" id="name" class="form-input" x-model="name" maxlength="60" />
+                    </div>
+                    <div class="form-field">
+                        <label class="with-action">
+                            <span>Description</span>
+                            <button class="btn preview-button" x-show="!markdownPreview" x-on:click="toggleMarkdownPreview" type="button">Preview</button>
+                            <button class="btn preview-button danger" x-show="markdownPreview" x-on:click="toggleMarkdownPreview" type="button">Stop preview</button>
+                        </label>
+                        <textarea id="description" class="form-input" x-model="description" x-show="!markdownPreview"></textarea>
+                        <div class="markdown-preview form-input" x-show="markdownPreview" x-html="markdownPreviewText">
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <template x-if="selectedCharacter !== undefined">
+            <div class="modal-overlay">
+                <div class="modal-wrapper">
+                    <div class="modal card-modal">
+                        <div class="close-button" x-on:click.prevent="closeModal()">
+                            <i class="ph ph-x"></i>
+                        </div>
+    
+                        <div class="image-switcher">
+                            <div class="card-image">
+                                <img :src="selectedCharacterImage.imageUrl"/>
+                            </div>
+                            <template x-if="selectedCharacter.images.length > 1">
+                                <div class="switcher">
+                                    <template x-for="image in selectedCharacter.images">
+                                        <div class="switch-item" :class="selectedCharacterImage === image ? 'active' : ''" x-on:click="selectImage(image)">
+                                            <span x-text="image.label"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+    
+                        <div class="modal-content">
+                            <h2 x-text="selectedCharacter.name"></h2>
+                            <p class="subtitle"><span x-text="getAbilityValueByType(selectedCharacter, 'Unit Type')"></span> unit</p>
+    
+                            <div class="mb-1" x-html="getAbilityValueByType(selectedCharacter, 'Abilities')"></div>
+    
+                            <div class="modal-actions squad-actions">
+                                <template x-if="!isPresentInSquad(selectedCharacter)">
+                                    <template x-for="squad in squads">
+                                        <template x-if="getCharacterSpotValidForSquad(squad, selectedCharacter)">
+                                            <button x-on:click.prevent.stop="addToSquad(squad, selectedCharacter)" type="button">
+                                                <span>Add to <span x-text="squad.name"></span></span>
+                                            </button>
+                                        </template>
+                                    </template>
+                                </template>
+                                <template x-if="isPresentInSquad(selectedCharacter)">
+                                    <button x-on:click.prevent.stop="removeCharacterFromSquad(selectedCharacter)" type="button">
+                                        <span>Remove from squad</span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <div class="action-bar">
+            <div class="container">
+                <div class="row actions">
+                    <template x-if="isLoggedIn">
+                        <button type="submit" name="publish" value="false" class="btn btn-outline" x-bind:disabled="!isValidForSave()">Save</button>
+                    </template>
+                    <button type="submit" name="publish" value="true" class="btn" x-bind:disabled="!isValidDeck()">Publish</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <script src="/dist/js/main-bundle.js"></script>
+</body>
+
+</html>

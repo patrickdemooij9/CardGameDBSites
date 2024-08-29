@@ -1,0 +1,139 @@
+﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Services.Site;
+@using SkytearHorde.Business.Services;
+@using SkytearHorde.Entities.Models.ViewModels;
+@using Umbraco.Cms.Core.Cache
+@inherits UmbracoViewPage
+@inject ISiteService _siteService
+@inject CommentService _commentService
+@inject IRequestCache _requestCache
+@{
+    Layout = "_masterTemplate.cshtml";
+
+    var card = _requestCache.Get("card") as SkytearHorde.Entities.Models.Business.Card;
+    if (card is null)
+    {
+        return;
+    }
+
+    var cardAttributes = card.Attributes.ToDictionary(it => it.Key.Name, it => it);
+
+    var sections = card.Sections.ToArray();
+    var faqItems = card.Questions.ToArray();
+
+    var cardSettings = _siteService.GetSettings().FirstChild<CardSettings>();
+    var displayItems = cardSettings.Display.ToItems<IPublishedElement>().ToArray();
+
+    var comments = _commentService.GetByCard(card.BaseId);
+}
+
+@await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
+
+<div class="container px-4 md:px-8 mb-8">
+    <div class="flex flex-col sm:flex-row gap-8">
+        <div class="flex flex-col gap-4 shrink-0">
+            <div>
+                <img class="sm:h-80" src="@card.Image?.GetCropUrl(height: 600)" />
+            </div>
+
+            @if (card.BackImage != null)
+            {
+                <div>
+                    <img class="sm:h-80" src="@card.BackImage.GetCropUrl(height: 600)" />
+                </div>
+            }
+        </div>
+        <div class="w-full">
+            <div class="bg-white rounded">
+                <div class="p-4">
+                    <h1 class="text-lg">@card.DisplayName</h1>
+                    @for (var i = 0; i < displayItems.Length; i++)
+                    {
+                        var element = displayItems[i];
+                        if (element is CardDetailAbilityDisplay display)
+                        {
+                            var ability = display.Ability as CardAttribute;
+                            if (!cardAttributes.TryGetValue(ability?.Name, out var cardValue))
+                            {
+                                continue;
+                            }
+
+                            var displayModel = new CardDetailDisplayViewModel
+                    {
+                        AbilityValue = cardValue.Value,
+                        ShowAsTags = display.ShowAsTags,
+                        OverviewPageUrl = display.OverviewPage?.Url()
+                    };
+
+                            var namePosition = display.NamePosition.IfNullOrWhiteSpace("Inline");
+                            <div class="mb-2">
+                                @if (namePosition.Equals("Heading"))
+                                {
+                                    <h3>@ability.DisplayName</h3>
+                                }
+                                <p>
+                                    @if (namePosition.Equals("Inline"))
+                                    {
+                                        <b>@ability.DisplayName:</b>
+                                    }
+                                    @await Html.PartialAsync($"~/Views/Partials/cardAbilities/{cardValue.Value.GetType().Name}.cshtml", displayModel)
+                                </p>
+                            </div>
+                        }
+                        else if (element is CardDetailDividerDisplay && i != displayItems.Length - 1)
+                        {
+                            <hr class="mb-2" />
+                        }
+                    }
+                </div>
+            </div>
+            <div class="bg-white rounded mt-8">
+                <div class="p-4">
+                    @await Html.PartialAsync("~/Views/Partials/components/commentSection.cshtml", new CommentComponentViewModel("Card", card.BaseId){
+                        Comments = comments
+                        })
+                </div>
+            </div>
+            @if (faqItems.Length > 0)
+            {
+                <div class="bg-white rounded mt-8">
+                    <div class="p-4">
+                        <h2 class="text-lg">Frequently asked questions</h2>
+                        <p>These answers are taken from official FAQ or responses from the discord.</p>
+                        @foreach (var item in faqItems)
+                        {
+                            <div class="row faq-item">
+                                <div class="col-12">
+                                    <p><b>Question: </b>@item.Question</p>
+                                    <p><b>Answer: </b>@item.Answer</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (sections.Length > 0)
+{
+    @foreach (var cardSection in sections)
+    {
+        <div class="container mb-8 px-4 md:px-8">
+            <div class="row justify-center">
+                <div class="col-12">
+                    <h2>@cardSection.Title</h2>
+                </div>
+            </div>
+            <div class="row">
+                @foreach (var image in cardSection.Images)
+                {
+                    <div class="col-12 col-md-6">
+                        <img src="@image.Url()" />
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}

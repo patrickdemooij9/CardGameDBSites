@@ -1,0 +1,15 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels
+@model ProgressBarViewModel
+@{
+    var hasDescription = !string.IsNullOrWhiteSpace(Model.Description);
+}
+<div class="flex @(hasDescription ? "justify-between" : "justify-end")">
+    @if (hasDescription)
+    {
+        <p class="text-sm">@Model.Description</p>
+    }
+    <p class="text-sm">@Model.PercentFilled%</p>
+</div>
+<div class="w-full rounded-full bg-gray-300 border border-gray-500 h-4">
+    <div class="bg-green-600 rounded-full h-full text-white text-center" style="width: @(Model.PercentFilled)%"></div>
+</div>

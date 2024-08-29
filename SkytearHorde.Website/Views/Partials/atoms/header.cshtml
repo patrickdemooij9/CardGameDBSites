@@ -1,0 +1,26 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels;
+@model HeaderViewModel
+@if (Model.Size == HeaderSize.H1)
+{
+    <h1>@Model.Title</h1>
+}
+else if (Model.Size == HeaderSize.H2)
+{
+    <h2>@Model.Title</h2>
+}
+else if (Model.Size == HeaderSize.H3)
+{
+    <h3>@Model.Title</h3>
+}
+else if (Model.Size == HeaderSize.H4)
+{
+    <h4>@Model.Title</h4>
+}
+else if (Model.Size == HeaderSize.H5)
+{
+    <h5>@Model.Title</h5>
+}
+else if (Model.Size == HeaderSize.H6)
+{
+    <h6>@Model.Title</h6>
+}

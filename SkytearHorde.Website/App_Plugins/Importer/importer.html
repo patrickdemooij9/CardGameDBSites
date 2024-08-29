@@ -1,0 +1,19 @@
+﻿<div ng-controller="Importer.Controller as vm">
+    SiteId:
+    <input type="number" ng-model="vm.siteId" />
+
+    <h1>Importer</h1>
+    <input id="import-file" type="file" ng-model="vm.importFile" />
+    <umb-button action="vm.doImport()" label="Import">
+        Import
+    </umb-button>
+
+    <div>
+        <a href="/umbraco/backoffice/importer/importer/export">Export</a>
+    </div>
+
+    <input id="import-images" type="file"/>
+    <umb-button action="vm.doImportImages()" label="Import Images (.zip)">
+        Import
+    </umb-button>
+</div>

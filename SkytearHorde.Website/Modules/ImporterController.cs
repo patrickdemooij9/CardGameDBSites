@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OfficeOpenXml;
-using SkytearHorde.Business.BackgroundRunners;
+using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Integrations.TcgPlayer;
@@ -10,19 +11,15 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
-using Umbraco.Cms.Core.Models.Blocks;
-using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Web.BackOffice.Controllers;
 using Umbraco.Cms.Web.Common.Attributes;
-using Umbraco.Extensions;
 using static SkytearHorde.Business.Helpers.BlockListCreatorHelper;
 
 namespace SkytearHorde.Modules
@@ -40,6 +37,7 @@ namespace SkytearHorde.Modules
         private readonly ISiteAccessor _siteAccessor;
         private readonly ISiteService _siteService;
         private readonly IContentTypeBaseServiceProvider _contentTypeBaseServiceProvider;
+        private readonly CardGameSettingsConfig _cardGameSettingsConfig;
 
         public ImporterController(IUmbracoContextFactory umbracoContextFactory,
             IContentService contentService,
@@ -50,7 +48,8 @@ namespace SkytearHorde.Modules
             IShortStringHelper shortStringHelper,
             ISiteAccessor siteAccessor,
             ISiteService siteService,
-            IContentTypeBaseServiceProvider contentTypeBaseServiceProvider)
+            IContentTypeBaseServiceProvider contentTypeBaseServiceProvider,
+            IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _contentService = contentService;
@@ -62,6 +61,7 @@ namespace SkytearHorde.Modules
             _siteAccessor = siteAccessor;
             _siteService = siteService;
             _contentTypeBaseServiceProvider = contentTypeBaseServiceProvider;
+            _cardGameSettingsConfig = cardGameSettingsConfigOption.Value;
         }
 
         [HttpPost]
@@ -145,7 +145,7 @@ namespace SkytearHorde.Modules
             if (tcgAttribute is null) return NotFound();
 
             var httpClient = new HttpClient();
-            var accessToken = new TcgPlayerAccessTokenGetter().Get(httpClient);
+            var accessToken = new TcgPlayerAccessTokenGetter().Get(_cardGameSettingsConfig, httpClient);
 
             foreach (var variant in variants.Take(25))
             {

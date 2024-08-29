@@ -1,10 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SkytearHorde.Business.Config;
+using SkytearHorde.Business.Integrations.TcgPlayer;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Models.Business;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
@@ -28,9 +32,10 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IUmbracoIndexingHandler _umbracoIndexingHandler;
         private readonly IContentService _contentService;
+        private readonly CardGameSettingsConfig _cardGameSettingsConfig;
         private readonly IServiceProvider _serviceProvider;
 
-        public CardPriceSyncTask(ILogger<CardPriceSyncTask> logger, HttpClient httpClient, ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, SettingsService settingsService, CardPriceRepository cardPriceRepository, IUmbracoContextFactory umbracoContextFactory, IUmbracoIndexingHandler umbracoIndexingHandler, IContentService contentService, IServiceProvider serviceProvider) : base(logger, TimeSpan.FromHours(2), TimeSpan.FromMinutes(1))
+        public CardPriceSyncTask(ILogger<CardPriceSyncTask> logger, HttpClient httpClient, ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, SettingsService settingsService, CardPriceRepository cardPriceRepository, IUmbracoContextFactory umbracoContextFactory, IUmbracoIndexingHandler umbracoIndexingHandler, IContentService contentService, IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption, IServiceProvider serviceProvider) : base(logger, TimeSpan.FromHours(2), TimeSpan.FromMinutes(1))
         {
             _logger = logger;
             _httpClient = httpClient;
@@ -42,6 +47,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             _umbracoContextFactory = umbracoContextFactory;
             _umbracoIndexingHandler = umbracoIndexingHandler;
             _contentService = contentService;
+            _cardGameSettingsConfig = cardGameSettingsConfigOption.Value;
             _serviceProvider = serviceProvider;
         }
 
@@ -50,15 +56,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             _logger.LogInformation("Starting card price sync");
             try
             {
-                var accessToken = await (await _httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "https://api.tcgplayer.com/token")
-                {
-                    Content = new FormUrlEncodedContent(
-                [
-                    new("grant_type", "client_credentials"),
-                    new("client_id", ""),
-                    new("client_secret", "")
-                ])
-                })).Content.ReadFromJsonAsync<TcgPlayerAccessToken>();
+                var accessToken = await (new TcgPlayerAccessTokenGetter().Get(_cardGameSettingsConfig, _httpClient));
 
                 using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
                 foreach (var siteId in _siteService.GetAllSites())
@@ -96,7 +94,7 @@ namespace SkytearHorde.Business.BackgroundRunners
                     {
                         var ids = group.Select(it => it.Key.ToString()).ToArray();
                         var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.tcgplayer.com/pricing/product/{string.Join(",", ids)}");
-                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.AccessToken);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
                         var priceData = await _httpClient.SendAsync(request);
                         if (priceData.IsSuccessStatusCode)

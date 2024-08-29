@@ -6,6 +6,7 @@ using AdServer.Repositories.MetricRepository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using SkytearHorde.Business.BackgroundRunners;
+using SkytearHorde.Business.Config;
 using SkytearHorde.Business.ContentFinders;
 using SkytearHorde.Business.CustomCardMaker;
 using SkytearHorde.Business.DataSources.Overview;
@@ -98,6 +99,8 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddHostedService<AdReportTask>();
             builder.Services.AddHostedService<CardPriceSyncTask>();
             builder.Services.AddHostedService<RedditDailyCardTask>();
+
+            builder.Services.Configure<CardGameSettingsConfig>(builder.Config.GetSection("CardGameSettings"));
 
             builder.Services.Configure<UmbracoPipelineOptions>(options =>
             {

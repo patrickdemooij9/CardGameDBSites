@@ -1,4 +1,6 @@
-﻿using SkytearHorde.Entities.Models.ResultModels;
+﻿using Microsoft.Extensions.Options;
+using SkytearHorde.Business.Config;
+using SkytearHorde.Entities.Models.ResultModels;
 using System.Net.Http.Json;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Extensions;
@@ -10,10 +12,12 @@ namespace SkytearHorde.Business.Services
         private readonly HttpClient _httpClient;
         private readonly IAppPolicyCache _cache;
 
-        public SkillSetService(HttpClient httpClient, AppCaches appCaches)
+        public SkillSetService(HttpClient httpClient, AppCaches appCaches, IOptions<CardGameSettingsConfig> config)
         {
             _httpClient = httpClient;
             _cache = appCaches.RuntimeCache;
+
+            _httpClient.DefaultRequestHeaders.Add("x-api-key", config.Value.SkillSetApiKey);
         }
 
         public async Task<string> GetSkillSetData(int skillSetId)

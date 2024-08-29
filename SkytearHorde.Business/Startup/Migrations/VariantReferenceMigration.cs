@@ -34,7 +34,7 @@ namespace SkytearHorde.Business.Startup.Migrations
                 Database.Update(cardPrice);
             }
 
-            Alter.Table("CardPriceRecord").AlterColumn("VariantId").AsInt32().NotNullable().Do();
+            //Alter.Table("CardPriceRecord").AlterColumn("VariantId").AsInt32().NotNullable().Do();
 
             foreach (var cardCollection in Database.Fetch<CollectionCardDBModel>().GroupBy(it => it.CardId))
             {
@@ -65,7 +65,7 @@ namespace SkytearHorde.Business.Startup.Migrations
                 }
             }
 
-            Alter.Table("CollectionCard").AlterColumn("VariantId").AsInt32().NotNullable().Do();
+            //Alter.Table("CollectionCard").AlterColumn("VariantId").AsInt32().NotNullable().Do();
         }
     }
 }

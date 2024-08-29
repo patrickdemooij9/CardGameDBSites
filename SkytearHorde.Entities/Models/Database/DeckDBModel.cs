@@ -18,6 +18,7 @@ namespace SkytearHorde.Entities.Models.Database
         public int SiteId { get; set; }
 
         [Column("CreatedBy")]
+        [NullSetting(NullSetting = NullSettings.Null)]
         public int? CreatedBy { get; set; }
 
         [Column("DeckType")]
@@ -30,6 +31,7 @@ namespace SkytearHorde.Entities.Models.Database
         public int Score { get; set; }
 
         [Column("DeletedDate")]
+        [NullSetting(NullSetting = NullSettings.Null)]
         public DateTime? DeletedDate { get; set; }
     }
 }

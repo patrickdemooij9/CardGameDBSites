@@ -36,8 +36,8 @@ namespace SkytearHorde.Business.Startup.Migrations
                 }
             }
 
-            Alter.Table("DeckCard").AlterColumn("GroupId").AsInt32().NotNullable().Do();
-            Alter.Table("DeckCard").AlterColumn("SlotId").AsInt32().NotNullable().Do();
+            //Alter.Table("DeckCard").AlterColumn("GroupId").AsInt32().NotNullable().Do();
+            //Alter.Table("DeckCard").AlterColumn("SlotId").AsInt32().NotNullable().Do();
         }
     }
 }

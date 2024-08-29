@@ -32,6 +32,11 @@ namespace SkytearHorde.Business.Middleware
             _requestCache.Set("SiteId", siteId);
         }
 
+        public bool HasSiteId()
+        {
+            return _requestCache.Get("SiteId") != null;
+        }
+
         private int NonContextValue
         {
             get => AmbientContext.Value ?? default;

@@ -90,17 +90,15 @@ namespace SkytearHorde.Business.Startup
             builder.Components().Append<DiscordBotComponent>();
             builder.Components().Append<ExamineSiteIdComponent>();
             builder.Components().Append<ExamineCardValuesComponent>();
-            builder.Components().Append<ViewSessionComponent>();
+            //builder.Components().Append<ViewSessionComponent>();
 
             builder.Services.AddHostedService<DeckTrackingSyncTask>();
-            builder.Services.AddHostedService<PageViewSyncTask>();
+            //builder.Services.AddHostedService<PageViewSyncTask>();
             builder.Services.AddHostedService<CreatorSyncTask>();
             builder.Services.AddHostedService<DeckCalculatorTask>();
             builder.Services.AddHostedService<AdReportTask>();
             builder.Services.AddHostedService<CardPriceSyncTask>();
             builder.Services.AddHostedService<RedditDailyCardTask>();
-
-            builder.Services.Configure<CardGameSettingsConfig>(builder.Config.GetSection("CardGameSettings"));
 
             builder.Services.Configure<UmbracoPipelineOptions>(options =>
             {

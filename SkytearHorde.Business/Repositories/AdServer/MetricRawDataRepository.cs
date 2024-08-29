@@ -1,6 +1,8 @@
 ﻿using AdServer.Models;
 using AdServer.Repositories.MetricDataRepository;
 using SkytearHorde.Entities.Models.Database.AdServer;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Extensions;
 
@@ -9,10 +11,12 @@ namespace SkytearHorde.Business.Repositories.AdServer
     public class MetricRawDataRepository : IMetricRawDataRepository
     {
         private readonly IScopeProvider _scopeProvider;
+        private readonly IRuntimeState _runtimeState;
 
-        public MetricRawDataRepository(IScopeProvider scopeProvider)
+        public MetricRawDataRepository(IScopeProvider scopeProvider, IRuntimeState runtimeState)
         {
             _scopeProvider = scopeProvider;
+            _runtimeState = runtimeState;
         }
 
         public void Add(AdMetricRawData data)
@@ -33,6 +37,8 @@ namespace SkytearHorde.Business.Repositories.AdServer
 
         public AdMetricRawData[] GetOldest(int amount)
         {
+            if (_runtimeState.Level != RuntimeLevel.Run) return Array.Empty<AdMetricRawData>();
+
             using var scope = _scopeProvider.CreateScope();
             var entities = scope.Database.Fetch<MetricRawDataDBModel>(scope.SqlContext.Sql()
                 .SelectAll()

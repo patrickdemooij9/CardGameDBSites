@@ -17,8 +17,8 @@ namespace SkytearHorde.Business.Startup.Migrations
             if (!TableExists("DeckVersion"))
             {
                 Create.Table<DeckVersionDBModel>().Do();
-                Create.Column("VersionId").OnTable("DeckCard").AsInt32().ForeignKey("DeckVersion", "Id").Nullable().Do();
-                Alter.Table("DeckCard").AlterColumn("DeckId").AsInt32().Nullable().Do();
+                //Create.Column("VersionId").OnTable("DeckCard").AsInt32().ForeignKey("DeckVersion", "Id").Nullable().Do();
+                //Alter.Table("DeckCard").AlterColumn("DeckId").AsInt32().Nullable().Do();
 
                 var decks = Database.Fetch<OldDeckDBModel>(Sql()
                     .SelectAll()
@@ -53,11 +53,11 @@ namespace SkytearHorde.Business.Startup.Migrations
                     }
                 }
 
-                Delete.ForeignKey("FK_DeckCard_Deck_Id").OnTable("DeckCard").Do();
-                Delete.Column("DeckId").FromTable("DeckCard").Do();
-                Delete.Column("Name").FromTable("Deck").Do();
-                Delete.Column("Description").FromTable("Deck").Do();
-                Alter.Table("DeckCard").AlterColumn("VersionId").AsInt32().NotNullable().Do();
+                //Delete.ForeignKey("FK_DeckCard_Deck_Id").OnTable("DeckCard").Do();
+                //Delete.Column("DeckId").FromTable("DeckCard").Do();
+                //Delete.Column("Name").FromTable("Deck").Do();
+                //Delete.Column("Description").FromTable("Deck").Do();
+                //Alter.Table("DeckCard").AlterColumn("VersionId").AsInt32().NotNullable().Do();
             }
         }
 

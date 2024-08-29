@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Infrastructure.HostedServices;
@@ -34,8 +35,9 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly IContentService _contentService;
         private readonly CardGameSettingsConfig _cardGameSettingsConfig;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IRuntimeState _runtimeState;
 
-        public CardPriceSyncTask(ILogger<CardPriceSyncTask> logger, HttpClient httpClient, ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, SettingsService settingsService, CardPriceRepository cardPriceRepository, IUmbracoContextFactory umbracoContextFactory, IUmbracoIndexingHandler umbracoIndexingHandler, IContentService contentService, IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption, IServiceProvider serviceProvider) : base(logger, TimeSpan.FromHours(2), TimeSpan.FromMinutes(1))
+        public CardPriceSyncTask(ILogger<CardPriceSyncTask> logger, HttpClient httpClient, ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, SettingsService settingsService, CardPriceRepository cardPriceRepository, IUmbracoContextFactory umbracoContextFactory, IUmbracoIndexingHandler umbracoIndexingHandler, IContentService contentService, IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption, IServiceProvider serviceProvider, IRuntimeState runtimeState) : base(logger, TimeSpan.FromHours(2), TimeSpan.FromMinutes(1))
         {
             _logger = logger;
             _httpClient = httpClient;
@@ -49,10 +51,16 @@ namespace SkytearHorde.Business.BackgroundRunners
             _contentService = contentService;
             _cardGameSettingsConfig = cardGameSettingsConfigOption.Value;
             _serviceProvider = serviceProvider;
+            _runtimeState = runtimeState;
         }
 
         public async override Task PerformExecuteAsync(object? state)
         {
+            if (_runtimeState.Level != RuntimeLevel.Run)
+            {
+                return;
+            }
+
             _logger.LogInformation("Starting card price sync");
             try
             {

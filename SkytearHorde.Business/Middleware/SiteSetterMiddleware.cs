@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using SkytearHorde.Entities.Generated;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Routing;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
@@ -11,11 +13,13 @@ namespace SkytearHorde.Business.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
+        private readonly IRuntimeState _runtimeState;
 
-        public SiteSetterMiddleware(RequestDelegate next, IUmbracoContextFactory umbracoContextFactory)
+        public SiteSetterMiddleware(RequestDelegate next, IUmbracoContextFactory umbracoContextFactory, IRuntimeState runtimeState)
         {
             _next = next;
             _umbracoContextFactory = umbracoContextFactory;
+            _runtimeState = runtimeState;
         }
 
         public async Task Invoke(HttpContext context, ISiteAccessor siteAccessor)
@@ -27,6 +31,8 @@ namespace SkytearHorde.Business.Middleware
 
         private void SetSiteId(HttpContext context, ISiteAccessor siteAccessor)
         {
+            if (_runtimeState.Level != RuntimeLevel.Run) return;
+
             using (var ctx = _umbracoContextFactory.EnsureUmbracoContext())
             {
                 var domains = ctx.UmbracoContext.Domains.GetAll(false).ToArray();

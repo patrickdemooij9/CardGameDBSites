@@ -6,6 +6,8 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Infrastructure.HostedServices;
 
@@ -17,19 +19,23 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly ISiteService _siteService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
+        private readonly IRuntimeState _runtimeState;
         private readonly ILogger _logger;
 
-        public CreatorSyncTask(ILogger<CreatorSyncTask> logger, ContentCreatorService contentCreatorService, ISiteService siteService, ISiteAccessor siteAccessor, IUmbracoContextFactory umbracoContextFactory) : base(logger, TimeSpan.FromHours(4), TimeSpan.FromMinutes(1))
+        public CreatorSyncTask(ILogger<CreatorSyncTask> logger, ContentCreatorService contentCreatorService, ISiteService siteService, ISiteAccessor siteAccessor, IUmbracoContextFactory umbracoContextFactory, IRuntimeState runtimeState) : base(logger, TimeSpan.FromHours(4), TimeSpan.FromMinutes(1))
         {
             _contentCreatorService = contentCreatorService;
             _siteService = siteService;
             _siteAccessor = siteAccessor;
             _umbracoContextFactory = umbracoContextFactory;
+            _runtimeState = runtimeState;
             _logger = logger;
         }
 
         public override Task PerformExecuteAsync(object? state)
         {
+            if (_runtimeState.Level != RuntimeLevel.Run) return Task.CompletedTask;
+
             var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             foreach(var siteId in _siteService.GetAllSites())
             {

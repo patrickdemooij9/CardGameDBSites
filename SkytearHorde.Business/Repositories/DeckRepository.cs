@@ -292,7 +292,7 @@ namespace SkytearHorde.Business.Repositories
             {
                 "popular" => sql.OrderByDescending("Score"),
                 "collection" => sql.OrderBy("MissingCards"),
-                _ => sql.OrderByDescending("CreatedDate"),
+                _ => sql.OrderByDescending("d.CreatedDate"),
             };
             var result = scope.Database.Page<DeckFetchModel>(request.Page, request.Take, sql);
             var deckCards = new List<DeckCardDBModel>();

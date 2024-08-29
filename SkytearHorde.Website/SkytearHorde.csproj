@@ -4,6 +4,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Content\package.zip" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Content\package.zip" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="App_Plugins\Importer\importer.html" />

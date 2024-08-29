@@ -16,6 +16,7 @@ using Sentry.OpenTelemetry;
 using Slimsy.DependencyInjection;
 using Microsoft.AspNetCore.DataProtection;
 using System.Reflection;
+using SkytearHorde.Business.Config;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -31,15 +32,23 @@ builder.CreateUmbracoBuilder()
     .AddSlimsy()
     .Build();
 
-builder.WebHost.UseSentry(options =>
+var config = new CardGameSettingsConfig();
+var section = builder.Configuration.GetSection("CardGameSettings");
+builder.Services.Configure<CardGameSettingsConfig>(section);
+section.Bind(config);
+
+if (!string.IsNullOrWhiteSpace(config.SentryLink))
 {
-    options.Dsn = "https://9b706de825baadaae196815e423e477b@o4507185290608640.ingest.de.sentry.io/4507185292247120";
-    options.EnableTracing = true;
-    options.UseOpenTelemetry();
-    options.TracesSampleRate = 0.5f;
-    options.SampleRate = 0.5f;
-    options.AddIntegration(new ProfilingIntegration());
-});
+    builder.WebHost.UseSentry(options =>
+    {
+        options.Dsn = config.SentryLink;
+        options.EnableTracing = true;
+        options.UseOpenTelemetry();
+        options.TracesSampleRate = 0.5f;
+        options.SampleRate = 0.5f;
+        options.AddIntegration(new ProfilingIntegration());
+    });
+}
 
 ConfigureServices(builder.Services);
 

@@ -14,7 +14,7 @@ namespace SkytearHorde.Business.Startup.Migrations
             if (TableExists("DeckCalculateScore")) return;
 
             Create.Table<DeckCalculateScoreDBModel>().Do();
-            Alter.Table("Deck").AddColumn("Score").AsInt32().Nullable().Do();
+            //Alter.Table("Deck").AddColumn("Score").AsInt32().Nullable().Do();
             foreach (var deck in Database.Fetch<DeckDBModel>())
             {
                 deck.Score = 0;
@@ -25,7 +25,7 @@ namespace SkytearHorde.Business.Startup.Migrations
                     NextCalculateDate = DateTime.UtcNow.AddMinutes(1)
                 });
             }
-            Alter.Table("Deck").AlterColumn("Score").AsInt32().NotNullable().Do();
+            //Alter.Table("Deck").AlterColumn("Score").AsInt32().NotNullable().Do();
         }
     }
 }

@@ -4,5 +4,6 @@
     {
         int GetSiteId();
         void SetSiteId(int siteId);
+        bool HasSiteId();
     }
 }

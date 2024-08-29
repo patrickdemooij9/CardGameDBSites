@@ -16,12 +16,14 @@ namespace SkytearHorde.Business.Middleware
         private readonly RequestDelegate _next;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly ISiteService _siteService;
+        private readonly ISiteAccessor _siteAccessor;
 
-        public FaviconMiddleware(RequestDelegate next, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService)
+        public FaviconMiddleware(RequestDelegate next, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService, ISiteAccessor siteAccessor)
         {
             _next = next;
             _umbracoContextFactory = umbracoContextFactory;
             _siteService = siteService;
+            _siteAccessor = siteAccessor;
         }
 
         public async Task Invoke(HttpContext context)
@@ -32,6 +34,8 @@ namespace SkytearHorde.Business.Middleware
                 await _next.Invoke(context);
                 return;
             }
+
+            if (!_siteAccessor.HasSiteId()) return;
 
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             var faviconFolder = _siteService.GetSettings().FirstChild<SiteSettings>()!.FaviconFolder;

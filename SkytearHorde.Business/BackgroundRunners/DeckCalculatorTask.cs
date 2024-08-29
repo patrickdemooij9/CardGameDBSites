@@ -3,6 +3,8 @@ using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.HostedServices;
 
 namespace SkytearHorde.Business.BackgroundRunners
@@ -13,21 +15,26 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly DeckViewRepository _deckViewRepository;
         private readonly DeckCalculateScoreRepository _deckCalculateScoreRepository;
         private readonly ISiteAccessor _siteAccessor;
+        private readonly IRuntimeState _runtimeState;
 
         public DeckCalculatorTask(ILogger<DeckCalculatorTask> logger,
             DeckService deckService,
             DeckViewRepository deckViewRepository,
             DeckCalculateScoreRepository deckCalculateScoreRepository,
-            ISiteAccessor siteAccessor) : base(logger, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(0))
+            ISiteAccessor siteAccessor,
+            IRuntimeState runtimeState) : base(logger, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(0))
         {
             _deckService = deckService;
             _deckViewRepository = deckViewRepository;
             _deckCalculateScoreRepository = deckCalculateScoreRepository;
             _siteAccessor = siteAccessor;
+            _runtimeState = runtimeState;
         }
 
         public override Task PerformExecuteAsync(object? state)
         {
+            if (_runtimeState.Level != RuntimeLevel.Run) return Task.CompletedTask;
+
             var decksToProcess = _deckCalculateScoreRepository.GetDecksToProcess();
 
             List<int> decksToRemove = new List<int>();

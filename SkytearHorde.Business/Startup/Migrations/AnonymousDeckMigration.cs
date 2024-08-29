@@ -10,7 +10,7 @@ namespace SkytearHorde.Business.Startup.Migrations
 
         protected override void Migrate()
         {
-            Alter.Table("Deck").AlterColumn("CreatedBy").AsInt32().Nullable().Do();
+            //Alter.Table("Deck").AlterColumn("CreatedBy").AsInt32().Nullable().Do();
         }
     }
 }

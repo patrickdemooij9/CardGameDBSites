@@ -37,28 +37,35 @@ namespace SkytearHorde.Business.Repositories.AdServer
 
         public AdMetricRawData[] GetOldest(int amount)
         {
-            if (_runtimeState.Level != RuntimeLevel.Run) return Array.Empty<AdMetricRawData>();
+            if (_runtimeState.Level != RuntimeLevel.Run) return [];
 
-            using var scope = _scopeProvider.CreateScope();
-            var entities = scope.Database.Fetch<MetricRawDataDBModel>(scope.SqlContext.Sql()
-                .SelectAll()
-                .SelectTop(amount)
-                .From<MetricRawDataDBModel>()
-                .OrderBy<MetricRawDataDBModel>(it => it.InsertedUtc))
-                .ToArray();
-            foreach(var entity in entities)
+            try
             {
-                scope.Database.Delete(entity);
-            }
-            scope.Complete();
-            return entities
-                .Select(it => new AdMetricRawData
+                using var scope = _scopeProvider.CreateScope();
+                var entities = scope.Database.Fetch<MetricRawDataDBModel>(scope.SqlContext.Sql()
+                    .SelectAll()
+                    .SelectTop(amount)
+                    .From<MetricRawDataDBModel>()
+                    .OrderBy<MetricRawDataDBModel>(it => it.InsertedUtc))
+                    .ToArray();
+                foreach (var entity in entities)
                 {
-                    AdId = it.AdId,
-                    Click = it.Click,
-                    Impression = it.Impression,
-                    Tracked = it.Tracked
-                }).ToArray();
+                    scope.Database.Delete(entity);
+                }
+                scope.Complete();
+                return entities
+                    .Select(it => new AdMetricRawData
+                    {
+                        AdId = it.AdId,
+                        Click = it.Click,
+                        Impression = it.Impression,
+                        Tracked = it.Tracked
+                    }).ToArray();
+            }
+            catch (Exception ex)
+            {
+                return [];
+            }
         }
     }
 }

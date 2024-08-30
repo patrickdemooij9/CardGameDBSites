@@ -22,3 +22,18 @@ There are various javascript things going on as I am unsure what the best way fo
 Let me know if you have some tips about this. I would highly appreciate it. I mainly want a serverside rendered website that adds a bit of javascript functionality.
 
 I'll be working on getting some test data set up, so that this project can easily be used for other things. Currently I have a database running with everything manually set up.
+
+**How to set up**
+Requirements: Net Core SDK 8
+
+- Clone the repository
+- Inside of SkytearHordeDB.Website run `dotnet build` & `dotnet run`. This will start running the website.
+- Navigate in your browser to the https url that is displayed in your terminal.
+- Install Umbraco by filling in the fields. Ideally you use SQL server, but SQL Lite will also work (though there may be parts broken as it wasn't tested with it in mind).
+- After installing, log in. If the page doesn't automatically redirect you, go to the same url but with /umbraco behind it.
+- In the top navigation, go to "Settings". Then in the sidebar locate "uSync" and click on it. Now click on the Import button.
+- Now stop the website and find the "ContentMigrationPlan.cs" file located in the "Content" folder. Open it and uncomment line 15. Save and run the site again.
+- Go back to umbraco, navigate to "Content". you should now see an item called "Homepage". Click on there.
+- Expand the "Save and publish" button to select "Publish with descendants" and toggle "Include unpublished content items" to on. Click "Publish with descendants".
+- Right click on "Homepage" and select "Cultures and Hostnames". Add a new domain and put your current domain into that input. Click save.
+- You should now be able to navigate to your domain (without /umbraco) and navigate through the website. You'll miss images but I'll figure out a way to get those working as well.

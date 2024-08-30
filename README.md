@@ -23,7 +23,7 @@ Let me know if you have some tips about this. I would highly appreciate it. I ma
 
 I'll be working on getting some test data set up, so that this project can easily be used for other things. Currently I have a database running with everything manually set up.
 
-**How to set up**
+## How to set up
 Requirements: Net Core SDK 8
 
 - Clone the repository

@@ -1,0 +1,9 @@
+﻿@using SkytearHorde.Entities.Models.ViewModels
+@model RandomizerResultViewModel
+@foreach (var result in Model.Result)
+{
+    <div>
+        <h3 class="text-base font-bold">@result.Key</h3>
+        <p>@result.Value</p>
+    </div>
+}

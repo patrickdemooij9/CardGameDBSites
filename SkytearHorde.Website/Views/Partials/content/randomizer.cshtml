@@ -1,0 +1,21 @@
+﻿@using SkytearHorde.Business.Extensions
+@inherits UmbracoViewPage<BlockGridItem<Randomizer>>
+<div>
+    <form hx-get="/umbraco/surface/randomizer/randomizescenario" hx-target="#result">
+        <input type="hidden" name="pageId" value="@UmbracoContext!.PublishedRequest!.PublishedContent!.Id"/>
+
+        @foreach (var set in Model.Content.Sets?.OfType<Set>() ?? Enumerable.Empty<Set>())
+        {
+            <div>
+                <label for="set-@set.Id">@set.DisplayName</label>
+                <input type="checkbox" name="sets[@set.Id]" id="set-@set.Id" value="true" checked />
+            </div>
+        }
+
+        <button class="btn px-2 py-1" type="submit">Randomize</button>
+    </form>
+
+    <div id="result">
+
+    </div>
+</div>

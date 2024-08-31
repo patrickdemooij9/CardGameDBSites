@@ -1,21 +1,23 @@
 ﻿@using SkytearHorde.Business.Extensions
 @inherits UmbracoViewPage<BlockGridItem<Randomizer>>
-<div>
+<div class="w-full">
     <form hx-get="/umbraco/surface/randomizer/randomizescenario" hx-target="#result">
-        <input type="hidden" name="pageId" value="@UmbracoContext!.PublishedRequest!.PublishedContent!.Id"/>
+        <input type="hidden" name="pageId" value="@UmbracoContext!.PublishedRequest!.PublishedContent!.Id" />
 
-        @foreach (var set in Model.Content.Sets?.OfType<Set>() ?? Enumerable.Empty<Set>())
-        {
-            <div>
-                <label for="set-@set.Id">@set.DisplayName</label>
-                <input type="checkbox" name="sets[@set.Id]" id="set-@set.Id" value="true" checked />
-            </div>
-        }
+        <h2 class="text-base font-bold">Choose the sets that you would like to include in the randomizer.</h2>
+        <div class="flex gap-4 mb-4">
+            @foreach (var set in Model.Content.Sets?.OfType<Set>() ?? Enumerable.Empty<Set>())
+            {
+                <div class="flex align-center gap-2">
+                    <input type="checkbox" class="h-4 w-4 bg-white rounded appearance-none checked:bg-checked checked:bg-black" name="sets[@set.Id]" id="set-@set.Id" value="true" checked />
+                    <label for="set-@set.Id">@set.DisplayName</label>
+                </div>
+            }
+        </div>
 
         <button class="btn px-2 py-1" type="submit">Randomize</button>
     </form>
 
     <div id="result">
-
     </div>
 </div>

@@ -5,7 +5,7 @@
         <input type="hidden" name="pageId" value="@UmbracoContext!.PublishedRequest!.PublishedContent!.Id" />
 
         <h2 class="text-base font-bold">Choose the sets that you would like to include in the randomizer.</h2>
-        <div class="flex gap-4 mb-4">
+        <div class="flex md:flex-row flex-col md:gap-4 mb-4">
             @foreach (var set in Model.Content.Sets?.OfType<Set>() ?? Enumerable.Empty<Set>())
             {
                 <div class="flex align-center gap-2">

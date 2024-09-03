@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
@@ -32,8 +34,9 @@ namespace SkytearHorde.Business.Controllers
         private readonly IEmailSender _emailSender;
         private readonly ISiteService _siteService;
         private readonly ILogger _logger;
+        private readonly CardGameSettingsConfig _config;
 
-        public AccountController(IUmbracoContextAccessor umbracoContextAccessor, IUmbracoDatabaseFactory databaseFactory, ServiceContext services, AppCaches appCaches, IProfilingLogger profilingLogger, IPublishedUrlProvider publishedUrlProvider, IMemberSignInManager memberSignInManager, IMemberManager memberManager, IEmailSender emailSender, IMemberService memberService, ISiteAccessor siteAccessor, ISiteService siteService, ILogger<AccountController> logger) : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
+        public AccountController(IUmbracoContextAccessor umbracoContextAccessor, IUmbracoDatabaseFactory databaseFactory, ServiceContext services, AppCaches appCaches, IProfilingLogger profilingLogger, IPublishedUrlProvider publishedUrlProvider, IMemberSignInManager memberSignInManager, IMemberManager memberManager, IEmailSender emailSender, IMemberService memberService, ISiteAccessor siteAccessor, ISiteService siteService, ILogger<AccountController> logger, IOptions<CardGameSettingsConfig> config) : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
         {
             _memberSignInManager = memberSignInManager;
             _memberManager = memberManager;
@@ -42,6 +45,7 @@ namespace SkytearHorde.Business.Controllers
             _siteAccessor = siteAccessor;
             _siteService = siteService;
             _logger = logger;
+            _config = config.Value;
         }
 
         [IgnoreAntiforgeryToken]
@@ -66,22 +70,25 @@ namespace SkytearHorde.Business.Controllers
             if (!ModelState.IsValid)
                 return CurrentUmbracoPage();
 
-            var parameters = new Dictionary<string, string>
+            if (!string.IsNullOrWhiteSpace(_config.RecaptchaSecret))
             {
-                {"secret", "" },
+                var parameters = new Dictionary<string, string>
+            {
+                {"secret", _config.RecaptchaSecret },
                 {"response", register.Recaptcha }
             };
 
-            using var content = new FormUrlEncodedContent(parameters);
-            var response = await new HttpClient().PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                using var content = new FormUrlEncodedContent(parameters);
+                var response = await new HttpClient().PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
 
-            if (!response.IsSuccessStatusCode)
-                return CurrentUmbracoPage();
-            else
-            {
-                var responseContent = response.Content.ReadFromJsonAsync<RecaptchaVerifyResultModel>().Result;
-                if (!responseContent.Success)
+                if (!response.IsSuccessStatusCode)
                     return CurrentUmbracoPage();
+                else
+                {
+                    var responseContent = response.Content.ReadFromJsonAsync<RecaptchaVerifyResultModel>().Result;
+                    if (!responseContent.Success)
+                        return CurrentUmbracoPage();
+                }
             }
 
             var user = new MemberIdentityUser
@@ -108,7 +115,7 @@ namespace SkytearHorde.Business.Controllers
             return CurrentUmbracoPage();
         }
 
-        public async Task<IActionResult> ForgotPassword([Bind(Prefix = "PostModel")]ForgotPasswordPostModel model)
+        public async Task<IActionResult> ForgotPassword([Bind(Prefix = "PostModel")] ForgotPasswordPostModel model)
         {
             var siteId = _siteAccessor.GetSiteId();
             var member = _memberService.GetAllMembers().FirstOrDefault(it => it.Email.Equals(model.Email) && it.GetValue<int>("siteID").Equals(siteId));

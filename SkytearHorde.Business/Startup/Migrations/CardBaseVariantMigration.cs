@@ -80,7 +80,7 @@ namespace SkytearHorde.Business.Startup.Migrations
                 newBase.SetValue("variantType", Udi.Create(Constants.UdiEntityType.Document, variantType.Key));
             }
 
-            newBase.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, card.Set?.Key ?? card.Parent<Set>()?.Key ?? throw new NotImplementedException("Needs either a set or a parent of set")));
+            /*newBase.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, card.Set?.Key ?? card.Parent<Set>()?.Key ?? throw new NotImplementedException("Needs either a set or a parent of set")));*/
 
             _contentService.SaveAndPublish(newBase);
         }

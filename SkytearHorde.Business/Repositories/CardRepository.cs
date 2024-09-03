@@ -129,7 +129,7 @@ namespace SkytearHorde.Business.Repositories
                     if (set is null) return [];
 
                     return cardContainer.Children<UmbracoCard>()?
-                        .Where(it => it.Set?.Id == set.Id)
+                        .Where(it => it.Set?.Any(it => it.Id == set.Id) is true)
                         .SelectMany(it => MapMultiple(it, includeVariants, set.Id))
                         .ToArray() ?? [];
                 }

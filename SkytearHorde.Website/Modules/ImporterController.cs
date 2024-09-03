@@ -259,7 +259,7 @@ namespace SkytearHorde.Modules
                 {
                     if (item is CardVariant variant)
                     {
-                        var cardSet = (variant.Set as Set) ?? (variant.Parent as Card)?.Set;
+                        var cardSet = (variant.Set as Set) ?? (variant.Parent as Card)?.Set?.FirstOrDefault();
                         if (cardSet is null) { continue; }
 
                         var cardAttributes = variant.Attributes.ToItems<IAbilityValue>().ToArray();

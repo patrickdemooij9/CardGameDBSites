@@ -28,6 +28,7 @@ builder.CreateUmbracoBuilder()
     .AddNotificationHandler<AfterMetaTagsNotification, DeckMetaTagsEventHandler>()
     .AddNotificationHandler<ContentPublishedNotification, CardOverviewCacheClearer>()
     .AddNotificationHandler<ContentPublishedNotification, CardSetConnectEventHandler>()
+    .AddNotificationHandler<ContentPublishedNotification, CardVariantsEventHandler>()
     //.AddNotificationHandler<ContentPublishedNotification, CardSortingEventHandler>()
     .AddSlimsy()
     .Build();
@@ -67,14 +68,6 @@ app.UseRewriter(new RewriteOptions()
     .AddRedirectToNonWwwPermanent());
 
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-app.Map("/metrics", metricsApp =>
-{
-    metricsApp.UseMiddleware<MetricsAuthMiddleware>();
-
-    // We already specified URL prefix above, no need to specify it twice here.
-    metricsApp.UseMetricServer("");
-});
 
 //app.MapRazorComponents<App>()
     //.AddInteractiveServerRenderMode();

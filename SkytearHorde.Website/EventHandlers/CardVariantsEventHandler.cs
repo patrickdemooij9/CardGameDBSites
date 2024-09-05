@@ -39,9 +39,9 @@ namespace SkytearHorde.EventHandlers
                 if (card is null) continue;
 
                 var variants = contentItem.Root().FirstChild<Data>()?.FirstChild<VariantsContainer>()?.Children<Variant>()?.ToArray() ?? [];
-                var validVariants = variants.Where(it => it.Requirements.ToItems<ISquadRequirementConfig>().All(r => r.GetRequirement().IsValid([card]))).ToArray();
+                var validVariants = variants.Where(it => !it.ManuallyAdd && it.Requirements.ToItems<ISquadRequirementConfig>().All(r => r.GetRequirement().IsValid([card]))).ToArray();
 
-                foreach (var set in contentItem.Set?.OfType<Set>() ?? Enumerable.Empty<Set>())
+                foreach (var set in contentItem.Set?.OfType<Set>() ?? [])
                 {
                     var baseVariant = _contentService.Create("Base", contentItem.Key, CardVariant.ModelTypeAlias);
                     baseVariant.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key));

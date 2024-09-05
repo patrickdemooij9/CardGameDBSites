@@ -111,6 +111,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual int InternalID => this.Value<int>(_publishedValueFallback, "internalID");
 
 		///<summary>
+		/// Manually Add: Has to be manually added if true. If false, it will be automatically created when the base card is.
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("manuallyAdd")]
+		public virtual bool ManuallyAdd => this.Value<bool>(_publishedValueFallback, "manuallyAdd");
+
+		///<summary>
 		/// Requirements
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

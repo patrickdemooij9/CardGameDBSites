@@ -92,7 +92,7 @@ namespace SkytearHorde.Entities.Models.Business
 
         public static Card Map(Generated.Card card)
         {
-            var set = card.Set as Set;
+            var set = card.Set?.OfType<Set>().FirstOrDefault();
             return new Card(card.Id)
             {
                 DisplayName = card.DisplayName!,

@@ -282,7 +282,7 @@ namespace SkytearHorde.Modules
                     }
                     else if (item is Card card)
                     {
-                        var cardSet = (card.Set as Set) ?? card.Parent as Set;
+                        var cardSet = (card.Set?.OfType<Set>().FirstOrDefault()) ?? card.Parent as Set;
                         var cardAttributes = card.Attributes.ToItems<IAbilityValue>().ToArray();
 
                         worksheet.Cells[row, 1].Value = card.Id;

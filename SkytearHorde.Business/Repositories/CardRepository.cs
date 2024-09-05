@@ -171,7 +171,7 @@ namespace SkytearHorde.Business.Repositories
         {
             if (card is null) return null;
 
-            var set = card.Set as Set;
+            var set = card.Set?.OfType<Set>().FirstOrDefault();
             return new Card(card.Id)
             {
                 DisplayName = card.DisplayName!,

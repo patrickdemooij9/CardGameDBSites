@@ -198,7 +198,7 @@ namespace SkytearHorde.ViewComponents
             }
             teamModel.AllCharacters = allCharacters.ToArray();
 
-            teamModel.OwnedCharacters = isLoggedIn ? _collectionService.GetCards().Select(it => it.CardId).Distinct().ToArray() : [];
+            teamModel.OwnedCharacters = isLoggedIn ? _collectionService.GetCards().GroupBy(it => it.CardId).ToDictionary(it => it.Key, it => it.Sum(c => c.Amount)) : [];
 
             var viewModel = new CreateSquadTeamOverviewViewModel(teamModel);
 

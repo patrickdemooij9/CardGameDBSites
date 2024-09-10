@@ -28,7 +28,7 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
         public CreateSquadCharacterViewModel[] AllCharacters { get; set; }
 
         [JsonProperty("ownedCharacters")]
-        public int[] OwnedCharacters { get; set; }
+        public Dictionary<int, int> OwnedCharacters { get; set; }
 
         [JsonProperty("requirements")]
         public CreateSquadRequirement[] Requirements { get; set; }

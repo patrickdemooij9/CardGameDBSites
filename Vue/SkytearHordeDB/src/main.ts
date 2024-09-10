@@ -19,7 +19,7 @@ const app = createApp({
       requirements: [],
       characters: {},
       squads: [],
-      ownedCharacters: [],
+      ownedCharacters: {},
       preselectFirstSlot: false,
       hasDynamicSlot: false,
 
@@ -43,7 +43,7 @@ const app = createApp({
       openFilter: '',
       dirty: false,
       publish: false,
-      onlyShowOwned: false,
+      collectionMode: false,
 
       builderElement: undefined,
     }
@@ -67,8 +67,6 @@ const app = createApp({
       this.characters[c.id] = c;
     })
     this.squads = initModel.squads;
-
-    console.log(this.characters);
 
     this.init();
     this.builderElement.classList.remove('hidden');
@@ -160,7 +158,7 @@ const app = createApp({
       let cardAmount = this.getCardsBySlot(slot).find((card: CardAmount) => card.id === character.id);
 
       if (cardAmount) {
-        if (cardAmount.amount >= this.getMaxSizeForSlot(character)) {
+        if (cardAmount.amount >= this.getAllowedSizeForSlot(character)) {
           return;
         }
 
@@ -542,7 +540,7 @@ const app = createApp({
     isSlotFillForCard(slot: SquadSlot, character: Character): boolean {
       const cardAmount = this.getCardsBySlot(slot).find((it: CardAmount) => it.id === character.id);
       if (!cardAmount) return false;
-      return cardAmount.amount === this.getMaxSizeForSlot(character);
+      return cardAmount.amount >= this.getAllowedSizeForSlot(character);
     },
 
     isCardAllowedToRemove(slot: SquadSlot, character: Character): boolean {
@@ -629,6 +627,19 @@ const app = createApp({
       return lookup;
     },
 
+    getAllowedSizeForSlot(character: Character): number {
+      const maxSize = this.getMaxSizeForSlot(character);
+      if (!this.collectionMode) {
+        return maxSize;
+      }
+      var ownedAmount = 0;
+      if (Object.keys(this.ownedCharacters).includes(character.id.toString())) {
+        ownedAmount = this.ownedCharacters[character.id.toString()];
+      }
+
+      return Math.min(maxSize, ownedAmount);
+    },
+
     getMaxSizeForSlot(character: Character): number {
       var values = this.getAbilityValueByType(character, "Amount");
       if (!values) { return 1; }
@@ -677,6 +688,20 @@ const app = createApp({
 
     getMainImageUrl(character: Character) {
       return character.images.find((item) => item.isPrimaryImage)?.imageUrl ?? "/";
+    },
+
+    getDisplayClassesForItem(slot: SquadSlot, item: any) {
+      const classes = [];
+      if (slot.displaySize === "Small") {
+        classes.push("py-1");
+      }
+
+      if (item && !this.hasEnoughInCollection(item.card.id, item.amount)) {
+        classes.push("border-red-300");
+      } else {
+        classes.push("border-gray-300");
+      }
+      return classes;
     },
 
     pointsLeft(squad: Squad) {
@@ -1030,8 +1055,8 @@ const app = createApp({
     },
 
     isVisible(card: Character): boolean {
-      if (this.onlyShowOwned) {
-        return this.ownedCharacters.includes(card.id);
+      if (this.collectionMode) {
+        return Object.keys(this.ownedCharacters).includes(card.id.toString());
       }
 
       if (!this.filteredCardIds) {
@@ -1039,6 +1064,18 @@ const app = createApp({
       }
 
       return this.filteredCardIds.includes(card.id);
+    },
+
+    hasEnoughInCollection(cardId: number, cardAmount: number): boolean {
+      if (!this.collectionMode) {
+        return true;
+      }
+
+      if (!Object.keys(this.ownedCharacters).includes(cardId.toString())) {
+        return false;
+      }
+
+      return this.ownedCharacters[cardId.toString()] >= cardAmount;
     },
 
     closeFilter(filterName: string) {

@@ -16,7 +16,6 @@
 @inject DeckListService _deckListService
 @inject IRequestCache _requestCache
 @inject CardPageService _cardPageService
-@inject IMemberService _memberService
 @inject MemberInfoService _memberInfoService
 @inject CommentService _commentService
 @inject CardService _cardService
@@ -44,7 +43,7 @@
     var loggedIn = Context.User.Identity?.IsAuthenticated is true;
 
     var hasDescription = !string.IsNullOrWhiteSpace(deck.Description);
-    var createdBy = deck.CreatedBy.HasValue ? _memberService.GetById(deck.CreatedBy.Value)?.Name : "Anonymous";
+    var createdBy = deck.CreatedBy.HasValue ? _memberInfoService.GetName(deck.CreatedBy.Value) : "Anonymous";
     var deckIsLiked = _memberInfoService.GetMemberInfo()?.LikedDecks.Contains(deck.Id) is true;
     var comments = _commentService.GetByDeck(deck.Id);
     var currentUserId = Context.User.Identity?.GetUserId<int>();

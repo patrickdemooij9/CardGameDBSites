@@ -67,6 +67,18 @@ namespace SkytearHorde.Business.Repositories
                 .ToArray() ?? Enumerable.Empty<Card>();
         }
 
+        public IEnumerable<Card> GetBase(int cardId)
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            var umbracoItem = ctx.UmbracoContext.Content?.GetById(cardId);
+
+            return umbracoItem?
+                .Children<CardVariant>()?
+                .Where(it => it.VariantType is null)
+                .Select(it => Map(it))
+                .ToArray() ?? Enumerable.Empty<Card>();
+        }
+
         public IEnumerable<Card> GetAll(bool includeVariants = false)
         {
             using (_profiler.Step("GetAll"))

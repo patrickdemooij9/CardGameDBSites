@@ -10,7 +10,6 @@
 @inject SettingsService _settingsService
 @inject ISiteService _siteService
 @inject DeckService _deckService
-@inject IMemberService _memberService
 @inject ISiteAccessor _siteAccessor
 @inject MemberInfoService _memberInfoService
 @inject CollectionService _collectionService
@@ -19,7 +18,7 @@
 @model Deck
 @{
     var squadSettings = _settingsService.GetSquadSettings(Model.TypeId);
-    var author = Model.CreatedBy is null ? "Anonymous" : _memberService.GetById(Model.CreatedBy.Value)?.Name;
+    var author = Model.CreatedBy is null ? "Anonymous" : _memberInfoService.GetName(Model.CreatedBy.Value);
 
     var mainCards = _deckService.GetMainCards(Model).ToArray();
     if (mainCards.Length == 0)

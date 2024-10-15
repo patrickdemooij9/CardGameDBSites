@@ -1,5 +1,6 @@
 ﻿using SkytearHorde.Business.Repositories;
 using SkytearHorde.Entities.Models.Business;
+using System.Diagnostics;
 using System.Text.Encodings.Web;
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Extensions;
@@ -29,21 +30,22 @@ namespace SkytearHorde.Business.Services
             var result = new Dictionary<int, CardPriceGroup>();
             foreach (var priceGroup in GetPrices(ids))
             {
-                var baseVariantId = _cardRepository.GetVariants(priceGroup.CardId).FirstOrDefault(it => it.VariantTypeId is null);
-                if (baseVariantId is null) continue;
-
-                var basePrice = priceGroup.Prices.FirstOrDefault(p => p.VariantId == baseVariantId.VariantId);
-                if (basePrice is null) continue;
-
-                if (result.TryGetValue(priceGroup.CardId, out CardPriceGroup? value))
+                var baseVariants = _cardRepository.GetBase(priceGroup.CardId).ToArray();
+                foreach (var baseVariant in baseVariants)
                 {
-                    value.Prices.Add(basePrice);
-                    continue;
-                }
+                    var basePrice = priceGroup.Prices.FirstOrDefault(p => p.VariantId == baseVariant.VariantId);
+                    if (basePrice is null) continue;
 
-                var basePriceGroup = new CardPriceGroup();
-                basePriceGroup.Prices.Add(basePrice);
-                result.Add(priceGroup.CardId, basePriceGroup);
+                    if (result.TryGetValue(priceGroup.CardId, out CardPriceGroup? value))
+                    {
+                        value.Prices.Add(basePrice);
+                        continue;
+                    }
+
+                    var basePriceGroup = new CardPriceGroup();
+                    basePriceGroup.Prices.Add(basePrice);
+                    result.Add(priceGroup.CardId, basePriceGroup);
+                }
             }
             return result;
         }
@@ -58,8 +60,9 @@ namespace SkytearHorde.Business.Services
 
         public double GetPriceByDeck(Deck deck)
         {
+            using var _ = _profiler.Step("GetPriceByDeck");
             var cardPrices = GetBaseCardPrices(deck.Cards.Select(it => it.CardId).ToArray());
-            return deck.Cards.Sum(it => !cardPrices.ContainsKey(it.CardId) ? 0 : cardPrices[it.CardId].GetLowest() * it.Amount);
+            return deck.Cards.Sum(it => !cardPrices.TryGetValue(it.CardId, out CardPriceGroup? value) ? 0 : value.GetLowest() * it.Amount);
         }
 
         public string GetUrl(CardPrice cardPrice, Card card)

@@ -11,6 +11,7 @@ using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
 using System.Diagnostics;
 using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Extensions;
 using Card = SkytearHorde.Entities.Models.Business.Card;
@@ -27,10 +28,11 @@ namespace SkytearHorde.Business.Services
         private readonly DeckLikeRepository _deckLikeRepository;
         private readonly DeckCalculateScoreRepository _deckCalculateScoreRepository;
         private readonly DeckViewRepository _deckViewRepository;
+        private readonly IProfiler _profiler;
         private readonly IAppPolicyCache _cache;
 
         public DeckService(SettingsService settingsService, CardService cardService, DeckRepository deckRepository,
-            IAbilityFormatter abilityFormatter, ISiteAccessor siteAccessor, DeckLikeRepository deckLikeRepository, DeckCalculateScoreRepository deckCalculateScoreRepository, DeckViewRepository deckViewRepository, AppCaches caches)
+            IAbilityFormatter abilityFormatter, ISiteAccessor siteAccessor, DeckLikeRepository deckLikeRepository, DeckCalculateScoreRepository deckCalculateScoreRepository, DeckViewRepository deckViewRepository, AppCaches caches, IProfiler profiler)
         {
             _settingsService = settingsService;
             _cardService = cardService;
@@ -40,6 +42,7 @@ namespace SkytearHorde.Business.Services
             _deckLikeRepository = deckLikeRepository;
             _deckCalculateScoreRepository = deckCalculateScoreRepository;
             _deckViewRepository = deckViewRepository;
+            _profiler = profiler;
             _cache = caches.RuntimeCache;
         }
 
@@ -206,6 +209,7 @@ namespace SkytearHorde.Business.Services
 
         public PagedResult<Deck> GetAll(DeckPagedRequest request)
         {
+            using var _ = _profiler.Step("GetAllDecks");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var allDecks = _deckRepository.GetAll(_siteAccessor.GetSiteId(), request, out var totalSize).ToArray();
@@ -304,8 +308,7 @@ namespace SkytearHorde.Business.Services
             }
 
             var mainCardRequirements = squadSettings.MainCard.ToItems<ISquadRequirementConfig>().ToArray();
-            var test = cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().Where(c => mainCardRequirements.All(r => r.GetRequirement().IsValid(new[] { c }))).ToArray();
-            return cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().Where(c => mainCardRequirements.All(r => r.GetRequirement().IsValid(new[] {c} )));
+            return cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().Where(c => mainCardRequirements.All(r => r.GetRequirement().IsValid(new[] {c} ))).ToArray();
         }
 
         public IEnumerable<CreateDeckViewModel> GetStartingDecks()

@@ -10,6 +10,7 @@
 @inject CardPageService _cardPageService
 @inject IMemberService _memberService
 @inject ISiteService _siteService
+@inject MemberInfoService _memberInfoService
 @{
     var comments = _commentService.GetLatest(Model.Content.AmountOfComments);
 }
@@ -34,7 +35,7 @@
             source = card.DisplayName;
             url = _cardPageService.GetUrl(card);
         }
-        var userDisplayName = _memberService.GetById(comment.CreatedBy)?.Name;
+        var userDisplayName = _memberInfoService.GetName(comment.CreatedBy);
 
         <div class="hover:bg-gray-50 p-1 mb-2">
             <a href="@url" class="w-full ">

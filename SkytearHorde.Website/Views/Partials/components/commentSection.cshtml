@@ -1,7 +1,8 @@
 ﻿@using SkytearHorde.Business.Extensions;
+@using SkytearHorde.Business.Services
 @using SkytearHorde.Entities.Models.ViewModels;
 @using Umbraco.Cms.Core.Services;
-@inject IMemberService _memberService
+@inject MemberInfoService _memberInfoService
 @model CommentComponentViewModel
 @{
     var currentUserId = Context.User.Identity?.GetUserId<int?>();
@@ -13,7 +14,7 @@
 {
     <div class="py-2 px-2 group hover:bg-gray-50" id="comment-@comment.Id">
         <div class="flex gap-4 items-baseline mb-0.5">
-            <h3 class="text-base">@(_memberService.GetById(comment.CreatedBy)?.Name)</h3>
+            <h3 class="text-base">@(_memberInfoService.GetName(comment.CreatedBy))</h3>
             <p>@comment.CreatedAt.DateOffsetHumanReadable()</p>
 
             @if (currentUserId == comment.CreatedBy)

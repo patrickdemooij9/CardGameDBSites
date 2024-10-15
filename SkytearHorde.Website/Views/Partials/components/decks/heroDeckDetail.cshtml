@@ -10,7 +10,6 @@
 @using Umbraco.Cms.Core.Services
 @inherits UmbracoViewPage<DeckDetail>
 @inject IRequestCache _requestCache
-@inject IMemberService _memberService
 @inject MemberInfoService _memberInfoService
 @inject SettingsService _settingsService
 @inject CardPriceService _cardPriceService
@@ -24,7 +23,7 @@
     var loggedIn = Context.User.Identity?.IsAuthenticated is true;
 
     var hasDescription = !string.IsNullOrWhiteSpace(deck.Description);
-    var createdBy = deck.CreatedBy.HasValue ? _memberService.GetById(deck.CreatedBy.Value)?.Name : "Anonymous";
+    var createdBy = deck.CreatedBy.HasValue ? _memberInfoService.GetName(deck.CreatedBy.Value) : "Anonymous";
     var squadSettings = _settingsService.GetSquadSettings(deck.TypeId);
     var siteSettings = _settingsService.GetSiteSettings();
     var deckIsLiked = _memberInfoService.GetMemberInfo()?.LikedDecks.Contains(deck.Id) is true;

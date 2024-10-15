@@ -2,6 +2,7 @@
 using SkytearHorde.Entities.Models.Business;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
 
 namespace SkytearHorde.Business.Services
@@ -12,13 +13,23 @@ namespace SkytearHorde.Business.Services
 
         private readonly DeckLikeRepository _deckLikeRepository;
         private readonly IMemberManager _memberManager;
+        private readonly IMemberService _memberService;
         private readonly IAppPolicyCache _cache;
 
-        public MemberInfoService(DeckLikeRepository deckLikeRepository, AppCaches appCaches, IMemberManager memberManager)
+        public MemberInfoService(DeckLikeRepository deckLikeRepository, AppCaches appCaches, IMemberManager memberManager, IMemberService memberService)
         {
             _deckLikeRepository = deckLikeRepository;
             _memberManager = memberManager;
+            _memberService = memberService;
             _cache = appCaches.RuntimeCache;
+        }
+
+        public string? GetName(int memberId)
+        {
+            return _cache.GetCacheItem($"{CacheKey}{memberId}_Name", () =>
+            {
+                return _memberService.GetById(memberId)?.Name;
+            });
         }
 
         public MemberModel? GetMemberInfo()

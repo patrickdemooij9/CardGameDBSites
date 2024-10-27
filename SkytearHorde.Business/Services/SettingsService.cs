@@ -43,7 +43,8 @@ namespace SkytearHorde.Business.Services
                     ClientId = settings.RedditClientID,
                     ClientSecret = settings.RedditClientSecret,
                     Subreddit = settings.RedditSubreddit
-                }
+                },
+                SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray()
             };
         }
 

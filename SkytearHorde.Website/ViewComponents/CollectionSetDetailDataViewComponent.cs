@@ -47,7 +47,7 @@ namespace SkytearHorde.ViewComponents
 
             var ownedFilter = model.Config.Filters.FirstOrDefault(it => it.Alias == "collection");
 
-            var allCards = GetCards([.. model.Config.Filters], model.SearchQuery, page.Id, model.SortBy);
+            var allCards = GetCards([.. model.Config.Filters], model.SearchQuery, page.Id, model.SortBy is null ? [] : [new CardSorting(model.SortBy)]);
             var collectionCards = GetCollectionCards(allCards);
 
             var filteredCards = new List<CollectionCardItemViewModel>();
@@ -95,14 +95,18 @@ namespace SkytearHorde.ViewComponents
             return View("/Views/Partials/components/collectionSetDetailData.cshtml", viewModel);
         }
 
-        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, int setId, string? sortBy)
+        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, int setId, CardSorting[] sorting)
         {
             var filtersSelected = filters.Any(it => it.Items.Any(item => item.IsChecked));
             if (string.IsNullOrWhiteSpace(searchQuery) && !filtersSelected)
             {
                 return _cardService.GetAll().ToArray();
             }
-            var query = new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId()) { Query = searchQuery, SetId = setId, SortBy = sortBy };
+            var query = new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId()) { Query = searchQuery, SetId = setId };
+            if (sorting.Length > 0)
+            {
+                query.OrderBy.AddRange(sorting);
+            }
             foreach (var filter in filters)
             {
                 if (filter.Alias == "collection") continue;

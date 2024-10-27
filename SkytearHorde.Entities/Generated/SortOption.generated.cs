@@ -58,6 +58,21 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent Ability => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "ability");
 
 		///<summary>
+		/// Descending
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("descending")]
+		public virtual bool Descending => this.Value<bool>(_publishedValueFallback, "descending");
+
+		///<summary>
+		/// Examine Field: Optionally to use instead of the Ability field
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("examineField")]
+		public virtual string ExamineField => this.Value<string>(_publishedValueFallback, "examineField");
+
+		///<summary>
 		/// Values: Optional value if you want to check for value
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

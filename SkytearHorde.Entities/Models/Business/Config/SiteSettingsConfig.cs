@@ -1,4 +1,6 @@
-﻿namespace SkytearHorde.Entities.Models.Business.Config
+﻿using SkytearHorde.Entities.Generated;
+
+namespace SkytearHorde.Entities.Models.Business.Config
 {
     public class SiteSettingsConfig
     {
@@ -8,10 +10,12 @@
         public KeywordImageConfig[] Keywords { get; set; }
         public bool AllowPricing { get; set; }
         public RedditSettingsConfig? RedditSettings { get; set; }
+        public SortOption[] SortOptions { get; set; }
 
         public SiteSettingsConfig()
         {
             Keywords = Array.Empty<KeywordImageConfig>();
+            SortOptions = [];
         }
     }
 }

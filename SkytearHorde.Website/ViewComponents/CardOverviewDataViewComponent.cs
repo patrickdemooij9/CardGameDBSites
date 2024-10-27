@@ -47,13 +47,29 @@ namespace SkytearHorde.ViewComponents
             var config = model.Config as CardOverviewDataSourceConfig ?? throw new ArgumentException();
             var viewModel = new CardOverviewDataModel();
 
-            var sortingItem = string.IsNullOrWhiteSpace(model.SortBy) ? null : cardOverview.Sortings.ToItems<SortingItem>().FirstOrDefault(it => it.Value == model.SortBy);
+            var sorting = new List<CardSorting>();
+            if (!string.IsNullOrWhiteSpace(model.SortBy))
+            {
+                var selectedSorting = cardOverview.Sortings.ToItems<SortingItem>().FirstOrDefault(it => it.Value == model.SortBy);
+                if (selectedSorting != null)
+                {
+                    sorting.Add(new CardSorting(selectedSorting.ExamineField!) { IsDescending = selectedSorting.Descending });
+                }
+            }
+            else
+            {
+                var defaultSortOptions = _settingsService.GetSiteSettings().SortOptions;
+                if (defaultSortOptions.All(it => it.Values?.Any() != true))
+                {
+                    sorting.AddRange(defaultSortOptions.Select(it => new CardSorting(it.ExamineField.IfNullOrWhiteSpace($"CustomField.{it.Ability?.Name}")) { IsDescending = it.Descending }));
+                }
+            }
 
             var filters = new List<FilterViewModel>();
             filters.AddRange(model.Config.Filters);
             filters.AddRange(model.Config.InternalFilters);
 
-            var allCards = GetCards([.. filters], model.SearchQuery, sortingItem?.ExamineField, sortingItem?.Descending ?? false, config.VariantTypeId);
+            var allCards = GetCards([.. filters], model.SearchQuery, sorting.ToArray(), config.VariantTypeId);
             var ownedFilter = config.Filters.FirstOrDefault(it => it.Alias == "collection");
 
             viewModel.AbilitiesToShow = config.AttributesToShow;
@@ -148,14 +164,19 @@ namespace SkytearHorde.ViewComponents
             return View("/Views/Partials/components/cardOverviewData.cshtml", viewModel);
         }
 
-        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, string? sortBy, bool sortDescending, int variantTypeId)
+        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, CardSorting[] orderby, int variantTypeId)
         {
             var filtersSelected = filters.Any(it => it.Items.Any(item => item.IsChecked));
-            if (string.IsNullOrWhiteSpace(searchQuery) && string.IsNullOrWhiteSpace(sortBy) && !filtersSelected)
+            if (string.IsNullOrWhiteSpace(searchQuery) && orderby.Length == 0 && !filtersSelected)
             {
                 return _cardService.GetAll().ToArray();
             }
-            var query = new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId()) { Query = searchQuery, SortBy = sortBy, SortDescending = sortDescending, VariantTypeId = variantTypeId };
+            var query = new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId()) { Query = searchQuery, VariantTypeId = variantTypeId };
+            if (orderby.Length > 0)
+            {
+                query.OrderBy.AddRange(orderby);
+            }
+
             foreach (var filter in filters)
             {
                 if (filter.Alias == "collection") continue;

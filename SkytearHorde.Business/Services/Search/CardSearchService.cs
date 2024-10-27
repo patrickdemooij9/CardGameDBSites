@@ -60,19 +60,22 @@ namespace SkytearHorde.Business.Services.Search
             }
             else
             {
-                if (string.IsNullOrWhiteSpace(query.SortBy))
+                if (query.OrderBy.Count == 0)
                 {
                     searcher.OrderBy(new SortableField("sortOrder", SortType.Int));
                 }
                 else
                 {
-                    if (query.SortDescending)
+                    foreach (var orderBy in query.OrderBy)
                     {
-                        searcher.OrderByDescending(new SortableField(query.SortBy, SortType.Int));
-                    }
-                    else
-                    {
-                        searcher.OrderBy(new SortableField(query.SortBy, SortType.Int));
+                        if (orderBy.IsDescending)
+                        {
+                            searcher.OrderByDescending(new SortableField(orderBy.Field, SortType.Int));
+                        }
+                        else
+                        {
+                            searcher.OrderBy(new SortableField(orderBy.Field, SortType.String));
+                        }
                     }
                 }
             }

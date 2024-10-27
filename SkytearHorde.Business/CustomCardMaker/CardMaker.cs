@@ -5,6 +5,7 @@ using System.Numerics;
 using SkytearHorde.Entities.Models.PostModels;
 using Umbraco.Extensions;
 using SixLabors.ImageSharp.Processing;
+using SkytearHorde.Business.CustomCardMaker.Fonts;
 
 namespace SkytearHorde.Business.CustomCardMaker
 {
@@ -70,7 +71,7 @@ namespace SkytearHorde.Business.CustomCardMaker
                     { "l", Path.Combine($"{_webHostEnvironment.WebRootPath}\\images\\skytearhorde\\lightning.png") }
                 };
 
-                layers.Add(new CardMarkdownLayer(Path.Combine($"{_webHostEnvironment.WebRootPath}\\fonts\\FrutigerLTStd-Roman_0.otf"), Path.Combine($"{_webHostEnvironment.WebRootPath}\\fonts\\FrutigerLTStd-Black.otf"), renderCardPostModel.Ability, 26, Color.Black, icons, new RectangleF(120, 700, 500, 200)));
+                layers.Add(new CardMarkdownLayer(new FrutigerFontModel(_webHostEnvironment.WebRootPath), renderCardPostModel.Ability, 26, Color.Black, icons, new RectangleF(120, 700, 500, 200)));
             }
 
             if (!string.IsNullOrWhiteSpace(renderCardPostModel.MadeBy))

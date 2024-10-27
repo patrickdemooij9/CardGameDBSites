@@ -13,8 +13,7 @@ namespace SkytearHorde.Business.CustomCardMaker
 {
     public class CardMarkdownLayer : ICardLayer
     {
-        private readonly string _fontPath;
-        private readonly string _fontBoldPath;
+        private readonly FontModel _font;
 
         private readonly string _text;
         private readonly int _fontSize;
@@ -22,10 +21,13 @@ namespace SkytearHorde.Business.CustomCardMaker
         private readonly Dictionary<string, string> _icons;
         private readonly RectangleF _bounds;
 
-        public CardMarkdownLayer(string fontPath, string fontBoldPath, string text, int fontSize, Color color, Dictionary<string, string> icons, RectangleF bounds)
+        public CardMarkdownLayer(FontModel font, string text, int fontSize, Color color, Dictionary<string, string> icons, RectangleF bounds)
         {
-            _fontPath = fontPath;
-            _fontBoldPath = fontBoldPath;
+            _font = font;
+            if (_font.Fallback != null && _font.UnsupportedChars.Any(text.Contains))
+            {
+                _font = _font.Fallback;
+            }
 
             _text = text;
             _fontSize = fontSize;
@@ -162,17 +164,18 @@ namespace SkytearHorde.Business.CustomCardMaker
                 await pair.Key.Render(image, pos);
             }
         }
+
         private Font GetFont(float size)
         {
             var fontCollection = new FontCollection();
-            var family = fontCollection.Add(_fontPath);
+            var family = fontCollection.Add(_font.NormalFont);
             return family.CreateFont(size);
         }
 
         private Font GetBoldFont(float size)
         {
             var fontCollection = new FontCollection();
-            var family = fontCollection.Add(_fontBoldPath);
+            var family = fontCollection.Add(_font.BoldFont);
             return family.CreateFont(size);
         }
     }

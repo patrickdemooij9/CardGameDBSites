@@ -225,9 +225,17 @@ namespace SkytearHorde.Business.Repositories
 
             Card card;
             var variantType = variant.VariantType as Variant;
-            if (variantType?.ChildOf is Variant childOfVariant)
+            if (variantType?.ChildOf is Variant || variantType?.ChildOfBase is true)
             {
-                var childOfCard = variant.Siblings<CardVariant>()?.FirstOrDefault(it => it.Set?.Id == variant.Set?.Id && it.VariantType?.Id == childOfVariant?.Id);
+                var childOfVariant = variantType?.ChildOf as Variant;
+                var childOfCard = variant.Siblings<CardVariant>()?.FirstOrDefault(it =>
+                {
+                    if (variantType?.ChildOfBase is true)
+                    {
+                        return it.Set?.Id == variant.Set?.Id && it.VariantType?.Id == null;
+                    }
+                    return it.Set?.Id == variant.Set?.Id && it.VariantType?.Id == childOfVariant?.Id;
+                });
 
                 card = childOfCard is null ? Map(umbracoCard)! : Map(childOfCard);
 

@@ -90,7 +90,7 @@
             @if (showPrices)
             {
                 <div class="shrink-0">
-                    <p class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white">
+                    <p class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white cursor-pointer" onclick="document.querySelector('#buyCardsForm').submit()">
                         $@deckCost.ToString("0.00")
                     </p>
                 </div>

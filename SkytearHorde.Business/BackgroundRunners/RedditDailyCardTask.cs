@@ -11,6 +11,7 @@ using System.Text;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Infrastructure.HostedServices;
+using Umbraco.Extensions;
 
 namespace SkytearHorde.Business.BackgroundRunners
 {
@@ -80,7 +81,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             var cardAttributes = selectedCard.Attributes.ToDictionary(it => it.Key.Name, it => it);
 
             var stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine($"[{selectedCard.DisplayName}](https://sw-unlimited-db.com{_cardPageService.GetUrl(selectedCard)})");
+            stringBuilder.AppendLine($"[{selectedCard.DisplayName}](https://sw-unlimited-db.com{_cardPageService.GetUrl(selectedCard)}) ([Image](https://sw-unlimited-db.com{selectedCard.Image?.Url()}))");
 
             var cardSettings = _settingsService.GetCardSettings();
             foreach (var displayItem in cardSettings.Display.ToItems<IPublishedElement>().OfType<CardDetailAbilityDisplay>())

@@ -129,7 +129,7 @@ namespace SkytearHorde.Modules
             _siteAccessor.SetSiteId(siteId);
 
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            if (!_siteService.GetSettings().FirstChild<SiteSettings>()?.AllowPricingSync != true)
+            if (_siteService.GetSettings().FirstChild<SiteSettings>()?.AllowPricingSync != true)
             {
                 return NotFound();
             }

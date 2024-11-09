@@ -20,7 +20,7 @@
         }
         else if (exportType is DeckMissingCardsExport && MissingCards != null)
         {
-            <form method="post" action="https://api.tcgplayer.com/massentry?productline=Star Wars Unlimited">
+            <form id="buyCardsForm" method="post" action="https://api.tcgplayer.com/massentry?productline=Star Wars Unlimited">
                 <input type="hidden" name="c" value="@GetMissingCardsString()">
                 <input type="hidden" name="affiliateurl" value="https://tcgplayer.pxf.io/c/4924415/1780961/21018">
                 <button type="submit" class="flex align-center gap-1">

@@ -21,7 +21,8 @@ namespace SkytearHorde.Business.Controllers
             var cards = _cardSearchService.Search(new CardSearchQuery(10, _siteAccessor.GetSiteId())
             {
                 Query = term,
-                IncludeHideFromDeck = false
+                IncludeHideFromDeck = false,
+                VariantTypeId = 0
             });
             return Ok(cards.Select(it => new
             {

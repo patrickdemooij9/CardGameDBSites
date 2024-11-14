@@ -259,7 +259,12 @@ namespace SkytearHorde.Business.Repositories
 
             if (request.Cards.Length > 0)
             {
-                sql = sql.InnerJoin<DeckCardDBModel>("dc").On<DeckVersionDBModel, DeckCardDBModel>((left, right) => left.Id == right.VersionId, "dv", "dc");
+                sql = sql.InnerJoin(scope.SqlContext.Sql()
+                        .Select<DeckCardDBModel>(it => it.VersionId)
+                        .From<DeckCardDBModel>()
+                        .Append($"WHERE [DeckCard].[CardId] in ({string.Join(',', request.Cards)})")
+                        .GroupBy<DeckCardDBModel>(it => it.VersionId)
+                        .Append($"HAVING COUNT(*) = {request.Cards.Length}"), "dc").On<DeckVersionDBModel, DeckCardDBModel>((left, right) => left.Id == right.VersionId, "dv", "dc");
             }
 
             if (request.UseUserCollectionId.HasValue)
@@ -279,11 +284,6 @@ namespace SkytearHorde.Business.Repositories
                 sql = sql.Append($"INNER JOIN ({deckCardAmounts.SQL}) cc ON cc.VersionId = dv.Id", request.UseUserCollectionId.Value);
             }
 
-            if (request.Cards.Length > 0)
-            {
-                sql = sql.Where<DeckCardDBModel>(it => request.Cards.Contains(it.CardId), "dc");
-            }
-
             sql = sql.Where<DeckDBModel>(it => !it.IsDeleted, "d")
                 .Where<DeckVersionDBModel>(it => it.Published == isPublished, "dv")
                 .Where<DeckDBModel>(it => it.DeckType == request.TypeId && it.SiteId == request.SiteId, "d");
@@ -294,6 +294,7 @@ namespace SkytearHorde.Business.Repositories
                 "collection" => sql.OrderBy("MissingCards"),
                 _ => sql.OrderByDescending("d.CreatedDate"),
             };
+            var test = sql.ToString();
             var result = scope.Database.Page<DeckFetchModel>(request.Page, request.Take, sql);
             var deckCards = new List<DeckCardDBModel>();
 

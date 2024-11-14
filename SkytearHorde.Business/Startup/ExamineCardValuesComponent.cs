@@ -95,6 +95,8 @@ namespace SkytearHorde.Business.Startup
                 }
             }
 
+            updatedValues["DecksOnly"] = [card.HideFromDecks ? 0 : 1];
+
             var prices = _cardPriceService.GetPrices(card.BaseId);
             var price = prices.FirstOrDefault()?.Prices.FirstOrDefault(it => it.VariantId == card.VariantId);
             if (price != null)

@@ -104,13 +104,12 @@ namespace SkytearHorde.Business.Controllers
             var filters = new List<FilterViewModel>();
             foreach (var filter in model.Filters)
             {
-                filters.Add(new FilterViewModel(filter.Key, filter.Key)
+                var filterViewModel = new FilterViewModel(filter.Key, filter.Key);
+                foreach (var item in filter.Value.SelectMany(it => it.Split(',')))
                 {
-                    Items = filter.Value.Select(it => new FilterItemViewModel(it, it)
-                    {
-                        IsChecked = true
-                    }).ToList()
-                });
+                    filterViewModel.Items.Add(new FilterItemViewModel(item, item) { IsChecked = true });
+                }
+                filters.Add(filterViewModel);
             };
             return filters;
         }

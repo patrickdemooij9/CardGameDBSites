@@ -47,7 +47,7 @@ namespace SkytearHorde.Business.Services.Search
             }
             if (!query.IncludeHideFromDeck)
             {
-                searcher.And().Field("hideFromDecks", "0");
+                searcher.And().Field("DecksOnly", 1.ToString());
             }
 
             if (!string.IsNullOrWhiteSpace(query.Query))

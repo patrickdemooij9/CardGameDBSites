@@ -32,10 +32,8 @@ namespace SkytearHorde.Business.Repositories
         {
             ArgumentNullException.ThrowIfNull(ids);
 
-            using var scope = _scopeProvider.CreateScope();
-
             var result = new CardPriceGroup[ids.Length];
-            var records = GetRecords(scope, ids).GroupBy(it => it.CardId).ToDictionary(it => it.Key, it => it);
+            var records = GetRecords(ids).GroupBy(it => it.CardId).ToDictionary(it => it.Key, it => it);
             for (var i = 0; i < ids.Length; i++)
             {
                 var id = ids[i];
@@ -63,9 +61,9 @@ namespace SkytearHorde.Business.Repositories
 
         public void InsertPrices(CardPriceGroup[] prices)
         {
-            using var scope = _scopeProvider.CreateScope();
+            var latestRecords = GetRecords(prices.Select(it => it.CardId).ToArray()).GroupBy(it => it.CardId).ToDictionary(it => it.Key, it => it);
 
-            var latestRecords = GetRecords(scope, prices.Select(it => it.CardId).ToArray()).GroupBy(it => it.CardId).ToDictionary(it => it.Key, it => it);
+            using var scope = _scopeProvider.CreateScope();
             foreach (var record in prices)
             {
                 latestRecords.TryGetValue(record.CardId, out var lastRecords);
@@ -116,8 +114,9 @@ namespace SkytearHorde.Business.Repositories
             return scope.Database.First<int>("select count(*) from (select distinct CardId, VariantId from CardPriceRecord group by CardId, VariantId) c");
         }
 
-        private List<CardPriceRecordDBModel> GetRecords(IScope scope, int[] ids)
+        private List<CardPriceRecordDBModel> GetRecords(int[] ids)
         {
+            using var scope = _scopeProvider.CreateScope();
             return scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql("" +
                 "SELECT r.* FROM CardPriceRecord r INNER JOIN (SELECT CardId, MAX(DateUtc) as 'MaxDate' FROM CardPriceRecord GROUP BY CardId) r2 on r.CardId = r2.CardId AND r.DateUtc = r2.MaxDate WHERE r.CardId in (@0)", ids));
         }

@@ -4,13 +4,6 @@
 @using SkytearHorde.ViewComponents;
 @using Umbraco.Cms.Core.Models;
 @model OverviewViewModel
-@{
-    int? pageNumber = null;
-    if (int.TryParse(Context.Request.Query["page"].ToString(), out var page))
-    {
-        pageNumber = page;
-    }
-}
 
 <div x-data="{ listStyle: false, open : false, showFilters: false }">
     <div x-data="serverSideOverview({changeUrl: true})">
@@ -22,7 +15,7 @@
                 @if (!Model.Config.HideSearch)
                 {
                     <div class="flex grow h-10 overflow-hidden rounded border border-solid border-gray-300">
-                        <input class="pl-4 py-4 grow" name="search" type="text" value="@Model.Search" placeholder="Search..." />
+                        <input class="pl-4 py-4 grow" name="search" type="text" value="@Model.Search" placeholder="Search..." x-on:keydown.enter="onUpdateSearch" />
                         <button class="flex justify-center align-center w-8 text-lg px-3 bg-white" type="submit">
                             <i class="ph ph-magnifying-glass"></i>
                         </button>
@@ -161,7 +154,7 @@
                     await Component.InvokeAsync(Model.DataSource.ViewComponentName, new OverviewDataViewModel(Model.Config)
                 {
                     PageId = Model.PageId,
-                    PageNumber = pageNumber,
+                    PageNumber = Model.PageNumber,
                     SearchQuery = Model.Search,
                     SortBy = Model.SortBy
                 })

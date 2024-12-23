@@ -13,6 +13,7 @@ using Card = SkytearHorde.Entities.Models.Business.Card;
 using CardAttribute = SkytearHorde.Entities.Generated.CardAttribute;
 using SkytearHorde.Entities.Models.ViewModels.DataSources;
 using Umbraco.Cms.Core.Logging;
+using Umbraco.Cms.Core.Models;
 
 namespace SkytearHorde.ViewComponents
 {
@@ -43,7 +44,7 @@ namespace SkytearHorde.ViewComponents
 
         public IViewComponentResult Invoke(OverviewDataViewModel model)
         {
-			var cardOverview = _siteService.GetCardOverview();
+            var cardOverview = _siteService.GetCardOverview();
             var config = model.Config as CardOverviewDataSourceConfig ?? throw new ArgumentException();
             var viewModel = new CardOverviewDataModel();
 
@@ -69,7 +70,7 @@ namespace SkytearHorde.ViewComponents
             filters.AddRange(model.Config.Filters);
             filters.AddRange(model.Config.InternalFilters);
 
-            var allCards = GetCards([.. filters], model.SearchQuery, sorting.ToArray(), config.VariantTypeId);
+            var allCards = GetCards([.. filters], model.SearchQuery, sorting.ToArray(), config.VariantTypeId, model.PageNumber ?? 1, config.PageSize ?? int.MaxValue, out var totalCards);
             var ownedFilter = config.Filters.FirstOrDefault(it => it.Alias == "collection");
 
             viewModel.AbilitiesToShow = config.AttributesToShow;
@@ -104,7 +105,7 @@ namespace SkytearHorde.ViewComponents
                         if (amountOwned >= maxCard) continue;
                     };
                 }
-                
+
                 var variants = _collectionService.GetVariants(card, card.SetId).ToArray();
                 CardCollectionViewModel? cardCollection = null;
                 if (viewModel.ShowCollection)
@@ -151,27 +152,36 @@ namespace SkytearHorde.ViewComponents
                 });
             }
 
+            CardItemViewModel[] cards;
             // TODO: This should also be handled by Examine in some way. This will certainly break after a few sets!
             if (model.SortBy?.Equals("collection") is true && viewModel.ShowCollection)
             {
-                viewModel.Cards = filteredCards.OrderByDescending(it => it.Collection?.GetTotalAmount() ?? 0).ToArray();
+                cards = filteredCards.OrderByDescending(it => it.Collection?.GetTotalAmount() ?? 0).ToArray();
             }
             else
             {
-                viewModel.Cards = filteredCards.ToArray();
+                cards = filteredCards.ToArray();
             }
+            viewModel.Cards = new PagedResult<CardItemViewModel>(totalCards, model.PageNumber ?? 1, config.PageSize ?? int.MaxValue)
+            {
+                Items = cards
+            };
+            viewModel.Page = model.PageNumber ?? 1;
+            viewModel.BaseUrl = cardOverview.Url();
 
             return View("/Views/Partials/components/cardOverviewData.cshtml", viewModel);
         }
 
-        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, CardSorting[] orderby, int variantTypeId)
+        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, CardSorting[] orderby, int variantTypeId, int pageNumber, int pageSize, out int totalCards)
         {
             var filtersSelected = filters.Any(it => it.Items.Any(item => item.IsChecked));
             if (string.IsNullOrWhiteSpace(searchQuery) && orderby.Length == 0 && !filtersSelected)
             {
-                return _cardService.GetAll().ToArray();
+                var cards = _cardService.GetAll().Skip(pageSize * (pageNumber - 1)).Take(pageSize).ToArray();
+                totalCards = cards.Length;
+                return cards;
             }
-            var query = new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId()) { Query = searchQuery, VariantTypeId = variantTypeId };
+            var query = new CardSearchQuery(pageSize, _siteAccessor.GetSiteId()) { Query = searchQuery, VariantTypeId = variantTypeId, Skip = pageSize * (pageNumber - 1) };
             if (orderby.Length > 0)
             {
                 query.OrderBy.AddRange(orderby);
@@ -186,7 +196,7 @@ namespace SkytearHorde.ViewComponents
 
                 query.CustomFields[filter.Alias] = selectedValues.Select(it => it.Value).ToArray();
             }
-            return _searchService.Search(query);
+            return _searchService.Search(query, out totalCards);
         }
     }
 }

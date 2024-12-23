@@ -5,6 +5,7 @@
         public string? Query { get; set; }
         public Dictionary<string, string[]> CustomFields { get; set; }
         public int Amount { get; set; }
+        public int Skip { get; set; }
         public int SiteId { get; set; }
         public int? SetId { get; set; }
         public List<CardSorting> OrderBy { get; set; }

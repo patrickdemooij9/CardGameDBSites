@@ -2,10 +2,10 @@
 @using Umbraco.Cms.Core.Models;
 @model CardOverviewDataModel
 @{
-    var hasPrices = Model.Cards.Any(it => it.Price != null);
+    var hasPrices = Model.Cards.Items?.Any(it => it.Price != null) ?? false;
 }
 <div class="container px-4 md:px-8 grid grid-cols-2 @(hasPrices || Model.ShowCollection ? "gap-y-6" : "") gap-4 sm:grid-cols-4 md:grid-cols-6" x-show="!listStyle">
-    @foreach (var card in Model.Cards)
+    @foreach (var card in Model.Cards.Items ?? Enumerable.Empty<CardItemViewModel>())
     {
         <div class="relative">
             <a href="@card.Url" class="no-underline">
@@ -107,7 +107,7 @@
             </div>
         }
     </div>
-    @foreach (var card in Model.Cards)
+    @foreach (var card in Model.Cards.Items ?? Enumerable.Empty<CardItemViewModel>())
     {
         <div id="row-@card.BaseId">
             @await Html.PartialAsync("~/Views/Partials/components/cardOverviewRow.cshtml", new CardOverviewRowDataModel(card)
@@ -119,5 +119,29 @@
         </div>
     }
 </div>
+
+@if (Model.Cards.TotalPages > 1)
+{
+    <div class="mt-8 row justify-center">
+        <div class="pagination overflow-hidden">
+            @if (Model.Page > 1)
+            {
+                <a href="@Model.BaseUrl?page=@(Model.Page - 1)" class="page no-underline" x-on:click.prevent="setPageNumber(@(Model.Page - 1))">Previous</a>
+            }
+            @for (var i = Model.Page - 2; i <= Model.Page + 2; i++)
+            {
+                if (i < 1 || i > Model.Cards.TotalPages)
+                {
+                    continue;
+                }
+                <a href="@Model.BaseUrl?page=@(i)" class="page no-underline @(i == Model.Page ? "bg-main-color text-white" : "")" x-on:click.prevent="setPageNumber(@(i))">@(i)</a>
+            }
+            @if (Model.Page < Model.Cards.TotalPages)
+            {
+                <a href="@Model.BaseUrl?page=@(Model.Page + 1)" class="page no-underline" x-on:click.prevent="setPageNumber(@(Model.Page + 1))">Next</a>
+            }
+        </div>
+    </div>
+}
 
 <div id="collection-modal"></div>

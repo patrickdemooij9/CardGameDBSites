@@ -21,9 +21,13 @@ namespace SkytearHorde.Business.Services.Search
             _cardService = cardService;
         }
 
-        public Card[] Search(CardSearchQuery query)
+        public Card[] Search(CardSearchQuery query, out int totalItems)
         {
-            if (!_examineManager.TryGetIndex("ExternalIndex", out var index)) return Array.Empty<Card>();
+            if (!_examineManager.TryGetIndex("ExternalIndex", out var index))
+            {
+                totalItems = 0;
+                return Array.Empty<Card>();
+            }
 
             var searcher = index.Searcher
                 .CreateQuery()
@@ -80,7 +84,8 @@ namespace SkytearHorde.Business.Services.Search
                 }
             }
 
-            var results = searcher.Execute(new QueryOptions(0, query.Amount));
+            var results = searcher.Execute(new QueryOptions(query.Skip, query.Amount));
+            totalItems = (int)results.TotalItemCount;
             var ids = results.Select(it => int.Parse(it.Id));
 
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();

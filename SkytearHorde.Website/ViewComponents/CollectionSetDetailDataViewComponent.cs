@@ -116,7 +116,7 @@ namespace SkytearHorde.ViewComponents
 
                 query.CustomFields[filter.Alias] = selectedValues.Select(it => it.Value).ToArray();
             }
-            return _searchService.Search(query);
+            return _searchService.Search(query, out _);
         }
 
         private Dictionary<int, CollectionCardItemGrouped> GetCollectionCards(Card[] cards)

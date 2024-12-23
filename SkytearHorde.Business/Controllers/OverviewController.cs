@@ -52,7 +52,7 @@ namespace SkytearHorde.Business.Controllers
 
                 query.CustomFields[filter.Alias] = selectedValues.Select(it => it.Value).ToArray();
             }
-            return Json(_cardSearchService.Search(query).Select(it => it.BaseId).ToArray());
+            return Json(_cardSearchService.Search(query, out _).Select(it => it.BaseId).ToArray());
         }
 
         [HttpPost]

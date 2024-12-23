@@ -23,7 +23,7 @@ namespace SkytearHorde.Business.Controllers
                 Query = term,
                 IncludeHideFromDeck = false,
                 VariantTypeId = 0
-            });
+            }, out _);
             return Ok(cards.Select(it => new
             {
                 value = it.BaseId,

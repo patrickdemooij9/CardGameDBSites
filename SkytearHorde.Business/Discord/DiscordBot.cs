@@ -108,7 +108,7 @@ namespace SkytearHorde.Business.Discord
                 foreach (Match match in matches)
                 {
                     if (cards.Count >= 3) continue;
-                    cards.AddRange(_searchService.Search(new CardSearchQuery(1, _siteId) { Query = match.Value }));
+                    cards.AddRange(_searchService.Search(new CardSearchQuery(1, _siteId) { Query = match.Value }, out _));
                 }
 
                 if (cards.Count == 0) return;

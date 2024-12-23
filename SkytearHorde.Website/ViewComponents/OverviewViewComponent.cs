@@ -29,6 +29,11 @@ namespace SkytearHorde.ViewComponents
 
             var searchQuery = Request.Query["search"].ToString();
             var sortBy = Request.Query["sortBy"].ToString();
+            var pageNumberString = Request.Query["page"].ToString();
+            if (!int.TryParse(pageNumberString, out var pageNumber))
+            {
+                pageNumber = 1;
+            };
 
             foreach (var filter in config.Filters)
             {
@@ -38,6 +43,7 @@ namespace SkytearHorde.ViewComponents
             viewModel.Search = searchQuery;
             viewModel.SortBy = sortBy;
             viewModel.PageId = page.Id;
+            viewModel.PageNumber = pageNumber;
 
             return View("/Views/Partials/components/overview.cshtml", viewModel);
         }

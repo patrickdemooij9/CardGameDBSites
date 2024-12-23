@@ -13,6 +13,8 @@ namespace SkytearHorde.Entities.Models.ViewModels.DataSources
         public SortByViewModel[] Sortings { get; set; }
         public OverviewViewType[] AvailableViews { get; set; }
 
+        public int? PageSize { get; set; }
+
         public OverviewDataSourceConfig()
         {
             Filters = [];

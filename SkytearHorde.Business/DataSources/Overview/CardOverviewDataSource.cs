@@ -81,9 +81,11 @@ namespace SkytearHorde.Business.DataSources.Overview
                 HideSearch = false,
                 HideFilters = cardOverview.HideFilters,
 
-                Filters = filters.ToArray(),
+                Filters = [.. filters],
                 Sortings = sortings,
-                AvailableViews = new[] { OverviewViewType.Images, OverviewViewType.Rows },
+                AvailableViews = [OverviewViewType.Images, OverviewViewType.Rows],
+
+                PageSize = cardOverview.PageSize == 0 ? null : cardOverview.PageSize,
 
                 AttributesToShow = cardOverview.AttributesToShow?.OfType<CardAttribute>().ToDictionary(it => it.Name, it => it.DisplayName!) ?? new Dictionary<string, string>(),
                 IsValid = (card) =>

@@ -10,6 +10,7 @@ namespace SkytearHorde.Entities.Models.ViewModels
         public string? Search { get; set; }
         public string? SortBy { get; set; }
         public int PageId { get; set; }
+        public int PageNumber { get; set; }
 
         public OverviewViewModel(IOverviewDataSource dataSource, OverviewDataSourceConfig config)
         {

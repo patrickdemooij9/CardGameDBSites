@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@alpinejs/intersect": "^3.12.3",
+    "@floating-ui/dom": "^1.6.12",
     "alpinejs": "^3.10.5",
     "concurrently": "^7.6.0",
     "html-includes": "^5.0.0",

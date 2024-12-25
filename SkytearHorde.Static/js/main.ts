@@ -9,6 +9,8 @@ import serverSideOverview from './serverSideOverview';
 import cursorImage from './cursorImage';
 import importModal from './components/importModal';
 import toggler from './utils/toggler';
+import anchorHover from './anchorHover';
+import listManager from './components/listManager';
  
 (window as any).Alpine = Alpine;
 
@@ -25,3 +27,5 @@ ajaxForm();
 tooltip();
 cursorImage();
 toggler();
+anchorHover();
+listManager();

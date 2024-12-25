@@ -60,7 +60,7 @@ namespace SkytearHorde.Business.Controllers
                 Variants = variants.Select(it => new CardVariantViewModel(it)).ToArray()
             };
             var collectionCards = _collectionService.GetCards().Where(it => it.CardId == cardId).ToArray();
-            
+
             var collectionViewModel = new CollectionCardItemViewModel(itemViewModel)
             {
                 Amounts = variants.ToDictionary(it => it.VariantId, it => collectionCards.FirstOrDefault(c => c.VariantId == it.VariantId)?.Amount ?? 0),
@@ -109,6 +109,32 @@ namespace SkytearHorde.Business.Controllers
                 new AjaxResponse($"collection-{setId}", result.ToHtmlString()),
                 new AjaxResponse("progress-bar", progressBar.ToHtmlString())
             });
+        }
+
+        [HttpPost]
+        public IActionResult UpdateSetInList(UpdateSetListPostModel postModel)
+        {
+            //TODO: Make everything work in a list mechanic
+            if (postModel.ListName == "collection")
+            {
+                if (postModel.Value)
+                {
+                    _collectionService.AddSetToCollection(postModel.SetId, 1);
+                }
+                else
+                {
+                    _collectionService.RemoveSetFromCollection(postModel.SetId);
+                }
+                return Ok(new
+                {
+                    text = postModel.Value ? "Remove from collection" : "Add to collection"
+                });
+            }
+            else if (postModel.ListName == "wishlist")
+            {
+                return Ok();
+            }
+            return NotFound();
         }
 
         public IActionResult UpdateCardCollection(int variantId, int amount)

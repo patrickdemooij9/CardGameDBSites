@@ -1,20 +1,15 @@
 ﻿@using SkytearHorde.Entities.Models.ViewModels
 @model CollectionButtonViewModel
-@if (Model.ToAdd){
-    <form asp-controller="Collection" asp-action="AddSetToCollection" class="js-ajax-form-submit">
-        <input type="hidden" name="setId" value="@Model.SetId" />
-        <button class="btn px-2 py-1" type="submit">
-            Add to collection
-        </button>
-    </form>
+@{
 }
-else
-{
-    <form asp-controller="Collection" asp-action="RemoveSetFromCollection" class="js-ajax-form-submit">
-        <input type="hidden" name="setId" value="@Model.SetId" />
-        <button class="btn danger px-2 py-1" type="submit">
-            Remove
-        </button>
-    </form>
-}
-
+<button class="btn btn-outline px-2 py-1 anchor-source" data-anchor-target-id="manage-@Model.SetId" data-anchor-arrow-id="arrow-manage-@Model.SetId" type="button">
+    Manage
+    <i class="ph ph-caret-down"></i>
+</button>
+<div class="anchor-area absolute top-0 left-0 w-max border rounded py-2 bg-white shadow-lg hidden" id="manage-@Model.SetId">
+    <div class="flex flex-col">
+        <button type="button" class="px-4 py-2 text-left hover:bg-gray-200" js-set="@Model.SetId" js-list="collection" js-list-value="@Model.ToAdd.ToString()">@(Model.ToAdd ? "Add to collection" : "Remove from collection")</button>
+        <!--<button type="button" class="px-4 py-2 text-left hover:bg-gray-200" js-set="@Model.SetId" js-list="wishlist" js-list-value="@Model.ToAdd.ToString()">Add to wishlist</button>-->
+    </div>
+    <div id="arrow-manage-@Model.SetId" class="absolute bg-white rotate-45 w-2 h-2"></div>
+</div>

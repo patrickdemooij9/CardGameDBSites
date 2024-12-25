@@ -21,7 +21,7 @@
         @Html.Raw(description)
     }
 
-    @if (isLoggedIn)
+    @if (isLoggedIn && _collectionService.ShowProgressBar())
     {
         var progress = _collectionService.CalculateCollectionProgress();
         <div id="progress-bar">

@@ -72,6 +72,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent MainIdentifier => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "mainIdentifier");
 
 		///<summary>
+		/// Show progress bar
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("showProgressBar")]
+		public virtual bool ShowProgressBar => this.Value<bool>(_publishedValueFallback, "showProgressBar");
+
+		///<summary>
 		/// Variants
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

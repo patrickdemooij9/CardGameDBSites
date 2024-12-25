@@ -29,6 +29,12 @@
                 {
                     <i class="text-xs">@set.SetCode</i>
                 }
+                @if (isLoggedIn && collectionSettings.AllowSetCollecting && currentSets.Contains(set.Id))
+                {
+                    <p class="ml-auto text-xs text-green-600 font-bold">
+                        Owned
+                    </p>
+                }
             </a>
             <div class="flex justify-between">
                 <img class="h-16" src="@(set.DisplayImage?.Url())" />
@@ -53,7 +59,7 @@
                                 })
                             </div>
                         }
-                        else if (collectionSettings.AllowCardCollecting)
+                        else if (collectionSettings.AllowCardCollecting && collectionSettings.ShowProgressBar)
                         {
                             var setProgress = _collectionService.CalculateCollectionProgressBySet(set.Id, out var totalCards, out var collectionCards);
                             @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(setProgress)

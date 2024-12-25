@@ -58,10 +58,13 @@
 
 <div class="container px-4 md:px-8 py-4">
     <div class="flex md:flex-row md:items-center flex-col gap-6">
-        <div id="progress-bar" class="grow">
-            @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(progress))
-            <small>Your progress towards a full collection.</small>
-        </div>
+        @if (_collectionService.ShowProgressBar())
+        {
+            <div id="progress-bar" class="grow">
+                @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(progress))
+                <small>Your progress towards a full collection.</small>
+            </div>
+        }
         @if (isLoggedIn)
         {
             <div class="flex gap-4">

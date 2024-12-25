@@ -241,7 +241,30 @@ namespace SkytearHorde.Business.Services
         public CollectionCardItem[] GetCards()
         {
             var memberId = AssertLoggedInMember();
-            return _collectionCardRepository.Get(memberId);
+            var settings = _settingsService.GetCollectionSettings();
+            if (settings.AllowCardCollecting)
+            {
+                return _collectionCardRepository.Get(memberId);
+            }
+            else if (settings.AllowSetCollecting)
+            {
+                var sets = _collectionSetRepository.Get(memberId);
+                var cards = new List<CollectionCardItem>();
+
+                //TODO: Introduce function to get all the cards for the listed sets
+                foreach (var set in sets)
+                {
+                    cards.AddRange(_cardService.GetAllBySet(set.SetId, false).Select(it => new CollectionCardItem
+                    {
+                        CardId = it.BaseId,
+                        VariantId = 0,
+                        Amount = 1,
+                        UserId = memberId
+                    }));
+                }
+                return cards.ToArray();
+            }
+            return Array.Empty<CollectionCardItem>();
         }
 
         public double CalculateDeckCollection(Deck deck)
@@ -322,6 +345,11 @@ namespace SkytearHorde.Business.Services
             if (settings.AllowSetCollecting)
                 return CalculateProgressBasedOnSets();
             return 0;
+        }
+
+        public bool ShowProgressBar()
+        {
+            return _settingsService.GetCollectionSettings().ShowProgressBar;
         }
 
         public int CalculateCollectionProgressBySet(int setId, out int totalCards, out int collectionCards)

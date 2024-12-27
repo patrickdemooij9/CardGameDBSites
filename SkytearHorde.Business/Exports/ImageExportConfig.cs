@@ -7,12 +7,14 @@ namespace SkytearHorde.Business.Exports
         public SortOption[] SortOptions { get; set; }
         public ISquadRequirementConfig[] MainCardLogic { get; set; }
         public bool ShowCardAmounts { get; set; }
+        public SquadSettings SquadSettings { get; set; }
 
-        public ImageExportConfig()
+        public ImageExportConfig(SquadSettings squadSettings)
         {
             SortOptions = Array.Empty<SortOption>();
             MainCardLogic = Array.Empty<ISquadRequirementConfig>();
             ShowCardAmounts = false;
+            SquadSettings = squadSettings;
         }
     }
 }

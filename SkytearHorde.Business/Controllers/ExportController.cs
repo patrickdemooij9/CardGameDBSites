@@ -4,17 +4,14 @@ using Microsoft.Extensions.Logging;
 using PdfSharpCore;
 using SkytearHorde.Business.Exports;
 using SkytearHorde.Business.Extensions;
-using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
-using SkytearHorde.Entities.Interfaces;
 using SkytearHorde.Entities.Models.Business;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Extensions;
 
@@ -28,14 +25,15 @@ namespace SkytearHorde.Business.Controllers
         private readonly ISiteService _siteService;
         private readonly ILogger<ExportController> _logger;
         private readonly CardService _cardService;
+        private readonly SettingsService _settingsService;
 
         public ExportController(DeckService deckService,
             IWebHostEnvironment webHostEnvironment,
             MemberInfoService memberInfoService,
             ISiteService siteService,
-            ISiteAccessor siteAccessor,
             ILogger<ExportController> logger,
-            CardService cardService)
+            CardService cardService,
+            SettingsService settingsService)
         {
             _deckService = deckService;
             _webHostEnvironment = webHostEnvironment;
@@ -43,6 +41,7 @@ namespace SkytearHorde.Business.Controllers
             _siteService = siteService;
             _logger = logger;
             _cardService = cardService;
+            _settingsService = settingsService;
         }
 
         public async Task<IActionResult> Export(int deckId, Guid exportId)
@@ -151,11 +150,11 @@ namespace SkytearHorde.Business.Controllers
             if (type is DeckImageExport imageExport)
             {
                 var colors = _deckService.GetColorsByDeck(deck).Select(it => it.Key).ToArray();
-                return new ImageExport(_webHostEnvironment, _cardService, _siteService, new ImageExportConfig
+                return new ImageExport(_webHostEnvironment, _cardService, _siteService, new ImageExportConfig(_settingsService.GetSquadSettings(deck.TypeId))
                 {
                     SortOptions = imageExport.Sorting.ToItems<SortOption>().ToArray(),
                     MainCardLogic = imageExport.MainCardLogic.ToItems<ISquadRequirementConfig>().ToArray(),
-                    ShowCardAmounts = imageExport.ShowCardAmounts
+                    ShowCardAmounts = imageExport.ShowCardAmounts,
                 }, colors);
             }
             if (type is DeckSptexport)

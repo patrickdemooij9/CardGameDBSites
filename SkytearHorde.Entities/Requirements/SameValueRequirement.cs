@@ -15,6 +15,8 @@ namespace SkytearHorde.Entities.Requirements
 
         public bool IsValid(Card[] cards)
         {
+            if (cards.Length == 0) return true;
+
             IEnumerable<string>? tempBuffer = null;
             foreach (var card in cards)
             {

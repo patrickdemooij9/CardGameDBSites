@@ -103,7 +103,7 @@ namespace SkytearHorde.ViewComponents
                 {
                     Id = index,
                     CardGroups = GetGroupingBySlot(slot,
-                        existingDeck?.Cards.Where(it => it.GroupId.Equals(squad.SquadId) && it.SlotId.Equals(index)).ToArray() ?? [],
+                        (existingDeck?.Cards.Where(it => it.GroupId.Equals(squad.SquadId) && it.SlotId.Equals(index)).ToArray() ?? slot.DefaultValue?.OfType<Entities.Generated.Card>().Select(it => new DeckCard(it.Id, squad.SquadId, index)).ToArray()) ?? [],
                         allCards.ToDictionary(it => it.BaseId, it => it)),
                     Label = slot.Label,
                     Requirements = slot.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new CreateSquadRequirement(r)).ToArray(),

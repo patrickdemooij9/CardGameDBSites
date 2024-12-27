@@ -93,7 +93,7 @@ namespace SkytearHorde.Business.DataSources.Overview
                         foreach (var restriction in restrictions)
                         {
                             var conditionMet = restriction.Rules.ToItems<RestrictionAttribute>()
-                                .All(it => it.Values!.Any(c => card.GetMultipleCardAttributeValue(it.IsExpansionRestriction ? "Set Name" : it.Attribute!.Name).Contains(c)));
+                                .All(it => it.Values!.Any(c => card.GetMultipleCardAttributeValue(it.IsExpansionRestriction ? "Set Name" : it.Attribute!.Name)?.Contains(c) is true));
 
                             if (restriction.Process && conditionMet) return false;
                             if (!restriction.Process && !conditionMet) return false;

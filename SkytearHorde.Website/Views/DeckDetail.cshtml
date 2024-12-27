@@ -162,21 +162,30 @@
                                                 @foreach (var deckCard in deck.Cards.Where(it => it.GroupId.Equals(squad.SquadId) && it.SlotId.Equals(slotId)))
                                                 {
                                                     var card = _cardService.Get(deckCard.CardId)!;
-                                                    <a href="@_cardPageService.GetUrl(card)" class="image no-underline">
-                                                        <div class="image @(useTooltips ? "cursor-source" : string.Empty)" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
-                                                            @if (card.Image != null)
-                                                            {
-                                                                <img src="@card.Image.GetCropUrl(width: 300, imageCropMode: ImageCropMode.BoxPad)" />
-                                                            }
-                                                            else
-                                                            {
-                                                                <div class="missing-card-image">
-                                                                    <h2>@card.DisplayName</h2>
-                                                                    <p>No image yet</p>
-                                                                </div>
-                                                            }
-                                                        </div>
-                                                    </a>
+                                                    @if (squad.DetailDisplayType == "CardImage")
+                                                    {
+                                                        <a href="@_cardPageService.GetUrl(card)" class="image no-underline">
+                                                            <div class="image @(useTooltips ? "cursor-source" : string.Empty)" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
+                                                                @if (card.Image != null)
+                                                                {
+                                                                    <img src="@card.Image.GetCropUrl(width: 300, imageCropMode: ImageCropMode.BoxPad)" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="missing-card-image">
+                                                                        <h2>@card.DisplayName</h2>
+                                                                        <p>No image yet</p>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="@_cardPageService.GetUrl(card)" class="no-underline cursor-source px-4 py-2 border rounded" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
+                                                            @card.DisplayName
+                                                        </a>
+                                                    }
                                                 }
 
                                                 slotId++;

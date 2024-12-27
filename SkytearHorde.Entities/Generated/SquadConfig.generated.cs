@@ -50,6 +50,14 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
+		/// Detail Display Type
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("detailDisplayType")]
+		public virtual string DetailDisplayType => this.Value<string>(_publishedValueFallback, "detailDisplayType");
+
+		///<summary>
 		/// Label
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

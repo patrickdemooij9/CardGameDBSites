@@ -87,6 +87,15 @@
                     }
                 </div>
             </div>
+            @if (!string.IsNullOrWhiteSpace(card.FaqLink))
+            {
+                <div class="bg-green-300 rounded mt-8">
+                    <div class="p-4">
+                        <p class="mb-2">Looking for frequently asked questions about @card.DisplayName?</p>
+                        <a class="btn btn-outline" href="@card.FaqLink" target="_blank">Frequently asked questions</a>
+                    </div>
+                </div>
+            }
             <div class="bg-white rounded mt-8">
                 <div class="p-4">
                     @await Html.PartialAsync("~/Views/Partials/components/commentSection.cshtml", new CommentComponentViewModel("Card", card.BaseId){

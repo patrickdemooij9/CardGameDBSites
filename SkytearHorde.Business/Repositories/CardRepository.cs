@@ -200,6 +200,7 @@ namespace SkytearHorde.Business.Repositories
                     .WhereNotNull()
                     .ToDictionary(it => new CardAttribute(it.GetAbility()), it => it) ?? new Dictionary<CardAttribute, IAbilityValue>(),
                 Questions = card.Questions.ToItems<FrequentlyAskedQuestion>().ToArray(),
+                FaqLink = card.FaqLink,
                 Sections = card.Sections.ToItems<CardSection>().ToArray(),
                 SlotTargetRequirements = card.SlotTargetRequirements.ToItems<SlotTargetRequirement>().ToArray(),
                 SquadRequirements = card.SquadRequirements.ToItems<ISquadRequirementConfig>().ToArray(),
@@ -294,6 +295,7 @@ namespace SkytearHorde.Business.Repositories
                 Attributes = cardAttributes
                     .ToDictionary(it => new CardAttribute(it.GetAbility()), it => it) ?? new Dictionary<CardAttribute, IAbilityValue>(),
                 Questions = card.Questions,
+                FaqLink = card.FaqLink,
                 Sections = card.Sections,
                 SlotTargetRequirements = card.SlotTargetRequirements,
                 SquadRequirements = card.SquadRequirements,

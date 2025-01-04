@@ -90,6 +90,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual string EmbedFooterText => this.Value<string>(_publishedValueFallback, "embedFooterText");
 
 		///<summary>
+		/// Faq Link
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("faqLink")]
+		public virtual string FaqLink => this.Value<string>(_publishedValueFallback, "faqLink");
+
+		///<summary>
 		/// Hide from decks
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

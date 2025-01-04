@@ -22,6 +22,7 @@ namespace SkytearHorde.Entities.Models.Business
         public DateTime CreatedDate { get; set; }
         public Dictionary<CardAttribute, IAbilityValue> Attributes { get; set; }
         public FrequentlyAskedQuestion[] Questions { get; set; }
+        public string? FaqLink { get; set; }
         public CardSection[] Sections { get; set; }
 
         // Requirements

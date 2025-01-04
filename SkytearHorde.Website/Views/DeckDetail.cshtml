@@ -162,30 +162,45 @@
                                                 @foreach (var deckCard in deck.Cards.Where(it => it.GroupId.Equals(squad.SquadId) && it.SlotId.Equals(slotId)))
                                                 {
                                                     var card = _cardService.Get(deckCard.CardId)!;
-                                                    @if (squad.DetailDisplayType == "CardImage")
-                                                    {
-                                                        <a href="@_cardPageService.GetUrl(card)" class="image no-underline">
-                                                            <div class="image @(useTooltips ? "cursor-source" : string.Empty)" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
-                                                                @if (card.Image != null)
+                                                    <div>
+                                                        @if (squad.DetailDisplayType == "CardImage")
+                                                        {
+                                                            <a href="@_cardPageService.GetUrl(card)" class="image no-underline">
+                                                                <div class="image @(useTooltips ? "cursor-source" : string.Empty)" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
+                                                                    @if (card.Image != null)
+                                                                    {
+                                                                        <img src="@card.Image.GetCropUrl(width: 300, imageCropMode: ImageCropMode.BoxPad)" />
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <div class="missing-card-image">
+                                                                            <h2>@card.DisplayName</h2>
+                                                                            <p>No image yet</p>
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                            </a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <a href="@_cardPageService.GetUrl(card)" class="no-underline cursor-source px-4 py-2 border rounded" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
+                                                                @card.DisplayName
+                                                            </a>
+                                                        }
+
+                                                        @if (deckCard.Children.Count > 0)
+                                                        {
+                                                            <div class="flex flex-col gap-2 mt-2">
+                                                                @foreach (var child in deckCard.Children)
                                                                 {
-                                                                    <img src="@card.Image.GetCropUrl(width: 300, imageCropMode: ImageCropMode.BoxPad)" />
-                                                                }
-                                                                else
-                                                                {
-                                                                    <div class="missing-card-image">
-                                                                        <h2>@card.DisplayName</h2>
-                                                                        <p>No image yet</p>
-                                                                    </div>
+                                                                    var childCard = _cardService.Get(child.CardId)!;
+                                                                    <a href="@_cardPageService.GetUrl(childCard)" class="block no-underline cursor-source px-4 py border rounded w-full text-center" data-cursor-image="@(childCard.Image?.GetCropUrl(width: 400))">
+                                                                        @childCard.DisplayName
+                                                                    </a>
                                                                 }
                                                             </div>
-                                                        </a>
-                                                    }
-                                                    else
-                                                    {
-                                                        <a href="@_cardPageService.GetUrl(card)" class="no-underline cursor-source px-4 py-2 border rounded" data-cursor-image="@(card.Image?.GetCropUrl(width: 400))">
-                                                            @card.DisplayName
-                                                        </a>
-                                                    }
+                                                        }
+                                                    </div>
                                                 }
 
                                                 slotId++;

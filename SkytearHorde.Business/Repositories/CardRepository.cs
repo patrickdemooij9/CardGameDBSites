@@ -203,7 +203,9 @@ namespace SkytearHorde.Business.Repositories
                 Sections = card.Sections.ToItems<CardSection>().ToArray(),
                 SlotTargetRequirements = card.SlotTargetRequirements.ToItems<SlotTargetRequirement>().ToArray(),
                 SquadRequirements = card.SquadRequirements.ToItems<ISquadRequirementConfig>().ToArray(),
-                TeamRequirements = card.TeamRequirements.ToItems<ISquadRequirementConfig>().ToArray()
+                TeamRequirements = card.TeamRequirements.ToItems<ISquadRequirementConfig>().ToArray(),
+                AllowedChildren = card.AllowedChildren?.Select(it => it.Id).ToArray() ?? [],
+                MaxChildren = card.MaxChildren
             };
         }
 
@@ -295,7 +297,9 @@ namespace SkytearHorde.Business.Repositories
                 Sections = card.Sections,
                 SlotTargetRequirements = card.SlotTargetRequirements,
                 SquadRequirements = card.SquadRequirements,
-                TeamRequirements = card.TeamRequirements
+                TeamRequirements = card.TeamRequirements,
+                AllowedChildren = card.AllowedChildren,
+                MaxChildren = card.MaxChildren
             };
         }
     }

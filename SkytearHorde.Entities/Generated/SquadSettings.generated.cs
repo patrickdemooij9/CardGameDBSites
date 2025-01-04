@@ -81,6 +81,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel MainCard => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "mainCard");
 
 		///<summary>
+		/// Max Dynamic Slots
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("maxDynamicSlots")]
+		public virtual int MaxDynamicSlots => this.Value<int>(_publishedValueFallback, "maxDynamicSlots");
+
+		///<summary>
 		/// Overwrite Amount: If filled in, this overwrites the amounts for all cards
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

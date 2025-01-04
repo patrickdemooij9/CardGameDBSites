@@ -27,5 +27,11 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
 
         [JsonProperty("slotRequirements")]
         public CreateSquadTargetSlotRequirement[] SlotRequirements { get; set; }
+
+        [JsonProperty("allowedChildren")]
+        public int[] AllowedChildren { get; set; }
+
+        [JsonProperty("maxChildren")]
+        public int MaxChildren { get; set; }
     }
 }

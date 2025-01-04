@@ -9,6 +9,7 @@ using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Repository;
 using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
+using SkytearHorde.Entities.Requirements;
 using System.Diagnostics;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Logging;
@@ -78,6 +79,7 @@ namespace SkytearHorde.Business.Services
                     throw new InvalidOperationException("Not valid");
             }
 
+            var filledChildSlots = 0;
             foreach (var squadConfig in squadSettings.Squads.ToItems<SquadConfig>())
             {
                 var postSquad = postModel.Squads.FirstOrDefault(it => it.Id == squadConfig.SquadId);
@@ -117,16 +119,32 @@ namespace SkytearHorde.Business.Services
                     }
 
                     var cards = postedSlot.Cards.Select(it => allCards[it.CardId]).ToArray();
-                    foreach (var additionalRequirement in cards.SelectMany(it => it.SlotTargetRequirements))
+                    foreach (var postedCard in postedSlot.Cards)
                     {
-                        var key = additionalRequirement.TargetSlotId;
-                        if (additionalSquadRequirements.ContainsKey(key))
+                        var card = allCards[postedCard.CardId];
+                        var children = postedCard.Children.Select(it => allCards[it]).ToArray();
+                        if (children.Length > 0)
                         {
-                            additionalSquadRequirements[key].AddRange(additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>());
+                            filledChildSlots++;
+                            if ((publish && children.Length != card.MaxChildren) || children.Length > card.MaxChildren)
+                            {
+                                throw new InvalidOperationException("Not enough children");
+                            }
                         }
-                        else
+                        if (card.MaxChildren != 0 && !new ChildOfSquadRequirement(card).IsValid(children))
+                            throw new InvalidOperationException("Not valid");
+
+                        foreach (var additionalRequirement in card.SlotTargetRequirements)
                         {
-                            additionalSquadRequirements.Add(key, additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>().ToList());
+                            var key = additionalRequirement.TargetSlotId;
+                            if (additionalSquadRequirements.ContainsKey(key))
+                            {
+                                additionalSquadRequirements[key].AddRange(additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>());
+                            }
+                            else
+                            {
+                                additionalSquadRequirements.Add(key, additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>().ToList());
+                            }
                         }
                     }
 
@@ -143,13 +161,25 @@ namespace SkytearHorde.Business.Services
                 }
             }
 
+            if ((publish && filledChildSlots != squadSettings.MaxDynamicSlots) || filledChildSlots > squadSettings.MaxDynamicSlots)
+            {
+                throw new InvalidOperationException("Too many dynamic slots");
+            }
+
             var deck = new Deck(postModel.Id ?? 0, postModel.Name)
             {
                 Description = postModel.Description,
                 CreatedBy = userId,
                 Cards = postModel.Squads.SelectMany((squad) => squad.Slots.SelectMany((c, index) =>
                 {
-                    return c.Cards.Select(it => new DeckCard(it.CardId, squad.Id, index, it.Amount));
+                    return c.Cards.Select(it => new DeckCard(it.CardId, squad.Id, index, it.Amount)
+                    {
+                        Children = it.Children.Select(c => new DeckCardChild
+                        {
+                            CardId = c,
+                            Amount = 1
+                        }).ToList()
+                    });
                 })).WhereNotNull().ToList(),
                 CreatedDate = createdDate,
                 IsPublished = publish,

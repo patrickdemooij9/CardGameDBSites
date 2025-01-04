@@ -73,14 +73,26 @@ namespace SkytearHorde.Business.Repositories
 
             foreach (var card in deck.Cards)
             {
-                scope.Database.Insert(new DeckCardDBModel
+                var deckCardDB = new DeckCardDBModel
                 {
                     VersionId = versionModel.Id,
                     CardId = card.CardId,
                     Amount = card.Amount,
                     GroupId = card.GroupId,
                     SlotId = card.SlotId
-                });
+                };
+                scope.Database.Insert(deckCardDB);
+
+                foreach (var child in card.Children)
+                {
+                    scope.Database.Insert(new DeckCardChildDBModel
+                    {
+                        VersionId = versionModel.Id,
+                        CardId = child.CardId,
+                        Amount = child.Amount,
+                        ParentId = deckCardDB.Id
+                    });
+                }
             }
 
             scope.Complete();
@@ -130,14 +142,26 @@ namespace SkytearHorde.Business.Repositories
 
             foreach (var card in deck.Cards)
             {
-                scope.Database.Insert(new DeckCardDBModel
+                var deckCardDB = new DeckCardDBModel
                 {
                     VersionId = versionModel.Id,
                     CardId = card.CardId,
                     Amount = card.Amount,
                     GroupId = card.GroupId,
                     SlotId = card.SlotId
-                });
+                };
+                scope.Database.Insert(deckCardDB);
+
+                foreach (var child in card.Children)
+                {
+                    scope.Database.Insert(new DeckCardChildDBModel
+                    {
+                        VersionId = versionModel.Id,
+                        CardId = child.CardId,
+                        Amount = child.Amount,
+                        ParentId = deckCardDB.Id
+                    });
+                }
             }
 
             scope.Complete();
@@ -297,6 +321,7 @@ namespace SkytearHorde.Business.Repositories
             var test = sql.ToString();
             var result = scope.Database.Page<DeckFetchModel>(request.Page, request.Take, sql);
             var deckCards = new List<DeckCardDBModel>();
+            var deckCardChildren = new List<DeckCardChildDBModel>();
 
             foreach (var deckGroup in result.Items.InGroupsOf(2000))
             {
@@ -305,14 +330,19 @@ namespace SkytearHorde.Business.Repositories
                 deckCards.AddRange(scope.Database.Fetch<DeckCardDBModel>(scope.SqlContext.Sql().SelectAll()
                     .From<DeckCardDBModel>()
                     .WhereIn<DeckCardDBModel>(it => it.VersionId, group.Select(it => it.LatestVersionId))));
+
+                deckCardChildren.AddRange(scope.Database.Fetch<DeckCardChildDBModel>(scope.SqlContext.Sql().SelectAll()
+                    .From<DeckCardChildDBModel>()
+                    .WhereIn<DeckCardChildDBModel>(it => it.VersionId, group.Select(it => it.LatestVersionId))));
             }
 
             var groupedDeckCards = deckCards.GroupBy(it => it.VersionId).ToDictionary(it => it.Key, it => it);
+            var groupedDeckCardChildren = deckCardChildren.GroupBy(it => it.VersionId).ToDictionary(it => it.Key, it => it);
 
             var decks = new List<Deck>();
             foreach (var deck in result.Items)
             {
-                decks.Add(ToModel(deck, groupedDeckCards.GetValue(deck.LatestVersionId)?.ToArray() ?? Array.Empty<DeckCardDBModel>()));
+                decks.Add(ToModel(deck, groupedDeckCards.GetValue(deck.LatestVersionId)?.ToArray() ?? [], groupedDeckCardChildren.GetValue(deck.LatestVersionId)?.ToArray() ?? []));
             }
             return new DeckPagedResult
             {
@@ -336,6 +366,7 @@ namespace SkytearHorde.Business.Repositories
             }
 
             var deckCards = new List<DeckCardDBModel>();
+            var deckCardChildren = new List<DeckCardChildDBModel>();
             var decksDb = scope.Database.Fetch<DeckFetchModel>(sql.OrderByDescending("d.CreatedDate"));
 
             if (ids?.Length > 0)
@@ -347,6 +378,10 @@ namespace SkytearHorde.Business.Repositories
                     deckCards.AddRange(scope.Database.Fetch<DeckCardDBModel>(scope.SqlContext.Sql().SelectAll()
                         .From<DeckCardDBModel>()
                         .WhereIn<DeckCardDBModel>(it => it.VersionId, group.Select(it => it.LatestVersionId))));
+
+                    deckCardChildren.AddRange(scope.Database.Fetch<DeckCardChildDBModel>(scope.SqlContext.Sql().SelectAll()
+                        .From<DeckCardChildDBModel>()
+                        .WhereIn<DeckCardChildDBModel>(it => it.VersionId, group.Select(it => it.LatestVersionId))));
                 }
             }
             else //Get All
@@ -356,14 +391,21 @@ namespace SkytearHorde.Business.Repositories
                     .From<DeckCardDBModel>()
                     .LeftJoin<DeckVersionDBModel>().On<DeckCardDBModel, DeckVersionDBModel>((left, right) => left.VersionId == right.Id)
                     .Where<DeckVersionDBModel>(it => it.IsCurrent)));
+
+                deckCardChildren.AddRange(scope.Database.Fetch<DeckCardChildDBModel>(scope.SqlContext.Sql()
+                    .Select<DeckCardChildDBModel>()
+                    .From<DeckCardChildDBModel>()
+                    .LeftJoin<DeckVersionDBModel>().On<DeckCardChildDBModel, DeckVersionDBModel>((left, right) => left.VersionId == right.Id)
+                    .Where<DeckVersionDBModel>(it => it.IsCurrent)));
             }
 
             var groupedDeckCards = deckCards.GroupBy(it => it.VersionId).ToDictionary(it => it.Key, it => it);
+            var groupedDeckCardChildren = deckCardChildren.GroupBy(it => it.VersionId).ToDictionary(it => it.Key, it => it);
 
             var decks = new List<Deck>();
             foreach (var deck in decksDb)
             {
-                decks.Add(ToModel(deck, groupedDeckCards.GetValue(deck.LatestVersionId)?.ToArray() ?? Array.Empty<DeckCardDBModel>()));
+                decks.Add(ToModel(deck, groupedDeckCards.GetValue(deck.LatestVersionId)?.ToArray() ?? [], groupedDeckCardChildren.GetValue(deck.LatestVersionId)?.ToArray() ?? []));
             }
             return decks.ToArray();
         }
@@ -432,7 +474,7 @@ namespace SkytearHorde.Business.Repositories
             _unpublishedCachePolicy.ClearCache(id);
         }
 
-        private Deck ToModel(DeckFetchModel deck, DeckCardDBModel[] cards)
+        private Deck ToModel(DeckFetchModel deck, DeckCardDBModel[] cards, DeckCardChildDBModel[] cardChildren)
         {
             return new Deck(deck.Id, deck.Name)
             {
@@ -445,7 +487,15 @@ namespace SkytearHorde.Business.Repositories
                 AmountOfLikes = deck.AmountOfLikes,
                 IsPublished = deck.Published,
                 Score = deck.Score,
-                Cards = cards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)).ToList()
+                Cards = cards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)
+                {
+                    Children = cardChildren.Where(c => c.ParentId == it.Id).Select(c => new DeckCardChild
+                    {
+                        Id = c.Id,
+                        CardId = c.CardId,
+                        Amount = c.Amount
+                    }).ToList()
+                }).ToList()
             };
         }
 

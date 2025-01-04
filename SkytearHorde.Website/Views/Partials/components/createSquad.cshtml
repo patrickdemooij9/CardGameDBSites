@@ -42,29 +42,48 @@
                                     <div v-for="group in slot.cardGroups">
                                         <div v-if="group.cardIds.length > 0">
                                             <h2 class="text-sm mb-1" v-if="group.displayName">{{ group.displayName }}</h2>
-                                            <div v-for="item in getOrderedGroupCards(group)" class="flex align-center border w-full rounded mb-2 cursor-pointer tooltip-starter" :class="getDisplayClassesForItem(slot, item)" v-on:click="selectCharacter(item.card)">
-                                                <img v-for="iconUrl in item.card.iconUrls" class="rounded-md" :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'" :src="iconUrl" />
-                                                <div class="flex grow justify-between px-4 md-py-1">
-                                                    <div class="flex gap-4 align-center justify-between grow mr-2 cursor-source" :data-cursor-image="getMainImageUrl(item.card)">
-                                                        <span class="name">{{item.card.name}}</span>
-                                                        <span v-if="getAbilityValueByType(item.card, 'Points').length > 0">({{Math.abs(getAbilityValueByType(item.card, 'Points'))}})</span>
-                                                        <span class="shrink-0" v-if="slot.numberMode && !collectionMode">{{item.amount}} x</span>
-                                                        <span class="shrink-0" :class="!hasEnoughInCollection(item.card.id, item.amount) ? 'font-bold text-red-500' : 'font-bold text-green-600'" v-if="collectionMode">{{item.amount}} / {{getAllowedSizeForSlot(item.card)}}</span>
-                                                    </div>
-                                                    <a v-if="!slot.numberMode && !slot.disableRemoval && item.allowRemoval" href="#" class="flex align-center justify-center ml-2 no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(item.card)">
-                                                        <i class="ph ph-trash"></i>
-                                                    </a>
-                                                    <div v-if="slot.numberMode && !slot.disableRemoval && item.allowRemoval" class="flex align-center gap-2">
-                                                        <a href="#" class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(item.card)">
-                                                            <i class="ph ph-minus"></i>
+                                            <div v-for="item in getOrderedGroupCards(group)">
+                                                <div class="flex align-center border rounded mb-2 cursor-pointer tooltip-starter" :class="getDisplayClassesForItem(slot, item)" v-on:click="selectCharacter(item.card)">
+                                                    <img v-for="iconUrl in item.card.iconUrls" class="rounded-md" :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'" :src="iconUrl" />
+                                                    <div class="flex grow justify-between px-4">
+                                                        <div class="flex gap-4 align-center justify-between grow mr-2 cursor-source" :data-cursor-image="getMainImageUrl(item.card)">
+                                                            <span class="name">{{item.card.name}}</span>
+                                                            <span v-if="getAbilityValueByType(item.card, 'Points').length > 0">({{Math.abs(getAbilityValueByType(item.card, 'Points'))}})</span>
+                                                            <span class="shrink-0" v-if="slot.numberMode && !collectionMode">{{item.amount}} x</span>
+                                                            <span class="shrink-0" :class="!hasEnoughInCollection(item.card.id, item.amount) ? 'font-bold text-red-500' : 'font-bold text-green-600'" v-if="collectionMode">{{item.amount}} / {{getAllowedSizeForSlot(item.card)}}</span>
+                                                        </div>
+                                                        <a v-if="!slot.numberMode && !slot.disableRemoval && item.allowRemoval" href="#" class="flex align-center justify-center ml-2 no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(item.card)">
+                                                            <i class="ph ph-trash"></i>
                                                         </a>
-                                                        <a href="#" class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline" :class="(isSlotFilled(slot) || isSlotFillForCard(slot, item.card)) ? 'bg-gray-300 cursor-not-allowed' : ''" v-on:click.prevent.stop="addToSquad(squad, slot, item.card)">
-                                                            <i class="ph ph-plus"></i>
-                                                        </a>
+                                                        <div v-if="slot.numberMode && !slot.disableRemoval && item.allowRemoval" class="flex align-center gap-2">
+                                                            <a href="#" class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(item.card)">
+                                                                <i class="ph ph-minus"></i>
+                                                            </a>
+                                                            <a href="#" class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline" :class="(isSlotFilled(slot) || isSlotFillForCard(slot, item.card)) ? 'bg-gray-300 cursor-not-allowed' : ''" v-on:click.prevent.stop="addToSquad(squad, slot, item.card)">
+                                                                <i class="ph ph-plus"></i>
+                                                            </a>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="tooltip w-48">
-                                                    <img class="thumbnail" :src="getMainImageUrl(item.card)" />
+
+                                                <div v-for="childSlot in getSlotsByCard(item)">
+                                                    <div v-for="childGroup in childSlot.cardGroups">
+                                                        <div v-for="child in getOrderedGroupCards(childGroup)">
+                                                            <div class="flex align-center border rounded ml-4 mb-2 cursor-pointer tooltip-starter" :class="getDisplayClassesForItem(slot, child)" v-on:click="selectCharacter(child.card)">
+                                                                <div class="flex grow justify-between px-4">
+                                                                    <div class="flex gap-4 align-center justify-between grow mr-2 cursor-source" :data-cursor-image="getMainImageUrl(child.card)">
+                                                                        <span class="name">{{child.card.name}}</span>
+                                                                    </div>
+                                                                    <a v-if="!slot.numberMode && !slot.disableRemoval && item.allowRemoval" href="#" class="flex align-center justify-center ml-2 no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(child.card)">
+                                                                        <i class="ph ph-trash"></i>
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div v-if="!isSlotFilled(childSlot) && showDynamicSlot(childSlot)" class="flex align-center justify-center border border-dashed border-gray-300 bg-gray-100 hover:bg-gray-300 cursor-pointer ml-4 px-4 rounded" v-on:click="clickSlot(squad, childSlot, true)">
+                                                        <span>{{childSlot.label}}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -234,7 +253,7 @@
                                                 <div v-if="isLocationAllowed(location)">
                                                     <div v-if="(character.presentInSlot?.slot !== location.slot || !isSlotFillForCard(location.slot, character))">
                                                         <button v-if="!location.slot.numberMode" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, character)" type="button">
-                                                            <span>Add to {{location.squad.name}}</span>
+                                                            <span>Add to {{location.squad?.name ?? location.slot.label}}</span>
                                                         </button>
                                                         <button v-if="location.slot.numberMode && !isSlotFilled(location.slot)" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, character)" type="button">
                                                             <span>+</span>
@@ -341,7 +360,7 @@
                             </div>
                             <div v-if="location.isAllowed && (selectedCharacter.presentInSlot?.slot !== location.slot || !isSlotFillForCard(location.slot, selectedCharacter))">
                                 <button v-if="location.slot.maxCards === 1" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, selectedCharacter)" type="button">
-                                    <span>Add to {{location.squad.name}}</span>
+                                    <span>Add to {{location.squad?.name ?? location.slot.label}}</span>
                                 </button>
                                 <button v-if="(location.slot.maxCards > 1 || location.slot.minCards > 1) && !isSlotFillForCard(location.slot, selectedCharacter) && !isSlotFilled(location.slot)" v-on:click.prevent.stop="addToSquad(location.squad, location.slot, selectedCharacter)" type="button">
                                     <span>+</span>

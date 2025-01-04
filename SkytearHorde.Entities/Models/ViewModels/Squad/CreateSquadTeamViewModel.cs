@@ -38,5 +38,8 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
 
         [JsonProperty("hasDynamicSlot")]
         public bool HasDynamicSlot { get; set; }
+
+        [JsonProperty("maxDynamicSlots")]
+        public int MaxDynamicSlots { get; set; }
     }
 }

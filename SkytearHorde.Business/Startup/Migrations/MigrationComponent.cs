@@ -61,7 +61,8 @@ namespace SkytearHorde.Business.Startup.Migrations
                 .To<RedditDailyCardMigration>("v22")
                 .To<CardBaseVariantMigration>("v23")
                 .To<VariantReferenceMigration>("v24")
-                .To<CardSetReferenceMigration>("v25");
+                .To<CardSetReferenceMigration>("v25")
+                .To<DeckCardChildMigration>("v26");
 
             var upgrader = new Upgrader(migrationPlan);
             upgrader.Execute(_migrationPlanExecutor, _coreScopeProvider, _keyValueService);

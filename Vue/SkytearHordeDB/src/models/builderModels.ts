@@ -25,7 +25,6 @@ export interface CharacterCurrentSpot {
 
 export interface SquadSlot {
     id: number,
-    //cardIds: CardAmount[];
     label: string;
     requirements: SquadRequirement[];
     cardGroups: SquadGrouping[];
@@ -52,6 +51,14 @@ export interface CardAmount {
     id: number;
     amount: number;
     allowRemoval: boolean;
+    children: SquadSlot[]
+}
+
+export interface RichCardAmount {
+    card: Character;
+    amount: number;
+    allowRemoval: boolean;
+    children: SquadSlot[];
 }
 
 export interface Character {
@@ -63,6 +70,8 @@ export interface Character {
     teamRequirements: SquadRequirement[];
     squadRequirements: SquadRequirement[];
     slotRequirements: SlotRequirement[];
+    allowedChildren: number[];
+    maxChildren: number;
 
     // Parameters for easier data access
     validLocations: CardLocation[];
@@ -77,7 +86,7 @@ export interface CharacterImage {
 }
 
 export interface CardLocation {
-    squad: Squad;
+    squad: Squad | undefined;
     slot: SquadSlot;
     isAllowed: boolean;
 }
@@ -135,6 +144,10 @@ export interface ResourceRequirementConfig {
     requireAllResources: boolean;
 }
 
+export interface ChildOfRequirementConfig {
+    parentId: number;
+}
+
 export interface Ability {
     displayName: string;
     type: string;
@@ -162,7 +175,8 @@ export enum RequirementType {
     Size = "Size",
     Conditional = "Conditional",
     RequiredCard = "RequiredCard",
-    Resource = "Resource"
+    Resource = "Resource",
+    ChildOf = "ChildOf",
 }
 
 export enum DisplaySize {

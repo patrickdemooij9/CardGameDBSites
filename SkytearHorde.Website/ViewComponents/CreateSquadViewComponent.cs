@@ -7,11 +7,13 @@ using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Entities.Constants;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.ViewModels;
 using SkytearHorde.Entities.Models.ViewModels.Squad;
+using SkytearHorde.Entities.Requirements;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Security;
@@ -90,7 +92,8 @@ namespace SkytearHorde.ViewComponents
                 Description = existingDeck?.Description ?? "",
                 IsLoggedIn = isLoggedIn,
                 Requirements = teamRequirements.Select(r => new CreateSquadRequirement(r)).ToArray(),
-                PreselectFirstSlot = squadSettings.SlotOnlyMode
+                PreselectFirstSlot = squadSettings.SlotOnlyMode,
+                MaxDynamicSlots = squadSettings.MaxDynamicSlots
             };
 
             var allCards = _cardService.GetAll().ToArray();
@@ -193,7 +196,9 @@ namespace SkytearHorde.ViewComponents
                     {
                         SlotId = r.TargetSlotId,
                         Requirements = r.Requirements.ToItems<ISquadRequirementConfig>().Select(sr => new CreateSquadRequirement(sr)).ToArray()
-                    }).ToArray()
+                    }).ToArray(),
+                    AllowedChildren = character.AllowedChildren,
+                    MaxChildren = character.MaxChildren
                 });
             }
             teamModel.AllCharacters = allCharacters.ToArray();
@@ -253,7 +258,8 @@ namespace SkytearHorde.ViewComponents
                         {
                             Id = it.CardId,
                             Amount = it.Amount,
-                            AllowRemoval = true
+                            AllowRemoval = true,
+                            Children = it.Children.Count == 0 ? [] : [GetChildSlot(cards[it.CardId], it.Children)]
                         }).ToArray() ?? Array.Empty<CreateSquadCardAmountViewModel>(),
                         Requirements = []
                     }
@@ -272,13 +278,50 @@ namespace SkytearHorde.ViewComponents
                     {
                         Id = it.CardId,
                         Amount = it.Amount,
-                        AllowRemoval = true
+                        AllowRemoval = true,
+                        Children = it.Children.Count == 0 ? [] : [GetChildSlot(cards[it.CardId], it.Children)]
                     }).ToArray() ?? Array.Empty<CreateSquadCardAmountViewModel>(),
                     Requirements = conditions.Select(c => new CreateSquadRequirement(c)).ToArray(),
                     SortBy = "Cost"
                 };
             }
             return returnGroups;
+        }
+
+        private CreateSquadSlotViewModel GetChildSlot(Card parentCard, IEnumerable<DeckCardChild> children)
+        {
+            return new CreateSquadSlotViewModel
+            {
+                Id = -1,
+                Label = "Battle tactics",
+                Requirements =
+                [
+                    new CreateSquadRequirement
+                    {
+                        Type = RequirementConstants.ChildOfAlias,
+                        Config = new Dictionary<string, object>
+                        {
+                            { "parentId", parentCard.BaseId }
+                        }
+                    }
+                ],
+                CardGroups =
+                [
+                    new CreateSquadGroupingViewModel
+                    {
+                        DisplayName = string.Empty,
+                        CardIds = children.Select(c => new CreateSquadCardAmountViewModel{
+                            Id = c.CardId,
+                            Amount = 1,
+                            AllowRemoval = true
+                        }).ToArray()
+                    }
+                ],
+                MinCards = parentCard.MaxChildren,
+                MaxCards = parentCard.MaxChildren,
+                DisableRemoval = false,
+                NumberMode = false,
+            };
         }
 
         private string[] GetIconUrls(Card card, SquadSettings squadSettings)

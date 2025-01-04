@@ -8,5 +8,6 @@
         public const string ConditionalAlias = "Conditional";
         public const string RequiredCardAlias = "RequiredCard";
         public const string ResourceAlias = "Resource";
+        public const string ChildOfAlias = "ChildOf";
     }
 }

@@ -9,5 +9,13 @@ namespace SkytearHorde.Entities.Models.PostModels
 
         [JsonPropertyName("amount")]
         public int Amount { get; set; }
+
+        [JsonPropertyName("children")]
+        public int[] Children { get; set; }
+
+        public CreateSquadCardPostModel()
+        {
+            Children = [];
+        }
     }
 }

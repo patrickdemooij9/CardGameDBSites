@@ -29,6 +29,9 @@ namespace SkytearHorde.Entities.Models.Business
         public ISquadRequirementConfig[] SquadRequirements { get; set; }
         public ISquadRequirementConfig[] TeamRequirements { get; set; }
 
+        public int[] AllowedChildren { get; set; }
+        public int MaxChildren { get; set; }
+
         public Card(int id)
         {
             BaseId = id;

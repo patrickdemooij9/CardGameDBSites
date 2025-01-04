@@ -12,5 +12,13 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
 
         [JsonProperty("allowRemoval")]
         public bool AllowRemoval { get; set; }
+
+        [JsonProperty("children")]
+        public CreateSquadSlotViewModel[] Children { get; set; }
+
+        public CreateSquadCardAmountViewModel()
+        {
+            Children = [];
+        }
     }
 }

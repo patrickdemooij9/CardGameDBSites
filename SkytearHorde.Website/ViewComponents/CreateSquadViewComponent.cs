@@ -317,7 +317,7 @@ namespace SkytearHorde.ViewComponents
                         }).ToArray()
                     }
                 ],
-                MinCards = parentCard.MaxChildren,
+                MinCards = 0,
                 MaxCards = parentCard.MaxChildren,
                 DisableRemoval = false,
                 NumberMode = false,

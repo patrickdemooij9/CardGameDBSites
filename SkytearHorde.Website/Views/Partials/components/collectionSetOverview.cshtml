@@ -23,7 +23,7 @@
     @foreach (var set in sets)
     {
         <div class="flex flex-col gap-2 rounded-md border-2 border-gray-300 bg-white p-4">
-            <a href="@setOverview.Url()@set.UrlSegment" class="flex gap-2 items-baseline text-base no-underline">
+            <a href="@setOverview?.Url()@set.UrlSegment" class="flex gap-2 items-baseline text-base no-underline">
                 <h2 class="text-base font-bold">@set.DisplayName</h2>
                 @if (!string.IsNullOrWhiteSpace(set.SetCode))
                 {
@@ -69,7 +69,7 @@
                         }
                     }
                 </div>
-                <a href="@setOverview.Url()@set.UrlSegment" class="btn btn-outline flex gap-2 align-center px-2 py-1 bg-white"><i class="ph ph-chart-bar"></i>Details</a>
+                <a href="@setOverview?.Url()@set.UrlSegment" class="btn btn-outline flex gap-2 align-center px-2 py-1 bg-white"><i class="ph ph-chart-bar"></i>Details</a>
             </div>
 
         </div>

@@ -303,7 +303,7 @@ const app = createApp({
             requirements: []
           }
         ],
-        minCards: character.maxChildren,
+        minCards: 0,
         maxCards: character.maxChildren,
         displaySize: DisplaySize.Small,
         disableRemoval: false,
@@ -1110,14 +1110,14 @@ const app = createApp({
           return
         }
 
-        if (slot.maxCards == slotCardAmount && slot.minCards > 0) {
+        if (slot.maxCards >= slotCardAmount && slot.minCards <= slotCardAmount) {
           filledSlots++
         } else {
           valid = false
           return
         }
       })
-      if (filledSlots != this.maxDynamicSlots) {
+      if (filledSlots > this.maxDynamicSlots) {
         return false
       }
       return valid

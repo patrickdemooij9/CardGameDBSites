@@ -126,7 +126,7 @@ namespace SkytearHorde.Business.Services
                         if (children.Length > 0)
                         {
                             filledChildSlots++;
-                            if ((publish && children.Length != card.MaxChildren) || children.Length > card.MaxChildren)
+                            if (children.Length > card.MaxChildren)
                             {
                                 throw new InvalidOperationException("Not enough children");
                             }
@@ -161,7 +161,7 @@ namespace SkytearHorde.Business.Services
                 }
             }
 
-            if ((publish && filledChildSlots != squadSettings.MaxDynamicSlots) || filledChildSlots > squadSettings.MaxDynamicSlots)
+            if (filledChildSlots > squadSettings.MaxDynamicSlots)
             {
                 throw new InvalidOperationException("Too many dynamic slots");
             }

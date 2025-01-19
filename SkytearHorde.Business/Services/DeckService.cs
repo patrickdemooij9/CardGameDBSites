@@ -110,15 +110,27 @@ namespace SkytearHorde.Business.Services
                     if (postedSlot is null) throw new InvalidOperationException("Slot not found in post model");
 
                     var slotConfig = squadSlotConfigs[i];
+                    var cards = postedSlot.Cards.Select(it => allCards[it.CardId]).ToArray();
 
                     if (publish)
                     {
-                        if (slotConfig.MaxCards > 0 && slotConfig.MaxCards != postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
+                        var maxCards = 0;
+                        var maxCardsConfig = slotConfig.MaxCards?.FirstOrDefault()?.Content;
+                        if (maxCardsConfig is FixedSquadSlotAmount fixedSquadSlotAmount)
+                        {
+                            maxCards = fixedSquadSlotAmount.Amount;
+                        }
+                        else if (maxCardsConfig is DynamicSquadSlotAmount dynamicSquadSlotAmount)
+                        {
+                            var requirements = dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>().Select(it => it.GetRequirement()).ToArray();
+                            maxCards = cards.Where(it => requirements.All(r => r.IsValid([it]))).Count();
+                        }
+
+                        if (maxCards > 0 && maxCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
                         if (slotConfig.MinCards > 0 && slotConfig.MinCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not min cards given");
                         if (postedSlot.Cards.Any(it => it.Amount > (overwriteAmount ? squadSettings.OverwriteAmount : int.Parse(allCards[it.CardId].GetMultipleCardAttributeValue("Amount")?.First() ?? "1")))) throw new InvalidOperationException("Too many cards of one type");
                     }
 
-                    var cards = postedSlot.Cards.Select(it => allCards[it.CardId]).ToArray();
                     foreach (var postedCard in postedSlot.Cards)
                     {
                         var card = allCards[postedCard.CardId];
@@ -328,7 +340,7 @@ namespace SkytearHorde.Business.Services
 
             return colorLogicItems.Where(it => colors[it.Key] > 0).ToDictionary(it => Color.Parse(it.Color!), it => colors[it.Key]);
         }
-        
+
         public IEnumerable<Card> GetMainCards(IEnumerable<DeckCard> cards)
         {
             var squadSettings = _settingsService.GetSquadSettings();
@@ -338,7 +350,7 @@ namespace SkytearHorde.Business.Services
             }
 
             var mainCardRequirements = squadSettings.MainCard.ToItems<ISquadRequirementConfig>().ToArray();
-            return cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().Where(c => mainCardRequirements.All(r => r.GetRequirement().IsValid(new[] {c} ))).ToArray();
+            return cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().Where(c => mainCardRequirements.All(r => r.GetRequirement().IsValid(new[] { c }))).ToArray();
         }
 
         public IEnumerable<CreateDeckViewModel> GetStartingDecks()
@@ -354,7 +366,7 @@ namespace SkytearHorde.Business.Services
                 var cardArray = new[] { card };
                 var conditionsMet = settings.SpecialImageRule.ToItems<CardImage>().Where(it => it.Conditions.ToItems<ISquadRequirementConfig>().All(config => config.GetRequirement().IsValid(cardArray)));
 
-                foreach(var conditionMet in conditionsMet)
+                foreach (var conditionMet in conditionsMet)
                 {
                     if (conditionMet.Image != null)
                     {

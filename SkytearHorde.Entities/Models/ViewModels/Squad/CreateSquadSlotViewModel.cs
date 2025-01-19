@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SkytearHorde.Entities.Models.ViewModels.Squad.Amounts;
 
 namespace SkytearHorde.Entities.Models.ViewModels.Squad
 {
@@ -19,8 +20,8 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
         [JsonProperty("minCards")]
         public int MinCards { get; set; }
 
-        [JsonProperty("maxCards")]
-        public int MaxCards { get; set; }
+        [JsonProperty("maxCardAmount")]
+        public SquadSlotAmountViewModel MaxCardAmount { get; set; }
 
         [JsonProperty("displaySize")]
         public string DisplaySize { get; set; }

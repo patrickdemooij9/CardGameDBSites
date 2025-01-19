@@ -13,8 +13,10 @@ using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.ViewModels;
 using SkytearHorde.Entities.Models.ViewModels.Squad;
+using SkytearHorde.Entities.Models.ViewModels.Squad.Amounts;
 using SkytearHorde.Entities.Requirements;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Security;
 using YamlDotNet.Serialization;
@@ -111,7 +113,7 @@ namespace SkytearHorde.ViewComponents
                     Label = slot.Label,
                     Requirements = slot.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new CreateSquadRequirement(r)).ToArray(),
                     MinCards = slot.MinCards,
-                    MaxCards = slot.MaxCards,
+                    MaxCardAmount = GetSlotAmount(slot.MaxCards),
                     DisplaySize = slot.DisplaySize.IfNullOrWhiteSpace("Medium"),
                     DisableRemoval = slot.DisableRemoval,
                     NumberMode = slot.NumberMode,
@@ -121,6 +123,7 @@ namespace SkytearHorde.ViewComponents
                 Requirements = squad.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new CreateSquadRequirement(r)).ToArray()
             }).ToArray();
 
+            teamModel.HasDynamicSquads = teamModel.Squads.Any(it => it.Slots.Any(s => s.MaxCardAmount.Type == "dynamic"));
             teamModel.HasDynamicSlot = teamModel.Squads.Any(it => it.Slots.Any(s => s.ShowIfTargetSlotIsFilled != null));
 
             var overwriteAmount = squadSettings.OverwriteAmount > 0;
@@ -288,6 +291,23 @@ namespace SkytearHorde.ViewComponents
             return returnGroups;
         }
 
+        private SquadSlotAmountViewModel GetSlotAmount(BlockListModel? item)
+        {
+            var firstItem = item?.FirstOrDefault();
+            if (firstItem is null) return new FixedSquadSlotAmountViewModel(0);
+
+            if (firstItem.Content is FixedSquadSlotAmount fixedSquadSlotAmount)
+            {
+                return new FixedSquadSlotAmountViewModel(fixedSquadSlotAmount.Amount);
+            }
+            else if (firstItem.Content is DynamicSquadSlotAmount dynamicSquadSlotAmount)
+            {
+                return new DynamicSquadSlotAmountViewModel(dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>().Select(sr => new CreateSquadRequirement(sr)).ToArray());
+            }
+
+            return new FixedSquadSlotAmountViewModel(0);
+        }
+
         private CreateSquadSlotViewModel GetChildSlot(Card parentCard, IEnumerable<DeckCardChild> children)
         {
             return new CreateSquadSlotViewModel
@@ -318,7 +338,7 @@ namespace SkytearHorde.ViewComponents
                     }
                 ],
                 MinCards = 0,
-                MaxCards = parentCard.MaxChildren,
+                MaxCardAmount = new FixedSquadSlotAmountViewModel(parentCard.MaxChildren),
                 DisableRemoval = false,
                 NumberMode = false,
             };

@@ -22,7 +22,9 @@ import {
   type SquadGrouping,
   type RichCardAmount,
   DisplaySize,
-  type ChildOfRequirementConfig
+  type ChildOfRequirementConfig,
+  type FixedSquadAmountConfig,
+  type DynamicSquadAmountConfig
 } from './models/builderModels'
 import { ItemOption, type Filter as FilterFilter, type FilterItem } from './models/filterModels'
 
@@ -44,6 +46,7 @@ const app = createApp({
       squads: [],
       ownedCharacters: {},
       preselectFirstSlot: false,
+      hasDynamicSquads: false,
       hasDynamicSlot: false,
       maxDynamicSlots: 0,
 
@@ -87,6 +90,7 @@ const app = createApp({
     this.isLoggedIn = initModel.isLoggedIn
     this.requirements = initModel.requirements
     this.preselectFirstSlot = initModel.preselectFirstSlot
+    this.hasDynamicSquads = initModel.hasDynamicSquads
     this.hasDynamicSlot = initModel.hasDynamicSlot
     this.ownedCharacters = initModel.ownedCharacters
     this.maxDynamicSlots = initModel.maxDynamicSlots
@@ -701,10 +705,12 @@ const app = createApp({
     },
 
     isSlotFilled(slot: SquadSlot): boolean {
-      if (slot.maxCards === 0) {
+      const canBeInfinite = this.slotAmountCanBeInfinite(slot);
+      const maxCards = this.getMaxSlotAmount(slot)
+      if (canBeInfinite && maxCards === 0) {
         return false
       }
-      return this.getSlotAmount(slot) === slot.maxCards
+      return this.getSlotAmount(slot) >= maxCards
     },
 
     isSlotFillForCard(slot: SquadSlot, character: Character): boolean {
@@ -738,10 +744,10 @@ const app = createApp({
     },
 
     getMaxSquadAmount(squad: Squad): number {
-      return squad.slots.reduce(
-        (sum, slot) => sum + (slot.maxCards === 0 ? slot.minCards : slot.maxCards),
-        0
-      )
+      return squad.slots.reduce((sum, slot) => {
+        const maxCards = this.getMaxSlotAmount(slot)
+        return sum + (maxCards === 0 ? slot.minCards : maxCards)
+      }, 0)
     },
 
     getDeckAmount(): number {
@@ -760,6 +766,21 @@ const app = createApp({
         (sum: number, value: CardAmount) => sum + value.amount,
         0
       )
+    },
+
+    getAvailableSquads(): Squad[] {
+      if (!this.hasDynamicSquads) {
+        return this.squads
+      }
+
+      const squads: Squad[] = []
+      this.squads.forEach((squad: Squad) => {
+        if (this.getSquadAmount(squad) > 0 || this.getMaxSquadAmount(squad) !== 0) {
+          squads.push(squad)
+        }
+      })
+
+      return squads
     },
 
     getAvailableSlots(squad: Squad): SquadSlot[] {
@@ -943,6 +964,30 @@ const app = createApp({
       return classes
     },
 
+    slotAmountCanBeInfinite(slot: SquadSlot){
+      return slot.maxCardAmount.type === 'fixed';
+    },
+
+    getMaxSlotAmount(slot: SquadSlot) {
+      if (slot.maxCardAmount.type === 'fixed') {
+        const fixedConfig = slot.maxCardAmount.config as FixedSquadAmountConfig
+        return fixedConfig.amount
+      }
+
+      const dynamicAmount = slot.maxCardAmount.config as DynamicSquadAmountConfig
+      const allCharactersInSquads: Character[] = this.squads
+        .flatMap((s: Squad) => s.slots)
+        .flatMap((s: SquadSlot) => this.getCardsBySlot(s))
+        .map((it: CardAmount) => this.getCardById(it.id))
+
+      return allCharactersInSquads.reduce((sum, char) => {
+        if (dynamicAmount.requirements.every((req) => this.checkRequirement(req, [char], char))) {
+          return sum + 1
+        }
+        return sum
+      }, 0)
+    },
+
     pointsLeft(squad: Squad) {
       const charactersInSquad = squad.slots
         .flatMap((it) => this.getCardsBySlot(it))
@@ -1087,7 +1132,11 @@ const app = createApp({
       let valid = true
       this.squads.forEach((squad: Squad) => {
         if (
-          squad.slots.find((slot) => slot.maxCards > 0 && this.getSlotAmount(slot) != slot.maxCards)
+          squad.slots.find((slot) => {
+            const maxAmount = this.getMaxSlotAmount(slot)
+            const canBeInfinite = this.slotAmountCanBeInfinite(slot);
+            return (!canBeInfinite || maxAmount > 0) && this.getSlotAmount(slot) > maxAmount
+          })
         ) {
           valid = false
           return
@@ -1110,7 +1159,8 @@ const app = createApp({
           return
         }
 
-        if (slot.maxCards >= slotCardAmount && slot.minCards <= slotCardAmount) {
+        const maxAmount = this.getMaxSlotAmount(slot)
+        if (maxAmount >= slotCardAmount && slot.minCards <= slotCardAmount) {
           filledSlots++
         } else {
           valid = false

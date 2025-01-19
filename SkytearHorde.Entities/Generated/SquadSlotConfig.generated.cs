@@ -100,8 +100,9 @@ namespace SkytearHorde.Entities.Generated
 		/// Max cards: The maximum amount of cards that can be added. If this is reached, the user can publish.
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("maxCards")]
-		public virtual int MaxCards => this.Value<int>(_publishedValueFallback, "maxCards");
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel MaxCards => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "maxCards");
 
 		///<summary>
 		/// Min Cards

@@ -1,4 +1,5 @@
-﻿@using SkytearHorde.Entities.Models.ViewModels.Squad;
+﻿@using Newtonsoft.Json
+@using SkytearHorde.Entities.Models.ViewModels.Squad;
 @model CreateSquadTeamOverviewViewModel
 <form asp-controller="Squad" asp-action="CreateSquad" ref="form" method="post" id="builder" class="hidden bg-white" data-builder="@Json.Serialize(Model.Team).ToHtmlString()">
     <input type="hidden" name="data" v-model="dataString" />
@@ -31,7 +32,7 @@
                                 <label for="collectionMode">Match with collection</label>
                             </div>
                         </template>
-                        <div class="squad-column mt-4" v-for="squad in squads">
+                        <div class="squad-column mt-4" v-for="squad in getAvailableSquads()">
                             <div class="flex align-center justify-between">
                                 <h3 class="text-base">{{squad.name}}</h3>
                                 <p>{{getSquadAmount(squad)}} / {{getMaxSquadAmount(squad)}}</p>

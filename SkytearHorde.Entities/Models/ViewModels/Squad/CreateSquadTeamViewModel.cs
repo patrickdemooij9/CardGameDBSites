@@ -36,6 +36,9 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
         [JsonProperty("preselectFirstSlot")]
         public bool PreselectFirstSlot { get; set; }
 
+        [JsonProperty("hasDynamicSquads")]
+        public bool HasDynamicSquads { get; set; }
+
         [JsonProperty("hasDynamicSlot")]
         public bool HasDynamicSlot { get; set; }
 

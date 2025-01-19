@@ -30,13 +30,26 @@ export interface SquadSlot {
     cardGroups: SquadGrouping[];
 
     minCards: number;
-    maxCards: number;
+    maxCardAmount: SquadAmount;
     displaySize: DisplaySize;
     disableRemoval: boolean;
     numberMode: boolean;
     showIfTargetSlotIsFilled: number | undefined;
 
     additionalFilterRequirements: SquadRequirement[];
+}
+
+export interface SquadAmount {
+    type: string;
+    config: { [key: string]: any };
+}
+
+export interface FixedSquadAmountConfig {
+    amount: number;
+}
+
+export interface DynamicSquadAmountConfig {
+    requirements: SquadRequirement[];
 }
 
 export interface SquadGrouping {

@@ -127,7 +127,9 @@ namespace SkytearHorde.Business.Services
                         }
 
                         if (maxCards > 0 && maxCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
-                        if (slotConfig.MinCards > 0 && slotConfig.MinCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not min cards given");
+
+                        var minCards = slotConfig.MinCards + cards.Sum(it => it.MinDeckChange);
+                        if (minCards > 0 && minCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not min cards given");
                         if (postedSlot.Cards.Any(it => it.Amount > (overwriteAmount ? squadSettings.OverwriteAmount : int.Parse(allCards[it.CardId].GetMultipleCardAttributeValue("Amount")?.First() ?? "1")))) throw new InvalidOperationException("Too many cards of one type");
                     }
 

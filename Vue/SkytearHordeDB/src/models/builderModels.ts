@@ -85,6 +85,7 @@ export interface Character {
     slotRequirements: SlotRequirement[];
     allowedChildren: number[];
     maxChildren: number;
+    minDeckChange: number;
 
     // Parameters for easier data access
     validLocations: CardLocation[];

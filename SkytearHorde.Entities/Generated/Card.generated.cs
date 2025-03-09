@@ -120,20 +120,19 @@ namespace SkytearHorde.Entities.Generated
 		public virtual int MaxChildren => this.Value<int>(_publishedValueFallback, "maxChildren");
 
 		///<summary>
+		/// MinDeckChange: When filled, will change the minimum deck size with this number
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("minDeckChange")]
+		public virtual int MinDeckChange => this.Value<int>(_publishedValueFallback, "minDeckChange");
+
+		///<summary>
 		/// Questions
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("questions")]
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Questions => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "questions");
-
-		///<summary>
-		/// Restrictions: LEGACY
-		///</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("restrictions")]
-		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Restrictions => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "restrictions");
 
 		///<summary>
 		/// Sections

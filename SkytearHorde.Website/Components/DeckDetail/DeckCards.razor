@@ -11,7 +11,7 @@
     var cardsGroup = new SortingHelper(Cards.Where(c => c.MatchesRequirements(group.Conditions.ToItems<ISquadRequirementConfig>().ToArray()))).Sort(group.Sorting.ToItems<SortOption>().ToArray()).ToArray();
     if (cardsGroup.Length == 0) continue;
 
-    <h3 class="text-sm mt-4 mb-2">@group.Header (@cardsGroup.Length)</h3>
+    <h3 class="text-sm mt-4 mb-2">@group.Header (@cardsGroup.Sum(it => it.GetAmount()))</h3>
     <div class="md:grid grid-flow-col grid-cols-2 gap-2" style="grid-template-rows: repeat(@(Math.Ceiling(cardsGroup.Length / 2d)), 1fr);">
         @foreach (var card in cardsGroup)
         {

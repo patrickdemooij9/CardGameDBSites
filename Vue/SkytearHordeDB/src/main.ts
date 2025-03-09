@@ -156,6 +156,10 @@ const app = createApp({
 
         this.addRequirementsByCharacter(card, squad)
 
+        if (card.minDeckChange) {
+          slot.minCards += card.minDeckChange;
+        }
+
         cardAmount.children.forEach((childSlot) => {
           this.initSlot(undefined, childSlot)
           this.dynamicSlots.push(childSlot)
@@ -270,6 +274,10 @@ const app = createApp({
         }
         groupToAddTo.cardIds.push(cardAmount)
 
+        if (character.minDeckChange) {
+          slot.minCards += character.minDeckChange;
+        }
+
         this.addRequirementsByCharacter(character, squad)
         this.indexCharacters()
       }
@@ -287,7 +295,7 @@ const app = createApp({
       }*/
     },
 
-    createChildSlot(character: Character) {
+    createChildSlot(character: Character): SquadSlot {
       return {
         id: -1,
         label: 'Battle Tactics',
@@ -308,7 +316,12 @@ const app = createApp({
           }
         ],
         minCards: 0,
-        maxCards: character.maxChildren,
+        maxCardAmount: {
+          type: 'fixed',
+          config: {
+            amount: character.maxChildren
+          }
+        },
         displaySize: DisplaySize.Small,
         disableRemoval: false,
         numberMode: false,
@@ -385,6 +398,10 @@ const app = createApp({
       const cardGroup = this.getGroupByCard(slot, character.id) as SquadGrouping
       cardGroup.cardIds.splice(cardGroup.cardIds.indexOf(cardAmount), 1)
       character.presentInSlot = undefined
+
+      if (character.minDeckChange) {
+        slot.minCards -= character.minDeckChange;
+      }
 
       this.indexCharacters()
     },

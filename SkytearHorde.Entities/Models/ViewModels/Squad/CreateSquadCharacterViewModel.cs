@@ -33,5 +33,8 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
 
         [JsonProperty("maxChildren")]
         public int MaxChildren { get; set; }
+
+        [JsonProperty("minDeckChange")]
+        public int MinDeckChange { get; set; }
     }
 }

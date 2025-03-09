@@ -11,6 +11,7 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using System.IO.Compression;
+using System.Net.Http.Headers;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
@@ -38,6 +39,8 @@ namespace SkytearHorde.Modules
         private readonly ISiteService _siteService;
         private readonly IContentTypeBaseServiceProvider _contentTypeBaseServiceProvider;
         private readonly CardGameSettingsConfig _cardGameSettingsConfig;
+        private readonly CollectionService _collectionService;
+        private readonly ILogger<ImporterController> _logger;
 
         public ImporterController(IUmbracoContextFactory umbracoContextFactory,
             IContentService contentService,
@@ -49,7 +52,9 @@ namespace SkytearHorde.Modules
             ISiteAccessor siteAccessor,
             ISiteService siteService,
             IContentTypeBaseServiceProvider contentTypeBaseServiceProvider,
-            IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption)
+            IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption,
+            CollectionService collectionService,
+            ILogger<ImporterController> logger)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _contentService = contentService;
@@ -62,6 +67,8 @@ namespace SkytearHorde.Modules
             _siteService = siteService;
             _contentTypeBaseServiceProvider = contentTypeBaseServiceProvider;
             _cardGameSettingsConfig = cardGameSettingsConfigOption.Value;
+            _collectionService = collectionService;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -124,7 +131,7 @@ namespace SkytearHorde.Modules
         }
 
         [HttpPost]
-        public async Task<IActionResult> ImportPricesFromTcgPlayer(int siteId)
+        public async Task<IActionResult> ImportPricesFromTcgPlayer(int siteId, int setId, int amount)
         {
             _siteAccessor.SetSiteId(siteId);
 
@@ -138,22 +145,29 @@ namespace SkytearHorde.Modules
             var cardContainer = dataContainer?.FirstChild<CardContainer>();
             if (cardContainer is null) return NotFound();
 
-            var variants = cardContainer.Descendants<CardVariant>().Where(it => !it.Attributes.ToItems<IAbilityValue>().Any(a => a.GetAbility().Name == "TcgPlayerId") && !it.Name.Contains("foil", StringComparison.InvariantCultureIgnoreCase)).ToArray();
+            var set = _cardService.GetAllSets().FirstOrDefault(it => it.Id == setId);
+            if (set is null) return NotFound();
+
+            var variants = _cardService.GetAllBySet(setId, true).Where(it => it.VariantId != 0 && it.GetMultipleCardAttributeValue("TcgPlayerId")?.Any() != true).ToArray();
+            var variantTypes = _collectionService.GetVariantTypes().ToDictionary(it => it.Id, it => it);
+
             if (variants.Length == 0) return NotFound();
 
             var tcgAttribute = dataContainer?.FirstChild<CardAttributeContainer>()?.FirstChild<CardAttribute>(it => it.Name.Equals("TcgPlayerId"));
             if (tcgAttribute is null) return NotFound();
 
             var httpClient = new HttpClient();
-            var accessToken = new TcgPlayerAccessTokenGetter().Get(_cardGameSettingsConfig, httpClient);
+            var accessToken = await new TcgPlayerAccessTokenGetter().Get(_cardGameSettingsConfig, httpClient);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            foreach (var variant in variants.Take(25))
+            foreach (var variant in variants.Take(amount))
             {
-                var nameToSearch = variant.Name;
-                var variantType = variant.VariantType as Variant;
-                if (variantType != null)
+                var nameToSearch = variant.DisplayName.Replace(",", "").Replace("'", "").Replace("-", " ");
+                var variantName = "";
+                if (variant.VariantTypeId.HasValue)
                 {
-                    nameToSearch += $" {variantType.Name}";
+                    variantName = variantTypes[variant.VariantTypeId.Value].DisplayName;
+                    nameToSearch += $" {variantName}";
                 }
 
                 var result = await httpClient.PostAsJsonAsync("https://api.tcgplayer.com/catalog/categories/79/search", new TcgPlayerSearchModel
@@ -170,24 +184,36 @@ namespace SkytearHorde.Modules
                 var detailedResponse = await httpClient.GetAsync($"https://api.tcgplayer.com/catalog/products/{string.Join(",", resultModel?.Results ?? Enumerable.Empty<long>())}");
                 if (!detailedResponse.IsSuccessStatusCode) continue;
 
-                var set = variant.Set as Set;
-                if (set is null) continue;
-
                 var detailedResult = await detailedResponse.Content.ReadFromJsonAsync<TcgPlayerResult<TcgPlayerProductModel>>();
-                var matchFound = detailedResult?.Results.FirstOrDefault(it => variantType != null && it.CleanName.Contains(variantType.Name, StringComparison.InvariantCultureIgnoreCase) && it.GroupId == set.TcgPlayerCategory);
+                var matchFound = detailedResult?.Results.FirstOrDefault(it =>
+                {
+                    if (it.GroupId != set.TcgPlayerCategory)
+                    {
+                        return false;
+                    }
+
+                    if (variant.VariantTypeId.HasValue)
+                    {
+                        return it.CleanName.Contains(variantName, StringComparison.InvariantCultureIgnoreCase);
+                    }
+                    else
+                    {
+                        return variantTypes.Select(v => v.Value.DisplayName).All(v => !it.CleanName.Contains(v, StringComparison.InvariantCultureIgnoreCase));
+                    }
+                });
                 if (matchFound != null)
                 {
-                    var contentItem = _contentService.GetById(variant.Id);
+                    var contentItem = _contentService.GetById(variant.VariantId);
                     if (contentItem is null) continue;
 
-                    var attributes = JsonConvert.DeserializeObject<Blocklist>(contentItem.GetValue<string>("attributes"));
+                    var attributeJson = contentItem.GetValue<string>("attributes");
                     var values = new Dictionary<string, string>()
                     {
                         {"ability", Udi.Create(Constants.UdiEntityType.Document, tcgAttribute.Key).ToString() }, {"contentTypeKey", "A4AC0B27-5103-4E6C-A6E5-111BA1500F26"},
                         {"value", matchFound.ProductId.ToString() }
                     };
 
-                    if (attributes is null)
+                    if (string.IsNullOrWhiteSpace(attributeJson))
                     {
                         contentItem.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(new List<Dictionary<string, string>>
                         {
@@ -197,6 +223,7 @@ namespace SkytearHorde.Modules
                         continue;
                     }
 
+                    var attributes = JsonConvert.DeserializeObject<Blocklist>(attributeJson);
                     var udi = new GuidUdi("element", Guid.NewGuid()).ToString();
                     values.Add("udi", udi);
                     attributes.Layout.ContentUdi.Add(new Dictionary<string, string> { { "contentUdi", udi } });
@@ -206,6 +233,10 @@ namespace SkytearHorde.Modules
                     _contentService.SaveAndPublish(contentItem);
 
                     //Woohoo
+                }
+                else
+                {
+                    _logger.LogWarning("Could not find match for " + nameToSearch);
                 }
             }
             return Ok();

@@ -32,6 +32,7 @@ namespace SkytearHorde.Entities.Models.Business
 
         public int[] AllowedChildren { get; set; }
         public int MaxChildren { get; set; }
+        public int MinDeckChange { get; set; }
 
         public Card(int id)
         {

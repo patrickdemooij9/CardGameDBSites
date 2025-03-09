@@ -201,7 +201,8 @@ namespace SkytearHorde.ViewComponents
                         Requirements = r.Requirements.ToItems<ISquadRequirementConfig>().Select(sr => new CreateSquadRequirement(sr)).ToArray()
                     }).ToArray(),
                     AllowedChildren = character.AllowedChildren,
-                    MaxChildren = character.MaxChildren
+                    MaxChildren = character.MaxChildren,
+                    MinDeckChange = character.MinDeckChange
                 });
             }
             teamModel.AllCharacters = allCharacters.ToArray();

@@ -1,7 +1,7 @@
 ﻿using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Manifest;
 
-namespace SkytearHorde.App_Plugins.Importer
+namespace SkytearHorde.Modules
 {
     internal class ManifestLoader : IComposer
     {

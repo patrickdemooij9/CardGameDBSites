@@ -156,88 +156,96 @@ namespace SkytearHorde.Modules
             var tcgAttribute = dataContainer?.FirstChild<CardAttributeContainer>()?.FirstChild<CardAttribute>(it => it.Name.Equals("TcgPlayerId"));
             if (tcgAttribute is null) return NotFound();
 
-            var httpClient = new HttpClient();
-            var accessToken = await new TcgPlayerAccessTokenGetter().Get(_cardGameSettingsConfig, httpClient);
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            foreach (var variant in variants.Take(amount))
+            try
             {
-                var nameToSearch = variant.DisplayName.Replace(",", "").Replace("'", "").Replace("-", " ");
-                var variantName = "";
-                if (variant.VariantTypeId.HasValue)
-                {
-                    variantName = variantTypes[variant.VariantTypeId.Value].DisplayName;
-                    nameToSearch += $" {variantName}";
-                }
+                var httpClient = new HttpClient();
+                var accessToken = await new TcgPlayerAccessTokenGetter().Get(_cardGameSettingsConfig, httpClient);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-                var result = await httpClient.PostAsJsonAsync("https://api.tcgplayer.com/catalog/categories/79/search", new TcgPlayerSearchModel
+                foreach (var variant in variants.Take(amount))
                 {
-                    Limit = 5,
-                    Filters = [new TcgPlayerSearchFilterModel {
+                    var nameToSearch = variant.DisplayName.Replace(",", "").Replace("'", "").Replace("-", " ");
+                    var variantName = "";
+                    if (variant.VariantTypeId.HasValue)
+                    {
+                        variantName = variantTypes[variant.VariantTypeId.Value].DisplayName;
+                        nameToSearch += $" {variantName}";
+                    }
+
+                    _logger.LogInformation($"Searching for {nameToSearch}");
+                    var result = await httpClient.PostAsJsonAsync("https://api.tcgplayer.com/catalog/categories/79/search", new TcgPlayerSearchModel
+                    {
+                        Limit = 5,
+                        Filters = [new TcgPlayerSearchFilterModel {
                         Name = "ProductName",
                         Values = [nameToSearch]
                     }]
-                });
-                if (!result.IsSuccessStatusCode) continue;
+                    });
+                    if (!result.IsSuccessStatusCode) continue;
 
-                var resultModel = await result.Content.ReadFromJsonAsync<TcgPlayerResult<long>>();
-                var detailedResponse = await httpClient.GetAsync($"https://api.tcgplayer.com/catalog/products/{string.Join(",", resultModel?.Results ?? Enumerable.Empty<long>())}");
-                if (!detailedResponse.IsSuccessStatusCode) continue;
+                    var resultModel = await result.Content.ReadFromJsonAsync<TcgPlayerResult<long>>();
+                    var detailedResponse = await httpClient.GetAsync($"https://api.tcgplayer.com/catalog/products/{string.Join(",", resultModel?.Results ?? Enumerable.Empty<long>())}");
+                    if (!detailedResponse.IsSuccessStatusCode) continue;
 
-                var detailedResult = await detailedResponse.Content.ReadFromJsonAsync<TcgPlayerResult<TcgPlayerProductModel>>();
-                var matchFound = detailedResult?.Results.FirstOrDefault(it =>
-                {
-                    if (it.GroupId != set.TcgPlayerCategory)
+                    var detailedResult = await detailedResponse.Content.ReadFromJsonAsync<TcgPlayerResult<TcgPlayerProductModel>>();
+                    var matchFound = detailedResult?.Results.FirstOrDefault(it =>
                     {
-                        return false;
-                    }
+                        if (it.GroupId != set.TcgPlayerCategory)
+                        {
+                            return false;
+                        }
 
-                    if (variant.VariantTypeId.HasValue)
+                        if (variant.VariantTypeId.HasValue)
+                        {
+                            return it.CleanName.Contains(variantName, StringComparison.InvariantCultureIgnoreCase);
+                        }
+                        else
+                        {
+                            return variantTypes.Select(v => v.Value.DisplayName).All(v => !it.CleanName.Contains(v, StringComparison.InvariantCultureIgnoreCase));
+                        }
+                    });
+                    if (matchFound != null)
                     {
-                        return it.CleanName.Contains(variantName, StringComparison.InvariantCultureIgnoreCase);
-                    }
-                    else
-                    {
-                        return variantTypes.Select(v => v.Value.DisplayName).All(v => !it.CleanName.Contains(v, StringComparison.InvariantCultureIgnoreCase));
-                    }
-                });
-                if (matchFound != null)
-                {
-                    var contentItem = _contentService.GetById(variant.VariantId);
-                    if (contentItem is null) continue;
+                        var contentItem = _contentService.GetById(variant.VariantId);
+                        if (contentItem is null) continue;
 
-                    var attributeJson = contentItem.GetValue<string>("attributes");
-                    var values = new Dictionary<string, string>()
+                        var attributeJson = contentItem.GetValue<string>("attributes");
+                        var values = new Dictionary<string, string>()
                     {
                         {"ability", Udi.Create(Constants.UdiEntityType.Document, tcgAttribute.Key).ToString() }, {"contentTypeKey", "A4AC0B27-5103-4E6C-A6E5-111BA1500F26"},
                         {"value", matchFound.ProductId.ToString() }
                     };
 
-                    if (string.IsNullOrWhiteSpace(attributeJson))
-                    {
-                        contentItem.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(new List<Dictionary<string, string>>
+                        if (string.IsNullOrWhiteSpace(attributeJson))
+                        {
+                            contentItem.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(new List<Dictionary<string, string>>
                         {
                             values
                         }, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
+                            _contentService.SaveAndPublish(contentItem);
+                            continue;
+                        }
+
+                        var attributes = JsonConvert.DeserializeObject<Blocklist>(attributeJson);
+                        var udi = new GuidUdi("element", Guid.NewGuid()).ToString();
+                        values.Add("udi", udi);
+                        attributes.Layout.ContentUdi.Add(new Dictionary<string, string> { { "contentUdi", udi } });
+                        attributes.ContentData.Add(values);
+
+                        contentItem.SetValue("attributes", attributes);
                         _contentService.SaveAndPublish(contentItem);
-                        continue;
+
+                        //Woohoo
                     }
-
-                    var attributes = JsonConvert.DeserializeObject<Blocklist>(attributeJson);
-                    var udi = new GuidUdi("element", Guid.NewGuid()).ToString();
-                    values.Add("udi", udi);
-                    attributes.Layout.ContentUdi.Add(new Dictionary<string, string> { { "contentUdi", udi } });
-                    attributes.ContentData.Add(values);
-
-                    contentItem.SetValue("attributes", attributes);
-                    _contentService.SaveAndPublish(contentItem);
-
-                    //Woohoo
+                    else
+                    {
+                        _logger.LogWarning("Could not find match for " + nameToSearch);
+                    }
                 }
-                else
-                {
-                    _logger.LogWarning("Could not find match for " + nameToSearch);
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong");
             }
             return Ok();
         }

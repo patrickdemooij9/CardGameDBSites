@@ -164,27 +164,42 @@ namespace SkytearHorde.Modules
 
                 foreach (var variant in variants.Take(amount))
                 {
-                    var nameToSearch = variant.DisplayName.Replace(",", "").Replace("'", "").Replace("-", " ");
+                    var cleanedDisplayName = variant.DisplayName.Replace(",", "").Replace("'", "").Replace("-", " ");
+                    var namesToSearch = new List<string>() { cleanedDisplayName };
+                    var subNames = variant.GetMultipleCardAttributeValue("Subname");
+                    if (subNames?.Any() is true && !string.IsNullOrWhiteSpace(subNames[0]))
+                    {
+                        namesToSearch.Add(cleanedDisplayName.Replace(subNames[0], "").Trim());
+                    }
+
                     var variantName = "";
                     if (variant.VariantTypeId.HasValue)
                     {
                         variantName = variantTypes[variant.VariantTypeId.Value].DisplayName;
-                        nameToSearch += $" {variantName}";
+                        namesToSearch = namesToSearch.Select(it => $"{it} {variantName}").ToList();
                     }
 
-                    _logger.LogInformation($"Searching for {nameToSearch}");
-                    var result = await httpClient.PostAsJsonAsync("https://api.tcgplayer.com/catalog/categories/79/search", new TcgPlayerSearchModel
+                    var idsFound = new List<long>();
+                    foreach (var name in namesToSearch)
                     {
-                        Limit = 5,
-                        Filters = [new TcgPlayerSearchFilterModel {
+                        _logger.LogInformation($"Searching for {name}");
+                        var result = await httpClient.PostAsJsonAsync("https://api.tcgplayer.com/catalog/categories/79/search", new TcgPlayerSearchModel
+                        {
+                            Limit = 5,
+                            Filters = [new TcgPlayerSearchFilterModel {
                         Name = "ProductName",
-                        Values = [nameToSearch]
+                        Values = [name]
                     }]
-                    });
-                    if (!result.IsSuccessStatusCode) continue;
+                        });
+                        if (!result.IsSuccessStatusCode) continue;
 
-                    var resultModel = await result.Content.ReadFromJsonAsync<TcgPlayerResult<long>>();
-                    var detailedResponse = await httpClient.GetAsync($"https://api.tcgplayer.com/catalog/products/{string.Join(",", resultModel?.Results ?? Enumerable.Empty<long>())}");
+                        var resultModel = await result.Content.ReadFromJsonAsync<TcgPlayerResult<long>>();
+                        idsFound.AddRange(resultModel?.Results ?? Enumerable.Empty<long>());
+                    }
+
+                    if (idsFound.Count == 0) continue;
+
+                    var detailedResponse = await httpClient.GetAsync($"https://api.tcgplayer.com/catalog/products/{string.Join(",", idsFound.Distinct())}");
                     if (!detailedResponse.IsSuccessStatusCode) continue;
 
                     var detailedResult = await detailedResponse.Content.ReadFromJsonAsync<TcgPlayerResult<TcgPlayerProductModel>>();
@@ -232,14 +247,14 @@ namespace SkytearHorde.Modules
                         attributes.Layout.ContentUdi.Add(new Dictionary<string, string> { { "contentUdi", udi } });
                         attributes.ContentData.Add(values);
 
-                        contentItem.SetValue("attributes", attributes);
+                        contentItem.SetValue("attributes", JsonConvert.SerializeObject(attributes));
                         _contentService.SaveAndPublish(contentItem);
 
                         //Woohoo
                     }
                     else
                     {
-                        _logger.LogWarning("Could not find match for " + nameToSearch);
+                        _logger.LogWarning("Could not find match for " + variant.VariantId);
                     }
                 }
             }

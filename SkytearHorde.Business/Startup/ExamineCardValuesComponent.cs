@@ -76,7 +76,7 @@ namespace SkytearHorde.Business.Startup
                 if (ability.Value is HeaderTextItemAbilityValue) continue; // No idea how to really parse this yet...
 
                 var values = ability.Value.GetValues().Select(it => it.Replace(" ", ""));
-                updatedValues[$"CustomField.{ability.Key!.Name}"] = values.ToList<object>();
+                updatedValues[$"CustomField.{ability.Key}"] = values.ToList<object>();
             }
 
             var setName = card.SetName.Replace(" ", "");

@@ -267,12 +267,20 @@ namespace SkytearHorde.Business.Services
         public PagedResult<Deck> GetAllByUser(int userId, int page = 1, int size = 20)
         {
             // If we have unpublished and published decks as current, only show the latest
-            var allDecks = _deckRepository.GetAll(_siteAccessor.GetSiteId(), userId, DeckStatus.None)
+            var allDecks = _deckRepository.GetAll(_siteAccessor.GetSiteId(), new DeckPagedRequest()
+            {
+                SiteId = _siteAccessor.GetSiteId(),
+                Status = DeckStatus.None,
+                Take = size,
+                Page = page,
+                UserId = userId
+
+            }, out var totalSize)
                 .GroupBy(it => it.Id)
                 .Select(it => it.OrderByDescending(d => d.UpdatedDate).First()).ToArray();
-            return new PagedResult<Deck>(allDecks.Length, page, size)
+            return new PagedResult<Deck>(totalSize, page, size)
             {
-                Items = allDecks.Skip((page - 1) * size).Take(size)
+                Items = allDecks
             };
         }
 

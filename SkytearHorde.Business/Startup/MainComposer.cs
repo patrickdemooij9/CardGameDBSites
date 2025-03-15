@@ -31,6 +31,16 @@ namespace SkytearHorde.Business.Startup
     {
         public void Compose(IUmbracoBuilder builder)
         {
+            builder.Services.Configure<UmbracoPipelineOptions>(options =>
+            {
+                options.AddFilter(new UmbracoPipelineFilter("CorsPolicy",
+                    postPipeline: applicationBuilder =>
+                    {
+                        applicationBuilder.UseCors("api");
+                    }
+                    ));
+            });
+
             builder.Services.AddSingleton<CardService>();
             builder.Services.AddSingleton<CardPageService>();
             builder.Services.AddSingleton<SettingsService>();
@@ -100,6 +110,8 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddHostedService<AdReportTask>();
             builder.Services.AddHostedService<CardPriceSyncTask>();
             builder.Services.AddHostedService<RedditDailyCardTask>();
+
+            builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();
 
             builder.Services.Configure<UmbracoPipelineOptions>(options =>
             {

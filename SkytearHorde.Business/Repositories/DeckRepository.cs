@@ -1,7 +1,4 @@
 ﻿using NPoco;
-using Org.BouncyCastle.Crypto;
-using SkytearHorde.Business.Cache;
-using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Repository;
@@ -231,16 +228,6 @@ namespace SkytearHorde.Business.Repositories
             return items;
         }
 
-        public IEnumerable<Deck> GetAll(int siteId, int userId, DeckStatus status = DeckStatus.Published)
-        {
-            var result = GetAll(status).Where(it => it.CreatedBy == userId && it.SiteId == siteId);
-            if (status != DeckStatus.None)
-            {
-                result = result.Where(it => it.IsPublished == (status == DeckStatus.Published));
-            }
-            return result.ToArray();
-        }
-
         private IEnumerable<Deck> GetAll(DeckStatus status, params int[]? ids)
         {
             if (status == DeckStatus.None)
@@ -262,23 +249,23 @@ namespace SkytearHorde.Business.Repositories
             if (request.Status == DeckStatus.None)
             {
                 var decks = new List<Deck>();
-                decks.AddRange(_publishedCachePolicy.GetPaged(request, DoGetPaged, (ids) => DoGetAll(DeckStatus.Published, ids), out var publishedTotal));
-                decks.AddRange(_unpublishedCachePolicy.GetPaged(request, DoGetPaged, (ids) => DoGetAll(DeckStatus.Saved, ids), out var unpublishedTotal));
+                decks.AddRange(_publishedCachePolicy.GetPaged(request, (request) => DoGetPaged(request, DeckStatus.Published), (ids) => DoGetAll(DeckStatus.Published, ids), out var publishedTotal));
+                decks.AddRange(_unpublishedCachePolicy.GetPaged(request, (request) => DoGetPaged(request, DeckStatus.Saved), (ids) => DoGetAll(DeckStatus.Saved, ids), out var unpublishedTotal));
                 size = publishedTotal + unpublishedTotal;
                 return decks;
             }
             else if (request.Status == DeckStatus.Published)
             {
-                return _publishedCachePolicy.GetPaged(request, DoGetPaged, (ids) => DoGetAll(DeckStatus.Published, ids), out size);
+                return _publishedCachePolicy.GetPaged(request, (request) => DoGetPaged(request, DeckStatus.Published), (ids) => DoGetAll(DeckStatus.Published, ids), out size);
             }
-            return _unpublishedCachePolicy.GetPaged(request, DoGetPaged, (ids) => DoGetAll(DeckStatus.Saved, ids), out size);
+            return _unpublishedCachePolicy.GetPaged(request, (request) => DoGetPaged(request, DeckStatus.Saved), (ids) => DoGetAll(DeckStatus.Saved, ids), out size);
         }
 
-        private DeckPagedResult DoGetPaged(DeckPagedRequest request)
+        private DeckPagedResult DoGetPaged(DeckPagedRequest request, DeckStatus status)
         {
             using var scope = _scopeProvider.CreateScope();
 
-            var isPublished = request.Status == DeckStatus.Published;
+            var isPublished = status == DeckStatus.Published;
             var sql = BaseQuery(scope.SqlContext);
 
             if (request.Cards.Length > 0)
@@ -310,7 +297,17 @@ namespace SkytearHorde.Business.Repositories
 
             sql = sql.Where<DeckDBModel>(it => !it.IsDeleted, "d")
                 .Where<DeckVersionDBModel>(it => it.Published == isPublished, "dv")
-                .Where<DeckDBModel>(it => it.DeckType == request.TypeId && it.SiteId == request.SiteId, "d");
+                .Where<DeckDBModel>(it => it.SiteId == request.SiteId, "d");
+
+            if (request.TypeId.HasValue)
+            {
+                sql = sql.Where<DeckDBModel>(it => it.DeckType == request.TypeId, "d");
+            }
+
+            if (request.UserId.HasValue)
+            {
+                sql = sql.Where<DeckDBModel>(it => it.CreatedBy == request.UserId, "d");
+            }
 
             sql = request.OrderBy switch
             {
@@ -318,7 +315,6 @@ namespace SkytearHorde.Business.Repositories
                 "collection" => sql.OrderBy("MissingCards"),
                 _ => sql.OrderByDescending("d.CreatedDate"),
             };
-            var test = sql.ToString();
             var result = scope.Database.Page<DeckFetchModel>(request.Page, request.Take, sql);
             var deckCards = new List<DeckCardDBModel>();
             var deckCardChildren = new List<DeckCardChildDBModel>();

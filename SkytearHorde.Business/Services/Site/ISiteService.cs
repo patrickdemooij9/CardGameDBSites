@@ -14,5 +14,7 @@ namespace SkytearHorde.Business.Services.Site
         CollectionPage? GetCollectionPage();
 
         int[] GetAllSites();
+
+        CardAttribute[] GetAllAttributes();
     }
 }

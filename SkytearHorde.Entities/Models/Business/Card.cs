@@ -20,7 +20,7 @@ namespace SkytearHorde.Entities.Models.Business
         public bool HideFromDecks { get; set; }
         public string? EmbedFooterText { get; set; }
         public DateTime CreatedDate { get; set; }
-        public Dictionary<CardAttribute, IAbilityValue> Attributes { get; set; }
+        public Dictionary<string, IAbilityValue> Attributes { get; set; }
         public FrequentlyAskedQuestion[] Questions { get; set; }
         public string? FaqLink { get; set; }
         public CardSection[] Sections { get; set; }
@@ -37,7 +37,7 @@ namespace SkytearHorde.Entities.Models.Business
         public Card(int id)
         {
             BaseId = id;
-            Attributes = new Dictionary<CardAttribute, IAbilityValue>();
+            Attributes = new Dictionary<string, IAbilityValue>();
             Questions = Array.Empty<FrequentlyAskedQuestion>();
             Sections = Array.Empty<CardSection>();
 
@@ -48,11 +48,11 @@ namespace SkytearHorde.Entities.Models.Business
 
         public string[]? GetMultipleCardAttributeValue(string cardAttribute)
         {
-            if (cardAttribute.Equals("Set Name")) return new string[] { SetName };
+            if (cardAttribute.Equals("Set Name")) return [SetName];
 
             foreach (var keyValue in Attributes)
             {
-                if (keyValue.Key.Name.Equals(cardAttribute))
+                if (keyValue.Key.Equals(cardAttribute))
                 {
                     return keyValue.Value.GetValues();
                 }
@@ -111,7 +111,7 @@ namespace SkytearHorde.Entities.Models.Business
                 Attributes = card.Attributes?.OfType<BlockListItem>()
                     .Select(it => it.Content as IAbilityValue)
                     .WhereNotNull()
-                    .ToDictionary(it => new CardAttribute(it.GetAbility()), it => it) ?? new Dictionary<CardAttribute, IAbilityValue>(),
+                    .ToDictionary(it => it.GetAbility().Name, it => it) ?? new Dictionary<string, IAbilityValue>(),
                 Questions = card.Questions?.Select(it => (FrequentlyAskedQuestion)it.Content)?.ToArray() ?? [],
                 Sections = card.Sections?.Select(it => (CardSection)it.Content)?.ToArray() ?? [],
                 SlotTargetRequirements = card.SlotTargetRequirements?.Select(it => (SlotTargetRequirement)it.Content)?.ToArray() ?? [],

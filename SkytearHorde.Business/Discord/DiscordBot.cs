@@ -7,6 +7,7 @@ using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Search;
+using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Models.Business;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -25,12 +26,13 @@ namespace SkytearHorde.Business.Discord
         private readonly SettingsService _settingsService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly IAbilityFormatter _abilityFormatter;
+        private readonly ISiteService _siteService;
         private string _baseUrl;
         private readonly int _siteId;
 
         private DiscordSocketClient _client;
 
-        public DiscordBot(ILogger logger, ICardSearchService searchService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, int siteId)
+        public DiscordBot(ILogger logger, ICardSearchService searchService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, int siteId)
         {
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -44,6 +46,7 @@ namespace SkytearHorde.Business.Discord
             _settingsService = settingsService;
             _siteAccessor = siteAccessor;
             _abilityFormatter = abilityFormatter;
+            _siteService = siteService;
             _siteId = siteId;
 
             ExecutionContext.SuppressFlow();
@@ -128,9 +131,13 @@ namespace SkytearHorde.Business.Discord
             var embedBuilder = new EmbedBuilder();
             embedBuilder.WithTitle(card.DisplayName);
 
+            var attributes = _siteService.GetAllAttributes().ToDictionary(it => it.Name, it => it);
             foreach (var ability in card.Attributes)
             {
-                var attribute = ability.Key;
+                if (!attributes.TryGetValue(ability.Key, out var attribute))
+                {
+                    continue;
+                }
                 if (string.IsNullOrWhiteSpace(attribute?.DisplayName) || attribute.HideFromDiscord) continue;
 
                 foreach (var field in ability.Value.GetDiscordField())

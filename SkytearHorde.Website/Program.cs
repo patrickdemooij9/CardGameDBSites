@@ -76,6 +76,7 @@ app.MapBlazorHub();
 app.UseUmbraco()
     .WithMiddleware(u =>
     {
+        app.UseCors("api");
         u.UseBackOffice();
         u.UseWebsite();
     })
@@ -123,4 +124,14 @@ void ConfigureServices(IServiceCollection services)
         {
             options.User.RequireUniqueEmail = false;
         });
+
+    services.AddCors(builder =>
+    {
+        builder.AddPolicy("api", cors =>
+        {
+            cors.AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyOrigin();
+        });
+    });
 }

@@ -117,7 +117,7 @@ namespace SkytearHorde.ViewComponents
                     }
                 }
 
-                var abilities = card.Attributes.Where(it => viewModel.AbilitiesToShow.ContainsKey(it.Key.Name) || model.Config.Filters.Any(f => f.Alias.Equals(it.Key.Name)));
+                var abilities = card.Attributes.Where(it => viewModel.AbilitiesToShow.ContainsKey(it.Key) || model.Config.Filters.Any(f => f.Alias.Equals(it.Key)));
 
                 var hasSet = sets.TryGetValue(card.SetId, out var set);
 
@@ -141,7 +141,7 @@ namespace SkytearHorde.ViewComponents
                     {
                         Label = it.Value.GetAbilityValue(),
                         Value = it.Value.GetAbilityValue(),
-                        Type = it.Key.Name
+                        Type = it.Key
                     }).Concat(new CardAbilityViewModel()
                     {
                         Label = "Expansion",

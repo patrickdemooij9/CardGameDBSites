@@ -78,7 +78,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             if (cards.Length == 0) return;
 
             var selectedCard = cards[_random.Next(0, cards.Length)];
-            var cardAttributes = selectedCard.Attributes.ToDictionary(it => it.Key.Name, it => it);
+            var cardAttributes = selectedCard.Attributes.ToDictionary(it => it.Key, it => it);
 
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine($"[{selectedCard.DisplayName}](https://sw-unlimited-db.com{_cardPageService.GetUrl(selectedCard)}) ([Image](https://sw-unlimited-db.com{selectedCard.Image?.Url()}))");

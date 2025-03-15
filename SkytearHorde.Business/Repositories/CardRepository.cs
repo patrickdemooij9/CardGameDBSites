@@ -198,7 +198,7 @@ namespace SkytearHorde.Business.Repositories
                 Attributes = card.Attributes?.OfType<BlockListItem>()
                     .Select(it => it.Content as IAbilityValue)
                     .WhereNotNull()
-                    .ToDictionary(it => new CardAttribute(it.GetAbility()), it => it) ?? new Dictionary<CardAttribute, IAbilityValue>(),
+                    .ToDictionary(it => it.GetAbility().Name, it => it) ?? new Dictionary<string, IAbilityValue>(),
                 Questions = card.Questions.ToItems<FrequentlyAskedQuestion>().ToArray(),
                 FaqLink = card.FaqLink,
                 Sections = card.Sections.ToItems<CardSection>().ToArray(),
@@ -294,7 +294,7 @@ namespace SkytearHorde.Business.Repositories
                 EmbedFooterText = card.EmbedFooterText,
                 CreatedDate = card.CreatedDate,
                 Attributes = cardAttributes
-                    .ToDictionary(it => new CardAttribute(it.GetAbility()), it => it) ?? new Dictionary<CardAttribute, IAbilityValue>(),
+                    .ToDictionary(it => it.GetAbility().Name, it => it) ?? new Dictionary<string, IAbilityValue>(),
                 Questions = card.Questions,
                 FaqLink = card.FaqLink,
                 Sections = card.Sections,

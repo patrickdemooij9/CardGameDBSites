@@ -137,15 +137,15 @@ namespace SkytearHorde.ViewComponents
                     var value = ability.Value.GetValues();
                     var displayValue = _viewRenderHelper.RenderView($"~/Views/Partials/cardAbilities/{ability.Value.GetType().Name}.cshtml", new CardDetailDisplayViewModel() { AbilityValue = ability.Value }).ToString();
 
-                    if (ability.Key.Name.Equals("Amount") && overwriteAmount)
+                    if (ability.Key.Equals("Amount") && overwriteAmount)
                     {
                         value = [squadSettings.OverwriteAmount.ToString()];
                     }
 
                     abilities.Add(new CreateSquadAbilityViewModel
                     {
-                        DisplayName = ability.Key.Name,
-                        Type = ability.Key.Name,
+                        DisplayName = ability.Key,
+                        Type = ability.Key,
                         Values = value,
                         DisplayValue = displayValue
                     });

@@ -10,14 +10,12 @@ namespace SkytearHorde.Business.Services.Site
     public class SiteService : ISiteService
     {
         private readonly IUmbracoContextFactory _umbracoContextFactory;
-        private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
         private readonly ISiteAccessor _siteAccessor;
         private readonly AppCaches _appCaches;
 
-        public SiteService(IUmbracoContextFactory umbracoContextFactory, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, AppCaches appCaches)
+        public SiteService(IUmbracoContextFactory umbracoContextFactory, ISiteAccessor siteAccessor, AppCaches appCaches)
         {
             _umbracoContextFactory = umbracoContextFactory;
-            _publishedSnapshotAccessor = publishedSnapshotAccessor;
             _siteAccessor = siteAccessor;
             _appCaches = appCaches;
         }
@@ -80,6 +78,11 @@ namespace SkytearHorde.Business.Services.Site
         public Settings GetSettings()
         {
             return GetRoot().FirstChild<Settings>()!;
+        }
+
+        public CardAttribute[] GetAllAttributes()
+        {
+            return GetRoot().FirstChild<CardAttributeContainer>()?.Children<CardAttribute>()?.ToArray() ?? Array.Empty<CardAttribute>();
         }
     }
 }

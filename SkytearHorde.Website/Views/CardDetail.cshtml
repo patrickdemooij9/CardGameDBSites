@@ -16,7 +16,7 @@
         return;
     }
 
-    var cardAttributes = card.Attributes.ToDictionary(it => it.Key.Name, it => it);
+    var cardAttributes = card.Attributes;
 
     var sections = card.Sections.ToArray();
     var faqItems = card.Questions.ToArray();
@@ -60,7 +60,7 @@
 
                             var displayModel = new CardDetailDisplayViewModel
                     {
-                        AbilityValue = cardValue.Value,
+                        AbilityValue = cardValue,
                         ShowAsTags = display.ShowAsTags,
                         OverviewPageUrl = display.OverviewPage?.Url()
                     };
@@ -76,7 +76,7 @@
                                     {
                                         <b>@ability.DisplayName:</b>
                                     }
-                                    @await Html.PartialAsync($"~/Views/Partials/cardAbilities/{cardValue.Value.GetType().Name}.cshtml", displayModel)
+                                    @await Html.PartialAsync($"~/Views/Partials/cardAbilities/{cardValue.GetType().Name}.cshtml", displayModel)
                                 </p>
                             </div>
                         }

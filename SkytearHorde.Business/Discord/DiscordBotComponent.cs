@@ -4,6 +4,7 @@ using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Search;
+using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Composing;
@@ -26,9 +27,10 @@ namespace SkytearHorde.Business.Discord
         private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
         private readonly ISiteAccessor _siteAccessor;
         private readonly IAbilityFormatter _abilityFormatter;
+        private readonly ISiteService _siteService;
         private readonly IRuntimeState _runtimeState;
 
-        public DiscordBotComponent(ILogger<DiscordBot> logger, ICardSearchService searchService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, IRuntimeState runtimeState)
+        public DiscordBotComponent(ILogger<DiscordBot> logger, ICardSearchService searchService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter,ISiteService siteService, IRuntimeState runtimeState)
         {
             _logger = logger;
             _searchService = searchService;
@@ -39,7 +41,9 @@ namespace SkytearHorde.Business.Discord
             _publishedSnapshotAccessor = publishedSnapshotAccessor;
             _siteAccessor = siteAccessor;
             _abilityFormatter = abilityFormatter;
+            _siteService = siteService;
             _runtimeState = runtimeState;
+            _siteService = siteService;
         }
 
         public void Initialize()
@@ -57,7 +61,7 @@ namespace SkytearHorde.Business.Discord
 
             foreach (var siteId in siteIds)
             {
-                new DiscordBot(_logger, _searchService, _cardPageService, _umbracoContextFactory, _settingsService, _siteAccessor, _abilityFormatter, siteId);
+                new DiscordBot(_logger, _searchService, _cardPageService, _umbracoContextFactory, _settingsService, _siteAccessor, _abilityFormatter, _siteService, siteId);
             }
         }
 

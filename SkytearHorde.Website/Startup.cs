@@ -42,6 +42,16 @@ namespace SkytearHorde
         /// </remarks>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(builder =>
+            {
+                builder.AddPolicy("api", cors =>
+                {
+                    cors.AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowAnyOrigin();
+                });
+            });
+
             services.AddUmbraco(_env, _config)
                 .AddBackOffice()
                 .AddWebsite()

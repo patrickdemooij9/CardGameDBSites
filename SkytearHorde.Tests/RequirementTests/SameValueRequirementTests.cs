@@ -72,11 +72,7 @@ namespace SkytearHorde.Tests.RequirementTests
             foreach(var value in values)
             {
                 var attributeMock = new ModelsBuilderMock<MultiTextAbilityValue>();
-                var ability = new CardAttribute
-                {
-                    Name = value.Key
-                };
-                card.Attributes.Add(ability, attributeMock.Mock);
+                card.Attributes.Add(value.Key, attributeMock.Mock);
             }
 
             return card;

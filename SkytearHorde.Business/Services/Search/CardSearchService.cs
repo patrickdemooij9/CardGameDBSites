@@ -89,8 +89,16 @@ namespace SkytearHorde.Business.Services.Search
             var ids = results.Select(it => int.Parse(it.Id));
 
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var allCards = _cardService.GetAll(true).Where(it => it.VariantId > 0).ToDictionary(it => it.VariantId, it => it);
-            return ids.Where(allCards.ContainsKey).Select(it => allCards[it]).ToArray();
+            var cards = new List<Card>();
+            foreach(var id in ids)
+            {
+                var foundCard = _cardService.GetVariant(id);
+                if (foundCard is null) continue;
+
+                cards.Add(foundCard);
+            }
+
+            return cards.ToArray();
         }
     }
 }

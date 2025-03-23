@@ -39,12 +39,6 @@ namespace AdServer
                 body.Attachments.Add("CampaignData.xlsx", GetExcel(campaign));
                 mail.Body = body.ToMessageBody();
 
-                using var smtp = new SmtpClient();
-                smtp.Connect("smtp.mijnhostingpartner.nl", 587, SecureSocketOptions.StartTls);
-                smtp.Authenticate("info@skytearhordedb.com", "Y00p$V1PRWbr");
-                smtp.Send(mail);
-                smtp.Disconnect(true);
-
                 _campaignRepository.SetNextScheduledReport(campaign.Id, campaign.NextReportScheduled.Value.AddDays(1));
             }
         }

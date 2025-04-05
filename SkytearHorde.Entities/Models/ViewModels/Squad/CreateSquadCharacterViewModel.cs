@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SkytearHorde.Entities.Models.Business;
 
 namespace SkytearHorde.Entities.Models.ViewModels.Squad
 {
@@ -34,7 +35,7 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
         [JsonProperty("maxChildren")]
         public int MaxChildren { get; set; }
 
-        [JsonProperty("minDeckChange")]
-        public int MinDeckChange { get; set; }
+        [JsonProperty("mutations")]
+        public DeckMutation[] Mutations { get; set; }
     }
 }

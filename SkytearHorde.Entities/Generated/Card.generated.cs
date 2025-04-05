@@ -74,6 +74,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.MediaWithCrops BackImage => this.Value<global::Umbraco.Cms.Core.Models.MediaWithCrops>(_publishedValueFallback, "backImage");
 
 		///<summary>
+		/// Deck Mutations: Mutations when this card is added to a deck
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("deckMutations")]
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel DeckMutations => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "deckMutations");
+
+		///<summary>
 		/// Display Name
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
@@ -118,13 +126,6 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[ImplementPropertyType("maxChildren")]
 		public virtual int MaxChildren => this.Value<int>(_publishedValueFallback, "maxChildren");
-
-		///<summary>
-		/// MinDeckChange: When filled, will change the minimum deck size with this number
-		///</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		[ImplementPropertyType("minDeckChange")]
-		public virtual int MinDeckChange => this.Value<int>(_publishedValueFallback, "minDeckChange");
 
 		///<summary>
 		/// Questions

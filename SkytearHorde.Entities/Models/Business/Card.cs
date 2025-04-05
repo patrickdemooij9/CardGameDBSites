@@ -32,7 +32,7 @@ namespace SkytearHorde.Entities.Models.Business
 
         public int[] AllowedChildren { get; set; }
         public int MaxChildren { get; set; }
-        public int MinDeckChange { get; set; }
+        public DeckMutation[] Mutations { get; set; }
 
         public Card(int id)
         {
@@ -40,6 +40,7 @@ namespace SkytearHorde.Entities.Models.Business
             Attributes = new Dictionary<string, IAbilityValue>();
             Questions = Array.Empty<FrequentlyAskedQuestion>();
             Sections = Array.Empty<CardSection>();
+            Mutations = Array.Empty<DeckMutation>();
 
             SlotTargetRequirements = Array.Empty<SlotTargetRequirement>();
             SquadRequirements = Array.Empty<ISquadRequirementConfig>();

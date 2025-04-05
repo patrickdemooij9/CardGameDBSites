@@ -104,6 +104,7 @@ namespace SkytearHorde.Business.Services
                 var additionalSquadRequirements = new Dictionary<int, List<ISquadRequirementConfig>>();
 
                 var squadSlotConfigs = squadConfig.Slots.ToItems<SquadSlotConfig>().ToArray();
+                var minCardsSlots = squadSlotConfigs.ToDictionary(it => it, it => it.MinCards);
                 for (var i = 0; i < squadSlotConfigs.Length; i++)
                 {
                     var postedSlot = postSquad.Slots.FirstOrDefault(it => it.Id == i);
@@ -128,7 +129,17 @@ namespace SkytearHorde.Business.Services
 
                         if (maxCards > 0 && maxCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
 
-                        var minCards = slotConfig.MinCards + cards.Sum(it => it.MinDeckChange);
+                        foreach(var mutation in cards.SelectMany(it => it.Mutations))
+                        {
+                            var slotIdToChange = mutation.SlotId == 0 ? i : mutation.SlotId;
+                            var slot = squadSlotConfigs[slotIdToChange];
+                            if (mutation.Alias == "minCards")
+                            {
+                                minCardsSlots[slot] += mutation.Change;
+                            }
+                        }
+
+                        var minCards = minCardsSlots[slotConfig];
                         if (minCards > 0 && minCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not min cards given");
                         if (postedSlot.Cards.Any(it => it.Amount > (overwriteAmount ? squadSettings.OverwriteAmount : int.Parse(allCards[it.CardId].GetMultipleCardAttributeValue("Amount")?.First() ?? "1")))) throw new InvalidOperationException("Too many cards of one type");
                     }

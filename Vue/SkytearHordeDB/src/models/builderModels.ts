@@ -74,6 +74,12 @@ export interface RichCardAmount {
     children: SquadSlot[];
 }
 
+export interface DeckMutation {
+    alias: string;
+    change: number;
+    slotId: number;
+}
+
 export interface Character {
     id: number;
     name: string;
@@ -85,7 +91,7 @@ export interface Character {
     slotRequirements: SlotRequirement[];
     allowedChildren: number[];
     maxChildren: number;
-    minDeckChange: number;
+    mutations: DeckMutation[];
 
     // Parameters for easier data access
     validLocations: CardLocation[];

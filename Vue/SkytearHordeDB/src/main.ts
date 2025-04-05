@@ -24,7 +24,8 @@ import {
   DisplaySize,
   type ChildOfRequirementConfig,
   type FixedSquadAmountConfig,
-  type DynamicSquadAmountConfig
+  type DynamicSquadAmountConfig,
+  type DeckMutation
 } from './models/builderModels'
 import { ItemOption, type Filter as FilterFilter, type FilterItem } from './models/filterModels'
 
@@ -156,8 +157,8 @@ const app = createApp({
 
         this.addRequirementsByCharacter(card, squad)
 
-        if (card.minDeckChange) {
-          slot.minCards += card.minDeckChange;
+        if (card.mutations) {
+          this.performMutations(card.mutations, squad, slot, true);
         }
 
         cardAmount.children.forEach((childSlot) => {
@@ -274,8 +275,8 @@ const app = createApp({
         }
         groupToAddTo.cardIds.push(cardAmount)
 
-        if (character.minDeckChange) {
-          slot.minCards += character.minDeckChange;
+        if (character.mutations) {
+          this.performMutations(character.mutations, squad, slot, true);
         }
 
         this.addRequirementsByCharacter(character, squad)
@@ -399,8 +400,8 @@ const app = createApp({
       cardGroup.cardIds.splice(cardGroup.cardIds.indexOf(cardAmount), 1)
       character.presentInSlot = undefined
 
-      if (character.minDeckChange) {
-        slot.minCards -= character.minDeckChange;
+      if (character.mutations) {
+        this.performMutations(character.mutations, lookupResult.squad, slot, false);
       }
 
       this.indexCharacters()
@@ -410,6 +411,15 @@ const app = createApp({
       this.closeModal(true)
       this.getCardsBySlot(characterSlot).forEach((cardId: CardAmount) => {
         this.removeCharacterFromSquad(this.getCardById(cardId.id))
+      })
+    },
+
+    performMutations(mutations: DeckMutation[], squad: Squad, slot: SquadSlot, apply: boolean){
+      mutations.forEach((item) => {
+        const slotToChange = item.slotId === 0 ? slot : squad.slots[item.slotId];
+        if (item.alias === "minCards"){
+          slotToChange.minCards += (apply ? item.change : -item.change); 
+        }
       })
     },
 

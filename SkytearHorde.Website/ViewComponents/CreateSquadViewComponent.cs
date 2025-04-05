@@ -202,7 +202,7 @@ namespace SkytearHorde.ViewComponents
                     }).ToArray(),
                     AllowedChildren = character.AllowedChildren,
                     MaxChildren = character.MaxChildren,
-                    MinDeckChange = character.MinDeckChange
+                    Mutations = character.Mutations
                 });
             }
             teamModel.AllCharacters = allCharacters.ToArray();

@@ -369,15 +369,14 @@ namespace SkytearHorde.Business.Repositories
             {
                 foreach (var deckGroup in decksDb.InGroupsOf(2000))
                 {
-                    var group = deckGroup.ToArray();
-
+                    var group = deckGroup.Select(it => it.LatestVersionId).ToArray();
                     deckCards.AddRange(scope.Database.Fetch<DeckCardDBModel>(scope.SqlContext.Sql().SelectAll()
                         .From<DeckCardDBModel>()
-                        .WhereIn<DeckCardDBModel>(it => it.VersionId, group.Select(it => it.LatestVersionId))));
+                        .WhereIn<DeckCardDBModel>(it => it.VersionId, group)));
 
                     deckCardChildren.AddRange(scope.Database.Fetch<DeckCardChildDBModel>(scope.SqlContext.Sql().SelectAll()
                         .From<DeckCardChildDBModel>()
-                        .WhereIn<DeckCardChildDBModel>(it => it.VersionId, group.Select(it => it.LatestVersionId))));
+                        .WhereIn<DeckCardChildDBModel>(it => it.VersionId, group)));
                 }
             }
             else //Get All

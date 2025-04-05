@@ -55,7 +55,7 @@ namespace SkytearHorde.Business.Repositories
                 .Select("DeckId,SiteId")
                 .From<DeckCalculateScoreDBModel>()
                 .LeftJoin<DeckDBModel>().On<DeckCalculateScoreDBModel, DeckDBModel>((left, right) => left.DeckId == right.Id)
-                .Where<DeckCalculateScoreDBModel>(it => it.NextCalculateDate <= date)).Take(500).ToArray();
+                .Where<DeckCalculateScoreDBModel>(it => it.NextCalculateDate <= date)).Take(100).ToArray();
         }
     }
 }

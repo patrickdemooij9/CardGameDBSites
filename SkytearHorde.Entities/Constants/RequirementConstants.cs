@@ -9,5 +9,6 @@
         public const string RequiredCardAlias = "RequiredCard";
         public const string ResourceAlias = "Resource";
         public const string ChildOfAlias = "ChildOf";
+        public const string ComputedAlias = "Computed";
     }
 }

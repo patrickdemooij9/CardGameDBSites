@@ -25,7 +25,10 @@ import {
   type ChildOfRequirementConfig,
   type FixedSquadAmountConfig,
   type DynamicSquadAmountConfig,
-  type DeckMutation
+  type DeckMutation,
+  type ComputedRequirementConfig,
+  ComputedType,
+  ComputedComparisonType
 } from './models/builderModels'
 import { ItemOption, type Filter as FilterFilter, type FilterItem } from './models/filterModels'
 
@@ -73,6 +76,7 @@ const app = createApp({
       publish: false,
       collectionMode: false,
       dynamicSlots: [],
+      needsIndexOnCounts: false,
 
       builderElement: undefined
     }
@@ -107,6 +111,12 @@ const app = createApp({
   methods: {
     init() {
       this.squads.forEach((squad: Squad) => {
+        if (
+          squad.requirements.some((requirement) => this.requirementNeedsIndexOnCounts(requirement))
+        ) {
+          this.needsIndexOnCounts = true
+        }
+
         squad.slots.forEach((slot) => {
           this.initSlot(squad, slot)
         })
@@ -158,7 +168,7 @@ const app = createApp({
         this.addRequirementsByCharacter(card, squad)
 
         if (card.mutations) {
-          this.performMutations(card.mutations, squad, slot, true);
+          this.performMutations(card.mutations, squad, slot, true)
         }
 
         cardAmount.children.forEach((childSlot) => {
@@ -181,7 +191,10 @@ const app = createApp({
         character.validLocations.push({
           squad: character.presentInSlot.squad,
           slot: character.presentInSlot.slot,
-          isAllowed: !this.isSlotFilled(character.presentInSlot.slot)
+          isAllowed:
+            !this.isSlotFilled(character.presentInSlot.slot) &&
+            (!this.needsIndexOnCounts ||
+            this.isAllowedForSquad(character.presentInSlot.squad, character))
         })
         return
       }
@@ -240,6 +253,9 @@ const app = createApp({
         }
 
         cardAmount.amount++
+        if (this.needsIndexOnCounts) {
+          this.indexCharacters()
+        }
       } else {
         const childSlots: SquadSlot[] =
           character.maxChildren == 0 ? [] : [this.createChildSlot(character)] //TODO: Find a better solution for this later on
@@ -276,7 +292,7 @@ const app = createApp({
         groupToAddTo.cardIds.push(cardAmount)
 
         if (character.mutations) {
-          this.performMutations(character.mutations, squad, slot, true);
+          this.performMutations(character.mutations, squad, slot, true)
         }
 
         this.addRequirementsByCharacter(character, squad)
@@ -353,7 +369,7 @@ const app = createApp({
 
       if (cardAmount.amount > 1) {
         cardAmount.amount--
-        if (wasFilled) {
+        if (wasFilled || this.needsIndexOnCounts) {
           this.indexCharacters()
         }
 
@@ -401,7 +417,7 @@ const app = createApp({
       character.presentInSlot = undefined
 
       if (character.mutations) {
-        this.performMutations(character.mutations, lookupResult.squad, slot, false);
+        this.performMutations(character.mutations, lookupResult.squad, slot, false)
       }
 
       this.indexCharacters()
@@ -414,11 +430,11 @@ const app = createApp({
       })
     },
 
-    performMutations(mutations: DeckMutation[], squad: Squad, slot: SquadSlot, apply: boolean){
+    performMutations(mutations: DeckMutation[], squad: Squad, slot: SquadSlot, apply: boolean) {
       mutations.forEach((item) => {
-        const slotToChange = item.slotId === 0 ? slot : squad.slots[item.slotId];
-        if (item.alias === "minCards"){
-          slotToChange.minCards += (apply ? item.change : -item.change); 
+        const slotToChange = item.slotId === 0 ? slot : squad.slots[item.slotId]
+        if (item.alias === 'minCards') {
+          slotToChange.minCards += apply ? item.change : -item.change
         }
       })
     },
@@ -636,10 +652,9 @@ const app = createApp({
     isAllowedForTeam(character: Character): boolean {
       let valid = true
 
-      const allCharactersInSquads = this.squads
+      const allCharactersInSquads: CardAmount[] = this.squads
         .flatMap((s: Squad) => s.slots)
         .flatMap((s: SquadSlot) => this.getCardsBySlot(s))
-        .map((it: CardAmount) => this.getCardById(it.id))
       //Check the team requirements
       this.requirements.forEach((requirement: SquadRequirement) => {
         if (!this.checkRequirement(requirement, allCharactersInSquads, character)) {
@@ -666,9 +681,7 @@ const app = createApp({
       let valid = true
 
       //Check the squad requirements
-      const squadCharacters = squad.slots
-        .flatMap((it) => this.getCardsBySlot(it))
-        .map((it) => this.getCardById(it.id))
+      const squadCharacters: CardAmount[] = squad.slots.flatMap((it) => this.getCardsBySlot(it))
       squad.requirements.forEach((requirement) => {
         if (!this.checkRequirement(requirement, squadCharacters, character)) {
           valid = false
@@ -693,9 +706,7 @@ const app = createApp({
     isAllowedForSlot(slot: SquadSlot, character: Character): boolean {
       let valid = true
 
-      const slotCharacters = this.getCardsBySlot(slot).map((it: CardAmount) =>
-        this.getCardById(it.id)
-      )
+      const slotCharacters: CardAmount[] = this.getCardsBySlot(slot)
 
       //Check the slot requirement
       slot.requirements.forEach((requirement) => {
@@ -732,7 +743,7 @@ const app = createApp({
     },
 
     isSlotFilled(slot: SquadSlot): boolean {
-      const canBeInfinite = this.slotAmountCanBeInfinite(slot);
+      const canBeInfinite = this.slotAmountCanBeInfinite(slot)
       const maxCards = this.getMaxSlotAmount(slot)
       if (canBeInfinite && maxCards === 0) {
         return false
@@ -871,9 +882,7 @@ const app = createApp({
         //TODO: We should do this with the index already
         const selectedMainCharacters = this.selectedSquad.slots
           .filter((slot: SquadSlot) => slot.id !== 2)
-          .flatMap((slot: SquadSlot) =>
-            this.getCardsBySlot(slot).map((id: CardAmount) => this.getCardById(id.id))
-          )
+          .flatMap((slot: SquadSlot) => this.getCardsBySlot(slot))
         return this.additionalFilterRequirements.every((r: SquadRequirement) =>
           this.checkRequirement(r, selectedMainCharacters, character)
         )
@@ -991,8 +1000,8 @@ const app = createApp({
       return classes
     },
 
-    slotAmountCanBeInfinite(slot: SquadSlot){
-      return slot.maxCardAmount.type === 'fixed';
+    slotAmountCanBeInfinite(slot: SquadSlot) {
+      return slot.maxCardAmount.type === 'fixed'
     },
 
     getMaxSlotAmount(slot: SquadSlot) {
@@ -1005,7 +1014,6 @@ const app = createApp({
       const allCharactersInSquads: Character[] = this.squads
         .flatMap((s: Squad) => s.slots)
         .flatMap((s: SquadSlot) => this.getCardsBySlot(s))
-        .map((it: CardAmount) => this.getCardById(it.id))
 
       return allCharactersInSquads.reduce((sum, char) => {
         if (dynamicAmount.requirements.every((req) => this.checkRequirement(req, [char], char))) {
@@ -1050,12 +1058,24 @@ const app = createApp({
 
     checkRequirement(
       requirementConfig: SquadRequirement,
-      characters: Character[],
+      characters: CardAmount[],
       character: Character
     ): boolean {
-      const checkCharacters = [...characters]
+      const checkCharacters = [...characters.map((item) => this.getCardById(item.id))]
       if (character) {
         checkCharacters.push(character)
+        const existingCharacter = characters.find((item) => item.id === character.id)
+        let amount = 1
+        if (existingCharacter) {
+          characters.splice(characters.indexOf(existingCharacter), 1)
+          amount += existingCharacter.amount
+        }
+        characters.push({
+          id: character.id,
+          amount: amount,
+          allowRemoval: false,
+          children: []
+        })
       }
       if (requirementConfig.type === RequirementType.UniqueValue) {
         return this.checkUniqueValueRequirement(
@@ -1085,7 +1105,7 @@ const app = createApp({
       } else if (requirementConfig.type === RequirementType.Conditional) {
         return this.checkConditionalRequirement(
           requirementConfig.config as ConditionalRequirementConfig,
-          checkCharacters
+          characters
         )
       } else if (requirementConfig.type === RequirementType.RequiredCard) {
         return true
@@ -1102,6 +1122,11 @@ const app = createApp({
           requirementConfig.config as ChildOfRequirementConfig,
           checkCharacters
         )
+      } else if (requirementConfig.type === RequirementType.Computed) {
+        return this.checkComputedRequirement(
+          requirementConfig.config as ComputedRequirementConfig,
+          characters
+        )
       }
       console.error('Requirement not found!')
       return false
@@ -1113,10 +1138,17 @@ const app = createApp({
         RequirementType.SameValue,
         RequirementType.Size,
         RequirementType.Conditional,
-        RequirementType.Resource
+        RequirementType.Resource,
+        RequirementType.Computed
       ]
 
       return requirementsThatNeedReindex.includes(requirementConfig.type as RequirementType)
+    },
+
+    requirementNeedsIndexOnCounts(requirementConfig: SquadRequirement) {
+      const requirementNeedsIndexOnCounts = [RequirementType.Computed]
+
+      return requirementNeedsIndexOnCounts.includes(requirementConfig.type as RequirementType)
     },
 
     requirementToFilter(requirementConfig: SquadRequirement): Filter[] | undefined {
@@ -1161,7 +1193,7 @@ const app = createApp({
         if (
           squad.slots.find((slot) => {
             const maxAmount = this.getMaxSlotAmount(slot)
-            const canBeInfinite = this.slotAmountCanBeInfinite(slot);
+            const canBeInfinite = this.slotAmountCanBeInfinite(slot)
             return (!canBeInfinite || maxAmount > 0) && this.getSlotAmount(slot) > maxAmount
           })
         ) {
@@ -1331,13 +1363,15 @@ const app = createApp({
 
     checkConditionalRequirement(
       config: ConditionalRequirementConfig,
-      characters: Character[]
+      characters: CardAmount[]
     ): boolean {
       // This might be changed later on. For conditional, we only get the characters that match the requirements and then check those
       // But this might be a bit overkill if we just want to check single characters.
 
       const charactersToCheck = characters.filter((c) =>
-        config.condition.every((config) => this.checkRequirement(config, [], c))
+        config.condition.every((config) =>
+          this.checkRequirement(config, [], this.getCardById(c.id))
+        )
       )
       if (charactersToCheck.length > 0) {
         return config.requirements.every((config) =>
@@ -1391,6 +1425,59 @@ const app = createApp({
       }
 
       return characters.every((c) => parent.allowedChildren.includes(c.id))
+    },
+
+    checkComputedRequirement(config: ComputedRequirementConfig, characters: CardAmount[]): boolean {
+      const firstMatchingAbility = characters.filter((card) =>
+        this.checkRequirement(config.firstAbilityRequirement, [], this.getCardById(card.id))
+      )
+      const secondMatchingAbility = characters.filter((card) =>
+        this.checkRequirement(config.secondAbilityRequirement, [], this.getCardById(card.id))
+      )
+
+      if (firstMatchingAbility.length == 0 || secondMatchingAbility.length == 0) return true
+
+      const firstAbilityComputed = firstMatchingAbility.flatMap((cardAmount) => {
+        const card: Character = this.getCardById(cardAmount.id)
+        const abilityValue = card.abilities.find((ab) => ab.type === config.firstAbilityValue)
+        if (!abilityValue) return new Array(cardAmount.amount).fill(0)
+        const parsedValue = Number.parseInt(abilityValue.values[0])
+        if (isNaN(parsedValue)) return new Array(cardAmount.amount).fill(0)
+        return new Array(cardAmount.amount).fill(parsedValue)
+      })
+      const secondAbilityComputed = secondMatchingAbility.flatMap((cardAmount) => {
+        const card: Character = this.getCardById(cardAmount.id)
+        const abilityValue = card.abilities.find((ab) => ab.type === config.secondAbilityValue)
+        if (!abilityValue) return new Array(cardAmount.amount).fill(0)
+        const parsedValue = Number.parseInt(abilityValue.values[0])
+        if (isNaN(parsedValue)) return new Array(cardAmount.amount).fill(0)
+        return new Array(cardAmount.amount).fill(parsedValue)
+      })
+
+      const firstValue = this.getComputedValue(firstAbilityComputed, config.firstAbilityCompute)
+      const secondValue = this.getComputedValue(secondAbilityComputed, config.secondAbilityCompute)
+      const result = this.compareValues(firstValue, secondValue, config.comparison)
+      return result
+    },
+
+    getComputedValue(items: number[], type: ComputedType) {
+      switch (type) {
+        case ComputedType.Count:
+          return items.length
+        case ComputedType.Sum:
+          return items.reduce((prev, cur) => prev + cur, 0)
+      }
+    },
+
+    compareValues(firstValue: number, secondValue: number, type: ComputedComparisonType) {
+      switch (type) {
+        case ComputedComparisonType.Equal:
+          return firstValue === secondValue
+        case ComputedComparisonType.HigherThan:
+          return firstValue >= secondValue
+        case ComputedComparisonType.LowerThan:
+          return firstValue <= secondValue
+      }
     },
 
     registerFilter(element: HTMLInputElement) {

@@ -154,6 +154,27 @@ export interface ConditionalRequirementConfig {
     requirements: { [key: string]: any }[];
 }
 
+export enum ComputedType {
+    Sum = "Sum",
+    Count = "Count"
+}
+
+export enum ComputedComparisonType{
+    Equal = "Equal",
+    HigherThan = "HigherThan",
+    LowerThan = "LowerThan"
+}
+
+export interface ComputedRequirementConfig {
+    firstAbilityRequirement: { [key: string]: any },
+    firstAbilityCompute: ComputedType,
+    firstAbilityValue: string;
+    comparison: ComputedComparisonType,
+    secondAbilityRequirement: { [key: string]: any },
+    secondAbilityCompute: ComputedType,
+    secondAbilityValue: string;
+}
+
 export interface RequiredCardConfig {
     requiredCardId: number;
 }
@@ -197,6 +218,7 @@ export enum RequirementType {
     RequiredCard = "RequiredCard",
     Resource = "Resource",
     ChildOf = "ChildOf",
+    Computed = "Computed"
 }
 
 export enum DisplaySize {

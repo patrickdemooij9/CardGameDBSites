@@ -3,6 +3,7 @@ using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Config;
+using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
@@ -23,13 +24,20 @@ namespace SkytearHorde.Business.Services
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             var settings = _siteService.GetRoot().FirstChild<Settings>()?.FirstChild<SiteSettings>();
-            if (settings is null) return new SiteSettingsConfig() { MainColor = "#ffffff", HoverMainColor = "#f0f0f0", BorderColor = "#000000"};
+            if (settings is null) return new SiteSettingsConfig() { MainColor = "#ffffff", HoverMainColor = "#f0f0f0", BorderColor = "#000000", SiteName = "", NavigationLogoUrl = "", ShowLogin = false, TextColorWhite = false, FooterText = ""};
 
             return new SiteSettingsConfig
             {
                 MainColor = settings.MainColor,
                 HoverMainColor = settings.HoverMainColor,
                 BorderColor = settings.BorderColor,
+                SiteName = settings.SiteName,
+                ShowLogin = settings.ShowLogin,
+                NavigationLogoUrl = settings.NavigationLogo?.Url(mode: UrlMode.Absolute) ?? "#",
+                TextColorWhite = settings.TextColorWhite,
+                Navigation = settings.Navigation.ToItems<NavigationItem>().ToArray(),
+                FooterText = settings.FooterText,
+                FooterLinks = settings.FooterLinks?.ToArray() ?? [],
                 Keywords = settings.KeywordImages.ToItems<KeywordImage>().Select(it => new KeywordImageConfig(it.Keyword, it.Image?.Url())
                 {
                     DiscordIcon = $"<:{it.DiscordIconName}:{it.DiscordIconID}>"

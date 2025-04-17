@@ -54,7 +54,7 @@ namespace SkytearHorde.Business.Helpers
 
         private int GetPointsBasedOnCreateDate(DateTime createdDate)
         {
-            return createdDate.AddDays(30) > DateTime.UtcNow ? 5 : 0;
+            return createdDate.AddDays(30) > DateTime.UtcNow ? 10 : 0;
         }
     }
 }

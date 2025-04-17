@@ -1,4 +1,5 @@
 ﻿using SkytearHorde.Entities.Generated;
+using Umbraco.Cms.Core.Models;
 
 namespace SkytearHorde.Entities.Models.Business.Config
 {
@@ -7,6 +8,13 @@ namespace SkytearHorde.Entities.Models.Business.Config
         public required string MainColor { get; set; }
         public required string HoverMainColor { get; set; }
         public required string BorderColor { get; set; }
+        public required string SiteName { get; set; }
+        public required bool ShowLogin { get; set; }
+        public required string NavigationLogoUrl { get; set; }
+        public required bool TextColorWhite { get; set; }
+        public required string FooterText { get; set; }
+        public Link[] FooterLinks { get; set; }
+        public NavigationItem[] Navigation { get; set; }
         public KeywordImageConfig[] Keywords { get; set; }
         public bool AllowPricing { get; set; }
         public RedditSettingsConfig? RedditSettings { get; set; }
@@ -16,6 +24,7 @@ namespace SkytearHorde.Entities.Models.Business.Config
         {
             Keywords = Array.Empty<KeywordImageConfig>();
             SortOptions = [];
+            FooterLinks = [];
         }
     }
 }

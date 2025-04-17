@@ -35,6 +35,16 @@ namespace SkytearHorde.Business.Repositories
             return umbracoItem is UmbracoCard umbracoCard ? Map(umbracoCard) : Map(umbracoItem as CardVariant);
         }
 
+        public IEnumerable<Card> Get(int[] ids)
+        {
+            foreach (var id in ids)
+            {
+                var card = Get(id);
+                if (card != null)
+                    yield return card;
+            }
+        }
+
         public Card? GetVariant(int id)
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();

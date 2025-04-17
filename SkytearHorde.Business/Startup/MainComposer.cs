@@ -107,7 +107,7 @@ namespace SkytearHorde.Business.Startup
             //builder.Services.AddHostedService<PageViewSyncTask>();
             builder.Services.AddHostedService<CreatorSyncTask>();
             builder.Services.AddHostedService<DeckCalculatorTask>();
-            builder.Services.AddHostedService<AdReportTask>();
+            //builder.Services.AddHostedService<AdReportTask>();
             builder.Services.AddHostedService<CardPriceSyncTask>();
             builder.Services.AddHostedService<RedditDailyCardTask>();
 

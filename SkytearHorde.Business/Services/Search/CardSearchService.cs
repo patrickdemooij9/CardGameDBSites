@@ -57,7 +57,7 @@ namespace SkytearHorde.Business.Services.Search
             if (!string.IsNullOrWhiteSpace(query.Query))
             {
                 var splitQuery = query.Query.Replace('-', ' ').Split(' ');
-                foreach (var queryItem in splitQuery)
+                foreach (var queryItem in splitQuery.Where(it => !string.IsNullOrWhiteSpace(it)))
                 {
                     searcher.And().Field("Name", queryItem.MultipleCharacterWildcard());
                 }

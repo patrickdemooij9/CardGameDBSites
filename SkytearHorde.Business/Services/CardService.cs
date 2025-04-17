@@ -33,6 +33,11 @@ namespace SkytearHorde.Business.Services
             return _cardRepository.GetVariant(id);
         }
 
+        public IEnumerable<Card> Get(int[] ids)
+        {
+            return _cardRepository.Get(ids);
+        }
+
         public IEnumerable<Card> GetVariantsForVariant(int id)
         {
             return _cardRepository.GetVariantsForVariant(id);

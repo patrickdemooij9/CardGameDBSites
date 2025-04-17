@@ -62,7 +62,6 @@ namespace SkytearHorde.Business.Exports.Collection
                         worksheet.Cells[row, 4].Value = baseAmount;
                     }
 
-
                     var variantCards = items?.Where(it => otherCards.ContainsKey(it.VariantId)).ToDictionary(it => otherCards[it.VariantId].VariantTypeId!.Value, it => it) ?? [];
                     var variantIndex = 5;
                     foreach (var variant in _variantTypes)

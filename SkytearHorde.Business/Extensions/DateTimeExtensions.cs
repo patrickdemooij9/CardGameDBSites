@@ -8,8 +8,13 @@
             if (days == 0) return "Today";
             if (days == 1) return "Yesterday";
             if (days <= 30) return $"{days} days ago";
-            if (days <= 365) return dateTimeUTC.ToString("M");
-            return $"{dateTimeUTC.ToString("M")} {dateTimeUTC.Year}";
+
+            var result = dateTimeUTC.ToString("M");
+            if (dateTimeUTC.Year != DateTime.UtcNow.Year)
+            {
+                result = $"{result} {dateTimeUTC.Year}";
+            }
+            return result;
         }
     }
 }

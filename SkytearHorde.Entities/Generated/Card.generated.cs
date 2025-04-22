@@ -74,14 +74,6 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.MediaWithCrops BackImage => this.Value<global::Umbraco.Cms.Core.Models.MediaWithCrops>(_publishedValueFallback, "backImage");
 
 		///<summary>
-		/// Deck Mutations: Mutations when this card is added to a deck
-		///</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("deckMutations")]
-		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel DeckMutations => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "deckMutations");
-
-		///<summary>
 		/// Display Name
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
@@ -134,6 +126,14 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("questions")]
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Questions => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "questions");
+
+		///<summary>
+		/// Restrictions: LEGACY
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("restrictions")]
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Restrictions => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "restrictions");
 
 		///<summary>
 		/// Sections

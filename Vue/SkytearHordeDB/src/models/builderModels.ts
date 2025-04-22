@@ -180,6 +180,7 @@ export interface RequiredCardConfig {
 }
 
 export interface ResourceRequirementConfig {
+    mainAbility: string;
     ability: string;
     mainCardsCondition: { [key: string]: any }[];
     requireAllResources: boolean;

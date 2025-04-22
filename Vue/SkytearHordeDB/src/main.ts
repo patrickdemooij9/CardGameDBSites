@@ -1394,7 +1394,7 @@ const app = createApp({
       }
 
       const resourcePool = mainCards.flatMap(
-        (c) => c.abilities.find((item) => item.type === config.ability)?.values ?? []
+        (c) => c.abilities.find((item) => item.type === config.mainAbility)?.values ?? []
       )
       const otherCards = characters.filter((it) => !mainCards.includes(it))
       for (let i = 0; i < otherCards.length; i++) {

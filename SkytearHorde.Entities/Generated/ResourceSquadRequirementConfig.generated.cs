@@ -50,12 +50,20 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
-		/// Ability
+		/// Ability: Ability to retrieve for all the other cards
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("ability")]
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent Ability => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "ability");
+
+		///<summary>
+		/// Main Ability: Ability to retrieve for the main card
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("mainAbility")]
+		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent MainAbility => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "mainAbility");
 
 		///<summary>
 		/// Main Card Conditions

@@ -183,7 +183,7 @@ export interface ResourceRequirementConfig {
     mainAbility: string;
     ability: string;
     mainCardsCondition: { [key: string]: any }[];
-    requireAllResources: boolean;
+    singleResourceMode: boolean;
 }
 
 export interface ChildOfRequirementConfig {

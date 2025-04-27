@@ -10,7 +10,7 @@ namespace SkytearHorde.Entities.Generated
         {
             var conditionRequirements = MainCardConditions?.Select(it => (it.Content as ISquadRequirementConfig)!.GetRequirement()).ToArray() ?? Array.Empty<ISquadRequirement>();
 
-            return new ResourceRequirement(MainAbility.Name, Ability.Name, conditionRequirements, RequireAllResources);
+            return new ResourceRequirement(MainAbility.Name, Ability.Name, conditionRequirements, SingleResourceMode);
         }
         public Dictionary<string, object> GetConfig()
         {
@@ -21,7 +21,7 @@ namespace SkytearHorde.Entities.Generated
                 { "mainAbility", MainAbility.Name },
                 { "ability", Ability.Name },
                 { "mainCardsCondition", conditionRequirements.Select(it => new CreateSquadRequirement(it)) },
-                { "requireAllResources", RequireAllResources }
+                { "singleResourceMode", SingleResourceMode }
             };
         }
     }

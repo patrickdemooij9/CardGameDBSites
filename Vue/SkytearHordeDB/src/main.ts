@@ -1014,6 +1014,7 @@ const app = createApp({
       const allCharactersInSquads: Character[] = this.squads
         .flatMap((s: Squad) => s.slots)
         .flatMap((s: SquadSlot) => this.getCardsBySlot(s))
+        .map((it: CardAmount) => this.getCardById(it.id));
 
       return allCharactersInSquads.reduce((sum, char) => {
         if (dynamicAmount.requirements.every((req) => this.checkRequirement(req, [char], char))) {
@@ -1393,10 +1394,11 @@ const app = createApp({
         return false
       }
 
-      const resourcePool = mainCards.flatMap(
+      const resourcePool = groupBy(mainCards.flatMap(
         (c) => c.abilities.find((item) => item.type === config.mainAbility)?.values ?? []
-      )
-      const otherCards = characters.filter((it) => !mainCards.includes(it))
+      ), (item) => item);
+      const otherCards = characters.filter((it) => !mainCards.includes(it));
+
       for (let i = 0; i < otherCards.length; i++) {
         const card = otherCards[i]
 
@@ -1405,14 +1407,26 @@ const app = createApp({
           return false
         }
 
-        if (config.requireAllResources) {
-          if (cardValues.some((v) => !resourcePool.includes(v))) {
-            return false
+        let valid = true;
+        const otherCardResource = groupBy(cardValues, (item) => item);
+
+        Object.entries(otherCardResource).forEach((item) => {
+          const mainResourcePool = resourcePool[item[0]];
+          if (!mainResourcePool){
+            valid = false;
+            return;
           }
-        } else {
-          if (!cardValues.some((v) => resourcePool.includes(v))) {
-            return false
+          if (config.singleResourceMode){
+            return;
           }
+          if (mainResourcePool.length >= item[1].length){
+            return;
+          }
+          valid = false;
+        })
+
+        if (!valid){
+          return false;
         }
       }
       return true
@@ -1637,8 +1651,17 @@ const app = createApp({
         this.openFilter = ''
         document.getElementsByTagName('body')[0].removeEventListener('click', this.onBodyClick)
       }
-    }
+    },
   }
 })
 
 app.mount('#builder')
+
+function groupBy<T>(iterable: Iterable<T>, fn: (item: T) => string | number) {
+  return [...iterable].reduce<Record<string, T[]>>((groups, curr) => {
+      const key = fn(curr);
+      const group = groups[key] ?? [];
+      group.push(curr);
+      return { ...groups, [key]: group };
+  }, {});
+}

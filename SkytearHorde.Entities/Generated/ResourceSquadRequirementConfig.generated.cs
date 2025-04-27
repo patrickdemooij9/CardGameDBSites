@@ -74,10 +74,10 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel MainCardConditions => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "mainCardConditions");
 
 		///<summary>
-		/// Require all resources
+		/// Single resource mode: If enabled, a single resource is enough. If disabled, we count the resources
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		[ImplementPropertyType("requireAllResources")]
-		public virtual bool RequireAllResources => this.Value<bool>(_publishedValueFallback, "requireAllResources");
+		[ImplementPropertyType("singleResourceMode")]
+		public virtual bool SingleResourceMode => this.Value<bool>(_publishedValueFallback, "singleResourceMode");
 	}
 }

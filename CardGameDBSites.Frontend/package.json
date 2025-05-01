@@ -1,0 +1,33 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "generateUmbracoApi": "openapi --input http://localhost:58528/umbraco/swagger/delivery/swagger.json --output api/umbraco --postfixServices Resource --useOptions",
+    "generateDefaultApi": "openapi --input http://localhost:58528/umbraco/swagger/default/swagger.json --output api/default --postfixServices Resource --useOptions"
+  },
+  "dependencies": {
+    "@phosphor-icons/vue": "^2.2.1",
+    "@pinia/nuxt": "^0.11.0",
+    "nuxt": "^3.16.2",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-module": "^4.1.0",
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "@typescript-eslint/eslint-plugin": "^8.26.1",
+    "@typescript-eslint/parser": "^8.26.1",
+    "eslint": "^9.22.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "openapi-typescript-codegen": "^0.29.0",
+    "typescript": "^5.8.2",
+    "vue-tsc": "^2.2.8"
+  }
+}

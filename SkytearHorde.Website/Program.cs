@@ -17,6 +17,7 @@ using Slimsy.DependencyInjection;
 using Microsoft.AspNetCore.DataProtection;
 using System.Reflection;
 using SkytearHorde.Business.Config;
+using System.Text.Json.Serialization;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,12 @@ builder.CreateUmbracoBuilder()
     //.AddNotificationHandler<ContentPublishedNotification, CardSortingEventHandler>()
     .AddSlimsy()
     .Build();
+
+builder.Services.AddControllers().AddJsonOptions(x =>
+{
+    // serialize enums as strings in api responses (e.g. Role)
+    x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 var config = new CardGameSettingsConfig();
 var section = builder.Configuration.GetSection("CardGameSettings");
@@ -60,17 +67,21 @@ await app.BootUmbracoAsync();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+
+}
+else
+{
+    app.UseHttpsRedirection();
+    app.UseRewriter(new RewriteOptions()
+    .AddRedirectToNonWwwPermanent());
 }
 
 app.UseSession();
-app.UseHttpsRedirection();
-app.UseRewriter(new RewriteOptions()
-    .AddRedirectToNonWwwPermanent());
 
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 //app.MapRazorComponents<App>()
-    //.AddInteractiveServerRenderMode();
+//.AddInteractiveServerRenderMode();
 app.MapBlazorHub();
 
 app.UseUmbraco()
@@ -97,7 +108,7 @@ void ConfigureServices(IServiceCollection services)
     services.AddDataProtection()
         .PersistKeysToFileSystem(new DirectoryInfo(rootDirectory + "/umbraco"))
         .SetApplicationName("CardDatabaseSites");
-    
+
     services.AddRazorComponents()
         .AddInteractiveServerComponents();
 

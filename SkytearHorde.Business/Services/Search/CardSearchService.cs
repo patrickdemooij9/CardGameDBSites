@@ -35,7 +35,7 @@ namespace SkytearHorde.Business.Services.Search
                 .And()
                 .NodeTypeAlias(Entities.Generated.CardVariant.ModelTypeAlias);
 
-            foreach (var filter in query.CustomFields)
+            foreach (var filter in query.CustomFields.Where(it => it.Value.Length > 0))
             {
                 searcher.And().GroupedAnd([$"CustomField.{filter.Key}"], filter.Value.Select(it => it.Replace(" ", "")).ToArray());
             }

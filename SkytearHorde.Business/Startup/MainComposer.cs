@@ -22,6 +22,7 @@ using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Business.Startup.Migrations;
 using SkytearHorde.Entities.Interfaces;
 using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Core.DeliveryApi;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Web.Common.ApplicationBuilder;
 
@@ -96,6 +97,8 @@ namespace SkytearHorde.Business.Startup
             builder.ContentFinders().Append<DeckContentFinder>();
             builder.ContentFinders().Append<ListContentFinder>();
             builder.ContentFinders().Append<SetContentFinder>();
+
+            builder.Services.AddSingleton<IApiContentPathResolver, DeckApiContentPathResolver>();
 
             builder.Components().Append<MigrationComponent>();
             builder.Components().Append<DiscordBotComponent>();

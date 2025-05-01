@@ -13,14 +13,14 @@ namespace SkytearHorde.Entities.Requirements
         private readonly string _mainAbilityName;
         private readonly string _abilityName;
         private readonly ISquadRequirement[] _mainCardsConditions;
-        private readonly bool _requireAllResources;
+        private readonly bool _singleResourceMode;
 
-        public ResourceRequirement(string mainAbilityName, string abilityName, ISquadRequirement[] mainCardsConditions, bool requireAllResources)
+        public ResourceRequirement(string mainAbilityName, string abilityName, ISquadRequirement[] mainCardsConditions, bool singleResourceMode)
         {
             _mainAbilityName = mainAbilityName;
             _abilityName = abilityName;
             _mainCardsConditions = mainCardsConditions;
-            _requireAllResources = requireAllResources;
+            _singleResourceMode = singleResourceMode;
         }
 
         public bool IsValid(Card[] cards)
@@ -28,20 +28,23 @@ namespace SkytearHorde.Entities.Requirements
             var mainCards = cards.Where(it => _mainCardsConditions.All(c => c.IsValid(new[] { it }))).ToArray();
             if (mainCards.Length == 0) return false;
 
-            var resourcePool = mainCards.SelectMany(it => it.GetMultipleCardAttributeValue(_mainAbilityName)!).ToArray();
+            var resourcePool = mainCards.SelectMany(it => it.GetMultipleCardAttributeValue(_mainAbilityName)!).GroupBy(it => it).ToDictionary(it => it.Key, it => it.ToArray());
             foreach(var card in cards.Except(mainCards))
             {
                 var values = card.GetMultipleCardAttributeValue(_abilityName)?.ToArray();
                 if (values is null || values.Length == 0)
                     return false;
 
-                if (_requireAllResources)
+                var cardResourcePool = values.GroupBy(it => it);
+                foreach (var resource in cardResourcePool)
                 {
-                    if (values.Any(v => !resourcePool.Contains(v))) return false;
-                }
-                else
-                {
-                    if (!values.Any(v => resourcePool.Contains(v))) return false;
+                    if (!resourcePool.ContainsKey(resource.Key))
+                        return false;
+                    if (!_singleResourceMode)
+                        continue;
+                    if (resourcePool[resource.Key].Length >= resource.Count())
+                        continue;
+                    return false;
                 }
             }
             return true;

@@ -98,7 +98,7 @@ namespace SkytearHorde.Business.Startup
             builder.ContentFinders().Append<ListContentFinder>();
             builder.ContentFinders().Append<SetContentFinder>();
 
-            builder.Services.AddSingleton<IApiContentPathResolver, DeckApiContentPathResolver>();
+            builder.Services.AddSingleton<IApiContentPathResolver, CustomApiContentPathResolver>();
 
             builder.Components().Append<MigrationComponent>();
             builder.Components().Append<DiscordBotComponent>();

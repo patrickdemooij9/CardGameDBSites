@@ -39,6 +39,23 @@ export class V1Resource {
      * @returns CardDetailApiModel OK
      * @throws ApiError
      */
+    public static getApiCardsById({
+        id,
+    }: {
+        id?: string,
+    }): CancelablePromise<CardDetailApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/cards/byId',
+            query: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns CardDetailApiModel OK
+     * @throws ApiError
+     */
     public static postApiCardsByIds({
         requestBody,
     }: {

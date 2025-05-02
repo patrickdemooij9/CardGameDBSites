@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CardSectionApiModel } from './CardSectionApiModel';
 import type { LinkApiModel } from './LinkApiModel';
 import type { NavigationItemApiModel } from './NavigationItemApiModel';
 export type SiteSettingsApiModel = {
@@ -15,5 +16,6 @@ export type SiteSettingsApiModel = {
     textColorWhite: boolean;
     footerText: string;
     footerLinks?: Array<LinkApiModel>;
+    cardSections?: Array<CardSectionApiModel>;
 };
 

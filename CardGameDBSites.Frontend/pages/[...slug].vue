@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
 import type { IApiContentModelBase } from '~/api/umbraco';
+import CardDetailPage from '~/components/pageTypes/CardDetailPage.vue';
 import CardOverviewPage from '~/components/pageTypes/CardOverviewPage.vue';
 import ContentPage from '~/components/pageTypes/contentPage.vue';
 import DeckDetail from '~/components/pageTypes/DeckDetail.vue';
@@ -24,7 +25,8 @@ const pageComponents: {[key: string]: Component} = {
     'contentPage': ContentPage,
     'deckDetail': DeckDetail,
     'deckOverview': DeckOverview,
-    'homepage': Homepage
+    'homepage': Homepage,
+    'card': CardDetailPage
 }
 const pageComponent = pageComponents[componentName];
 </script>

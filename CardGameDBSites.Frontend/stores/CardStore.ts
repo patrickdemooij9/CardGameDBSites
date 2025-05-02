@@ -20,5 +20,15 @@ export const useCardsStore = defineStore("cardStore", {
       });
       return cards;
     },
+
+    async loadCard(cardId: string){
+      const card = await $fetch<CardDetailApiModel>(
+        "https://localhost:44344/api/cards/byId?id=" + cardId,
+        {
+          method: "GET"
+        }
+      );
+      return card;
+    }
   },
 });

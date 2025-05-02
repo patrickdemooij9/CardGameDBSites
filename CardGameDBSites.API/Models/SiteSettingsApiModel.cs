@@ -18,11 +18,13 @@ namespace CardGameDBSites.API.Models
         public required bool TextColorWhite { get; set; }
         public required string FooterText { get; set; }
         public LinkApiModel[] FooterLinks { get; set; }
+        public CardSectionApiModel[] CardSections { get; set; }
 
         public SiteSettingsApiModel()
         {
             Navigation = [];
             FooterLinks = [];
+            CardSections = [];
         }
     }
 }

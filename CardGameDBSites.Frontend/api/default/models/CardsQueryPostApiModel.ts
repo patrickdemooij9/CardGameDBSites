@@ -7,6 +7,7 @@ export type CardsQueryPostApiModel = {
     pageNumber?: number;
     pageSize?: number;
     setId?: number | null;
+    variantTypeId?: number | null;
     customFields?: Record<string, Array<string>>;
 };
 

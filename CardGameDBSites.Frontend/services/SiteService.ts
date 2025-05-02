@@ -10,13 +10,9 @@ export default class SiteService {
       return SiteService.settings;
     }
 
-    const result = await fetch("https://localhost:44344/api/settings/site");
-    if (!result.ok) {
-      throw new Error(result.statusText);
-    }
+    const result = await $fetch<SiteSettingsApiModel>("https://localhost:44344/api/settings/site");
 
-    const data = (await result.json()) as SiteSettingsApiModel;
-    SiteService.settings = data;
+    SiteService.settings = result;
     return SiteService.settings;
   }
 

@@ -32,6 +32,7 @@ namespace CardGameDBSites.API.Controllers
         public IActionResult GetSiteSettings()
         {
             var settings = _settingsService.GetSiteSettings();
+            var cardSettings = _settingsService.GetCardSettings();
 
             return Ok(new SiteSettingsApiModel
             {
@@ -48,7 +49,8 @@ namespace CardGameDBSites.API.Controllers
                 {
                     Name = it.Name!,
                     Url = it.Url!
-                })]
+                })],
+                CardSections = [.. cardSettings.Display.ToItems<IPublishedElement>().Select(it => new CardSectionApiModel(it))]
             });
         }
 

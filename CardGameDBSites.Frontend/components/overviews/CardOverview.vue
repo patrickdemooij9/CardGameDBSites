@@ -33,7 +33,8 @@ async function loadData(value: OverviewRefreshModel) {
     query: value.Query,
     pageNumber: pageNumber.value,
     pageSize: 30,
-    customFields: value.SelectedFilters
+    customFields: value.SelectedFilters,
+    variantTypeId: 0
   });
   if (value.LoadedCallback){
     value.LoadedCallback();
@@ -67,13 +68,13 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
         class="container px-4 md:px-8 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6"
       >
         <div class="relative" v-for="card in pagedCards.items">
-          <a :href="card.urlSegment" class="no-underline">
+          <NuxtLink :href="card.urlSegment" class="no-underline">
             <div class="missing-card-image" v-if="!card.imageUrl">
               <h2>{{ card.displayName }}</h2>
               <p>No image yet</p>
             </div>
             <img v-else :src="card.imageUrl" />
-          </a>
+          </NuxtLink>
           <div class="flex justify-between align-center mt-2" v-if="false">
             <p>
               @card.SetCode.ToUpper() @(card.GetAbilityByType("SWU Id")?.Value)

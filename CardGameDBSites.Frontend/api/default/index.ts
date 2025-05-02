@@ -8,6 +8,7 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { CardDetailApiModel } from './models/CardDetailApiModel';
+export type { CardSectionApiModel } from './models/CardSectionApiModel';
 export type { CardsQueryPostApiModel } from './models/CardsQueryPostApiModel';
 export type { DeckActionApiModel } from './models/DeckActionApiModel';
 export type { DeckApiModel } from './models/DeckApiModel';

@@ -181,6 +181,7 @@ export interface RequiredCardConfig {
 
 export interface ResourceRequirementConfig {
     mainAbility: string;
+    mainAbilityMaxSize: number;
     ability: string;
     mainCardsCondition: { [key: string]: any }[];
     singleResourceMode: boolean;

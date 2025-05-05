@@ -1390,8 +1390,8 @@ const app = createApp({
       const mainCards = characters.filter((c) =>
         config.mainCardsCondition.every((config) => this.checkRequirement(config, [], c))
       )
-      if (mainCards.length === 0) {
-        return false
+      if (mainCards.length === 0 || (config.mainAbilityMaxSize > 0 && mainCards.length < config.mainAbilityMaxSize)) {
+        return true;
       }
 
       const resourcePool = groupBy(mainCards.flatMap(
@@ -1422,6 +1422,7 @@ const app = createApp({
           if (mainResourcePool.length >= item[1].length){
             return;
           }
+
           valid = false;
         })
 

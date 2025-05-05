@@ -66,6 +66,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent MainAbility => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "mainAbility");
 
 		///<summary>
+		/// Main Ability Max Size
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("mainAbilityMaxSize")]
+		public virtual int MainAbilityMaxSize => this.Value<int>(_publishedValueFallback, "mainAbilityMaxSize");
+
+		///<summary>
 		/// Main Card Conditions
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

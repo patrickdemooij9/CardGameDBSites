@@ -53,7 +53,8 @@ namespace SkytearHorde.Business.Discord
             var siteIds = new List<int>();
             using (var ctx = _umbracoContextFactory.EnsureUmbracoContext())
             {
-                foreach (var discordSetting in ctx.UmbracoContext.Content!.GetByContentType(DiscordSettings.GetModelContentType(_publishedSnapshotAccessor)!))
+                var discordSettings = ctx.UmbracoContext.Content?.GetAtRoot().OfType<Homepage>().Select(it => it.FirstChild<Settings>()?.FirstChild<DiscordSettings>()).WhereNotNull() ?? [];
+                foreach (var discordSetting in discordSettings)
                 {
                     siteIds.Add(discordSetting.Parent!.FirstChild<SiteSettings>()!.SiteId);
                 }

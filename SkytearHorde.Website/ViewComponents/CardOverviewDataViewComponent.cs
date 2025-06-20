@@ -187,6 +187,7 @@ namespace SkytearHorde.ViewComponents
                 query.OrderBy.AddRange(orderby);
             }
 
+            var searchFilters = new List<CardSearchFilter>();
             foreach (var filter in filters)
             {
                 if (filter.Alias == "collection") continue;
@@ -194,8 +195,17 @@ namespace SkytearHorde.ViewComponents
                 var selectedValues = filter.Items.Where(it => it.IsChecked).ToArray();
                 if (selectedValues.Length == 0) continue;
 
-                query.CustomFields[filter.Alias] = selectedValues.Select(it => it.Value).ToArray();
+                searchFilters.Add(new CardSearchFilter
+                {
+                    Alias = filter.Alias,
+                    Values = selectedValues.Select(it => it.Value).ToArray()
+                });
             }
+            query.FilterClauses.Add(new CardSearchFilterClause
+            {
+                Filters = [.. searchFilters],
+                ClauseType = CardSearchFilterClauseType.AND
+            });
             return _searchService.Search(query, out totalCards);
         }
     }

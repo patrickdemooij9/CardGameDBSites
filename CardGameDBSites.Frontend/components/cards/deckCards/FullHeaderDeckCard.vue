@@ -22,7 +22,7 @@ const mainCard = GetValidCards(
   <div class="overflow-hidden rounded mb-3 shadow-lg">
     <NuxtLink
       class="block h-40 relative text-white rounded no-underline"
-      :href="settings.overviewUrl + deck.id"
+      :to="settings.overviewUrl + deck.id"
     >
       <div
         class="overflow-hidden h-full before:content-[''] before:bg-gradient-to-b before:from-black before:to-white before:absolute before:w-full before:h-full"

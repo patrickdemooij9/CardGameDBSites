@@ -95,6 +95,10 @@ nav + .container{
     height: calc(100vh - 56px);
 }
 
+.full-without-header {
+    height: calc(100vh - 56px);
+}
+
 #squad-panel.scrolled {
     height: 100vh;
 }
@@ -138,4 +142,30 @@ body {
     --tw-bg-opacity: 1 !important;
     background-color: rgb(203 213 225 / var(--tw-bg-opacity)) !important;
     border-radius: 0.25rem !important;
+}
+
+.wiggle:hover {
+    animation: wiggle .3s linear 1 normal
+}
+
+@keyframes wiggle {
+    0% {
+        transform: rotate(0)
+    }
+
+    25% {
+        transform: rotate(1deg)
+    }
+
+    50% {
+        transform: rotate(0)
+    }
+
+    75% {
+        transform: rotate(-1deg)
+    }
+
+    to {
+        transform: rotate(0)
+    }
 }

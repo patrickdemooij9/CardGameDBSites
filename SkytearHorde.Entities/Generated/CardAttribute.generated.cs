@@ -50,6 +50,14 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
+		/// Count Values: Values that should be counted as in Examine
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("countValues")]
+		public virtual global::System.Collections.Generic.IEnumerable<string> CountValues => this.Value<global::System.Collections.Generic.IEnumerable<string>>(_publishedValueFallback, "countValues");
+
+		///<summary>
 		/// Display Name
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

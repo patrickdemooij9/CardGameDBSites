@@ -32,6 +32,8 @@ namespace SkytearHorde.Entities.Models.ViewModels
             Cards = deck.Cards.Select(it => new DeckCardApiModel
             {
                 CardId = it.CardId,
+                GroupId = it.GroupId,
+                SlotId = it.SlotId,
                 Amount = it.Amount
             }).ToArray();
         }

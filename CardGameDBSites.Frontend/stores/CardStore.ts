@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import type { CardDetailApiModel } from "~/api/default";
+import { DoFetch } from "~/helpers/RequestsHelper";
 
 export const useCardsStore = defineStore("cardStore", {
   state: () => ({
@@ -7,8 +8,8 @@ export const useCardsStore = defineStore("cardStore", {
   }),
   actions: {
     async loadCards(cardIds: number[]) {
-      const cards = await $fetch<CardDetailApiModel[]>(
-        "https://localhost:44344/api/cards/byIds",
+      const cards = await DoFetch<CardDetailApiModel[]>(
+        "/api/cards/byIds",
         {
           method: "POST",
           body: cardIds,
@@ -22,8 +23,8 @@ export const useCardsStore = defineStore("cardStore", {
     },
 
     async loadCard(cardId: string){
-      const card = await $fetch<CardDetailApiModel>(
-        "https://localhost:44344/api/cards/byId?id=" + cardId,
+      const card = await DoFetch<CardDetailApiModel>(
+        "/api/cards/byId?id=" + cardId,
         {
           method: "GET"
         }

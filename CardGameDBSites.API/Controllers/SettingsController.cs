@@ -1,6 +1,7 @@
 ﻿using CardGameDBSites.API.Models;
 using CardGameDBSites.API.Models.Requirements;
 using CardGameDBSites.API.Models.Settings;
+using CardGameDBSites.API.Models.Settings.DeckBuilder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Exports;
@@ -8,6 +9,9 @@ using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
+using SkytearHorde.Entities.Models.ViewModels.Squad;
+using SkytearHorde.Entities.Models.ViewModels.Squad.Amounts;
+using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
 
@@ -34,6 +38,9 @@ namespace CardGameDBSites.API.Controllers
             var settings = _settingsService.GetSiteSettings();
             var cardSettings = _settingsService.GetCardSettings();
 
+            var loginPageUrl = _siteService.GetRoot().FirstChild<Login>()?.Url(mode: UrlMode.Relative);
+            var accountNavigation = _siteService.GetRoot().FirstChild<AccountPage>()?.Children().Select(it => new NavigationItemApiModel { Name = it.Name, Url = it.Url(mode: UrlMode.Relative) }).ToArray() ?? [];
+
             return Ok(new SiteSettingsApiModel
             {
                 MainColor = settings.MainColor,
@@ -41,6 +48,8 @@ namespace CardGameDBSites.API.Controllers
                 BorderColor = settings.BorderColor,
                 SiteName = settings.SiteName,
                 ShowLogin = settings.ShowLogin,
+                LoginPageUrl = loginPageUrl,
+                AccountNavigation = accountNavigation,
                 Navigation = [.. settings.Navigation.Select(MapNavigationItem)],
                 NavigationLogoUrl = settings.NavigationLogoUrl,
                 TextColorWhite = settings.TextColorWhite,
@@ -78,7 +87,7 @@ namespace CardGameDBSites.API.Controllers
             }
             return Ok(new DeckTypeSettingsApiModel
             {
-                OverviewUrl = deckOverview.Url(),
+                OverviewUrl = deckOverview.Url(mode: UrlMode.Relative),
                 DisplayName = deckTypeSettings.TypeDisplayName.IfNullOrWhiteSpace("Standard deck"),
                 AmountOfSquadCards = deckTypeSettings.AmountOfSquadCards,
                 Actions = [.. actions],
@@ -102,12 +111,75 @@ namespace CardGameDBSites.API.Controllers
             });
         }
 
+        [HttpGet("deckBuilder")]
+        [ProducesResponseType(typeof(DeckBuilderApiModel), 200)]
+        public IActionResult GetDeckBuilderSettings(int typeId)
+        {
+            var deckTypeSettings = _settingsService.GetSquadSettings(typeId);
+            if (deckTypeSettings is null) return NotFound();
+
+            return Ok(new DeckBuilderApiModel
+            {
+                Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel
+                {
+                    Id = it.SquadId,
+                    Name = it.Label,
+                    Requirements = [.. it.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))],
+                    Slots = [.. it.Slots.ToItems<SquadSlotConfig>().Select((slot, index) => new DeckBuilderSlotApiModel {
+                        Id = index,
+                        Name = slot.Label!,
+                        CardGroups = GetGroupsForSlot(slot),
+                        MinCards = slot.MinCards,
+                        MaxCardAmount = GetSlotAmount(slot.MaxCards),
+                        DisableRemoval = slot.DisableRemoval,
+                        NumberMode = slot.NumberMode,
+                        ShowIfTargetSlotIsFilled = slot.ShowIfTargetSlotIsFilled == 0 ? null : slot.ShowIfTargetSlotIsFilled - 1,
+                        Requirements = [.. slot.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))]
+                    })]
+                })]
+            });
+        }
+
+        private DeckBuilderDeckCardGroupApiModel[] GetGroupsForSlot(SquadSlotConfig slot)
+        {
+            var groups = slot.Groupings.ToItems<DeckCardGroup>().ToArray();
+            if (groups.Length == 0) // Always have a group to put items in
+            {
+                return [ new DeckBuilderDeckCardGroupApiModel() { DisplayName = string.Empty }];
+            }
+
+            return groups.Select(it => new DeckBuilderDeckCardGroupApiModel
+            {
+                DisplayName = it.Header!,
+                SortBy = "Cost",
+                Requirements = [.. it.Conditions.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))]
+            }).ToArray();
+        }
+
+        private DeckBuilderSlotAmountApiModel GetSlotAmount(BlockListModel? item)
+        {
+            var firstItem = item?.FirstOrDefault();
+            if (firstItem is null) return new DeckBuilderFixedAmountViewModel(0);
+
+            if (firstItem.Content is FixedSquadSlotAmount fixedSquadSlotAmount)
+            {
+                return new DeckBuilderFixedAmountViewModel(fixedSquadSlotAmount.Amount);
+            }
+            else if (firstItem.Content is DynamicSquadSlotAmount dynamicSquadSlotAmount)
+            {
+                return new DeckBuilderDynamicAmountViewModel(dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>().Select(sr => new CreateSquadRequirement(sr)).ToArray());
+            }
+
+            return new DeckBuilderFixedAmountViewModel(0);
+        }
+
         private NavigationItemApiModel MapNavigationItem(NavigationItem item)
         {
+            var url = new Uri(item.Link!.Url!);
             var model = new NavigationItemApiModel
             {
                 Name = item.Link?.Name!,
-                Url = item.Link?.Url!,
+                Url = url.LocalPath,
                 Children = [.. item.DropdownItems.ToItems<NavigationItem>().Select(MapNavigationItem)]
             };
             return model;

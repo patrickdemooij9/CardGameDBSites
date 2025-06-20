@@ -47,7 +47,7 @@ namespace SkytearHorde.Business.ContentFinders
             var deckOverviews = _siteService.GetDeckOverviews();
             if (deckOverviews.Length == 0) return null;
 
-            var foundDeckOverview = deckOverviews.FirstOrDefault(it => path.StartsWith(it.Url()));
+            var foundDeckOverview = deckOverviews.FirstOrDefault(it => path.StartsWith(it.Url(mode: UrlMode.Relative)));
             if (foundDeckOverview is null)
                 return null;
 
@@ -57,7 +57,7 @@ namespace SkytearHorde.Business.ContentFinders
         private IPublishedContent? TryGetCardPage(string path, UmbracoContextReference context)
         {
             var cardOverview = _siteService.GetRoot().FirstChild<CardOverview>();
-            if (cardOverview is null || !path.StartsWith(cardOverview.Url()))
+            if (cardOverview is null || !path.StartsWith(cardOverview.Url(mode: UrlMode.Relative)))
                 return null;
 
             var card = FindCard(path.Split('/').Skip(2).ToArray(), out var _);

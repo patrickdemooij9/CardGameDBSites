@@ -1,9 +1,10 @@
 ﻿using Examine;
 using Examine.Search;
+using NUglify.JavaScript.Syntax;
 using SkytearHorde.Entities.Models.Business;
-using System.Security.Policy;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
+using YamlDotNet.Core.Tokens;
 
 namespace SkytearHorde.Business.Services.Search
 {
@@ -35,9 +36,34 @@ namespace SkytearHorde.Business.Services.Search
                 .And()
                 .NodeTypeAlias(Entities.Generated.CardVariant.ModelTypeAlias);
 
-            foreach (var filter in query.CustomFields.Where(it => it.Value.Length > 0))
+            foreach(var filterClause in query.FilterClauses)
             {
-                searcher.And().GroupedAnd([$"CustomField.{filter.Key}"], filter.Value.Select(it => it.Replace(" ", "")).ToArray());
+                var filters = filterClause.Filters.Where(it => it.Values.Length > 0).ToArray();
+                if (filters.Length == 0)
+                {
+                    continue;
+                }
+
+                GetQuery(searcher, filterClause.ClauseType).Group(GetFiltersOperation(filters));
+
+                /*foreach (var filter in filters)
+                {
+                    var actualValue = filter.Values.Select(it => it.Replace(" ", "")).ToArray();
+                    switch (filter.Mode)
+                    {
+                        case CardSearchFilterMode.Include:
+                            searcher.And().GroupedOr([$"CustomField.{filter.Alias}"], actualValue);
+                            break;
+                        case CardSearchFilterMode.Exclude:
+                            searcher.And().GroupedNot([$"CustomField.{filter.Alias}"], actualValue);
+                            break;
+                    }
+                }*/
+
+                //searcher.Not().NativeQuery("(CustomField.Type:seeker OR CustomField.Type:agent)");
+                //searcher.And().Group(GetFiltersOperation(filters));
+                //searcher.And().GroupedOr([$"CustomField.{filter.Alias}"], actualValue)
+                //searcher.And(GetFiltersOperation(filters));
             }
 
             searcher.And().Field("siteId", query.SiteId.ToString());
@@ -99,6 +125,87 @@ namespace SkytearHorde.Business.Services.Search
             }
 
             return cards.ToArray();
+        }
+
+        private IQuery GetQuery(IBooleanOperation operation, CardSearchFilterClauseType clauseType)
+        {
+            return clauseType switch
+            {
+                CardSearchFilterClauseType.OR => operation.Or(),
+                CardSearchFilterClauseType.NOT => operation.Not(),
+                _ => operation.And(),
+            };
+        }
+
+        /*private string GetQueryForFilters(CardSearchFilterClause[] clauses)
+        {
+            var stringBuilder = new StringBuilder();
+            foreach (var filterClause in clauses)
+            {
+                var filters = filterClause.Filters.Where(it => it.Values.Length > 0).ToArray();
+                if (filters.Length == 0)
+                {
+                    continue;
+                }
+
+                foreach (var filter in filters)
+                {
+                    var actualValue = filter.Values.Select(it => it.Replace(" ", "")).ToArray();
+                    switch (filter.Mode)
+                    {
+                        case CardSearchFilterMode.Include:
+                            stringBuilder.Append($"")
+                            searcher.And().GroupedOr([$"CustomField.{filter.Alias}"], actualValue);
+                            break;
+                        case CardSearchFilterMode.Exclude:
+                            searcher.And().GroupedNot([$"CustomField.{filter.Alias}"], actualValue);
+                            break;
+                    }
+                }
+
+                //searcher.Not().NativeQuery("(CustomField.Type:seeker OR CustomField.Type:agent)");
+                //searcher.And().Group(GetFiltersOperation(filters));
+                //searcher.And().GroupedOr([$"CustomField.{filter.Alias}"], actualValue)
+                //searcher.And(GetFiltersOperation(filters));
+            }
+        }*/
+
+        private Func<INestedQuery, INestedBooleanOperation> GetFiltersOperation(CardSearchFilter[] filters)
+        {
+            return it =>
+            {
+                INestedBooleanOperation? nestedBoolean = null;
+                foreach (var filter in filters)
+                {
+                    var query = nestedBoolean is null ? it : nestedBoolean.Or();
+                    var actualValue = filter.Values.Select(it => it.Replace(" ", "")).ToArray();
+                    switch (filter.Mode)
+                    {
+                        case CardSearchFilterMode.Contains:
+                            nestedBoolean = query.GroupedOr([$"CustomField.{filter.Alias}"], actualValue);
+                            break;
+                        case CardSearchFilterMode.Higher:
+                            foreach (var value in actualValue)
+                            {
+                                nestedBoolean = query.RangeQuery<int>([$"CustomField.{filter.Alias}"], min: int.Parse(value), null);
+                            }
+                            break;
+                        case CardSearchFilterMode.Lower:
+                            foreach (var value in actualValue)
+                            {
+                                nestedBoolean = query.RangeQuery<int>([$"CustomField.{filter.Alias}"], null, max: int.Parse(value));
+                            }
+                            break;
+                        case CardSearchFilterMode.Range:
+                            var minValue = int.Parse(actualValue[0]);
+                            var maxValue = int.Parse(actualValue[1]);
+                            //nestedBoolean = query.ManagedQuery($"CustomField.{filter.Alias}:[{minValue} TO {maxValue}]")
+                            nestedBoolean = query.RangeQuery<int>([$"CustomField.{filter.Alias}"], minValue, maxValue);
+                            break;
+                    }
+                }
+                return nestedBoolean!;
+            };
         }
     }
 }

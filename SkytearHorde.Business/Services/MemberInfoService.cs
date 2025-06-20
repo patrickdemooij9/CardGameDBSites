@@ -42,6 +42,7 @@ namespace SkytearHorde.Business.Services
             {
                 return new MemberModel(memberId)
                 {
+                    DisplayName = member.Name!,
                     LikedDecks = _deckLikeRepository.GetLikedDecks(memberId),
                     IsLoggedIn = true
                 };

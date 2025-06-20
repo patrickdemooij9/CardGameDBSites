@@ -33,13 +33,23 @@ namespace SkytearHorde.Business.Controllers
                 return _cardService.GetAll().Select(it => it.BaseId).ToArray();
             }
             var query = new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId()) { Query = model.Search };
+            var searchFilters = new List<CardSearchFilter>();
             foreach (var filter in filters)
             {
                 var selectedValues = filter.Items.Where(it => it.IsChecked).ToArray();
                 if (selectedValues.Length == 0) continue;
 
-                query.CustomFields[filter.Alias] = selectedValues.Select(it => it.Value).ToArray();
+                searchFilters.Add(new CardSearchFilter
+                {
+                    Alias = filter.Alias,
+                    Values = selectedValues.Select(it => it.Value).ToArray()
+                });
             }
+            query.FilterClauses.Add(new CardSearchFilterClause
+            {
+                Filters = [.. searchFilters],
+                ClauseType = CardSearchFilterClauseType.AND
+            });
             return _cardSearchService.Search(query, out _).Select(it => it.BaseId).ToArray();
         }
 

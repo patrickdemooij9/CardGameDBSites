@@ -22,7 +22,8 @@ namespace SkytearHorde.Entities.Generated
                 { "mainAbilityMaxSize", MainAbilityMaxSize },
                 { "ability", Ability.Name },
                 { "mainCardsCondition", conditionRequirements.Select(it => new CreateSquadRequirement(it)) },
-                { "singleResourceMode", SingleResourceMode }
+                { "singleResourceMode", SingleResourceMode },
+                { "possibleValues", PossibleValues?.ToArray() ?? [] }
             };
         }
     }

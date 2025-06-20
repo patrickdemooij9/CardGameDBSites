@@ -12,7 +12,7 @@ const cards = await useCardsStore().loadCards(props.deck.cards?.map((card) => ca
 
 <template>
   <NuxtLink
-    :href="settings.overviewUrl + deck.id"
+    :to="settings.overviewUrl + deck.id"
     class="no-underline"
   >
     <div

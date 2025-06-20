@@ -1,32 +1,39 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
 import type { IApiContentModelBase } from '~/api/umbraco';
+import AccountDecks from '~/components/pageTypes/AccountDecks.vue';
 import CardDetailPage from '~/components/pageTypes/CardDetailPage.vue';
 import CardOverviewPage from '~/components/pageTypes/CardOverviewPage.vue';
 import ContentPage from '~/components/pageTypes/contentPage.vue';
+import CreateDeck from '~/components/pageTypes/CreateDeck.vue';
 import DeckDetail from '~/components/pageTypes/DeckDetail.vue';
-import DeckOverview from '~/components/pageTypes/DeckOverview.vue';
+import DeckOverviewPage from '~/components/pageTypes/DeckOverviewPage.vue';
 import Homepage from '~/components/pageTypes/homepage.vue';
-import { firstCharUppercase } from '~/helpers/StringHelpers';
+import LoginPage from '~/components/pageTypes/LoginPage.vue';
+import { DoFetch } from '~/helpers/RequestsHelper';
 
 const route = useRoute()
 let slug = route.params.slug;
 if (Array.isArray(slug)){
     slug = slug.join('/');
 }
-const { data, error } = await useFetch<IApiContentModelBase>("https://localhost:44344/umbraco/delivery/api/v2/content/item/" + slug);
+const data = await DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug);
 
-if (!data.value) {
-    // Do something?
-}
-const componentName = data.value!.contentType;
+onMounted(() => {
+    useMemberStore().validateLogin();
+});
+
+const componentName = data.contentType;
 const pageComponents: {[key: string]: Component} = {
     'cardOverview': CardOverviewPage,
     'contentPage': ContentPage,
     'deckDetail': DeckDetail,
-    'deckOverview': DeckOverview,
+    'deckOverview': DeckOverviewPage,
     'homepage': Homepage,
-    'card': CardDetailPage
+    'card': CardDetailPage,
+    'createSquad': CreateDeck,
+    'login': LoginPage,
+    'accountDecks': AccountDecks,
 }
 const pageComponent = pageComponents[componentName];
 </script>

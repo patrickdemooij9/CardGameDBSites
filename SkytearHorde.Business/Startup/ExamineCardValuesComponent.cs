@@ -75,8 +75,16 @@ namespace SkytearHorde.Business.Startup
             {
                 if (ability.Value is HeaderTextItemAbilityValue) continue; // No idea how to really parse this yet...
 
-                var values = ability.Value.GetValues().Select(it => it.Replace(" ", ""));
+                var values = ability.Value.GetValues().Select(it => it.Replace(" ", "")).ToArray();
                 updatedValues[$"CustomField.{ability.Key}"] = values.ToList<object>();
+                if (ability.Value.GetAbility().IsMultiValue)
+                {
+                    updatedValues[$"CustomField.{ability.Key}.Amount"] = [values.Length];
+                }
+                foreach (var value in ability.Value.GetAbility().CountValues ?? [])
+                {
+                    updatedValues[$"CustomField.{ability.Key}.{value}.Amount"] = [values.Count(it => it == value)];
+                }
             }
 
             var setName = card.SetName.Replace(" ", "");

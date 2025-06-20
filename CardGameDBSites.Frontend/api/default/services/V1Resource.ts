@@ -4,9 +4,13 @@
 /* eslint-disable */
 import type { CardDetailApiModel } from '../models/CardDetailApiModel';
 import type { CardsQueryPostApiModel } from '../models/CardsQueryPostApiModel';
+import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
+import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
 import type { DeckApiModel } from '../models/DeckApiModel';
+import type { DeckBuilderApiModel } from '../models/DeckBuilderApiModel';
 import type { DeckQueryPostModel } from '../models/DeckQueryPostModel';
 import type { DeckTypeSettingsApiModel } from '../models/DeckTypeSettingsApiModel';
+import type { LoginPostModel } from '../models/LoginPostModel';
 import type { MemberApiModel } from '../models/MemberApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
@@ -102,6 +106,22 @@ export class V1Resource {
         });
     }
     /**
+     * @returns number OK
+     * @throws ApiError
+     */
+    public static postApiDeckbuilderSubmit({
+        requestBody,
+    }: {
+        requestBody?: CreateSquadPostModel,
+    }): CancelablePromise<number> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/deckbuilder/submit',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * @returns DeckApiModel OK
      * @throws ApiError
      */
@@ -148,6 +168,59 @@ export class V1Resource {
             url: '/api/member',
             query: {
                 'memberId': memberId,
+            },
+        });
+    }
+    /**
+     * @returns CurrentMemberApiModel OK
+     * @throws ApiError
+     */
+    public static getApiMemberGetCurrentMember(): CancelablePromise<CurrentMemberApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/member/GetCurrentMember',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiMemberIsLoggedIn(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/member/IsLoggedIn',
+        });
+    }
+    /**
+     * @returns CurrentMemberApiModel OK
+     * @throws ApiError
+     */
+    public static postApiMemberLogin({
+        requestBody,
+    }: {
+        requestBody?: LoginPostModel,
+    }): CancelablePromise<CurrentMemberApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/member/Login',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns DeckBuilderApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSettingsDeckBuilder({
+        typeId,
+    }: {
+        typeId?: number,
+    }): CancelablePromise<DeckBuilderApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/settings/deckBuilder',
+            query: {
+                'typeId': typeId,
             },
         });
     }

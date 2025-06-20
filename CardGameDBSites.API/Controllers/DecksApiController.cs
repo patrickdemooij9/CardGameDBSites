@@ -8,6 +8,7 @@ using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
 using System.Diagnostics;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Security;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -18,18 +19,29 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly DeckService _deckService;
         private readonly ISiteAccessor _siteAccessor;
+        private readonly IMemberManager _memberManager;
 
-        public DecksApiController(DeckService deckService, ISiteAccessor siteAccessor)
+        public DecksApiController(DeckService deckService, ISiteAccessor siteAccessor, IMemberManager memberManager)
         {
             _deckService = deckService;
             _siteAccessor = siteAccessor;
+            _memberManager = memberManager;
         }
 
         [HttpGet("get")]
         [ProducesResponseType(typeof(DeckApiModel), 200)]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             var deck = _deckService.Get(id, DeckStatus.Published);
+            if (_memberManager.IsLoggedIn())
+            {
+                var userId = int.Parse((await _memberManager.GetCurrentMemberAsync())!.Id);
+                var savedDeck = _deckService.Get(id, DeckStatus.Saved);
+                if (savedDeck != null && savedDeck.CreatedBy == userId && savedDeck.CreatedDate > (deck?.CreatedDate ?? DateTime.MinValue))
+                {
+                    deck = savedDeck;
+                }
+            }
             if (deck is null)
             {
                 return NotFound();

@@ -14,10 +14,13 @@ namespace SkytearHorde.Entities.Models.PostModels
         public string Name { get; set; }
 
         [JsonPropertyName("description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [JsonPropertyName("squads")]
         public CreateSquadSquadPostModel[] Squads { get; set; }
+
+        [JsonPropertyName("publish")]
+        public bool Publish { get; set; }
 
         public CreateSquadPostModel()
         {

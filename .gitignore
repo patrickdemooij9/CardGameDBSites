@@ -487,3 +487,4 @@ $RECYCLE.BIN/
 **/wwwroot/umbraco/
 
 **/wwwroot/media/
+*.pem

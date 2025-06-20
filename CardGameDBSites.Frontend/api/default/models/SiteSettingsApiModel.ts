@@ -11,6 +11,8 @@ export type SiteSettingsApiModel = {
     borderColor: string;
     siteName: string;
     showLogin: boolean;
+    loginPageUrl?: string | null;
+    accountNavigation?: Array<NavigationItemApiModel>;
     navigation?: Array<NavigationItemApiModel>;
     navigationLogoUrl: string;
     textColorWhite: boolean;

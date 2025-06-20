@@ -22,6 +22,15 @@ namespace SkytearHorde.Entities.Generated
 	/// <summary>Squad Requirement</summary>
 	public partial interface ISquadRequirementConfig : IPublishedElement
 	{
+		/// <summary>Error Message</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		string ErrorMessage { get; }
+
+		/// <summary>Restriction Type</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		string RestrictionType { get; }
 	}
 
 	/// <summary>Squad Requirement</summary>
@@ -54,5 +63,31 @@ namespace SkytearHorde.Entities.Generated
 		}
 
 		// properties
+
+		///<summary>
+		/// Error Message
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("errorMessage")]
+		public virtual string ErrorMessage => GetErrorMessage(this, _publishedValueFallback);
+
+		/// <summary>Static getter for Error Message</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		public static string GetErrorMessage(ISquadRequirementConfig that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "errorMessage");
+
+		///<summary>
+		/// Restriction Type
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("restrictionType")]
+		public virtual string RestrictionType => GetRestrictionType(this, _publishedValueFallback);
+
+		/// <summary>Static getter for Restriction Type</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		public static string GetRestrictionType(ISquadRequirementConfig that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "restrictionType");
 	}
 }

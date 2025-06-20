@@ -79,7 +79,16 @@ namespace CardGameDBSites.API.Controllers
                 Query = model.Query,
                 Skip = model.PageSize * (model.PageNumber - 1),
                 SetId = model.SetId,
-                CustomFields = model.CustomFields,
+                FilterClauses = [.. model.FilterClauses.Select(it => new CardSearchFilterClause
+                {
+                    ClauseType = it.ClauseType,
+                    Filters = [.. it.Filters.Select(f => new CardSearchFilter
+                    {
+                        Alias = f.Alias,
+                        Values = f.Values,
+                        Mode = f.Mode,
+                    })]
+                })],
                 OrderBy = sorting,
                 VariantTypeId = model.VariantTypeId
             }, out var totalItems).Select(it => new CardDetailApiModel(it));

@@ -7,11 +7,11 @@
         public int PageSize { get; set; }
         public int? SetId { get; set; }
         public int? VariantTypeId { get; set; }
-        public Dictionary<string, string[]> CustomFields { get; set; }
+        public CardsQueryFilterClauseApiModel[] FilterClauses { get; set; }
 
         public CardsQueryPostApiModel()
         {
-            CustomFields = new Dictionary<string, string[]>();
+            FilterClauses = [];
         }
     }
 }

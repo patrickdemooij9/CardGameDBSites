@@ -1,5 +1,6 @@
 ﻿using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace SkytearHorde.Entities.Models.Business.Config
 {
@@ -25,6 +26,7 @@ namespace SkytearHorde.Entities.Models.Business.Config
             Keywords = Array.Empty<KeywordImageConfig>();
             SortOptions = [];
             FooterLinks = [];
+            Navigation = [];
         }
     }
 }

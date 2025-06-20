@@ -22,7 +22,7 @@ const props = defineProps<{
                 </button>
             </form>
             <div class="flex gap-2" v-if="props.content.searchLinks">
-                <NuxtLink .href="link.url!" v-for="link in props.content.searchLinks"
+                <NuxtLink .to="link.url!" v-for="link in props.content.searchLinks"
                     class="rounded bg-main-color text-white py-2 px-4 no-underline shadow-lg hover:bg-main-color-hover">
                     {{ link.title }}
                 </NuxtLink>

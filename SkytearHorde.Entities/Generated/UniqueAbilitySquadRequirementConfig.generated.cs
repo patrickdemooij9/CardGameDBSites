@@ -56,5 +56,21 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("ability")]
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent Ability => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "ability");
+
+		///<summary>
+		/// Error Message
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("errorMessage")]
+		public virtual string ErrorMessage => global::SkytearHorde.Entities.Generated.SquadRequirementConfig.GetErrorMessage(this, _publishedValueFallback);
+
+		///<summary>
+		/// Restriction Type
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("restrictionType")]
+		public virtual string RestrictionType => global::SkytearHorde.Entities.Generated.SquadRequirementConfig.GetRestrictionType(this, _publishedValueFallback);
 	}
 }

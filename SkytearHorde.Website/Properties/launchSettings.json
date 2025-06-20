@@ -20,7 +20,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:44344;http://localhost:58528",
+      "applicationUrl": "https://localhost:44344;http://localhost:58528;https://api.aidalon.local:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }      

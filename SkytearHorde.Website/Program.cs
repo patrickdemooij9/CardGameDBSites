@@ -58,7 +58,7 @@ if (!string.IsNullOrWhiteSpace(config.SentryLink))
     });
 }
 
-ConfigureServices(builder.Services);
+ConfigureServices(builder.Services, !builder.Environment.IsDevelopment());
 
 WebApplication app = builder.Build();
 
@@ -100,7 +100,7 @@ app.UseUmbraco()
 
 await app.RunAsync();
 
-void ConfigureServices(IServiceCollection services)
+void ConfigureServices(IServiceCollection services, bool isProduction)
 {
     services.AddAdServer();
 
@@ -128,6 +128,8 @@ void ConfigureServices(IServiceCollection services)
     {
         option.Cookie.Name = "CardDatabaseSites";
         option.Cookie.HttpOnly = true;
+        option.Cookie.SameSite = isProduction ? SameSiteMode.Lax : SameSiteMode.None;
+        option.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     });
 
     services
@@ -140,9 +142,22 @@ void ConfigureServices(IServiceCollection services)
     {
         builder.AddPolicy("api", cors =>
         {
-            cors.AllowAnyHeader()
+            cors
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowAnyOrigin();
+                .Build();
+        });
+
+        builder.AddPolicy("api-login", cors =>
+        {
+            cors
+                .SetIsOriginAllowedToAllowWildcardSubdomains()
+                .WithOrigins("https://aidalon.local:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+                .Build();
         });
     });
 }

@@ -28,7 +28,7 @@ namespace CardGameDBSites.API.Models
             SetId = card.SetId;
             SetName = card.SetName;
             UrlSegment = card.UrlSegment;
-            ImageUrl = card.Image?.Url(mode: UrlMode.Absolute);
+            ImageUrl = $"https://aidalon-db.com{card.Image?.Url(mode: UrlMode.Relative)}";
             BackImageUrl = card.BackImage?.Url(mode: UrlMode.Absolute);
             Attributes = card.Attributes.ToDictionary(it => it.Key, it => it.Value.GetValues());
         }

@@ -1,7 +1,9 @@
-import type { CardDetailApiModel } from "~/api/default";
+import type { CardDetailApiModel, CardsQueryFilterClauseApiModel } from "~/api/default";
 import type RequirementType from "./RequirementType";
 
 export interface IRequirement {
     RequirementType: RequirementType;
-    IsValid(card: CardDetailApiModel, config: Record<string, any>): boolean;
+
+    IsValid(cards: CardDetailApiModel[], config: Record<string, any>): boolean;
+    ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel;
 }

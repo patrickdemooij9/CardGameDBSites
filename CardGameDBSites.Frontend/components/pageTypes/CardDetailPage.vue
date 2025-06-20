@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CardDetailContentModel } from '~/api/umbraco';
-import CardService from '~/services/CardService';
 import SiteService from '~/services/SiteService';
 import CardDetailAbility from '../cards/CardDetailAbility.vue';
 

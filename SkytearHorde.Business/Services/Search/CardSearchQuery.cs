@@ -3,7 +3,7 @@
     public class CardSearchQuery
     {
         public string? Query { get; set; }
-        public Dictionary<string, string[]> CustomFields { get; set; }
+        public List<CardSearchFilterClause> FilterClauses { get; set; }
         public int Amount { get; set; }
         public int Skip { get; set; }
         public int SiteId { get; set; }
@@ -17,7 +17,7 @@
             Amount = amount;
             SiteId = siteId;
 
-            CustomFields = [];
+            FilterClauses = [];
             OrderBy = [];
         }
     }

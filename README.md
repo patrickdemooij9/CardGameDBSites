@@ -5,6 +5,7 @@ This codebase is used to run the following websites:
 - Singularity-DB.com
 - GrimpathDB.com
 - ShatterpointDB.com
+- Aidalon-DB.com
 
 They all run on a single machine with multi-tenant capabilities so that each website has their own section and is independent from the other sites.
 

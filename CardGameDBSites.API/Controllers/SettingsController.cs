@@ -175,11 +175,15 @@ namespace CardGameDBSites.API.Controllers
 
         private NavigationItemApiModel MapNavigationItem(NavigationItem item)
         {
-            var url = new Uri(item.Link!.Url!);
+            var url = item.Link!.Url!;
+            if (!url.StartsWith('/'))
+            {
+                url = new Uri(item.Link!.Url!).LocalPath;
+            }
             var model = new NavigationItemApiModel
             {
                 Name = item.Link?.Name!,
-                Url = url.LocalPath,
+                Url = url,
                 Children = [.. item.DropdownItems.ToItems<NavigationItem>().Select(MapNavigationItem)]
             };
             return model;

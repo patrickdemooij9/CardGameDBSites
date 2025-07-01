@@ -17,7 +17,11 @@ jobs:
       run: dotnet build --no-restore
     - name: Stop site
       run: c:\windows\system32\inetsrv\appcmd.exe stop sites "cardgamedb"
+    - name: Stop apppool
+      run: c:\windows\system32\inetsrv\appcmd.exe stop apppool "cardgamedb"
     - name: Publish Release
       run: dotnet publish SkytearHorde.Website\SkytearHorde.csproj --configuration Release -o C:\inetpub\cardgamedb
+    - name: Start apppool
+      run: c:\windows\system32\inetsrv\appcmd.exe start apppool "cardgamedb"
     - name: Start site
       run: c:\windows\system32\inetsrv\appcmd.exe start sites "cardgamedb"

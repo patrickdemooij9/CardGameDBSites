@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'floating-vue/nuxt'],
   runtimeConfig: {
     public: {
-      API_BASE_URL: process.env.NUXT_API_BASE_URL
+      API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL
     }
   },
   devServer: {
@@ -25,5 +25,5 @@ export default defineNuxtConfig({
     },
     port: 3000,
     host: 'aidalon.local'
-  }
+  },
 })

@@ -26,13 +26,25 @@ namespace SkytearHorde.Business.Services
 
         public string? GetName(int memberId)
         {
+            return Get(memberId)?.DisplayName;
+        }
+
+        public MemberModel? Get(int memberId)
+        {
             return _cache.GetCacheItem($"{CacheKey}{memberId}_Name", () =>
             {
-                return _memberService.GetById(memberId)?.Name;
+                var member = _memberService.GetById(memberId);
+                if (member is null) return null;
+
+                return new MemberModel
+                {
+                    Id = memberId,
+                    DisplayName = member.Name!
+                };
             });
         }
 
-        public MemberModel? GetMemberInfo()
+        public CurrentMemberModel? GetMemberInfo()
         {
             var member = _memberManager.GetCurrentMemberAsync().Result;
             if (member is null) return null;
@@ -40,7 +52,7 @@ namespace SkytearHorde.Business.Services
 
             return _cache.GetCacheItem($"{CacheKey}{memberId}", () =>
             {
-                return new MemberModel(memberId)
+                return new CurrentMemberModel(memberId)
                 {
                     DisplayName = member.Name!,
                     LikedDecks = _deckLikeRepository.GetLikedDecks(memberId),

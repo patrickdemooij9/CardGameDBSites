@@ -14,11 +14,54 @@ import type { LoginPostModel } from '../models/LoginPostModel';
 import type { MemberApiModel } from '../models/MemberApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
+import type { RegisterPostModel } from '../models/RegisterPostModel';
 import type { SiteSettingsApiModel } from '../models/SiteSettingsApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class V1Resource {
+    /**
+     * @returns CurrentMemberApiModel OK
+     * @throws ApiError
+     */
+    public static getApiAccountGetCurrentMember(): CancelablePromise<CurrentMemberApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/account/GetCurrentMember',
+        });
+    }
+    /**
+     * @returns CurrentMemberApiModel OK
+     * @throws ApiError
+     */
+    public static postApiAccountLogin({
+        requestBody,
+    }: {
+        requestBody?: LoginPostModel,
+    }): CancelablePromise<CurrentMemberApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/account/Login',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns CurrentMemberApiModel OK
+     * @throws ApiError
+     */
+    public static postApiAccountRegister({
+        requestBody,
+    }: {
+        requestBody?: RegisterPostModel,
+    }): CancelablePromise<CurrentMemberApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/account/register',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
     /**
      * @returns any OK
      * @throws ApiError
@@ -158,51 +201,31 @@ export class V1Resource {
      * @returns MemberApiModel OK
      * @throws ApiError
      */
-    public static getApiMember({
+    public static getApiMemberById({
         memberId,
     }: {
         memberId?: number,
     }): CancelablePromise<MemberApiModel> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/member',
+            url: '/api/member/byId',
             query: {
                 'memberId': memberId,
             },
         });
     }
     /**
-     * @returns CurrentMemberApiModel OK
+     * @returns MemberApiModel OK
      * @throws ApiError
      */
-    public static getApiMemberGetCurrentMember(): CancelablePromise<CurrentMemberApiModel> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/member/GetCurrentMember',
-        });
-    }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
-    public static getApiMemberIsLoggedIn(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/member/IsLoggedIn',
-        });
-    }
-    /**
-     * @returns CurrentMemberApiModel OK
-     * @throws ApiError
-     */
-    public static postApiMemberLogin({
+    public static postApiMemberByIds({
         requestBody,
     }: {
-        requestBody?: LoginPostModel,
-    }): CancelablePromise<CurrentMemberApiModel> {
+        requestBody?: Array<number>,
+    }): CancelablePromise<Array<MemberApiModel>> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/member/Login',
+            url: '/api/member/byIds',
             body: requestBody,
             mediaType: 'application/json',
         });

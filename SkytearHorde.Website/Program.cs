@@ -153,7 +153,7 @@ void ConfigureServices(IServiceCollection services, bool isProduction)
         {
             cors
                 .SetIsOriginAllowedToAllowWildcardSubdomains()
-                .WithOrigins("https://aidalondb.patrickdemooij98.workers.dev/")
+                .WithOrigins("https://cloudflaretest.aidalon-db.com")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()

@@ -1,5 +1,6 @@
 ﻿using CardGameDBSites.API.Models;
 using CardGameDBSites.API.Models.Cards;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using RedditSharp;
 using SkytearHorde.Business.Middleware;
@@ -12,6 +13,7 @@ using Umbraco.Extensions;
 namespace CardGameDBSites.API.Controllers
 {
     [ApiController]
+    [EnableCors("api")]
     [Route("/api/cards")]
     public class CardApiController : Controller
     {

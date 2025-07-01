@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { DeckTypeSettingsApiModel, DeckApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
+import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import { useCardsStore } from "~/stores/CardStore";
+import { useMemberStore } from "~/stores/MemberStore";
 
 const props = defineProps<{
   deck: DeckApiModel;
@@ -16,6 +18,11 @@ const mainCard = GetValidCards(
   cards,
   props.settings.mainCardRequirements ?? []
 )[0];
+
+let createdBy = "Anonymous";
+if (props.deck.createdBy){
+  createdBy = (await useMemberStore().loadMembers([props.deck.createdBy]))[0].displayName;
+}
 </script>
 
 <template>
@@ -53,10 +60,10 @@ const mainCard = GetValidCards(
       <div class="p-2 flex justify-between">
         <div class="author">
           <p>
-            By <a class="no-underline" href="#">{{ deck.createdBy ?? "Anonymous" }}</a>
+            By <a class="no-underline" href="#">{{ createdBy }}</a>
           </p>
         </div>
-        <div class="date">Created {{ deck.createdDate }}</div>
+        <div class="date">Created {{ ParseToHumanReadableText(deck.createdDate!) }}</div>
       </div>
     </div>
   </div>

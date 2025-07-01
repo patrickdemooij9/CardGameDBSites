@@ -2,6 +2,7 @@
 import type { DeckApiModel } from '~/api/default';
 import SiteService from '~/services/SiteService';
 import FullHeaderDeckCard from './FullHeaderDeckCard.vue';
+import CompactDeckCard from './CompactDeckCard.vue';
 
 const props = defineProps<{
     deck: DeckApiModel
@@ -11,5 +12,5 @@ const deckTypeSettings = await new SiteService().getDeckTypeSettings(props.deck.
 </script>
 
 <template>
-    <FullHeaderDeckCard :deck="deck" :settings="deckTypeSettings!"></FullHeaderDeckCard>
+    <CompactDeckCard :deck="deck" :settings="deckTypeSettings!"></CompactDeckCard>
 </template>

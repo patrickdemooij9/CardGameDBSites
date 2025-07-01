@@ -24,7 +24,7 @@ defineProps<{
   ignorePassiveFilters: boolean;
 }>();
 
-const memberStore = useMemberStore();
+const accountStore = useAccountStore();
 const collectionMode = ref<boolean>(false); //TODO: get from deck
 
 function getDisplayClassesForItem(slot: CreateDeckSlot) {
@@ -287,7 +287,7 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
         <div class="flex justify-between mt-4">
           <div class="flex gap-2">
             <Button
-              v-if="memberStore.isLoggedIn"
+              v-if="accountStore.isLoggedIn"
               v-on:click="$emit('submitForm', false)"
               class="border border-black"
             >

@@ -25,6 +25,11 @@ const mainCards = GetValidCards(
   deckSettings!.mainCardRequirements ?? []
 );
 
+let createdBy = "Anonymous";
+if (deck.createdBy){
+  createdBy = (await useMemberStore().loadMembers([deck.createdBy]))[0].displayName;
+}
+
 const showPrices = false;
 const isLoggedIn = false;
 
@@ -51,7 +56,7 @@ function getImagesForCard(card: CardDetailApiModel) {
       <div class="flex">
         <div class="grow">
           <h1 class="text-lg pb-0">{{ deck.name }}</h1>
-          <p class="text-xs">By {{ deck.createdBy ?? "Anonymous" }}</p>
+          <p class="text-xs">By {{ createdBy }}</p>
           <div class="flex align-center gap-2 mt-2">
             <p class="border rounded py-1 px-2">
               {{ deckSettings?.displayName }}

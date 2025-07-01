@@ -1,4 +1,5 @@
 import type { IApiMediaWithCropsModel } from "~/api/umbraco";
+import { GetBaseApiUrl } from "./RequestsHelper";
 
 export function GetCropUrl(
   crops: Array<IApiMediaWithCropsModel>,
@@ -8,10 +9,10 @@ export function GetCropUrl(
     return '#';
   }
   const crop = crops.flatMap((item) => item.crops).find((crop) => crop?.alias === cropAlias);
-  return `https://localhost:44344${crops[0].url}?width=${crop?.width}&height=${crop?.height}`;
+  return `${GetBaseApiUrl()}${crops[0].url}?width=${crop?.width}&height=${crop?.height}`;
 }
 
 export function GetAbsoluteUrl(url: string)
 {
-  return `https://localhost:44344${url}`;
+  return `${GetBaseApiUrl()}${url}`;
 }

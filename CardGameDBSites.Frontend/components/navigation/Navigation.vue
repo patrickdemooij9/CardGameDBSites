@@ -8,7 +8,7 @@ defineProps<{
 
 const isOpen = ref(false);
 const isAccountsOpen = ref(false);
-const memberStore = useMemberStore();
+const accountStore = useAccountStore();
 </script>
 
 <template>
@@ -65,7 +65,7 @@ const memberStore = useMemberStore();
           <div v-if="content.loginPageUrl" class="group">
             <p
               class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0"
-              v-if="!memberStore.isLoggedIn"
+              v-if="!accountStore.isLoggedIn"
             >
               <NuxtLink :to="content.loginPageUrl" class="no-underline">
                 Login
@@ -74,13 +74,13 @@ const memberStore = useMemberStore();
             </p>
             <p
               class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0"
-              v-if="memberStore.isLoggedIn"
+              v-if="accountStore.isLoggedIn"
             >
-              Hello {{ memberStore.member!.name }}
+              Hello {{ accountStore.member!.name }}
               <PhUser />
             </p>
             <div
-                v-if="memberStore.isLoggedIn && content.accountItems.length > 0"
+                v-if="accountStore.isLoggedIn && content.accountItems.length > 0"
                 class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:-mt-2 hidden"
               >
               

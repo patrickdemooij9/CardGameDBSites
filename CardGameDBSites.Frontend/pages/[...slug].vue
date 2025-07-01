@@ -8,8 +8,10 @@ import ContentPage from '~/components/pageTypes/contentPage.vue';
 import CreateDeck from '~/components/pageTypes/CreateDeck.vue';
 import DeckDetail from '~/components/pageTypes/DeckDetail.vue';
 import DeckOverviewPage from '~/components/pageTypes/DeckOverviewPage.vue';
+import ForgotPasswordPage from '~/components/pageTypes/ForgotPasswordPage.vue';
 import Homepage from '~/components/pageTypes/homepage.vue';
 import LoginPage from '~/components/pageTypes/LoginPage.vue';
+import RegisterPage from '~/components/pageTypes/RegisterPage.vue';
 import { DoFetch } from '~/helpers/RequestsHelper';
 
 const route = useRoute()
@@ -20,7 +22,7 @@ if (Array.isArray(slug)){
 const data = await DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug);
 
 onMounted(() => {
-    useMemberStore().validateLogin();
+    useAccountStore().validateLogin();
 });
 
 const componentName = data.contentType;
@@ -34,6 +36,8 @@ const pageComponents: {[key: string]: Component} = {
     'createSquad': CreateDeck,
     'login': LoginPage,
     'accountDecks': AccountDecks,
+    'register': RegisterPage,
+    'forgotPassword': ForgotPasswordPage
 }
 const pageComponent = pageComponents[componentName];
 </script>

@@ -3,11 +3,12 @@ import type {
   CardsQueryPostApiModel,
   PagedResultCardDetailApiModel,
 } from "~/api/default";
+import { DoFetch } from "~/helpers/RequestsHelper";
 
 export default class CardService {
   async query(model: CardsQueryPostApiModel) {
-    const result = await $fetch<PagedResultCardDetailApiModel>(
-      "https://localhost:44344/api/cards/query",
+    const result = await DoFetch<PagedResultCardDetailApiModel>(
+      "/api/cards/query",
       {
         method: "POST",
         body: model,
@@ -17,8 +18,8 @@ export default class CardService {
   }
 
   async getValues(ability: string) {
-    const result = await $fetch<string[]>(
-      "https://localhost:44344/api/cards/getAllValues?abilityName=" + ability,
+    const result = await DoFetch<string[]>(
+      "/api/cards/getAllValues?abilityName=" + ability,
       {
         method: "GET",
       }

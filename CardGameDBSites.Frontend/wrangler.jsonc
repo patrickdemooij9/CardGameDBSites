@@ -1,0 +1,13 @@
+{
+  "name": "aidalondb",
+  "main": ".output/server/index.mjs",
+  "compatibility_date": "2024-06-21",
+  "site": {
+    "bucket": ".output/public"
+  },
+  "vars": {
+        "NUXT_API_BASE_URL": "https://aidalon-db.com",
+        "NUXT_PUBLIC_API_BASE_URL": "https://aidalon-db.com",
+        "API_BASE_URL": "https://aidalon-db.com"
+      }
+}

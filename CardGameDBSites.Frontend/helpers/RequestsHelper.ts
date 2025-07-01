@@ -10,3 +10,7 @@ export function DoFetch<T>(
   const config = useRuntimeConfig();
   return $fetch<T>(`${config.public.API_BASE_URL}${url}`, options);
 }
+
+export function GetBaseApiUrl(){
+  return useRuntimeConfig().public.API_BASE_URL;
+}

@@ -12,7 +12,7 @@ defineProps<{
 const router = useRouter();
 
 onMounted(() => {
-    if (!useMemberStore().isLoggedIn){
+    if (!useAccountStore().isLoggedIn){
         router.push('/login');
     }
 })
@@ -23,7 +23,7 @@ onMounted(() => {
         <h1>Your decks</h1>
         <BaseDeckOverview
             :decks-per-row="1"
-            :user-id="useMemberStore().member?.id">
+            :user-id="useAccountStore().member?.id">
             <template #default="{ decks }">
                 <div v-if="decks!.items!.length === 0" class="text-center">
                     <p>You have no decks yet. Create one to get started!</p>

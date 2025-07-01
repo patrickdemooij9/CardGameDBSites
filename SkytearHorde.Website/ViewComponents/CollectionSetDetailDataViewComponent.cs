@@ -115,17 +115,16 @@ namespace SkytearHorde.ViewComponents
                 var selectedValues = filter.Items.Where(it => it.IsChecked).ToArray();
                 if (selectedValues.Length == 0) continue;
 
-                searchFilters.Add(new CardSearchFilter
+                query.FilterClauses.Add(new CardSearchFilterClause
                 {
-                    Alias = filter.Alias,
-                    Values = selectedValues.Select(it => it.Value).ToArray()
+                    Filters = [new CardSearchFilter
+                    {
+                        Alias = filter.Alias,
+                        Values = selectedValues.Select(it => it.Value).ToArray()
+                    }],
+                    ClauseType = CardSearchFilterClauseType.AND
                 });
             }
-            query.FilterClauses.Add(new CardSearchFilterClause
-            {
-                Filters = [.. searchFilters],
-                ClauseType = CardSearchFilterClauseType.AND
-            });
             return _searchService.Search(query, out _);
         }
 

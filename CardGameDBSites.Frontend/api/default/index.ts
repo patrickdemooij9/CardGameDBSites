@@ -40,6 +40,7 @@ export type { MemberApiModel } from './models/MemberApiModel';
 export type { NavigationItemApiModel } from './models/NavigationItemApiModel';
 export type { PagedResultCardDetailApiModel } from './models/PagedResultCardDetailApiModel';
 export type { PagedResultDeckApiModel } from './models/PagedResultDeckApiModel';
+export type { RegisterPostModel } from './models/RegisterPostModel';
 export type { RequirementApiModel } from './models/RequirementApiModel';
 export { RestrictionType } from './models/RestrictionType';
 export type { SiteSettingsApiModel } from './models/SiteSettingsApiModel';

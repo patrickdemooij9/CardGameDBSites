@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type MemberApiModel = {
+    id: number;
     displayName: string;
 };
 

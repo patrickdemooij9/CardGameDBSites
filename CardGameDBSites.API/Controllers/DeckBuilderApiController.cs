@@ -35,5 +35,20 @@ namespace CardGameDBSites.API.Controllers
             var deckId = _deckService.ProcessDeck(postModel, postModel.Publish, userId);
             return Ok(deckId);
         }
+
+        [HttpPost("submitLoggedIn")]
+        [ProducesResponseType(typeof(int), 200)]
+        [EnableCors("api-login")] //TODO: Rework the authorization correctly
+        public async Task<IActionResult> SubmitLoggedIn(CreateSquadPostModel postModel)
+        {
+            int? userId = null;
+            if (_memberManager.IsLoggedIn())
+            {
+                userId = int.Parse((await _memberManager.GetCurrentMemberAsync())!.Id);
+            }
+
+            var deckId = _deckService.ProcessDeck(postModel, postModel.Publish, userId);
+            return Ok(deckId);
+        }
     }
 }

@@ -32,6 +32,7 @@ export default class DeckService {
   }
 
   async post(model: CreateDeckModel, publish: boolean) {
+    const isLoggedIn = useAccountStore().isLoggedIn;
     const modelToPost: CreateSquadPostModel = {
       id: model.id,
       name: model.name,
@@ -57,10 +58,11 @@ export default class DeckService {
       })),
     };
     const result = DoFetch<number>(
-      '/api/deckbuilder/submit',
+      isLoggedIn ? '/api/deckbuilder/submitLoggedIn' : '/api/deckbuilder/submit',
       {
         method: "POST",
         body: modelToPost,
+        credentials: isLoggedIn ? "include" : undefined,
       }
     );
     return result;

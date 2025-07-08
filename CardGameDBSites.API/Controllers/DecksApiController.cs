@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Enums;
+using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Repository;
 using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
@@ -64,6 +67,20 @@ namespace CardGameDBSites.API.Controllers
                 OrderBy = query.OrderBy
             });
             return Ok(decks);
+        }
+
+        [HttpPost("likeDeck")]
+        [EnableCors("api-login")] //TODO: Rework the authorization correctly
+        public async Task<IActionResult> LikeDeck(int deckId)
+        {
+            var currentUser = await _memberManager.GetCurrentMemberAsync();
+            if (currentUser is null) return Unauthorized();
+
+            var deck = _deckService.Get(deckId);
+            if (deck is null) return Unauthorized();
+
+            _deckService.ToggleLikeDeck(deck, int.Parse(currentUser.Id));
+            return Ok();
         }
     }
 }

@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { readFileSync } from 'fs';
+import { defineNuxtConfig } from 'nuxt/config';
 import { resolve } from 'path';
 
 export default defineNuxtConfig({

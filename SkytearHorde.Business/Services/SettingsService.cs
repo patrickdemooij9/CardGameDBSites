@@ -38,7 +38,7 @@ namespace SkytearHorde.Business.Services
                 Navigation = settings.Navigation.ToItems<NavigationItem>().ToArray(),
                 FooterText = settings.FooterText,
                 FooterLinks = settings.FooterLinks?.ToArray() ?? [],
-                Keywords = settings.KeywordImages.ToItems<KeywordImage>().Select(it => new KeywordImageConfig(it.Keyword, it.Image?.Url())
+                Keywords = settings.KeywordImages.ToItems<KeywordImage>().Select(it => new KeywordImageConfig(it.Keyword, it.Image?.Url(mode: UrlMode.Absolute))
                 {
                     DiscordIcon = $"<:{it.DiscordIconName}:{it.DiscordIconID}>"
                 }).ToArray(),

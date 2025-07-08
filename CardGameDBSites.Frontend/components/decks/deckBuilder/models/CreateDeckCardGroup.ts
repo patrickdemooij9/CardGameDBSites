@@ -1,5 +1,6 @@
 import type { RequirementApiModel } from "~/api/default";
 import type { DeckCard } from "../DeckBuilderModels";
+import CardService from "~/services/CardService";
 
 export default class CreateDeckCardGroup {
   displayName: string;
@@ -14,7 +15,20 @@ export default class CreateDeckCardGroup {
     this.requirements = [];
   }
 
-  getOrderedCards(){
-    return this.cards; //TODO: Sort
+  getOrderedCards() {
+    const cardService = new CardService();
+    const cards = this.cards.slice();
+    if (this.sortBy) {
+      return cards.sort((a, b) => {
+        const aValue = cardService.GetValue<string>(a.card, this.sortBy!);
+        const bValue = cardService.GetValue<string>(b.card, this.sortBy!);
+
+        if (Number.isNaN(aValue) || Number.isNaN(bValue)) {
+          return (aValue as string).localeCompare(bValue as string);
+        }
+        return Number.parseInt(aValue!) - Number.parseInt(bValue!);
+      });
+    }
+    return cards;
   }
 }

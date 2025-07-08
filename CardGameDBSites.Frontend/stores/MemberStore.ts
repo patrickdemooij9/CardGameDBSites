@@ -1,3 +1,4 @@
+import { defineStore } from "pinia";
 import type { MemberApiModel } from "~/api/default";
 import { DoFetch } from "~/helpers/RequestsHelper";
 

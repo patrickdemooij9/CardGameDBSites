@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { ForgotPasswordContentModel, RegisterContentModel } from "~/api/umbraco";
+import type { ForgotPasswordContentModel } from "~/api/umbraco";
 import Button from "../shared/Button.vue";
-import { RefSymbol } from "@vue/reactivity";
 
 defineProps<{
   content: ForgotPasswordContentModel;

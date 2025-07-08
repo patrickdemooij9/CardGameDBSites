@@ -28,6 +28,7 @@ export const useAccountStore = defineStore("accountStore", {
         this.member = {
           id: member.id,
           name: member.displayName,
+          likedDecks: member.likedDecks || [],
         };
       } catch (error) {
         throw "Incorrect email/password";
@@ -49,6 +50,7 @@ export const useAccountStore = defineStore("accountStore", {
         this.member = {
           id: result.id,
           name: result.displayName,
+          likedDecks: result.likedDecks || [],
         };
       } catch (error) {
         this.member = undefined;
@@ -67,15 +69,25 @@ export const useAccountStore = defineStore("accountStore", {
       this.member = {
         id: result.id,
         name: result.displayName,
+        likedDecks: result.likedDecks || [],
       };
     },
-    async forgotPassword(email: string){
+    async forgotPassword(email: string) {
       return await DoFetch("/api/account/forgotpassword", {
         method: "POST",
         body: {
-          email: email
-        }
+          email: email,
+        },
       });
-    }
+    },
+    toggleDeckLike(deckId: number) {
+      if (this.member?.likedDecks?.includes(deckId)) {
+        this.member.likedDecks = this.member.likedDecks.filter(
+          (id) => id !== deckId
+        );
+      } else {
+        this.member?.likedDecks?.push(deckId);
+      }
+    },
   },
 });

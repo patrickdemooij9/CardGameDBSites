@@ -34,8 +34,8 @@
     <PackageReference Include="Sentry.AspNetCore" Version="4.5.0" />
     <PackageReference Include="Sentry.OpenTelemetry" Version="4.5.0" />
     <PackageReference Include="Sentry.Profiling" Version="4.5.0" />
-    <PackageReference Include="SeoToolkit.Umbraco" Version="3.5.0" />
-    <PackageReference Include="SeoToolkit.Umbraco.Sitemap.Core" Version="3.5.0" />
+    <PackageReference Include="SeoToolkit.Umbraco" Version="3.9.0" />
+    <PackageReference Include="SeoToolkit.Umbraco.Sitemap.Core" Version="3.7.1" />
     <PackageReference Include="Umbraco.Cms" Version="13.3.0" />
   </ItemGroup>
 

@@ -2,6 +2,7 @@
 import type { CardDetailContentModel } from '~/api/umbraco';
 import SiteService from '~/services/SiteService';
 import CardDetailAbility from '../cards/CardDetailAbility.vue';
+import { GetCrop } from '~/helpers/CropUrlHelper';
 
 const props = defineProps<{
   content: CardDetailContentModel;
@@ -17,7 +18,7 @@ const siteSettings = await new SiteService().getSettings();
         <div class="flex flex-col sm:flex-row gap-8">
           <div class="flex flex-col gap-4 shrink-0">
             <div>
-              <img v-if="card.imageUrl" class="sm:h-80" :src="card.imageUrl" />
+              <img v-if="card.imageUrl" class="sm:h-80" :src="GetCrop(card.imageUrl, undefined)" />
             </div>
   
             <!--<div v-if="card.backImage">

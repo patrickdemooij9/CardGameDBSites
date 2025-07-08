@@ -15,6 +15,7 @@ const navigationViewModel = await siteService.getNavigation();
       '--nav-border-color': siteSettings.mainColor,
     }"
     class="min-h-screen"
+    id="root"
   >
     <Navigation :content="navigationViewModel"> </Navigation>
     <div>

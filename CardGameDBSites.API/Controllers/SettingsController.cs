@@ -59,7 +59,12 @@ namespace CardGameDBSites.API.Controllers
                     Name = it.Name!,
                     Url = it.Url!
                 })],
-                CardSections = [.. cardSettings.Display.ToItems<IPublishedElement>().Select(it => new CardSectionApiModel(it))]
+                CardSections = [.. cardSettings.Display.ToItems<IPublishedElement>().Select(it => new CardSectionApiModel(it))],
+                KeywordImages = [.. settings.Keywords.Select(it => new KeywordImageApiModel
+                {
+                    Keyword = it.Keyword,
+                    ImageUrl = it.Image ?? "#",
+                })]
             });
         }
 

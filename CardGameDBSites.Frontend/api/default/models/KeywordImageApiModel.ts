@@ -2,9 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type CurrentMemberApiModel = {
-    id: number;
-    displayName: string;
-    likedDecks?: Array<number>;
+export type KeywordImageApiModel = {
+    keyword: string;
+    imageUrl: string;
 };
 

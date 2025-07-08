@@ -9,6 +9,7 @@ import CreateDeckGroup from "./models/CreateDeckGroup";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import ButtonType from "~/components/shared/ButtonType";
 import { placements } from "floating-vue";
+import { GetCrop } from "~/helpers/CropUrlHelper";
 
 const selectedArea = defineModel<CreateDeckSelectedArea>("selectedArea");
 const name = defineModel<string>("name");
@@ -130,7 +131,7 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
                     v-on:click="selectCharacter(item.card)"
                   >
                     <img
-                      :src="item.card.imageUrl!"
+                      :src="GetCrop(item.card.imageUrl, undefined)!"
                       class="rounded-md"
                       :class="
                         slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'

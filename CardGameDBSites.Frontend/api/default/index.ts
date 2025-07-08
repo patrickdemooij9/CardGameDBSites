@@ -34,6 +34,10 @@ export type { DeckCardImageRuleApiModel } from './models/DeckCardImageRuleApiMod
 export type { DeckQueryPostModel } from './models/DeckQueryPostModel';
 export { DeckStatus } from './models/DeckStatus';
 export type { DeckTypeSettingsApiModel } from './models/DeckTypeSettingsApiModel';
+export type { ForgotPasswordPostModel } from './models/ForgotPasswordPostModel';
+export type { ImageCropApiModel } from './models/ImageCropApiModel';
+export type { ImageCropsApiModel } from './models/ImageCropsApiModel';
+export type { KeywordImageApiModel } from './models/KeywordImageApiModel';
 export type { LinkApiModel } from './models/LinkApiModel';
 export type { LoginPostModel } from './models/LoginPostModel';
 export type { MemberApiModel } from './models/MemberApiModel';

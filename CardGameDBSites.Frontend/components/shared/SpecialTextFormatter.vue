@@ -1,10 +1,19 @@
 <script setup lang="ts">
+import SiteService from '~/services/SiteService';
+
 const props = defineProps<{
     content: string
 }>();
 
+const siteSettings = await new SiteService().getSettings();
+
 const formattedText = computed(() => {
-    return props.content.replace(/\|(.*?)\|/g, '<b>$1</b>')
+    let text = props.content.replace(/\|(.*?)\|/g, '<b>$1</b>');
+    siteSettings.keywordImages?.forEach((keywordImage) => {
+        const regex = new RegExp(`\\[${keywordImage.keyword}\\]`, 'gi');
+        text = text.replace(regex, `<img src="${keywordImage.imageUrl}" alt="${keywordImage.keyword}" class="inline-block h-4 w-4" />`);
+    });
+    return text;
 });
 </script>
 

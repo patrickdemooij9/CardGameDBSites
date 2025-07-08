@@ -131,7 +131,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <DeckBuilderCardModal v-if="selectedCard" :selected-card="selectedCard" />
+    <DeckBuilderCardModal v-if="selectedCard" :selected-card="selectedCard" @close="selectedCard = undefined" />
     <div
       id="cursor-image"
       class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"

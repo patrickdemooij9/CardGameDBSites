@@ -65,4 +65,16 @@ export default class DeckService {
     );
     return result;
   }
+
+  async likeDeck(deckId: number) {
+    const result = DoFetch<boolean>(
+      "/api/decks/likeDeck",
+      {
+        method: "POST",
+        body: JSON.stringify(deckId),
+        credentials: "include",
+      },
+    );
+    return result!;
+  }
 }

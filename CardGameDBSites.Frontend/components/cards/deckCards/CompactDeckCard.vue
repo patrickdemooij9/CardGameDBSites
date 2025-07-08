@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { PhNotepad } from "@phosphor-icons/vue";
 import type { DeckApiModel, DeckTypeSettingsApiModel } from "~/api/default";
-import { GetCropUrl } from "~/helpers/CropUrlHelper";
+import DeckLike from "~/components/decks/DeckLike.vue";
+import { GetCrop, GetCropUrl } from "~/helpers/CropUrlHelper";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
+import { useCardsStore } from "~/stores/CardStore";
+import { useMemberStore } from "~/stores/MemberStore";
 
 const props = defineProps<{
   deck: DeckApiModel;
@@ -45,7 +48,7 @@ if (props.deck.createdBy){
       <div class="flex items-center justify-between mt-4">
         <div class="flex gap-2">
             <img v-for="card in mainCards" class="w-12 rounded-full"
-          :src="card.imageUrl!" />
+          :src="GetCrop(card.imageUrl!, 'icon')" />
         </div>
         <div class="text-right">
             <!--

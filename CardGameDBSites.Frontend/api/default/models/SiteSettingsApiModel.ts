@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CardSectionApiModel } from './CardSectionApiModel';
+import type { KeywordImageApiModel } from './KeywordImageApiModel';
 import type { LinkApiModel } from './LinkApiModel';
 import type { NavigationItemApiModel } from './NavigationItemApiModel';
 export type SiteSettingsApiModel = {
@@ -19,5 +20,6 @@ export type SiteSettingsApiModel = {
     footerText: string;
     footerLinks?: Array<LinkApiModel>;
     cardSections?: Array<CardSectionApiModel>;
+    keywordImages?: Array<KeywordImageApiModel>;
 };
 

@@ -6,6 +6,8 @@ import SiteService from "~/services/SiteService";
 import type { CardDetailApiModel, DeckCardGroupApiModel } from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
+import { GetCrop } from "~/helpers/CropUrlHelper";
+import CardService from "~/services/CardService";
 
 defineProps<{
   content: DeckDetailContentModel;
@@ -14,6 +16,7 @@ defineProps<{
 const route = useRoute();
 let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]);
+const cardService = new CardService();
 
 const deck = await new DeckService().get(deckId);
 const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
@@ -26,8 +29,9 @@ const mainCards = GetValidCards(
 );
 
 let createdBy = "Anonymous";
-if (deck.createdBy){
-  createdBy = (await useMemberStore().loadMembers([deck.createdBy]))[0].displayName;
+if (deck.createdBy) {
+  createdBy = (await useMemberStore().loadMembers([deck.createdBy]))[0]
+    .displayName;
 }
 
 const showPrices = false;
@@ -37,7 +41,19 @@ function getDeckCard(cardId: number) {
   return deck.cards?.find((card) => card.cardId === cardId);
 }
 function getCardsInGroup(group: DeckCardGroupApiModel) {
-  return GetValidCards(cards, group.requirements ?? []);
+  const groupCards = GetValidCards(cards, group.requirements ?? []);
+  if (group.sorting && group.sorting.length > 0) {
+    return groupCards.sort((a, b) => {
+      const aValue = cardService.GetValue<string>(a, group.sorting![0]);
+      const bValue = cardService.GetValue<string>(b, group.sorting![0]);
+
+      if (Number.isNaN(aValue) || Number.isNaN(bValue)) {
+        return (aValue as string).localeCompare(bValue as string);
+      }
+      return Number.parseInt(aValue!) - Number.parseInt(bValue!);
+    });
+  }
+  return groupCards;
 }
 function getImagesForCard(card: CardDetailApiModel) {
   const images: string[] = [];
@@ -83,7 +99,10 @@ function getImagesForCard(card: CardDetailApiModel) {
           :class="{ 'w-2/5': mainCards.length > 1 }"
           class="md:w-max"
         >
-          <img class="w-48" :src="mainCard.imageUrl ?? '#'" />
+          <img
+            class="w-48"
+            :src="GetCrop(mainCard.imageUrl, undefined) ?? '#'"
+          />
           <p class="text-center">
             <small>{{ mainCard.displayName }}</small>
           </p>
@@ -105,7 +124,11 @@ function getImagesForCard(card: CardDetailApiModel) {
           </div>
           <hr class="my-2" />
           <div class="flex md:flex-row flex-col gap-4 text-xs">
-            <DeckAction v-for="action in deckSettings?.actions" :deck="deck" :action="action"></DeckAction>
+            <DeckAction
+              v-for="action in deckSettings?.actions"
+              :deck="deck"
+              :action="action"
+            ></DeckAction>
           </div>
           <template v-for="group in deckSettings?.groupings">
             <div v-if="getCardsInGroup(group).length > 0">
@@ -121,7 +144,7 @@ function getImagesForCard(card: CardDetailApiModel) {
                 <div
                   v-for="card in getCardsInGroup(group)"
                   class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source"
-                  data-cursor-image="@card.Image?.GetCropUrl(width: 400)"
+                  v-cursor-image="card.imageUrl?.url"
                 >
                   <div class="flex gap-2">
                     <!--@if (_isLoggedIn)
@@ -136,11 +159,19 @@ function getImagesForCard(card: CardDetailApiModel) {
                     <span class="js-collection-info"
                       >{{ getDeckCard(card.baseId!)?.amount }} x</span
                     >
-                    <div
+                    <!--<div
                       class="flex justify-center bg-contain bg-no-repeat h-5 w-[18px] text-white font-bold"
-                      style="background-image: url('/images/icon-cost.png')"
+                      style="background-image: url('/images/cost.png')"
                     >
                       <span>3</span>
+                    </div>-->
+                    <div
+                      class="flex items-center h-5 w-[18px] text-black font-bold"
+                    >
+                      <span>{{
+                        cardService.GetValue(card, "Shard Cost")
+                      }}</span>
+                      <img src="/images/cost.png" />
                     </div>
                     <div class="flex gap-2">
                       <img
@@ -169,5 +200,10 @@ function getImagesForCard(card: CardDetailApiModel) {
         <!--TODO: Comments-->
       </div>
     </div>
+    <div
+      id="cursor-image"
+      class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"
+      style="display: none"
+    ></div>
   </div>
 </template>

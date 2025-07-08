@@ -1,4 +1,5 @@
-﻿using SkytearHorde.Entities.Models.Business;
+﻿using CardGameDBSites.API.Helpers;
+using SkytearHorde.Entities.Models.Business;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
 
@@ -14,7 +15,7 @@ namespace CardGameDBSites.API.Models
         public int SetId { get; set; }
         public string SetName { get; set; }
         public string UrlSegment { get; set; }
-        public string? ImageUrl { get; set; }
+        public ImageCropsApiModel? ImageUrl { get; set; }
         public string? BackImageUrl { get; set; }
 
         public Dictionary<string, string[]> Attributes { get; set; }
@@ -28,7 +29,7 @@ namespace CardGameDBSites.API.Models
             SetId = card.SetId;
             SetName = card.SetName;
             UrlSegment = card.UrlSegment;
-            ImageUrl = $"https://aidalon-db.com{card.Image?.Url(mode: UrlMode.Relative)}";
+            ImageUrl = card.Image is null ? null : ImageCropHelper.ToApiModels(card.Image, "icon");
             BackImageUrl = card.BackImage?.Url(mode: UrlMode.Absolute);
             Attributes = card.Attributes.ToDictionary(it => it.Key, it => it.Value.GetValues());
         }

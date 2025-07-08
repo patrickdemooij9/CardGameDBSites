@@ -19,7 +19,6 @@ export default class SiteService {
     }
 
     const result = await DoFetch<SiteSettingsApiModel>("/api/settings/site");
-
     SiteService.settings = result;
     return SiteService.settings;
   }

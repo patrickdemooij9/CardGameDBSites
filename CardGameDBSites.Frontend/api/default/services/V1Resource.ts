@@ -10,6 +10,7 @@ import type { DeckApiModel } from '../models/DeckApiModel';
 import type { DeckBuilderApiModel } from '../models/DeckBuilderApiModel';
 import type { DeckQueryPostModel } from '../models/DeckQueryPostModel';
 import type { DeckTypeSettingsApiModel } from '../models/DeckTypeSettingsApiModel';
+import type { ForgotPasswordPostModel } from '../models/ForgotPasswordPostModel';
 import type { LoginPostModel } from '../models/LoginPostModel';
 import type { MemberApiModel } from '../models/MemberApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
@@ -20,6 +21,22 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class V1Resource {
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAccountForgotPassword({
+        requestBody,
+    }: {
+        requestBody?: ForgotPasswordPostModel,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/account/ForgotPassword',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
     /**
      * @returns CurrentMemberApiModel OK
      * @throws ApiError
@@ -57,7 +74,7 @@ export class V1Resource {
     }): CancelablePromise<CurrentMemberApiModel> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/account/register',
+            url: '/api/account/Register',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -182,6 +199,23 @@ export class V1Resource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiDecksLikeDeck({
+        deckId,
+    }: {
+        deckId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/decks/likeDeck',
+            query: {
+                'deckId': deckId,
+            },
+        });
+    }
+    /**
      * @returns PagedResultDeckApiModel OK
      * @throws ApiError
      */
@@ -228,6 +262,26 @@ export class V1Resource {
             url: '/api/member/byIds',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiSeo({
+        contentGuid,
+        culture,
+    }: {
+        contentGuid?: string,
+        culture?: string,
+    }): CancelablePromise<Record<string, any>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/seo',
+            query: {
+                'contentGuid': contentGuid,
+                'culture': culture,
+            },
         });
     }
     /**

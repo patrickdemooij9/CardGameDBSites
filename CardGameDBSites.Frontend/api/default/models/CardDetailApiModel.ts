@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { ImageCropsApiModel } from './ImageCropsApiModel';
 export type CardDetailApiModel = {
     baseId?: number;
     variantId?: number;
@@ -10,7 +11,7 @@ export type CardDetailApiModel = {
     setId?: number;
     setName?: string;
     urlSegment?: string;
-    imageUrl?: string | null;
+    imageUrl?: ImageCropsApiModel;
     backImageUrl?: string | null;
     attributes?: Record<string, Array<string>>;
 };

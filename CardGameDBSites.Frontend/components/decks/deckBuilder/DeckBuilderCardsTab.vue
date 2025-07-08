@@ -9,6 +9,7 @@ import Button from "~/components/shared/Button.vue";
 import ButtonType from "~/components/shared/ButtonType";
 import { GetMarkdown } from "~/services/MarkdownService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
+import { GetCrop } from "~/helpers/CropUrlHelper";
 
 const emit = defineEmits<{
   (e: "update:currentTab", value: DeckBuilderTab): void;
@@ -111,7 +112,7 @@ async function toggleMarkdownPreview(){
                   v-if="character.imageUrl"
                   height="300"
                   width="200"
-                  :src="character.imageUrl"
+                  :src="GetCrop(character.imageUrl, undefined)"
                   loading="lazy"
                 />
                 <div v-if="!character.imageUrl" class="missing-card-image">

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CardGameDBSites.API.Models.Settings;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,7 @@ namespace CardGameDBSites.API.Models
         public required string FooterText { get; set; }
         public LinkApiModel[] FooterLinks { get; set; }
         public CardSectionApiModel[] CardSections { get; set; }
+        public KeywordImageApiModel[] KeywordImages { get; set; } = [];
 
         public SiteSettingsApiModel()
         {

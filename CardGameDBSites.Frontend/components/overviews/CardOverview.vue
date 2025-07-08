@@ -4,6 +4,7 @@ import type { OverviewFilterModel } from "./OverviewFilterModel";
 import type { PagedResultCardDetailApiModel } from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import BaseCardOverview from "./BaseCardOverview.vue";
+import { GetCrop } from "~/helpers/CropUrlHelper";
 
 const route = useRoute();
 const cardService = new CardService();
@@ -37,7 +38,7 @@ const showCollection = false;
             <h2>{{ card.displayName }}</h2>
             <p>No image yet</p>
           </div>
-          <img v-else :src="card.imageUrl" />
+          <img v-else :src="GetCrop(card.imageUrl, undefined)" />
         </NuxtLink>
         <div class="flex justify-between align-center mt-2" v-if="false">
           <p>

@@ -20,7 +20,7 @@ namespace SkytearHorde.Business.Discord
     {
         private readonly CommandService _commandService;
         private readonly ILogger _logger;
-        private readonly ICardSearchService _searchService;
+        private readonly CardService _cardService;
         private readonly CardPageService _cardPageService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly SettingsService _settingsService;
@@ -32,7 +32,7 @@ namespace SkytearHorde.Business.Discord
 
         private DiscordSocketClient _client;
 
-        public DiscordBot(ILogger logger, ICardSearchService searchService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, int siteId)
+        public DiscordBot(ILogger logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, int siteId)
         {
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -40,7 +40,7 @@ namespace SkytearHorde.Business.Discord
             });
             _commandService = new CommandService();
             _logger = logger;
-            _searchService = searchService;
+            _cardService = cardService;
             _cardPageService = cardPageService;
             _umbracoContextFactory = umbracoContextFactory;
             _settingsService = settingsService;
@@ -111,7 +111,7 @@ namespace SkytearHorde.Business.Discord
                 foreach (Match match in matches)
                 {
                     if (cards.Count >= 3) continue;
-                    cards.AddRange(_searchService.Search(new CardSearchQuery(1, _siteId) { Query = match.Value }, out _));
+                    cards.AddRange(_cardService.Search(new CardSearchQuery(1, _siteId) { Query = match.Value }, out _));
                 }
 
                 if (cards.Count == 0) return;

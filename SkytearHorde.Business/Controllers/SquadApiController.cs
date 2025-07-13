@@ -12,13 +12,11 @@ namespace SkytearHorde.Business.Controllers
     {
         private readonly CardService _cardService;
         private readonly ISiteAccessor _siteAccessor;
-        private readonly ICardSearchService _cardSearchService;
 
-        public SquadApiController(CardService cardService, ISiteAccessor siteAccessor, ICardSearchService cardSearchService)
+        public SquadApiController(CardService cardService, ISiteAccessor siteAccessor)
         {
             _cardService = cardService;
             _siteAccessor = siteAccessor;
-            _cardSearchService = cardSearchService;
         }
 
         [HttpPost]
@@ -49,7 +47,7 @@ namespace SkytearHorde.Business.Controllers
                     ClauseType = CardSearchFilterClauseType.AND
                 });
             }
-            return _cardSearchService.Search(query, out _).Select(it => it.BaseId).ToArray();
+            return _cardService.Search(query, out _).Select(it => it.BaseId).ToArray();
         }
 
         private List<FilterViewModel> MapFilter(CardOverviewPostModel model)

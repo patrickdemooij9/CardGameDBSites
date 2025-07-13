@@ -17,19 +17,17 @@ namespace SkytearHorde.ViewComponents
     {
         private readonly ISiteAccessor _siteAccessor;
         private readonly CardService _cardService;
-        private readonly ICardSearchService _searchService;
         private readonly CardPageService _cardPageService;
         private readonly SettingsService _settingsService;
         private readonly IMemberManager _memberManager;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly CollectionService _collectionService;
 
-        public CollectionSetDetailDataViewComponent(ISiteAccessor siteAccessor, CardService cardService, ICardSearchService searchService, CardPageService cardPageService, SettingsService settingsService,
+        public CollectionSetDetailDataViewComponent(ISiteAccessor siteAccessor, CardService cardService,  CardPageService cardPageService, SettingsService settingsService,
             IMemberManager memberManager, IUmbracoContextFactory umbracoContextFactory, CollectionService collectionService)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
-            _searchService = searchService;
             _cardPageService = cardPageService;
             _settingsService = settingsService;
             _memberManager = memberManager;
@@ -125,7 +123,7 @@ namespace SkytearHorde.ViewComponents
                     ClauseType = CardSearchFilterClauseType.AND
                 });
             }
-            return _searchService.Search(query, out _);
+            return _cardService.Search(query, out _);
         }
 
         private Dictionary<int, CollectionCardItemGrouped> GetCollectionCards(Card[] cards)

@@ -118,24 +118,6 @@ namespace SkytearHorde.Business.Repositories
             }
         }
 
-        public IEnumerable<Card> GetAllBySet(int setId, bool includeVariants = false)
-        {
-            using (_profiler.Step("GetAllBySet"))
-            {
-                using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-
-                var set = GetAllSets()?.FirstOrDefault(it => it.Id == setId);
-                if (set is null) return [];
-
-                return set
-                    .Cards?.OfType<CardVariant>()
-                    .Select(it => it.Parent!)
-                    .OfType<UmbracoCard>()
-                    .SelectMany(it => MapMultiple(it, includeVariants, setId))
-                    .ToArray() ?? [];
-            }
-        }
-
         public IEnumerable<Card> GetAllBySetCode(string setCode, bool includeVariants = false)
         {
             using (_profiler.Step("GetAllBySetCode"))

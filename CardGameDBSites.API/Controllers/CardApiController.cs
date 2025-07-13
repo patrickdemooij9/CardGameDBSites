@@ -17,19 +17,16 @@ namespace CardGameDBSites.API.Controllers
     [Route("/api/cards")]
     public class CardApiController : Controller
     {
-        private readonly ICardSearchService _cardSearchService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly CardService _cardService;
         private readonly SettingsService _settingsService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
 
-        public CardApiController(ICardSearchService cardSearchService,
-            ISiteAccessor siteAccessor,
+        public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
             SettingsService settingsService,
             IUmbracoContextFactory umbracoContextFactory)
         {
-            _cardSearchService = cardSearchService;
             _siteAccessor = siteAccessor;
             _cardService = cardService;
             _settingsService = settingsService;
@@ -39,7 +36,7 @@ namespace CardGameDBSites.API.Controllers
         [HttpGet("all")]
         public IActionResult GetAll(int skip, int take)
         {
-            var result = _cardSearchService.Search(new CardSearchQuery(take, _siteAccessor.GetSiteId())
+            var result = _cardService.Search(new CardSearchQuery(take, _siteAccessor.GetSiteId())
             {
                 Skip = skip
             }, out _);
@@ -76,7 +73,7 @@ namespace CardGameDBSites.API.Controllers
                 sorting.AddRange(defaultSortOptions.Select(it => new CardSorting(it.ExamineField.IfNullOrWhiteSpace($"CustomField.{it.Ability?.Name}")) { IsDescending = it.Descending }));
             }
 
-            var result = _cardSearchService.Search(new CardSearchQuery(model.PageSize, _siteAccessor.GetSiteId())
+            var result = _cardService.Search(new CardSearchQuery(model.PageSize, _siteAccessor.GetSiteId())
             {
                 Query = model.Query,
                 Skip = model.PageSize * (model.PageNumber - 1),

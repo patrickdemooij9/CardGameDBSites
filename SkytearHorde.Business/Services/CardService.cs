@@ -1,5 +1,6 @@
 ﻿using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Repositories;
+using SkytearHorde.Business.Services.Search;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.PostModels;
@@ -13,12 +14,14 @@ namespace SkytearHorde.Business.Services
     public class CardService
     {
         private readonly ISiteAccessor _siteAccessor;
+        private readonly ICardSearchService _cardSearchService;
         private readonly CardRepository _cardRepository;
         private readonly IAppCache _cache;
 
-        public CardService(AppCaches appCaches, ISiteAccessor siteAccessor, CardRepository cardRepository)
+        public CardService(AppCaches appCaches, ISiteAccessor siteAccessor, ICardSearchService cardSearchService, CardRepository cardRepository)
         {
             _siteAccessor = siteAccessor;
+            _cardSearchService = cardSearchService;
             _cardRepository = cardRepository;
             _cache = appCaches.RuntimeCache;
         }
@@ -60,12 +63,20 @@ namespace SkytearHorde.Business.Services
 
         public IEnumerable<Card> GetAllBySet(int setId, bool includeVariants = false)
         {
-            return _cardRepository.GetAllBySet(setId, includeVariants);
+            var cards = Search(new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId())
+            {
+                SetId = setId,
+            }, out var _);
+            if (includeVariants)
+            {
+                return cards;
+            }
+            return cards.Where(it => it.VariantTypeId is null).ToArray();
         }
 
         public IEnumerable<Card> GetAllBaseBySet(int setId)
         {
-            return _cardRepository.GetAllBySet(setId, true).Where(it => it.VariantTypeId is null && it.VariantId > 0);
+            return GetAllBySet(setId, true).Where(it => it.VariantTypeId is null && it.VariantId > 0);
         }
 
         public IEnumerable<Set> GetAllSets()
@@ -79,6 +90,12 @@ namespace SkytearHorde.Business.Services
             {
                 return GetAll().SelectMany(it => it.GetMultipleCardAttributeValue(key) ?? Enumerable.Empty<string>()).Distinct().ToArray();
             })!.ToArray();
+        }
+
+        public Card[] Search(CardSearchQuery query, out int totalItems)
+        {
+            var ids = _cardSearchService.Search(query, out totalItems);
+            return [.. ids.Select(GetVariant).Where(card => card != null).Cast<Card>()];
         }
 
         public void ClearCache()

@@ -19,7 +19,7 @@ namespace SkytearHorde.Business.Discord
     public class DiscordBotComponent : IComponent
     {
         private readonly ILogger _logger;
-        private readonly ICardSearchService _searchService;
+        private readonly CardService _cardService;
         private readonly CardPageService _cardPageService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly SettingsService _settingsService;
@@ -30,10 +30,10 @@ namespace SkytearHorde.Business.Discord
         private readonly ISiteService _siteService;
         private readonly IRuntimeState _runtimeState;
 
-        public DiscordBotComponent(ILogger<DiscordBot> logger, ICardSearchService searchService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter,ISiteService siteService, IRuntimeState runtimeState)
+        public DiscordBotComponent(ILogger<DiscordBot> logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter,ISiteService siteService, IRuntimeState runtimeState)
         {
             _logger = logger;
-            _searchService = searchService;
+            _cardService = cardService;
             _cardPageService = cardPageService;
             _umbracoContextFactory = umbracoContextFactory;
             _settingsService = settingsService;
@@ -62,7 +62,7 @@ namespace SkytearHorde.Business.Discord
 
             foreach (var siteId in siteIds)
             {
-                new DiscordBot(_logger, _searchService, _cardPageService, _umbracoContextFactory, _settingsService, _siteAccessor, _abilityFormatter, _siteService, siteId);
+                new DiscordBot(_logger, _cardService, _cardPageService, _umbracoContextFactory, _settingsService, _siteAccessor, _abilityFormatter, _siteService, siteId);
             }
         }
 

@@ -22,19 +22,17 @@ namespace SkytearHorde.ViewComponents
         private readonly ISiteService _siteService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly CardService _cardService;
-        private readonly ICardSearchService _searchService;
         private readonly CardPageService _cardPageService;
         private readonly CardPriceService _cardPriceService;
         private readonly SettingsService _settingsService;
         private readonly CollectionService _collectionService;
         private readonly MemberInfoService _memberInfoService;
 
-        public CardOverviewDataViewComponent(ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, ICardSearchService searchService, CardPageService cardPageService, CardPriceService cardPriceService, SettingsService settingsService, CollectionService collectionService, MemberInfoService memberInfoService)
+        public CardOverviewDataViewComponent(ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, CardPageService cardPageService, CardPriceService cardPriceService, SettingsService settingsService, CollectionService collectionService, MemberInfoService memberInfoService)
         {
             _siteService = siteService;
             _siteAccessor = siteAccessor;
             _cardService = cardService;
-            _searchService = searchService;
             _cardPageService = cardPageService;
             _cardPriceService = cardPriceService;
             _settingsService = settingsService;
@@ -204,7 +202,7 @@ namespace SkytearHorde.ViewComponents
                     ClauseType = CardSearchFilterClauseType.AND
                 });
             }
-            return _searchService.Search(query, out totalCards);
+            return _cardService.Search(query, out totalCards);
         }
     }
 }

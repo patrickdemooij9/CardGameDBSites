@@ -32,7 +32,7 @@ namespace SkytearHorde.EventHandlers
                 if (item.ContentType.Alias != Card.ModelTypeAlias)
                     continue;
 
-                if (ctx.UmbracoContext.Content?.GetById(item.Id) is not Card contentItem || contentItem.Children.Any())
+                if (ctx.UmbracoContext.Content?.GetById(item.Id) is not Card contentItem)
                     continue;
 
                 var card = _cardService.Get(item.Id);
@@ -43,13 +43,18 @@ namespace SkytearHorde.EventHandlers
 
                 foreach (var set in contentItem.Set?.OfType<Set>() ?? [])
                 {
-                    var baseVariant = _contentService.Create("Base", contentItem.Key, CardVariant.ModelTypeAlias);
+                    if (contentItem.Children<CardVariant>()?.Any(it => it.Set?.Id == set.Id) is true)
+                    {
+                        continue; // Skip if variants already exist for this set
+                    }
+
+                    var baseVariant = _contentService.Create($"Base-{set.Name}", contentItem.Key, CardVariant.ModelTypeAlias);
                     baseVariant.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key));
                     _contentService.SaveAndPublish(baseVariant);
 
                     foreach (var variant in validVariants)
                     {
-                        var cardVariant = _contentService.Create(variant.DisplayName.IfNullOrWhiteSpace(variant.Name), contentItem.Key, CardVariant.ModelTypeAlias);
+                        var cardVariant = _contentService.Create($"{variant.DisplayName.IfNullOrWhiteSpace(variant.Name)}-{set.Name}", contentItem.Key, CardVariant.ModelTypeAlias);
                         cardVariant.SetValue("variantType", Udi.Create(Constants.UdiEntityType.Document, variant.Key));
                         cardVariant.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key));
                         _contentService.SaveAndPublish(cardVariant);

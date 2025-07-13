@@ -21,14 +21,12 @@ namespace SkytearHorde.Business.Controllers
 {
     public class OverviewController : SurfaceController
     {
-        private readonly ICardSearchService _cardSearchService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly CardService _cardService;
         private readonly IEnumerable<IOverviewDataSource> _overviewDataSources;
 
-        public OverviewController(IUmbracoContextAccessor umbracoContextAccessor, IUmbracoDatabaseFactory databaseFactory, ServiceContext services, AppCaches appCaches, IProfilingLogger profilingLogger, IPublishedUrlProvider publishedUrlProvider, ICardSearchService cardSearchService, ISiteAccessor siteAccessor, CardService cardService, IEnumerable<IOverviewDataSource> overviewDataSources) : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
+        public OverviewController(IUmbracoContextAccessor umbracoContextAccessor, IUmbracoDatabaseFactory databaseFactory, ServiceContext services, AppCaches appCaches, IProfilingLogger profilingLogger, IPublishedUrlProvider publishedUrlProvider, ISiteAccessor siteAccessor, CardService cardService, IEnumerable<IOverviewDataSource> overviewDataSources) : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
         {
-            _cardSearchService = cardSearchService;
             _siteAccessor = siteAccessor;
             _cardService = cardService;
             _overviewDataSources = overviewDataSources;
@@ -61,7 +59,7 @@ namespace SkytearHorde.Business.Controllers
                     ClauseType = CardSearchFilterClauseType.AND
                 });
             }
-            return Json(_cardSearchService.Search(query, out _).Select(it => it.BaseId).ToArray());
+            return Json(_cardService.Search(query, out _).Select(it => it.BaseId).ToArray());
         }
 
         [HttpPost]

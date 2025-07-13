@@ -48,13 +48,13 @@ namespace SkytearHorde.EventHandlers
                         continue; // Skip if variants already exist for this set
                     }
 
-                    var baseVariant = _contentService.Create($"Base-{set.Name}", contentItem.Key, CardVariant.ModelTypeAlias);
+                    var baseVariant = _contentService.Create($"Base {set.Name}", contentItem.Key, CardVariant.ModelTypeAlias);
                     baseVariant.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key));
                     _contentService.SaveAndPublish(baseVariant);
 
                     foreach (var variant in validVariants)
                     {
-                        var cardVariant = _contentService.Create($"{variant.DisplayName.IfNullOrWhiteSpace(variant.Name)}-{set.Name}", contentItem.Key, CardVariant.ModelTypeAlias);
+                        var cardVariant = _contentService.Create($"{variant.DisplayName.IfNullOrWhiteSpace(variant.Name)} {set.Name}", contentItem.Key, CardVariant.ModelTypeAlias);
                         cardVariant.SetValue("variantType", Udi.Create(Constants.UdiEntityType.Document, variant.Key));
                         cardVariant.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key));
                         _contentService.SaveAndPublish(cardVariant);

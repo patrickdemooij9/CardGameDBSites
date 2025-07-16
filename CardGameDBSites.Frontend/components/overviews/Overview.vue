@@ -29,7 +29,10 @@ const emit = defineEmits<{
   (e: "loadLazyFilter", filter: OverviewFilterModel): void;
 }>();
 
-const search = ref("");
+const route = useRoute();
+
+const search = ref(route.query.search?.toString() ?? "");
+
 const selectedFilters = ref<Record<string, string[]>>({});
 const isLoading = ref(false);
 

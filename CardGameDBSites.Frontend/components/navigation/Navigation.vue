@@ -17,8 +17,10 @@ const accountStore = useAccountStore();
       'md:text-white': content.textColorIsWhite,
       'md:text-black': !content.textColorIsWhite,
       active: isOpen,
+      'bg-gray-500': content.homepageMode,
+      'bg-main-color border-b border-nav-color': !content.homepageMode,
     }"
-    class="h-14 bg-main-color text-base z-20 border-b border-nav-color"
+    class="h-14 text-base z-20"
   >
     <div class="container md:px-8">
       <div class="flex justify-between overflow-auto">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PagedResultDeckApiModel } from "~/api/default";
+import { DeckStatus, type PagedResultDeckApiModel } from "~/api/default";
 import DeckService from "~/services/DeckService";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import Overview from "./Overview.vue";
@@ -31,6 +31,7 @@ async function loadData(value: OverviewRefreshModel) {
     page: pageNumber.value,
     take: 30,
     userId: props.userId,
+    status: props.userId ? DeckStatus.NONE : undefined,
   });
   if (value.LoadedCallback) {
     value.LoadedCallback();

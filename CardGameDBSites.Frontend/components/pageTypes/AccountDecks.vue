@@ -10,20 +10,24 @@ defineProps<{
 }>();
 
 const router = useRouter();
+const memberId = ref<number | undefined>(undefined);
 
-onMounted(() => {
-    if (!useAccountStore().isLoggedIn){
+onMounted(async () => {
+    const isLoggedIn = await useAccountStore().checkLogin();
+    if (!isLoggedIn){
         router.push('/login');
     }
+
+    memberId.value = useAccountStore().member?.id;
 })
 </script>
 
 <template>
-    <div class="container px-4 pt-8 md:px-8 mb-6">
+    <div class="container px-4 pt-8 md:px-8 mb-6" v-if="memberId">
         <h1>Your decks</h1>
         <BaseDeckOverview
             :decks-per-row="1"
-            :user-id="useAccountStore().member?.id">
+            :user-id="memberId">
             <template #default="{ decks }">
                 <div v-if="decks!.items!.length === 0" class="text-center">
                     <p>You have no decks yet. Create one to get started!</p>

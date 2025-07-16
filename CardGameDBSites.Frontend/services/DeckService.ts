@@ -5,11 +5,11 @@ import {
   type PagedResultDeckApiModel,
 } from "~/api/default";
 import type { CreateDeckModel } from "~/components/decks/deckBuilder/models/CreateDeckModel";
-import { DoFetch } from "~/helpers/RequestsHelper";
+import { DoOptionalServerFetch, DoServerFetch } from "~/helpers/RequestsHelper";
 
 export default class DeckService {
   async get(id: number) {
-    const result = DoFetch<DeckApiModel>(
+    const result = await DoOptionalServerFetch<DeckApiModel>(
       "/api/decks/get?id=" + id,
       {
         query: {
@@ -21,7 +21,7 @@ export default class DeckService {
   }
 
   async query(model: DeckQueryPostModel) {
-    const result = await DoFetch<PagedResultDeckApiModel>(
+    const result = await DoOptionalServerFetch<PagedResultDeckApiModel>(
       "/api/decks/query",
       {
         method: "POST",
@@ -32,7 +32,6 @@ export default class DeckService {
   }
 
   async post(model: CreateDeckModel, publish: boolean) {
-    const isLoggedIn = useAccountStore().isLoggedIn;
     const modelToPost: CreateSquadPostModel = {
       id: model.id,
       name: model.name,
@@ -57,24 +56,23 @@ export default class DeckService {
         })),
       })),
     };
-    const result = DoFetch<number>(
-      isLoggedIn ? '/api/deckbuilder/submitLoggedIn' : '/api/deckbuilder/submit',
+    const result = DoOptionalServerFetch<number>(
+      '/api/deckbuilder/submit',
       {
         method: "POST",
         body: modelToPost,
-        credentials: isLoggedIn ? "include" : undefined,
       }
     );
     return result;
   }
 
   async likeDeck(deckId: number) {
-    const result = DoFetch<boolean>(
+    const result = DoServerFetch<boolean>(
       "/api/decks/likeDeck",
+      true,
       {
         method: "POST",
         body: JSON.stringify(deckId),
-        credentials: "include",
       },
     );
     return result!;

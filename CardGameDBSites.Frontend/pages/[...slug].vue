@@ -36,7 +36,7 @@ useHead({
 });
 
 onMounted(() => {
-    useAccountStore().validateLogin();
+    useAccountStore().checkLogin();
 });
 
 const componentName = data.contentType;

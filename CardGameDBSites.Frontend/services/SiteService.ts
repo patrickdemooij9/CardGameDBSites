@@ -28,6 +28,7 @@ export default class SiteService {
     return {
       textColorIsWhite: settings.textColorWhite,
       createDeckMode: false,
+      homepageMode: false,
       navigationLogoUrl: settings.navigationLogoUrl,
       loginPageUrl: settings.loginPageUrl!,
       accountItems: settings.accountNavigation?.map((item) => ({

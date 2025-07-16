@@ -18,7 +18,15 @@ let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]);
 const cardService = new CardService();
 
+console.log(deckId);
 const deck = await new DeckService().get(deckId);
+if (!deck || deck === null) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Resource Not Found'
+  })
+}
+
 const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
 const cards = await useCardsStore().loadCards(
   deck.cards?.map((card) => card.cardId!) ?? []

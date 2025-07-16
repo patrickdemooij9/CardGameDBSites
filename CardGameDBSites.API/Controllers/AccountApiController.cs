@@ -1,11 +1,14 @@
 ﻿using CardGameDBSites.API.Models.Members;
+using DeviceDetectorNET.Class.Device;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
@@ -15,8 +18,10 @@ using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ResultModels;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Umbraco.Cms.Core.Mail;
@@ -31,7 +36,7 @@ using Umbraco.Extensions;
 namespace CardGameDBSites.API.Controllers
 {
     [ApiController]
-    [EnableCors("api-login")]
+    [EnableCors("api")]
     [Route("/api/account")]
     public class AccountApiController : Controller
     {
@@ -43,9 +48,10 @@ namespace CardGameDBSites.API.Controllers
         private readonly ILogger<AccountApiController> _logger;
         private readonly ISiteService _siteService;
         private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _globalConfig;
         private readonly CardGameSettingsConfig _config;
 
-        public AccountApiController(ISiteAccessor siteAccessor, IMemberSignInManager memberSignInManager, MemberInfoService memberInfoService, IOptions<CardGameSettingsConfig> config, IMemberManager memberManager, IMemberService memberService, ILogger<AccountApiController> logger, ISiteService siteService, IEmailSender emailSender)
+        public AccountApiController(ISiteAccessor siteAccessor, IMemberSignInManager memberSignInManager, MemberInfoService memberInfoService, IOptions<CardGameSettingsConfig> config, IMemberManager memberManager, IMemberService memberService, ILogger<AccountApiController> logger, ISiteService siteService, IEmailSender emailSender, IConfiguration globalConfig)
         {
             _siteAccessor = siteAccessor;
             _memberSignInManager = memberSignInManager;
@@ -55,10 +61,11 @@ namespace CardGameDBSites.API.Controllers
             _logger = logger;
             _siteService = siteService;
             _emailSender = emailSender;
+            _globalConfig = globalConfig;
             _config = config.Value;
         }
 
-        [HttpPost("Login")]
+        /*[HttpPost("Login")]
         [ProducesResponseType(typeof(CurrentMemberApiModel), 200)]
         public async Task<IActionResult> Login(LoginPostModel model)
         {
@@ -74,10 +81,10 @@ namespace CardGameDBSites.API.Controllers
 
             ModelState.AddModelError("PostModel.Password", "Incorrect email/password");
             return Unauthorized("Incorrect email/password");
-        }
+        }*/
 
         [HttpPost("Register")]
-        [ProducesResponseType(typeof(CurrentMemberApiModel), 200)]
+        [ProducesResponseType(typeof(string), 200)]
         public async Task<IActionResult> Register(RegisterPostModel model)
         {
             if (!ModelState.IsValid)
@@ -118,9 +125,9 @@ namespace CardGameDBSites.API.Controllers
                 newMember.SetValue("siteID", _siteAccessor.GetSiteId());
                 _memberService.Save(newMember);
 
-                await _memberSignInManager.SignInAsync(user, false);
+                var token = GetJwtToken(user, false);
 
-                return GetCurrentMember();
+                return Ok(new JwtSecurityTokenHandler().WriteToken(token));
             }
 
             _logger.LogError("Could not create user due to: {0}", string.Join(",", result.Errors.Select(it => it.Description)));
@@ -151,7 +158,8 @@ namespace CardGameDBSites.API.Controllers
             return Ok();
         }
 
-        /*[HttpPost("Login")]
+        [HttpPost("Login")]
+        [ProducesResponseType(typeof(string), 200)]
         public async Task<IActionResult> Login(LoginPostModel model)
         {
             if (!ModelState.IsValid)
@@ -166,34 +174,22 @@ namespace CardGameDBSites.API.Controllers
                 {
                     return Unauthorized("Incorrect email/password");
                 }
-                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-                var claims = new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, member.Id),
-                    new Claim(ClaimTypes.Name, member.Name!)
-                };
-                var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-                    null,
-                    claims,
-                    expires: DateTime.Now.AddDays(7),
-                    signingCredentials: credentials);
+                var token = GetJwtToken(member, model.RememberMe);
 
                 return Ok(new JwtSecurityTokenHandler().WriteToken(token));
             }
 
             ModelState.AddModelError("PostModel.Password", "Incorrect email/password");
             return Unauthorized("Incorrect email/password");
-        }*/
+        }
 
-        /*[HttpGet("IsLoggedIn")]
+        [HttpGet("IsLoggedIn")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult IsLoggedIn()
         {
             var test = _memberManager.GetCurrentMemberAsync().Result;
             return Ok("You need to be authenticated to see this message.");
-        }*/
+        }
 
         [HttpGet("GetCurrentMember")]
         [ProducesResponseType(typeof(CurrentMemberApiModel), 200)]
@@ -208,6 +204,23 @@ namespace CardGameDBSites.API.Controllers
                 DisplayName = member.DisplayName,
                 LikedDecks = member.LikedDecks
             });
+        }
+
+        private JwtSecurityToken GetJwtToken(MemberIdentityUser user, bool rememberMe)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id),
+                    new Claim(ClaimTypes.Name, user.Name!)
+                };
+            return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
+                null,
+                claims,
+                expires: DateTime.Now.AddDays(rememberMe ? 30 : 1),
+                signingCredentials: credentials);
         }
     }
 }

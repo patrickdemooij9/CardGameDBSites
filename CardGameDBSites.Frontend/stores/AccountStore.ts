@@ -1,6 +1,8 @@
 import type { CurrentMemberApiModel, RegisterPostModel } from "~/api/default";
-import { DoFetch } from "~/helpers/RequestsHelper";
+import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
 import type MemberModel from "~/models/MemberModel";
+
+let _loadingPromise: Promise<boolean> | null = null;
 
 export const useAccountStore = defineStore("accountStore", {
   state: () => ({
@@ -14,15 +16,13 @@ export const useAccountStore = defineStore("accountStore", {
   },
   actions: {
     async login(email: string, password: string, rememberMe: boolean) {
-      const config = useRuntimeConfig();
-
       try {
-        const member = await $fetch<CurrentMemberApiModel>(
-          `${config.public.API_BASE_URL}/api/account/login`,
+        const member = await DoServerFetch<CurrentMemberApiModel>(
+          `/api/account/login`,
+          false,
           {
             method: "POST",
             body: { email, password, rememberMe },
-            credentials: "include",
           }
         );
         this.member = {
@@ -30,32 +30,43 @@ export const useAccountStore = defineStore("accountStore", {
           name: member.displayName,
           likedDecks: member.likedDecks || [],
         };
+        this.validatedLogin = true;
       } catch (error) {
         throw "Incorrect email/password";
       }
     },
-    async validateLogin() {
+    async checkLogin() {
       if (this.validatedLogin) {
-        return;
+        return this.member !== undefined;
       }
 
-      try {
-        const result = await DoFetch<CurrentMemberApiModel>(
-          "/api/account/getcurrentmember",
-          {
-            credentials: "include",
-          }
-        );
+      if (_loadingPromise) return _loadingPromise;
+      _loadingPromise = (async () => {
+        try {
+          const result = await DoServerFetch<CurrentMemberApiModel>(
+            "/api/account/getCurrentMember"
+          );
 
-        this.member = {
-          id: result.id,
-          name: result.displayName,
-          likedDecks: result.likedDecks || [],
-        };
-      } catch (error) {
-        this.member = undefined;
+          this.member = {
+            id: result.id,
+            name: result.displayName,
+            likedDecks: result.likedDecks || [],
+          };
+        } catch (error) {
+          this.member = undefined;
+          return false;
+        }
+        this.validatedLogin = true;
+        return true;
+      })();
+      return _loadingPromise;
+    },
+    async getCurrentMember(){
+      if (this.member) {
+        return this.member;
       }
-      this.validatedLogin = true;
+      if (_loadingPromise) return _loadingPromise.then(() => this.member);
+      return undefined;
     },
     async register(model: RegisterPostModel) {
       const result = await DoFetch<CurrentMemberApiModel>(
@@ -73,7 +84,7 @@ export const useAccountStore = defineStore("accountStore", {
       };
     },
     async forgotPassword(email: string) {
-      return await DoFetch("/api/account/forgotpassword", {
+      return await DoServerFetch("/api/account/forgotpassword", true, {
         method: "POST",
         body: {
           email: email,

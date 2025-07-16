@@ -56,10 +56,16 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(PagedResult<DeckApiModel>), 200)]
         public IActionResult Query(DeckQueryPostModel query)
         {
+            var status = DeckStatus.Published;
+            if (_memberManager.IsLoggedIn())
+            {
+                status = query.Status;
+            }
+
             var decks = _deckService.GetAll(new DeckPagedRequest(query.TypeId)
             {
                 SiteId = _siteAccessor.GetSiteId(),
-                Status = DeckStatus.Published,
+                Status = status,
                 Cards = query.Cards,
                 Take = query.Take,
                 Page = query.Page,
@@ -70,7 +76,6 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost("likeDeck")]
-        [EnableCors("api-login")] //TODO: Rework the authorization correctly
         public async Task<IActionResult> LikeDeck(int deckId)
         {
             var currentUser = await _memberManager.GetCurrentMemberAsync();

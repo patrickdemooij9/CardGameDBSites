@@ -34,7 +34,7 @@ function submitSearch(event: Event) {
         <h2 class="text-2xl">{{ selectedTagLine }}</h2>
       </div>
       <form
-        class="flex overflow-hidden rounded border border-solid border-gray-300 sm:w-1/2 bg-white"
+        class="flex overflow-hidden rounded border border-solid border-gray-300 sm:w-1/2 bg-white shadow-sm"
         @submit="submitSearch"
       >
         <input

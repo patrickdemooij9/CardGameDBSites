@@ -82,18 +82,23 @@ const accountStore = useAccountStore();
               <PhUser />
             </p>
             <div
-                v-if="accountStore.isLoggedIn && content.accountItems.length > 0"
-                class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:-mt-2 hidden"
+              v-if="accountStore.isLoggedIn && content.accountItems.length > 0"
+              class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:-mt-2 hidden"
+            >
+              <NuxtLink
+                v-for="child in content.accountItems"
+                :to="child.url"
+                class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
               >
-              
-                <NuxtLink
-                  v-for="child in content.accountItems"
-                  :to="child.url"
-                  class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
-                >
-                  {{ child.name }}
-                </NuxtLink>
-              </div>
+                {{ child.name }}
+              </NuxtLink>
+              <button
+                class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
+                @click="accountStore.logout()"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
         <div

@@ -35,6 +35,12 @@ export const useAccountStore = defineStore("accountStore", {
         throw "Incorrect email/password";
       }
     },
+    async logout(){
+      await DoServerFetch("/api/account/logout", false, {
+        method: "POST",
+      });
+      this.member = undefined;
+    },
     async checkLogin() {
       if (this.validatedLogin) {
         return this.member !== undefined;

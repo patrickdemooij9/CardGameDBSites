@@ -158,8 +158,13 @@ namespace SkytearHorde.Business.Exports.Collection
         {
             var items = new List<CollectionCardItem>();
             var allCards = _cardService.GetAll(true)
-                .Where(it => it.VariantId > 0)
+                .Where(it => it.VariantId > 0).ToArray();
+
+            var allCardsGrouped = allCards
                 .GroupBy(it => it.GetMultipleCardAttributeValue("SWU Id")!.First())
+                .ToDictionary(it => it.Key, it => it.ToArray());
+            var allCardsGroupedById = allCards
+                .GroupBy(it => it.BaseId)
                 .ToDictionary(it => it.Key, it => it.ToArray());
 
             var allSets = _cardService.GetAllSets().ToDictionary(it => it.SetCode!.ToLowerInvariant(), it => it.Id);
@@ -170,9 +175,9 @@ namespace SkytearHorde.Business.Exports.Collection
             {
                 var item = new CollectionCardItem();
 
-                if (!int.TryParse(record.CardNumber, out var cardId) || !allCards.ContainsKey(record.CardNumber))
+                if (!int.TryParse(record.CardNumber, out var cardId) || !allCardsGrouped.ContainsKey(record.CardNumber))
                 {
-                    throw new Exception($"Could not find card with ID: {record.CardNumber}");
+                    throw new Exception($"Could not find card with ID: {record.CardNumber} in set {record.Set} with foil set to {record.IsFoil}");
                 }
 
                 if (!allSets.TryGetValue(record.Set.ToLowerInvariant(), out var setId))
@@ -180,11 +185,11 @@ namespace SkytearHorde.Business.Exports.Collection
                     throw new Exception($"No set exists with code: {record.Set}");
                 }
                 
-                var cards = allCards[record.CardNumber].Where(it => it.SetId == setId).ToArray();
+                var cards = allCardsGrouped[record.CardNumber].Where(it => it.SetId == setId).ToArray();
 
                 if (cards.Length == 0)
                 {
-                    throw new Exception($"Could not find card with ID: {record.CardNumber}");
+                    throw new Exception($"Could not find card with ID: {record.CardNumber} in set {record.Set} with foil set to {record.IsFoil}");
                 }
 
                 if (!bool.TryParse(record.IsFoil, out var isFoil))
@@ -200,11 +205,23 @@ namespace SkytearHorde.Business.Exports.Collection
                 else
                 {
                     card = cards.FirstOrDefault(it => foilVariantTypes.Contains(it.VariantTypeId ?? 0));
+
+                    // SWUDB didn't update the numbering on foils
+                    if (card is null)
+                    {
+                        var baseCard = cards.FirstOrDefault(it => it.VariantTypeId is null) ?? cards.FirstOrDefault(it => !foilVariantTypes.Contains(it.VariantTypeId ?? 0));
+
+                        if (baseCard is not null && allCardsGroupedById.TryGetValue(baseCard.BaseId, out Card[]? value))
+                        {
+                            var variantTypeToFind = _variants.FirstOrDefault(it => baseCard.VariantTypeId.HasValue ? it.ChildOf == baseCard.VariantTypeId : it.ChildOfBase)!;
+                            card = value.FirstOrDefault(it => it.SetId == setId && variantTypeToFind.Id == it.VariantTypeId);
+                        }
+                    }
                 }
 
                 if (card is null)
                 {
-                    throw new Exception($"Could not find card with ID: {record.CardNumber}");
+                    throw new Exception($"Could not find card with ID: {record.CardNumber} in set {record.Set} with foil set to {record.IsFoil}");
                 }
 
                 if (!int.TryParse(record.Count, out var count))

@@ -1,4 +1,5 @@
-﻿using CardGameDBSites.API.Models.Members;
+﻿using CardGameDBSites.API.Attributes;
+using CardGameDBSites.API.Models.Members;
 using DeviceDetectorNET.Class.Device;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -185,6 +186,7 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("IsLoggedIn")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [OptionalJwtAuthorization]
         public IActionResult IsLoggedIn()
         {
             var test = _memberManager.GetCurrentMemberAsync().Result;
@@ -193,6 +195,7 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("GetCurrentMember")]
         [ProducesResponseType(typeof(CurrentMemberApiModel), 200)]
+        [OptionalJwtAuthorization]
         public IActionResult GetCurrentMember()
         {
             var member = _memberInfoService.GetMemberInfo();

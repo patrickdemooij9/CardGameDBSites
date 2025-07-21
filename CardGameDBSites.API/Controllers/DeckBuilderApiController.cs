@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CardGameDBSites.API.Attributes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Services;
@@ -24,6 +25,7 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpPost("submit")]
         [ProducesResponseType(typeof(int), 200)]
+        [OptionalJwtAuthorization]
         public async Task<IActionResult> Submit(CreateSquadPostModel postModel)
         {
             int? userId = null;

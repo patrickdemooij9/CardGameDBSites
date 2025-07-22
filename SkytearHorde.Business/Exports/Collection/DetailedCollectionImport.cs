@@ -186,6 +186,10 @@ namespace SkytearHorde.Business.Exports.Collection
                 }
                 
                 var cards = allCardsGrouped[record.CardNumber].Where(it => it.SetId == setId).ToArray();
+                if (cards.Length == 0)
+                {
+                    cards = allCardsGrouped[cardId.ToString()].Where(it => it.SetId == setId).ToArray();
+                }
 
                 if (cards.Length == 0)
                 {

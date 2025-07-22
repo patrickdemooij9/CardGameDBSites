@@ -97,8 +97,15 @@ namespace SkytearHorde.Business.Repositories
                         LowestPrice = price.LowestPrice,
                         MainPrice = price.MainPrice,
                         DateUtc = price.DateUtc,
+                        IsLatest = true
                     };
                     scope.Database.Insert(newRecord);
+
+                    if (existingRecord != null)
+                    {
+                        existingRecord.IsLatest = false;
+                        scope.Database.Update(existingRecord);
+                    }
 
                     _repositoryCachePolicy.ClearCache(record.CardId);
                 }
@@ -117,8 +124,11 @@ namespace SkytearHorde.Business.Repositories
         private List<CardPriceRecordDBModel> GetRecords(int[] ids)
         {
             using var scope = _scopeProvider.CreateScope();
-            return scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql("" +
-                "SELECT r.* FROM CardPriceRecord r INNER JOIN (SELECT CardId, MAX(DateUtc) as 'MaxDate' FROM CardPriceRecord GROUP BY CardId) r2 on r.CardId = r2.CardId AND r.DateUtc = r2.MaxDate WHERE r.CardId in (@0)", ids));
+            return [.. scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql()
+                .SelectAll()
+                .From<CardPriceRecordDBModel>()
+                .Where<CardPriceRecordDBModel>(it => ids.Contains(it.CardId))
+            )];
         }
     }
 }

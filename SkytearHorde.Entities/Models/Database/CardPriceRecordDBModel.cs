@@ -30,5 +30,8 @@ namespace SkytearHorde.Entities.Models.Database
 
         [Column("DateUtc")]
         public DateTime DateUtc { get; set; }
+
+        [Column("IsLatest")]
+        public bool IsLatest { get; set; }
     }
 }

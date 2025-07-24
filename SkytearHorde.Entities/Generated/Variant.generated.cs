@@ -50,6 +50,14 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
+		/// Automatically create on variant
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("automaticallyCreateOnVariant")]
+		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent AutomaticallyCreateOnVariant => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "automaticallyCreateOnVariant");
+
+		///<summary>
 		/// Child of
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

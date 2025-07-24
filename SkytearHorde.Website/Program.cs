@@ -30,6 +30,7 @@ builder.CreateUmbracoBuilder()
     .AddNotificationHandler<ContentPublishedNotification, CardOverviewCacheClearer>()
     //.AddNotificationHandler<ContentPublishedNotification, CardSetConnectEventHandler>()
     .AddNotificationHandler<ContentPublishedNotification, CardVariantsEventHandler>()
+    .AddNotificationHandler<ContentPublishedNotification, CardCreateVariantsEventHandler>()
     //.AddNotificationHandler<ContentPublishedNotification, CardSortingEventHandler>()
     .AddSlimsy()
     .Build();
@@ -153,7 +154,7 @@ void ConfigureServices(IServiceCollection services, bool isProduction)
         {
             cors
                 .SetIsOriginAllowedToAllowWildcardSubdomains()
-                .WithOrigins("https://cloudflaretest.aidalon-db.com")
+                .WithOrigins("https://cloudflaretest.aidalon-db.com", "https://aidalon.local:3000")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()

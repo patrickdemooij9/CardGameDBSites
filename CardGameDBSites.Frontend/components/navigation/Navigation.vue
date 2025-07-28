@@ -9,6 +9,16 @@ defineProps<{
 const isOpen = ref(false);
 const isAccountsOpen = ref(false);
 const accountStore = useAccountStore();
+
+function closeMenu() {
+  isOpen.value = false;
+  isAccountsOpen.value = false;
+}
+
+function logout() {
+  accountStore.logout();
+  closeMenu();
+}
 </script>
 
 <template>
@@ -23,8 +33,8 @@ const accountStore = useAccountStore();
     class="h-14 text-base z-20"
   >
     <div class="container md:px-8">
-      <div class="flex justify-between overflow-auto">
-        <NuxtLink to="/" class="ml-2 no-underline">
+      <div class="flex justify-between overflow-auto items-center">
+        <NuxtLink to="/" class="ml-2 no-underline" @click="closeMenu">
           <img :src="content.navigationLogoUrl" class="h-14 py-2 pr-8" />
         </NuxtLink>
 
@@ -45,31 +55,40 @@ const accountStore = useAccountStore();
               <p
                 class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0"
               >
-                <NuxtLink :to="item.url" class="no-underline">
+                <NuxtLink
+                  :to="item.url"
+                  class="no-underline"
+                  @click="closeMenu"
+                >
                   {{ item.name }}
                 </NuxtLink>
                 <PhCaretDown v-if="item.children.length > 0" />
               </p>
               <div
                 v-if="item.children.length > 0"
-                class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:-mt-2 hidden"
+                class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 hidden"
               >
                 <NuxtLink
                   v-for="child in item.children"
                   :to="child.url"
                   class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
+                  @click="closeMenu"
                 >
                   {{ child.name }}
                 </NuxtLink>
               </div>
             </div>
           </div>
-          <div v-if="content.loginPageUrl" class="group">
+          <div v-if="content.loginPageUrl" class="group mt-4 mx-2 md:mt-0">
             <p
               class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0"
               v-if="!accountStore.isLoggedIn"
             >
-              <NuxtLink :to="content.loginPageUrl" class="no-underline">
+              <NuxtLink
+                :to="content.loginPageUrl"
+                class="no-underline"
+                @click="closeMenu"
+              >
                 Login
               </NuxtLink>
               <PhSignIn />
@@ -83,18 +102,19 @@ const accountStore = useAccountStore();
             </p>
             <div
               v-if="accountStore.isLoggedIn && content.accountItems.length > 0"
-              class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:-mt-2 hidden"
+              class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:hidden"
             >
               <NuxtLink
                 v-for="child in content.accountItems"
                 :to="child.url"
                 class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
+                @click="closeMenu"
               >
                 {{ child.name }}
               </NuxtLink>
               <button
                 class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
-                @click="accountStore.logout()"
+                @click="logout"
               >
                 Logout
               </button>

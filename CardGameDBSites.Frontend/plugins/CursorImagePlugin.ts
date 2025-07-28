@@ -1,6 +1,8 @@
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive("cursor-image", {
-    beforeMount(el: HTMLElement, binding) {
+    async beforeMount(el: HTMLElement, binding) {
+      await nextTick();
+
       const cursorImageElem = document.querySelector(
         "#cursor-image"
       ) as HTMLElement;

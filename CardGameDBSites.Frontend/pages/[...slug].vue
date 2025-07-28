@@ -24,6 +24,8 @@ if (Array.isArray(slug)){
 }
 const data = await DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug);
 const seo = await DoFetch<PageSeoModel>("/api/seo?contentGuid=" + data.id);
+const config = useRuntimeConfig();
+
 useHead({
     title: seo.metaFields.title,
     meta: [
@@ -32,6 +34,10 @@ useHead({
         { property: 'og:description', content: seo.metaFields.metaDescription },
         { property: 'og:image', content: seo.metaFields.openGraphImage },
         { property: 'og:url', content: seo.metaFields.canonicalUrl }
+    ],
+    link: [
+        { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` },
+        { rel: 'canonical', href: seo.metaFields.canonicalUrl }
     ]
 });
 

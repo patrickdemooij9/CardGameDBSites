@@ -8,21 +8,22 @@ import Button from "~/components/shared/Button.vue";
 import CreateDeckGroup from "./models/CreateDeckGroup";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import ButtonType from "~/components/shared/ButtonType";
-import { placements } from "floating-vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 
-const selectedArea = defineModel<CreateDeckSelectedArea>("selectedArea");
 const name = defineModel<string>("name");
 
-defineEmits<{
+const emit = defineEmits<{
   (e: "submitForm", publish: boolean): void;
   (e: "ignorePassiveFilters", ignore: boolean): void;
+  (e: "selectCard", value: CardDetailApiModel): void;
+  (e: "selectSlot", value: CreateDeckSelectedArea): void;
 }>();
 
-defineProps<{
+const props = defineProps<{
   deck: CreateDeckModel;
   currentTab: DeckBuilderTab;
   ignorePassiveFilters: boolean;
+  selectedArea?: CreateDeckSelectedArea
 }>();
 
 const accountStore = useAccountStore();
@@ -42,17 +43,15 @@ function getDisplayClassesForItem(slot: CreateDeckSlot) {
   return classes;
 }
 
-function selectCharacter(card: any) {}
-
 function clickSlot(
   group: CreateDeckGroup,
   slot: CreateDeckSlot,
   isChild: boolean
 ) {
-  selectedArea.value = {
+  emit("selectSlot", {
     slot: slot,
     group: group,
-  };
+  });
 }
 
 function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
@@ -128,7 +127,7 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
                   <div
                     class="flex items-center border rounded mb-2 cursor-pointer tooltip-starter"
                     :class="getDisplayClassesForItem(slot)"
-                    v-on:click="selectCharacter(item.card)"
+                    v-on:click.prevent="emit('selectCard', item.card)"
                   >
                     <img
                       :src="GetCrop(item.card.imageUrl, undefined)!"
@@ -148,7 +147,7 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
                     <div class="flex grow justify-between px-4">
                       <div
                         class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
-                        v-cursor-image="item.card.imageUrl"
+                        v-cursor-image="item.card.imageUrl?.url"
                       >
                         <span class="name">{{ item.card.displayName }}</span>
                         <span
@@ -222,12 +221,12 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
                         <div
                           class="flex items-center border rounded ml-4 mb-2 cursor-pointer tooltip-starter"
                           :class="getDisplayClassesForItem(slot)"
-                          v-on:click="selectCharacter(child.card)"
+                          v-on:click.prevent="emit('selectCard', child.card)"
                         >
                           <div class="flex grow justify-between px-4">
                             <div
                               class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
-                              :data-cursor-image="child.card.imageUrl"
+                              v-cursor-image="child.card.imageUrl?.url"
                             >
                               <span class="name">{{
                                 child.card.displayName
@@ -308,7 +307,7 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
                   .length > 0
               "
               :distance="6"
-              :placement="'right'"
+              :placement="'top'"
               :triggers="['hover','click']">
             <Button
               :button-type="ButtonType.Danger"

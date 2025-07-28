@@ -8,12 +8,16 @@ import type { CreateDeckModel } from "./models/CreateDeckModel";
 import SiteService from "~/services/SiteService";
 import DeckService from "~/services/DeckService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
+import { onBeforeRouteLeave } from 'vue-router';
+import type CreateDeckGroup from "./models/CreateDeckGroup";
+import type CreateDeckSlot from "./models/CreateDeckSlot";
 
 const route = useRoute();
+const router = useRouter();
 let deckId: number | undefined = undefined;
-if (route.query["id"]){
+if (route.query["id"]) {
   const query = route.query["id"];
-  if (!Array.isArray(query)){
+  if (!Array.isArray(query)) {
     deckId = parseInt(query);
   }
 }
@@ -43,9 +47,16 @@ function selectCard(card: CardDetailApiModel) {
   selectedCard.value = card;
 }
 
+function selectSlot(
+  value: CreateDeckSelectedArea
+) {
+  selectedArea.value = value;;
+  clickTab(DeckBuilderTab.Cards);
+}
+
 async function submitForm(publish: boolean) {
   const result = await new DeckService().post(deck.value, publish);
-  useRouter().push("/decks/" + result);
+  router.push("/decks/" + result);
 }
 
 function handleScroll() {
@@ -58,12 +69,31 @@ function handleScroll() {
   }
 }
 
+const toRemove = router.beforeEach((to, from, next) => {
+  if (from.fullPath === route.fullPath) {
+    if (confirm("Are you sure you want to leave this page?")) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
+
+function beforeUnload(e: Event) {
+  e.preventDefault();
+}
+
 onMounted(() => {
   window.addEventListener("scroll", handleScroll);
+  window.addEventListener("beforeunload", beforeUnload);
 });
 
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);
+  window.removeEventListener("beforeunload", beforeUnload);
+  toRemove();
 });
 </script>
 
@@ -113,12 +143,14 @@ onUnmounted(() => {
       <div class="flex">
         <DeckBuilderDeckTab
           :deck="deck"
-          v-model:selected-area="selectedArea"
+          :selected-area="selectedArea"
           v-model:name="deck.name"
           :current-tab="currentTab"
           :ignore-passive-filters="ignorePassiveFilters"
           @submit-form="submitForm"
           @ignore-passive-filters="ignorePassiveFilters = $event"
+          @select-card="selectCard"
+          @select-slot="selectSlot"
         />
         <DeckBuilderCardsTab
           v-model:current-tab="currentTab"
@@ -131,11 +163,15 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <DeckBuilderCardModal v-if="selectedCard" :selected-card="selectedCard" @close="selectedCard = undefined" />
+    <DeckBuilderCardModal
+      v-if="selectedCard"
+      :selected-card="selectedCard"
+      @close="selectedCard = undefined"
+    />
     <div
       id="cursor-image"
       class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"
-      style="display:none;"
+      style="display: none"
     ></div>
   </div>
 </template>

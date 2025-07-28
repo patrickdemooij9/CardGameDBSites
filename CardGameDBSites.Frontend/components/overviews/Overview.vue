@@ -81,11 +81,11 @@ function reloadData() {
   if (search.value) {
     url.searchParams.append("search", search.value);
   }
-  Object.entries(selectedFilters.value).forEach((entry) => {
+  /*Object.entries(selectedFilters.value).forEach((entry) => {
     entry[1].forEach((value) => {
       url.searchParams.append(entry[0], value);
     });
-  });
+  });*/
   history.replaceState("", "", url);
 
   isLoading.value = true;

@@ -2,10 +2,11 @@
 import CardService from "~/services/CardService";
 import Overview from "./Overview.vue";
 import type { OverviewFilterModel } from "./OverviewFilterModel";
-import type {
-  CardsQueryFilterApiModel,
-  CardsQueryFilterClauseApiModel,
-  PagedResultCardDetailApiModel,
+import {
+  CardSearchFilterClauseType,
+  type CardsQueryFilterApiModel,
+  type CardsQueryFilterClauseApiModel,
+  type PagedResultCardDetailApiModel,
 } from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
@@ -45,11 +46,13 @@ watch(
 
 async function loadData(value: OverviewRefreshModel) {
   const filters: CardsQueryFilterClauseApiModel[] = [];
-  const searchFilters: CardsQueryFilterApiModel[] = [];
   Object.entries(value.SelectedFilters).forEach(([key, values]) => {
-    searchFilters.push({
-      alias: key,
-      values,
+    filters.push({
+      clauseType: CardSearchFilterClauseType.AND,
+      filters: [{
+        alias: key,
+        values: values,
+      }]
     });
   });
   props.internalFilters?.forEach((filter) => {

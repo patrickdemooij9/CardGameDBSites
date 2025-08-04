@@ -1,0 +1,174 @@
+[
+	{
+		"Alias": "Card Type",
+		"Type": "OCR",
+		"PosX1": 16.8,
+		"PosX2": 40,
+		"PosY1": 3,
+		"PosY2": 5.5,
+		"IgnoreWhitespace": true,
+		"IgnoreSpecialCharacters": true
+	},
+	{
+		"Alias": "Cost",
+		"Type": "OCR",
+		"PosX1": 4.65,
+		"PosX2": 16.28,
+		"PosY1": 3.33,
+		"PosY2": 10.9,
+		"IgnoreWhitespace": true,
+		"IgnoreSpecialCharacters": true
+	},
+	{
+		"Alias": "Name",
+		"Type": "OCR",
+		"PosX1": 17.44,
+		"PosX2": 93,
+		"PosY1": 5.33,
+		"PosY2": 11,
+		"IgnoreWhitespace": true
+	},
+	{
+		"Alias": "Location",
+		"Type": "OCR",
+		"PosX1": 42,
+		"PosX2": 88,
+		"PosY1": 3,
+		"PosY2": 5.8,
+		"IgnoreWhitespace": true,
+		"IgnoreSpecialCharacters": true,
+		"Conditions": {
+			"Card Type": [ "UNIT" ]
+		}
+	},
+	{
+		"Alias": "Subname",
+		"Type": "OCR",
+		"PosX1": 21.4,
+		"PosX2": 87.2,
+		"PosY1": 11.16,
+		"PosY2": 13.5,
+		"IgnoreWhitespace": true,
+		"IgnoreSpecialCharacters": true,
+		"Conditions": {
+			"Card Type": [ "UNIT" ]
+		}
+	},
+	{
+		"Alias": "Power",
+		"Type": "OCR",
+		"PosX1": 5.11,
+		"PosX2": 16.28,
+		"PosY1": 59,
+		"PosY2": 68.33,
+		"IgnoreWhitespace": true,
+		"Conditions": {
+			"Card Type": [ "UNIT" ]
+		}
+	},
+	{
+		"Alias": "Health",
+		"Type": "OCR",
+		"PosX1": 83.72,
+		"PosX2": 94.19,
+		"PosY1": 59,
+		"PosY2": 68.33,
+		"IgnoreWhitespace": true,
+		"Conditions": {
+			"Card Type": [ "UNIT" ]
+		}
+	},
+	{
+		"Alias": "Traits_multiple",
+		"Type": "OCR",
+		"PosX1": 18.6,
+		"PosX2": 81.4,
+		"PosY1": 63.33,
+		"PosY2": 67.5,
+		"IgnoreWhitespace": true,
+		"Conditions": {
+			"Card Type": [ "UNIT" ]
+		}
+	},
+	{
+		"Alias": "Abilities",
+		"Type": "OCR",
+		"PosX1": 6.97,
+		"PosX2": 93,
+		"PosY1": 70,
+		"PosY2": 91.66,
+		"IgnoreWhitespace": true,
+		"Conditions": {
+			"Card Type": [ "UNIT" ]
+		}
+	},
+	{
+		"Alias": "Abilities",
+		"Type": "OCR",
+		"PosX1": 6.97,
+		"PosX2": 93,
+		"PosY1": 57.83,
+		"PosY2": 80.66,
+		"IgnoreWhitespace": true,
+		"Conditions": {
+			"Card Type": [ "UPGRADE" ]
+		}
+	},
+	{
+		"Alias": "Abilities",
+		"Type": "OCR",
+		"PosX1": 6.97,
+		"PosX2": 93,
+		"PosY1": 18.83,
+		"PosY2": 48.66,
+		"IgnoreWhitespace": true,
+		"Conditions": {
+			"Card Type": [ "EVENT" ]
+		}
+	},
+	{
+		"Alias": "SWU Id",
+		"Type": "OCR",
+		"PosX1": 87.21,
+		"PosX2": 95.35,
+		"PosY1": 94.66,
+		"PosY2": 96.66,
+		"IgnoreWhitespace": true
+	},
+	{
+		"Alias": "Bonus Power",
+		"Type": "Constant",
+		"Constant": "TODO",
+		"Conditions": {
+			"Card Type": [ "UPGRADE" ]
+		}
+	},
+	{
+		"Alias": "Bonus Health",
+		"Type": "Constant",
+		"Constant": "TODO",
+		"Conditions": {
+			"Card Type": [ "UPGRADE" ]
+		}
+	},
+	{
+		"Alias": "Aspects_multiple",
+		"Type": "Constant",
+		"Constant": "TODO"
+	},
+	{
+		"Alias": "Amount",
+		"Type": "Constant",
+		"Constant": "3"
+	},
+	{
+		"Alias": "TTS Id",
+		"Type": "Constant",
+		"Constant": "TODO"
+	},
+	{
+		"Alias": "Rarity",
+		"Type": "Constant",
+		"Constant": "TODO"
+	}
+]

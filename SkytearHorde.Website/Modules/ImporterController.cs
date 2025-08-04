@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using NPoco.Expressions;
 using OfficeOpenXml;
 using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Extensions;
@@ -10,6 +11,7 @@ using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
+using SkytearHorde.Entities.Models.ViewModels;
 using System.IO.Compression;
 using System.Net.Http.Headers;
 using Umbraco.Cms.Core;
@@ -21,7 +23,9 @@ using Umbraco.Cms.Core.Strings;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Web.BackOffice.Controllers;
 using Umbraco.Cms.Web.Common.Attributes;
+using static Lucene.Net.Search.FieldValueHitQueue;
 using static SkytearHorde.Business.Helpers.BlockListCreatorHelper;
+using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace SkytearHorde.Modules
 {
@@ -78,6 +82,54 @@ namespace SkytearHorde.Modules
             var file = Request.Form.Files.FirstOrDefault();
             var importModels = ReadExcel(file.OpenReadStream());
             ImportModels(importModels);
+
+            return Ok();
+        }
+
+        public IActionResult ImportJsonFiles(int nodeId, int setId)
+        {
+            _siteAccessor.SetSiteId(GetSiteIdByNode(nodeId));
+
+            using (var reader = new StreamReader(Request.Form.Files.FirstOrDefault()!.OpenReadStream()))
+            using (var jsonReader = new JsonTextReader(reader))
+            {
+                JsonSerializer ser = new JsonSerializer();
+                var files = ser.Deserialize<CardReaderOuputItem[]>(jsonReader) ?? [];
+
+                using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+                var cardImageParentId = _siteService.GetSettings().FirstChild<SiteSettings>().CardImageRoot.Id;
+                var setName = ctx.UmbracoContext.Content.GetById(setId).Name;
+
+                var importModels = new List<ImportModel>();
+                foreach (var item in files)
+                {
+                    var itemName = item.Name;
+                    if (item.TryGetValue("Subname", out var subname))
+                    {
+                        itemName += $", {subname}";
+                    }
+
+                    var media = _mediaService.CreateMediaWithIdentity(itemName, cardImageParentId, Image.ModelTypeAlias);
+
+                    using var mediaItemStream = new MemoryStream(Convert.FromBase64String(item.ImageBase64));
+                    media.SetValue(_mediaFileManager, _mediaUrlGenerators, _shortStringHelper, _contentTypeBaseServiceProvider, "umbracoFile", itemName + ".png", mediaItemStream);
+                    _mediaService.Save(media);
+
+                    var properties = new Dictionary<string, string>();
+                    var ignoredProperties = new string[] { "Name", "image", "image_base64" };
+                    foreach (var entry in item.Where(it => !ignoredProperties.Contains(it.Key, StringComparer.InvariantCultureIgnoreCase)))
+                    {
+                        properties.Add(entry.Key, entry.Value.ToString()!);
+                    }
+                    importModels.Add(new ImportModel(null, itemName, setName)
+                    {
+                        ImageId = media.Id,
+                        Properties = properties
+                    });
+                }
+
+                ImportModels(importModels);
+            }
 
             return Ok();
         }
@@ -546,6 +598,14 @@ namespace SkytearHorde.Modules
                     if (variant is not null)
                     {
                         card.SetValue("variantType", Udi.Create(Constants.UdiEntityType.Document, variant.Key).ToString());
+                    }
+                }
+                if (model.ImageId.HasValue)
+                {
+                    var mediaItem = ctx.UmbracoContext.Media?.GetById(model.ImageId.Value);
+                    if (mediaItem != null)
+                    {
+                        card.SetValue("image", Udi.Create(Constants.UdiEntityType.Media, mediaItem.Key).ToString());
                     }
                 }
 

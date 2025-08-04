@@ -12,8 +12,14 @@
         <a href="/umbraco/backoffice/importer/importer/export">Export</a>
     </div>
 
-    <input id="import-images" type="file"/>
+    <input id="import-images" type="file" />
     <umb-button action="vm.doImportImages()" label="Import Images (.zip)">
+        Import
+    </umb-button>
+
+    <input id="import-json" type="file" />
+    <input id="import-json-set-id" type="number" />
+    <umb-button action="vm.doImportJson()" label="Import Cards (.json) from reader">
         Import
     </umb-button>
 </div>

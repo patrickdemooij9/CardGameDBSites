@@ -10,7 +10,6 @@ import {
 } from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
-const route = useRoute();
 const cardService = new CardService();
 
 const props = defineProps<{
@@ -19,28 +18,14 @@ const props = defineProps<{
   whiteBackground: boolean;
 }>();
 
-const pageNumber = ref(1);
-const pageNumberString = route.query["page"];
-if (pageNumberString) {
-  pageNumber.value = Number.parseInt(pageNumberString as string);
-}
-
 const pagedCards = ref<PagedResultCardDetailApiModel>();
-
-await loadData({
-  Query: "",
-  SelectedFilters: {},
-});
+const overview = ref<InstanceType<typeof Overview>>();
 
 //TODO: this needs to be reworked otherwise we keep on resetting stuff
 watch(
   () => props.internalFilters,
   async () => {
-    pageNumber.value = 1;
-    await loadData({
-      Query: "",
-      SelectedFilters: {},
-    });
+    overview.value?.setPage(1);
   }
 );
 
@@ -61,7 +46,7 @@ async function loadData(value: OverviewRefreshModel) {
 
   pagedCards.value = await cardService.query({
     query: value.Query,
-    pageNumber: pageNumber.value,
+    pageNumber: value.PageNumber,
     pageSize: 30,
     filterClauses: filters,
     variantTypeId: 0,
@@ -84,13 +69,13 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
 
 <template>
   <Overview
-    :page="pageNumber"
     :hide-search="false"
     :hide-filters="false"
     :white-background="whiteBackground"
     :filters="filters"
     @reload="loadData"
     @loadLazyFilter="loadLazyFilter"
+    ref="overview"
   >
     <div v-if="pagedCards">
       <slot :cards="pagedCards"> </slot>
@@ -99,36 +84,37 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
         v-if="(pagedCards.totalPages ?? 0) > 1"
       >
         <div
+        v-if="overview"
           class="flex items-center mt-3 border border-gray-400 rounded bg-white overflow-hidden"
         >
           <a
-            v-if="pageNumber > 1"
-            :href="'?page=' + (pageNumber - 1)"
+            v-if="overview.getPage() > 1"
+            :href="'?page=' + (overview.getPage() - 1)"
             class="pointer px-4 py-2 hover:bg-gray-400 no-underline"
-            @click.prevent="pageNumber = pageNumber - 1"
+            @click.prevent="overview.setPage(overview.getPage() - 1)"
             >Previous</a
           >
 
-          <template v-for="i in pageNumber + 4">
+          <template v-for="i in overview.getPage() + 4">
             <a
               v-if="i - 2 <= (pagedCards.totalPages ?? 0) && i - 2 > 0"
               :href="'?page=' + (i - 2)"
               :class="[
-                i - 2 === pageNumber
+                i - 2 === overview.getPage()
                   ? 'bg-main-color text-white'
                   : 'hover:bg-gray-100',
               ]"
               class="pointer px-4 py-2 border-l border-gray-400 no-underline"
-              @click.prevent="pageNumber = i - 2"
+              @click.prevent="overview.setPage(i - 2)"
               >{{ i - 2 }}</a
             >
           </template>
 
           <a
-            v-if="pageNumber < (pagedCards.totalPages ?? 0)"
-            :href="'?page=' + (pageNumber + 1)"
+            v-if="overview.getPage() < (pagedCards.totalPages ?? 0)"
+            :href="'?page=' + (overview.getPage() + 1)"
             class="pointer px-4 py-2 border-l border-gray-400 hover:bg-gray-100 no-underline"
-            @click.prevent="pageNumber = pageNumber + 1"
+            @click.prevent="overview.setPage(overview.getPage() + 1)"
             >Next</a
           >
         </div>

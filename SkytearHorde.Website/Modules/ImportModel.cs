@@ -5,6 +5,7 @@
         public int? Id { get; set; }
         public int? ParentId { get; set; }
         public int? VariantTypeId { get; set; }
+        public int? ImageId { get; set; }
         public string Name { get; set; }
         public string SetName { get; set; }
         public bool HideFromDecks { get; set; }

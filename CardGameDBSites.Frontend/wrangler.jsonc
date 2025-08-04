@@ -6,8 +6,8 @@
     "bucket": ".output/public"
   },
   "vars": {
-        "NUXT_API_BASE_URL": "https://aidalon-db.com",
-        "NUXT_PUBLIC_API_BASE_URL": "https://aidalon-db.com",
-        "API_BASE_URL": "https://aidalon-db.com"
+        "NUXT_API_BASE_URL": "https://api.aidalon-db.com",
+        "NUXT_PUBLIC_API_BASE_URL": "https://api.aidalon-db.com",
+        "API_BASE_URL": "https://api.aidalon-db.com"
       }
 }

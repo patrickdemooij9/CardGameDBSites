@@ -9,20 +9,17 @@ import type { OverviewFilterModel } from "./OverviewFilterModel";
 import Dropdown from "../shared/Dropdown.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
-const props = defineProps<{
+defineProps<{
   hideSearch: boolean;
   hideFilters: boolean;
   filters: OverviewFilterModel[];
   whiteBackground: boolean;
-  page: number;
 }>();
 
-watch(
-  () => props.page,
-  () => {
-    reloadData();
-  }
-);
+defineExpose({
+  setPage,
+  getPage
+});
 
 const emit = defineEmits<{
   (e: "reload", value: OverviewRefreshModel): void;
@@ -35,11 +32,30 @@ const search = ref(route.query.search?.toString() ?? "");
 
 const selectedFilters = ref<Record<string, string[]>>({});
 const isLoading = ref(false);
+const page = ref(1);
+const pageNumberString = route.query["page"];
+if (pageNumberString) {
+  page.value = Number.parseInt(pageNumberString as string);
+}
 
 const filtersOpen = ref(false);
 
 function clickFilters() {
   filtersOpen.value = !filtersOpen.value;
+}
+
+function getPage(){
+  return page.value;
+}
+
+function setPage(newPageNumber: number) {
+  const shouldReload = newPageNumber !== page.value;
+
+  page.value = newPageNumber;
+
+  if (shouldReload){
+    reloadData();
+  }
 }
 
 function loadLazyDropdownItemsIfNeeded(filter: OverviewFilterModel) {
@@ -75,8 +91,8 @@ function handleSubmit(event: Event) {
 
 function reloadData() {
   const url = new URL(window.location.href.split("?")[0]);
-  if (props.page !== 1) {
-    url.searchParams.append("page", props.page.toString());
+  if (page.value !== 1) {
+    url.searchParams.append("page", page.value.toString());
   }
   if (search.value) {
     url.searchParams.append("search", search.value);
@@ -92,11 +108,14 @@ function reloadData() {
   emit("reload", {
     Query: search.value,
     SelectedFilters: selectedFilters.value,
+    PageNumber: page.value,
     LoadedCallback: () => {
       isLoading.value = false;
     },
   });
 }
+
+reloadData();
 </script>
 
 <template>

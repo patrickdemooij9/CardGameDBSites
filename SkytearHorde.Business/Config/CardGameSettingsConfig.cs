@@ -7,5 +7,6 @@
         public string TcgPlayerApiSecret { get; set; }
         public string SentryLink { get; set; }
         public string RecaptchaSecret { get; set; }
+        public string CardReaderApiKey { get; set; }
     }
 }

@@ -2,10 +2,13 @@
 using OfficeOpenXml;
 using OfficeOpenXml.Table;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
+using SkytearHorde.Entities.Models.TTS;
 using SkytearHorde.Entities.Models.ViewModels;
 using System.Linq;
 using static Umbraco.Cms.Core.Constants.HttpContext;
+using Card = SkytearHorde.Entities.Models.Business.Card;
 
 namespace SkytearHorde.Business.Exports.Collection
 {
@@ -13,11 +16,13 @@ namespace SkytearHorde.Business.Exports.Collection
     {
         private readonly VariantTypeViewModel[] _variants;
         private readonly CardService _cardService;
+        private readonly ImportMapping[] _mappings;
 
-        public DetailedCollectionImport(VariantTypeViewModel[] variants, CardService cardService)
+        public DetailedCollectionImport(VariantTypeViewModel[] variants, CardService cardService, ImportMapping[] mappings)
         {
             _variants = variants;
             _cardService = cardService;
+            _mappings = mappings;
         }
 
         public Task<byte[]> Export(CollectionCardItem[] collection)
@@ -171,20 +176,24 @@ namespace SkytearHorde.Business.Exports.Collection
 
             var foilVariantTypes = _variants.Where(it => it.ChildOfBase || it.ChildOf.HasValue).Select(it => it.Id).ToArray();
 
-            foreach (var record in records)
+            Card? GetCard(DetailedCsvModel record)
             {
-                var item = new CollectionCardItem();
-
                 if (!int.TryParse(record.CardNumber, out var cardId) || !allCardsGrouped.ContainsKey(record.CardNumber))
                 {
                     throw new Exception($"Could not find card with ID: {record.CardNumber} in set {record.Set} with foil set to {record.IsFoil}");
+                }
+
+                var matchedMapping = _mappings.FirstOrDefault(it => it.SetCode?.Equals(record.Set, StringComparison.InvariantCultureIgnoreCase) is true && it.CardId?.Equals(record.CardNumber) is true);
+                if (matchedMapping != null)
+                {
+                    return _cardService.GetVariant(matchedMapping.CardResult!.Id)!;
                 }
 
                 if (!allSets.TryGetValue(record.Set.ToLowerInvariant(), out var setId))
                 {
                     throw new Exception($"No set exists with code: {record.Set}");
                 }
-                
+
                 var cards = allCardsGrouped[record.CardNumber].Where(it => it.SetId == setId).ToArray();
                 if (cards.Length == 0)
                 {
@@ -201,14 +210,13 @@ namespace SkytearHorde.Business.Exports.Collection
                     throw new Exception("IsFoil should be TRUE or FALSE");
                 }
 
-                Card? card;
                 if (!isFoil)
                 {
-                    card = cards.FirstOrDefault(it => it.VariantTypeId is null) ?? cards.FirstOrDefault(it => !foilVariantTypes.Contains(it.VariantTypeId ?? 0));
+                    return cards.FirstOrDefault(it => it.VariantTypeId is null) ?? cards.FirstOrDefault(it => !foilVariantTypes.Contains(it.VariantTypeId ?? 0));
                 }
                 else
                 {
-                    card = cards.FirstOrDefault(it => foilVariantTypes.Contains(it.VariantTypeId ?? 0));
+                    var card = cards.FirstOrDefault(it => foilVariantTypes.Contains(it.VariantTypeId ?? 0));
 
                     // SWUDB didn't update the numbering on foils
                     if (card is null)
@@ -221,7 +229,14 @@ namespace SkytearHorde.Business.Exports.Collection
                             card = value.FirstOrDefault(it => it.SetId == setId && variantTypeToFind.Id == it.VariantTypeId);
                         }
                     }
+                    return card;
                 }
+            }
+
+            foreach (var record in records)
+            {
+                var item = new CollectionCardItem();
+                var card = GetCard(record);
 
                 if (card is null)
                 {

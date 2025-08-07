@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.ViewModels;
 using System.Globalization;
@@ -10,11 +11,13 @@ namespace SkytearHorde.Business.Exports.Collection
     {
         private readonly VariantTypeViewModel[] _variants;
         private readonly CardService _cardService;
+        private readonly ImportMapping[] _importMappings;
 
-        public CsvCollectionManager(VariantTypeViewModel[] variants, CardService cardService)
+        public CsvCollectionManager(VariantTypeViewModel[] variants, CardService cardService, ImportMapping[]  importMappings)
         {
             _variants = variants;
             _cardService = cardService;
+            _importMappings = importMappings;
         }
 
         public Task<byte[]> Export(CollectionCardItem[] collection)
@@ -29,7 +32,7 @@ namespace SkytearHorde.Business.Exports.Collection
 
             var records = csv.GetRecords<DetailedCsvModel>().ToArray();
 
-            return new DetailedCollectionImport(_variants, _cardService).Import(records);
+            return new DetailedCollectionImport(_variants, _cardService, _importMappings).Import(records);
         }
     }
 }

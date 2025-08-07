@@ -24,6 +24,7 @@ namespace SkytearHorde.Business.Controllers
         private readonly CollectionService _collectionService;
         private readonly ViewRenderHelper _viewRenderHelper;
         private readonly ISiteService _siteService;
+        private readonly SettingsService _settingsService;
         private readonly ILogger<CollectionController> _logger;
 
         public CollectionController(CardService cardService,
@@ -31,6 +32,7 @@ namespace SkytearHorde.Business.Controllers
             CollectionService collectionService,
             ViewRenderHelper viewRenderHelper,
             ISiteService siteService,
+            SettingsService settingsService,
             ILogger<CollectionController> logger)
         {
             _cardService = cardService;
@@ -38,6 +40,7 @@ namespace SkytearHorde.Business.Controllers
             _collectionService = collectionService;
             _viewRenderHelper = viewRenderHelper;
             _siteService = siteService;
+            _settingsService = settingsService;
             _logger = logger;
         }
 
@@ -280,7 +283,7 @@ namespace SkytearHorde.Business.Controllers
             }
             else
             {
-                data = await new DetailedCollectionImport(variantTypes, _cardService).Export(collection);
+                data = await new DetailedCollectionImport(variantTypes, _cardService, _settingsService.GetCollectionSettings().ImportMappings).Export(collection);
             }
 
             return File(data, "application/octet-stream", "CollectionExport.xlsx");
@@ -301,7 +304,7 @@ namespace SkytearHorde.Business.Controllers
                 {
                     if (file.FileName.EndsWith(".csv"))
                     {
-                        items.AddRange(new CsvCollectionManager(variants, _cardService).Import(stream));
+                        items.AddRange(new CsvCollectionManager(variants, _cardService, _settingsService.GetCollectionSettings().ImportMappings).Import(stream));
                     }
                     else if (file.FileName.EndsWith(".xlsx"))
                     {

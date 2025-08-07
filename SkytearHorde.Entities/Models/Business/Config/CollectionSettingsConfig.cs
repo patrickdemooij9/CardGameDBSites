@@ -1,4 +1,6 @@
-﻿namespace SkytearHorde.Entities.Models.Business.Config
+﻿using SkytearHorde.Entities.Generated;
+
+namespace SkytearHorde.Entities.Models.Business.Config
 {
     public class CollectionSettingsConfig
     {
@@ -6,5 +8,6 @@
         public bool AllowCardCollecting { get; set; }
         public string MainIdentifier { get; set; }
         public bool ShowProgressBar { get; set; }
+        public ImportMapping[] ImportMappings { get; set; } = [];
     }
 }

@@ -108,7 +108,8 @@ namespace SkytearHorde.Business.Services
                 AllowCardCollecting = settings.AllowCardCollecting,
                 AllowSetCollecting = settings.AllowSetCollecting,
                 MainIdentifier = settings.MainIdentifier?.Name!,
-                ShowProgressBar = settings.ShowProgressBar
+                ShowProgressBar = settings.ShowProgressBar,
+                ImportMappings = settings.Mapping.ToItems<ImportMapping>().ToArray()
             };
         }
     }

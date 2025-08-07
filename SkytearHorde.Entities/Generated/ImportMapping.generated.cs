@@ -18,14 +18,14 @@ using Umbraco.Extensions;
 
 namespace SkytearHorde.Entities.Generated
 {
-	/// <summary>Collection Settings</summary>
-	[PublishedModel("collectionSettings")]
-	public partial class CollectionSettings : PublishedContentModel
+	/// <summary>Import Mapping</summary>
+	[PublishedModel("importMapping")]
+	public partial class ImportMapping : PublishedElementModel
 	{
 		// helpers
 #pragma warning disable 0109 // new is redundant
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		public new const string ModelTypeAlias = "collectionSettings";
+		public new const string ModelTypeAlias = "importMapping";
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		public new const PublishedItemType ModelItemType = PublishedItemType.Content;
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
@@ -34,14 +34,14 @@ namespace SkytearHorde.Entities.Generated
 			=> PublishedModelUtility.GetModelContentType(publishedSnapshotAccessor, ModelItemType, ModelTypeAlias);
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedSnapshotAccessor publishedSnapshotAccessor, Expression<Func<CollectionSettings, TValue>> selector)
+		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedSnapshotAccessor publishedSnapshotAccessor, Expression<Func<ImportMapping, TValue>> selector)
 			=> PublishedModelUtility.GetModelPropertyType(GetModelContentType(publishedSnapshotAccessor), selector);
 #pragma warning restore 0109
 
 		private IPublishedValueFallback _publishedValueFallback;
 
 		// ctor
-		public CollectionSettings(IPublishedContent content, IPublishedValueFallback publishedValueFallback)
+		public ImportMapping(IPublishedElement content, IPublishedValueFallback publishedValueFallback)
 			: base(content, publishedValueFallback)
 		{
 			_publishedValueFallback = publishedValueFallback;
@@ -50,40 +50,27 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
-		/// Allow Card Collecting
-		///</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		[ImplementPropertyType("allowCardCollecting")]
-		public virtual bool AllowCardCollecting => this.Value<bool>(_publishedValueFallback, "allowCardCollecting");
-
-		///<summary>
-		/// Allow Set Collecting
-		///</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		[ImplementPropertyType("allowSetCollecting")]
-		public virtual bool AllowSetCollecting => this.Value<bool>(_publishedValueFallback, "allowSetCollecting");
-
-		///<summary>
-		/// Main Identifier
+		/// Card Id
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("mainIdentifier")]
-		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent MainIdentifier => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "mainIdentifier");
+		[ImplementPropertyType("cardId")]
+		public virtual string CardId => this.Value<string>(_publishedValueFallback, "cardId");
 
 		///<summary>
-		/// Mapping: Temp until I have implemented subsets
+		/// Card result
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("mapping")]
-		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Mapping => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "mapping");
+		[ImplementPropertyType("cardResult")]
+		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent CardResult => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "cardResult");
 
 		///<summary>
-		/// Show progress bar
+		/// Set map source
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
-		[ImplementPropertyType("showProgressBar")]
-		public virtual bool ShowProgressBar => this.Value<bool>(_publishedValueFallback, "showProgressBar");
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("setCode")]
+		public virtual string SetCode => this.Value<string>(_publishedValueFallback, "setCode");
 	}
 }

@@ -20,7 +20,7 @@ namespace SkytearHorde.Business.Services
         {
             if (string.IsNullOrWhiteSpace(query)) return Array.Empty<Card>();
 
-            if (!_examineManager.TryGetIndex("ExternalIndex", out var index)) return Array.Empty<Card>();
+            if (!_examineManager.TryGetIndex("CardIndex", out var index)) return Array.Empty<Card>();
 
             var ids = index.Searcher
                 .CreateQuery()

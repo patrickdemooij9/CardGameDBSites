@@ -5,22 +5,54 @@
 @using SkytearHorde.Entities.Models.ViewModels;
 @using Umbraco.Cms.Core.Models;
 @inherits UmbracoViewPage<BlockGridItem<Header>>
-<div class="container relative mb-16 h-80">
-    <figure class="absolute top-0 left-0 w-full h-full overflow-hidden after:bg-black/30 after:absolute after:w-full after:h-full after:top-0 after:left-0">
-        <img class="h-full object-cover" src="@(Model.Content.BackgroundImage?.GetCropUrl("Header"))" />
-    </figure>
-    <div class="flex flex-col gap-4 align-center justify-center h-full z-10 relative">
-        <form asp-controller="CardOverview" asp-action="search" class="flex overflow-hidden rounded border border-solid border-gray-300 bg-white sm:w-80">
-            <input class="pl-4 py-2 grow" name="search" type="text" placeholder="Search cards..." />
-            <button class="flex justify-center align-center w-8 text-lg px-3 bg-transparent" type="submit">
-                <i class="ph ph-magnifying-glass"></i>
-            </button>
-        </form>
-        <div class="flex gap-2">
-            @foreach(var link in Model.Content.SearchLinks ?? Enumerable.Empty<Link>())
-            {
-                <a href="@link.Url" class="rounded bg-main-color text-white py-2 px-4 no-underline shadow-lg hover:bg-main-color-hover">@link.Name</a>
-            }
+@if (Model.Content.UseNewDisplay)
+{
+    var random = new Random();
+    var subtitles = Model.Content.Subtitles?.ToArray() ?? [];
+    var selectedTagLine = subtitles[random.NextInt64(subtitles.Length)];
+    <div class="container relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100">
+        <div class="flex flex-col gap-4 align-center justify-center h-full z-10 relative">
+            <div class="pb-6 text-center">
+                <h1 class="text-6xl pb-2">@Model.Content.Title</h1>
+                <h2 class="text-2xl">@selectedTagLine</h2>
+            </div>
+            <form asp-controller="CardOverview" asp-action="search" class="flex overflow-hidden rounded border border-solid border-gray-300 sm:w-1/2 bg-white shadow-sm">
+                <input class="pl-4 py-4 grow" name="search" type="text" placeholder="Search cards..." />
+                <button class="flex justify-center items-center w-8 text-lg px-1 bg-transparent" type="submit">
+                    <i class="ph ph-magnifying-glass"></i>
+                </button>
+            </form>
+            <div class="flex gap-2">
+                @foreach (var link in Model.Content.SearchLinks ?? Enumerable.Empty<Link>())
+                {
+                    <p class="flex gap-1 align-center">
+                        <i class="ph ph-arrow-right"></i>
+                        <a href="@link.Url" class="no-underline">@link.Name</a>
+                    </p>
+                }
+            </div>
         </div>
     </div>
-</div>
+}
+else
+{
+    <div class="container relative mb-16 h-80">
+        <figure class="absolute top-0 left-0 w-full h-full overflow-hidden after:bg-black/30 after:absolute after:w-full after:h-full after:top-0 after:left-0">
+            <img class="h-full object-cover" src="@(Model.Content.BackgroundImage?.GetCropUrl("Header"))" />
+        </figure>
+        <div class="flex flex-col gap-4 align-center justify-center h-full z-10 relative">
+            <form asp-controller="CardOverview" asp-action="search" class="flex overflow-hidden rounded border border-solid border-gray-300 bg-white sm:w-80">
+                <input class="pl-4 py-2 grow" name="search" type="text" placeholder="Search cards..." />
+                <button class="flex justify-center align-center w-8 text-lg px-3 bg-transparent" type="submit">
+                    <i class="ph ph-magnifying-glass"></i>
+                </button>
+            </form>
+            <div class="flex gap-2">
+                @foreach (var link in Model.Content.SearchLinks ?? Enumerable.Empty<Link>())
+                {
+                    <a href="@link.Url" class="rounded bg-main-color text-white py-2 px-4 no-underline shadow-lg hover:bg-main-color-hover">@link.Name</a>
+                }
+            </div>
+        </div>
+    </div>
+}

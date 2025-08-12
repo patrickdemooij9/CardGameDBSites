@@ -95,6 +95,10 @@ nav + .container{
     height: calc(100vh - 56px);
 }
 
+.full-without-header {
+    height: calc(100vh - 56px);
+}
+
 #squad-panel.scrolled {
     height: 100vh;
 }

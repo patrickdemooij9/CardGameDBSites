@@ -18,7 +18,7 @@ defineProps<{
 
 defineExpose({
   setPage,
-  getPage
+  getPage,
 });
 
 const emit = defineEmits<{
@@ -44,7 +44,7 @@ function clickFilters() {
   filtersOpen.value = !filtersOpen.value;
 }
 
-function getPage(){
+function getPage() {
   return page.value;
 }
 
@@ -53,7 +53,7 @@ function setPage(newPageNumber: number) {
 
   page.value = newPageNumber;
 
-  if (shouldReload){
+  if (shouldReload) {
     reloadData();
   }
 }
@@ -90,19 +90,21 @@ function handleSubmit(event: Event) {
 }
 
 function reloadData() {
-  const url = new URL(window.location.href.split("?")[0]);
-  if (page.value !== 1) {
-    url.searchParams.append("page", page.value.toString());
-  }
-  if (search.value) {
-    url.searchParams.append("search", search.value);
-  }
-  /*Object.entries(selectedFilters.value).forEach((entry) => {
+  if (import.meta.client) {
+    const url = new URL(window.location.href.split("?")[0]);
+    if (page.value !== 1) {
+      url.searchParams.append("page", page.value.toString());
+    }
+    if (search.value) {
+      url.searchParams.append("search", search.value);
+    }
+    /*Object.entries(selectedFilters.value).forEach((entry) => {
     entry[1].forEach((value) => {
       url.searchParams.append(entry[0], value);
     });
   });*/
-  history.replaceState("", "", url);
+    history.replaceState("", "", url);
+  }
 
   isLoading.value = true;
   emit("reload", {

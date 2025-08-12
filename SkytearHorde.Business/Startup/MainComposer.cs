@@ -57,6 +57,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddScoped<CollectionService>();
             builder.Services.AddSingleton<CardPriceService>();
             builder.Services.AddScoped<RandomizeService>();
+            builder.Services.AddSingleton<CardSearchFieldsFinder>();
 
             builder.Services.AddSingleton<DeckRepository>();
             builder.Services.AddSingleton<DeckViewRepository>();

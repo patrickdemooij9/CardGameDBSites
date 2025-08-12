@@ -1,25 +1,23 @@
 ﻿using Examine;
 using Examine.Search;
-using NUglify.JavaScript.Syntax;
-using SkytearHorde.Entities.Models.Business;
-using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
-using YamlDotNet.Core.Tokens;
 
 namespace SkytearHorde.Business.Services.Search
 {
     public class CardSearchService : ICardSearchService
     {
         private readonly IExamineManager _examineManager;
+        private readonly CardSearchFieldsFinder _cardSearchFieldsFinder;
 
-        public CardSearchService(IExamineManager examineManager)
+        public CardSearchService(IExamineManager examineManager, CardSearchFieldsFinder cardSearchFieldsFinder)
         {
             _examineManager = examineManager;
+            _cardSearchFieldsFinder = cardSearchFieldsFinder;
         }
 
         public int[] Search(CardSearchQuery query, out int totalItems)
         {
-            if (!_examineManager.TryGetIndex("ExternalIndex", out var index))
+            if (!_examineManager.TryGetIndex("CardIndex", out var index))
             {
                 totalItems = 0;
                 return Array.Empty<int>();
@@ -27,9 +25,7 @@ namespace SkytearHorde.Business.Services.Search
 
             var searcher = index.Searcher
                 .CreateQuery()
-                .NativeQuery($"+__IndexType:content")
-                .And()
-                .NodeTypeAlias(Entities.Generated.CardVariant.ModelTypeAlias);
+                .NativeQuery($"+__IndexType:content");
 
             foreach(var filterClause in query.FilterClauses)
             {
@@ -78,9 +74,11 @@ namespace SkytearHorde.Business.Services.Search
             if (!string.IsNullOrWhiteSpace(query.Query))
             {
                 var splitQuery = query.Query.Replace('-', ' ').Split(' ');
+                var searchFields = new List<string> { "name" };
+                searchFields.AddRange(_cardSearchFieldsFinder.GetGeneralFieldsToSearch().Select(it => $"CustomField.{it}"));
                 foreach (var queryItem in splitQuery.Where(it => !string.IsNullOrWhiteSpace(it)))
                 {
-                    searcher.And().Field("Name", queryItem.MultipleCharacterWildcard());
+                    searcher.And().GroupedOr(searchFields, queryItem.MultipleCharacterWildcard());
                 }
             }
             else

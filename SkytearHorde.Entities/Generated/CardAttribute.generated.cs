@@ -73,6 +73,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool ExamineIsInteger => this.Value<bool>(_publishedValueFallback, "examineIsInteger");
 
 		///<summary>
+		/// General searchable
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("generalSearchable")]
+		public virtual bool GeneralSearchable => this.Value<bool>(_publishedValueFallback, "generalSearchable");
+
+		///<summary>
 		/// Hide from detail
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
@@ -106,6 +113,14 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[ImplementPropertyType("isMultiValue")]
 		public virtual bool IsMultiValue => this.Value<bool>(_publishedValueFallback, "isMultiValue");
+
+		///<summary>
+		/// Search alias
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("searchAlias")]
+		public virtual string SearchAlias => this.Value<string>(_publishedValueFallback, "searchAlias");
 
 		///<summary>
 		/// Separate Detail Area

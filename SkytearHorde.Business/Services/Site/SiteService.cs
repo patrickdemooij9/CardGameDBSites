@@ -82,7 +82,7 @@ namespace SkytearHorde.Business.Services.Site
 
         public CardAttribute[] GetAllAttributes()
         {
-            return GetRoot().FirstChild<CardAttributeContainer>()?.Children<CardAttribute>()?.ToArray() ?? Array.Empty<CardAttribute>();
+            return GetRoot().FirstChild<Data>()?.FirstChild<CardAttributeContainer>()?.Children<CardAttribute>()?.ToArray() ?? Array.Empty<CardAttribute>();
         }
     }
 }

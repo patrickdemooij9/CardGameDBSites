@@ -39,6 +39,7 @@ namespace SkytearHorde.Business.Helpers
         {
             return views switch
             {
+                int v when (v >= 200) => 30,
                 int v when (v >= 100) => 20,
                 int v when (v >= 50) => 10,
                 int v when (v >= 10) => 5,
@@ -49,7 +50,7 @@ namespace SkytearHorde.Business.Helpers
 
         private int GetPointsBasedOnLikes(int likes)
         {
-            return likes * 2;
+            return Math.Max(20, likes * 2);
         }
 
         private int GetPointsBasedOnCreateDate(DateTime createdDate)

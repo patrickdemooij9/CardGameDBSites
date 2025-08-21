@@ -99,6 +99,7 @@ namespace SkytearHorde.ViewComponents
             };
 
             var allCards = _cardService.GetAll().ToArray();
+            var allSets = _cardService.GetAllSets().ToDictionary(it => it.Id, it => it);
 
             teamModel.Squads = squadSettings.Squads.ToItems<SquadConfig>().Select((squad) => new CreateSquadViewModel
             {
@@ -202,7 +203,8 @@ namespace SkytearHorde.ViewComponents
                     }).ToArray(),
                     AllowedChildren = character.AllowedChildren,
                     MaxChildren = character.MaxChildren,
-                    Mutations = character.Mutations
+                    Mutations = character.Mutations,
+                    NonLegalDeckTypes = _cardService.GetNonLegalDeckTypesForCard(character)
                 });
             }
             teamModel.AllCharacters = allCharacters.ToArray();

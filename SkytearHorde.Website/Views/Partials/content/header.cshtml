@@ -10,7 +10,7 @@
     var random = new Random();
     var subtitles = Model.Content.Subtitles?.ToArray() ?? [];
     var selectedTagLine = subtitles[random.NextInt64(subtitles.Length)];
-    <div class="container relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100">
+    <div class="relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100">
         <div class="flex flex-col gap-4 align-center justify-center h-full z-10 relative">
             <div class="pb-6 text-center">
                 <h1 class="text-6xl pb-2">@Model.Content.Title</h1>

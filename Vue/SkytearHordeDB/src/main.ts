@@ -771,6 +771,18 @@ const app = createApp({
       return character.allowedChildren.length > 0
     },
 
+    isLegalDeck() {
+      const allCharactersInSquads: CardAmount[] = this.squads
+        .flatMap((s: Squad) => s.slots)
+        .flatMap((s: SquadSlot) => this.getCardsBySlot(s));
+
+        return !allCharactersInSquads.some((card) => this.getCardById(card.id).nonLegalDeckTypes.includes(this.typeId))
+    },
+
+    isLegalCard(character: Character): boolean {
+      return !character.nonLegalDeckTypes.includes(this.typeId)
+    },
+
     getCharacterAmount(slot: SquadSlot, character: Character): number {
       const cardAmount = this.getCardsBySlot(slot).find((it: CardAmount) => it.id === character.id)
       if (!cardAmount) return 0

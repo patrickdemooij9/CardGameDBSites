@@ -204,7 +204,8 @@ namespace SkytearHorde.Business.Repositories
                     Alias = it.Alias!,
                     Change = it.Change,
                     SlotId = it.SlotId
-                }).ToArray() ?? []
+                }).ToArray() ?? [],
+                NonLegalDeckTypes = card.NonLegalDeckTypes?.OfType<SquadSettings>().Select(it => it.TypeID).ToArray() ?? []
             };
         }
 
@@ -300,7 +301,8 @@ namespace SkytearHorde.Business.Repositories
                 TeamRequirements = card.TeamRequirements,
                 AllowedChildren = card.AllowedChildren,
                 MaxChildren = card.MaxChildren,
-                Mutations = card.Mutations
+                Mutations = card.Mutations,
+                NonLegalDeckTypes = card.NonLegalDeckTypes
             };
         }
     }

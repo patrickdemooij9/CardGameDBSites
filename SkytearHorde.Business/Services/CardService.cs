@@ -1,4 +1,5 @@
-﻿using SkytearHorde.Business.Middleware;
+﻿using J2N;
+using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services.Search;
 using SkytearHorde.Business.Services.Site;
@@ -51,6 +52,11 @@ namespace SkytearHorde.Business.Services
             return _cardRepository.GetVariants(id);
         }
 
+        public IEnumerable<Card> GetBaseVariants(int cardId)
+        {
+            return _cardRepository.GetBase(cardId);
+        }
+
         public IEnumerable<Card> GetAll(bool includeVariants = false)
         {
             return _cardRepository.GetAll(includeVariants);
@@ -96,6 +102,32 @@ namespace SkytearHorde.Business.Services
         {
             var ids = _cardSearchService.Search(query, out totalItems);
             return [.. ids.Select(GetVariant).Where(card => card != null).Cast<Card>()];
+        }
+
+        public int[] GetNonLegalDeckTypesForCard(Card card)
+        {
+            var allSets = _cardRepository.GetAllSets().ToDictionary(it => it.Id, it => it);
+
+            // TODO: This should be replaced with the setIds when I replace the setId
+            var actualCardSetIds = GetBaseVariants(card.BaseId).Select(it => it.SetId).Distinct().ToArray();
+            var actualCardSets = actualCardSetIds
+                .Where(allSets.ContainsKey)
+                .Select(it => allSets[it])
+                .ToArray();
+            var nonLegalDeckTypes = new List<int>();
+            if (card.NonLegalDeckTypes.Length > 0)
+            {
+                nonLegalDeckTypes.AddRange(card.NonLegalDeckTypes);
+            }
+            var nonLegalDeckTypesFromSets = actualCardSets.SelectMany(it => it.NonLegalDeckTypes?.OfType<SquadSettings>().Select(n => n.TypeID) ?? []).Distinct().ToArray();
+            foreach (var nonLegalDeckType in nonLegalDeckTypesFromSets)
+            {
+                if (actualCardSets.All(it => it.NonLegalDeckTypes?.OfType<SquadSettings>().Select(c => c.TypeID).Contains(nonLegalDeckType) is true))
+                {
+                    nonLegalDeckTypes.Add(nonLegalDeckType);
+                }
+            }
+            return [..nonLegalDeckTypes];
         }
 
         public void ClearCache()

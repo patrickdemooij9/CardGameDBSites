@@ -92,6 +92,7 @@ export interface Character {
     allowedChildren: number[];
     maxChildren: number;
     mutations: DeckMutation[];
+    nonLegalDeckTypes: number[];
 
     // Parameters for easier data access
     validLocations: CardLocation[];

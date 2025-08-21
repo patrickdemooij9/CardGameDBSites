@@ -53,7 +53,8 @@ namespace SkytearHorde.Business.Repositories
                 CreatedDate = DateTime.UtcNow,
                 DeckType = deck.TypeId,
                 SiteId = deck.SiteId,
-                Score = deck.Score
+                Score = deck.Score,
+                IsLegal = deck.IsLegal
             };
             scope.Database.Insert(deckModel);
 
@@ -112,6 +113,7 @@ namespace SkytearHorde.Business.Repositories
                 .Where<DeckDBModel>(it => it.Id == deck.Id));
 
             deckDB.Score = deck.Score;
+            deckDB.IsLegal = deck.IsLegal;
 
             scope.Database.Update(deckDB);
 
@@ -481,6 +483,7 @@ namespace SkytearHorde.Business.Repositories
                 TypeId = deck.DeckType,
                 AmountOfLikes = deck.AmountOfLikes,
                 IsPublished = deck.Published,
+                IsLegal = deck.IsLegal,
                 Score = deck.Score,
                 Cards = cards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)
                 {
@@ -497,7 +500,7 @@ namespace SkytearHorde.Business.Repositories
         private Sql<ISqlContext> BaseQuery(ISqlContext sqlContext)
         {
             return sqlContext.Sql()
-                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.Score, (SELECT COUNT(*) FROM DeckLike WHERE DeckId = d.Id) as 'AmountOfLikes'")
+                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, (SELECT COUNT(*) FROM DeckLike WHERE DeckId = d.Id) as 'AmountOfLikes'")
                 .From<DeckDBModel>("d")
                 .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
         }

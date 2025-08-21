@@ -27,6 +27,9 @@ namespace SkytearHorde.Entities.Models.Database
         [Column("IsDeleted")]
         public bool IsDeleted { get; set; }
 
+        [Column("IsLegal")]
+        public bool IsLegal { get; set; }
+
         [Column("Score")]
         public int Score { get; set; }
 

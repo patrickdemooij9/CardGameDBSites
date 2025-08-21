@@ -18,7 +18,7 @@ const overview = ref<InstanceType<typeof Overview>>();
 async function loadData(value: OverviewRefreshModel) {
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,
-    take: 30,
+    take: 20,
     userId: props.userId,
     status: props.userId ? DeckStatus.NONE : undefined,
   });
@@ -37,18 +37,20 @@ async function loadData(value: OverviewRefreshModel) {
     @reload="loadData"
     ref="overview"
   >
-    <div
-      v-if="pagedDecks"
-      :class="gridClass"
-      class="grid grid-cols-1 auto-rows-fr md:grid-cols-2 gap-4 w-full"
-    >
-      <slot :decks="pagedDecks"></slot>
+    <div v-if="pagedDecks">
+      <div
+        :class="gridClass"
+        class="grid grid-cols-1 auto-rows-fr md:grid-cols-2 gap-4 w-full"
+      >
+        <slot :decks="pagedDecks"></slot>
+      </div>
+
       <div
         class="mt-8 row justify-center"
         v-if="(pagedDecks.totalPages ?? 0) > 1"
       >
         <div
-        v-if="overview"
+          v-if="overview"
           class="flex items-center mt-3 border border-gray-400 rounded bg-white overflow-hidden"
         >
           <a

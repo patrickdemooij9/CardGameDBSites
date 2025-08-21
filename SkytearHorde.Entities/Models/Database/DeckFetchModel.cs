@@ -12,6 +12,7 @@
         public bool Published { get; set; }
         public int SiteId { get; set; }
         public int DeckType { get; set; }
+        public bool IsLegal { get; set; }
         public int Score { get; set; }
         public int AmountOfLikes { get; set; }
         public double CollectionCompare { get; set; }

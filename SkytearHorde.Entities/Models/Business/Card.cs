@@ -33,6 +33,7 @@ namespace SkytearHorde.Entities.Models.Business
         public int[] AllowedChildren { get; set; }
         public int MaxChildren { get; set; }
         public DeckMutation[] Mutations { get; set; }
+        public int[] NonLegalDeckTypes { get; set; }
 
         public Card(int id)
         {

@@ -79,6 +79,7 @@ namespace SkytearHorde.Business.Services
                     throw new InvalidOperationException("Not valid");
             }
 
+            var isLegal = true;
             var filledChildSlots = 0;
             foreach (var squadConfig in squadSettings.Squads.ToItems<SquadConfig>())
             {
@@ -89,6 +90,10 @@ namespace SkytearHorde.Business.Services
 
                 // Check if all selected cards in the squad are valid
                 if (postCharacters.Any(it => !allCards.ContainsKey(it))) throw new InvalidOperationException("Could not find card.");
+                if (postCharacters.Any(it => _cardService.GetNonLegalDeckTypesForCard(allCards[it]).Contains(postModel.TypeId)))
+                {
+                    isLegal = false;
+                }
 
                 var characters = postCharacters.Where(it => it != null).Select(it => allCards[it]).ToArray();
 
@@ -209,7 +214,8 @@ namespace SkytearHorde.Business.Services
                 CreatedDate = createdDate,
                 IsPublished = publish,
                 SiteId = _siteAccessor.GetSiteId(),
-                TypeId = postModel.TypeId
+                TypeId = postModel.TypeId,
+                IsLegal = isLegal
             };
             var deckCalculator = new DeckCalculator();
             int deckId;

@@ -24,9 +24,13 @@ const overview = ref<InstanceType<typeof Overview>>();
 //TODO: this needs to be reworked otherwise we keep on resetting stuff
 watch(
   () => props.internalFilters,
-  async () => {
-    overview.value?.setPage(1);
-  }
+  (newVal, oldVal) => {
+    // Compare JSON stringified values for a shallow equality check
+    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+      overview.value?.setPage(1, true);
+    }
+  },
+  { deep: true }
 );
 
 async function loadData(value: OverviewRefreshModel) {

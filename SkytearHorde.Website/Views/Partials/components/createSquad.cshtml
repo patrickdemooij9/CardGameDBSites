@@ -24,7 +24,12 @@
             <div class="md:flex md:flex-col md:w-1/3 w-full shrink-0 bg-white" :class="currentTab !== 'squad' ? 'hidden' : 'block'">
                 <div class="sticky top-0">
                     <div class="md:overflow-auto px-4 md:px-8 py-4 tooltip-container" id="squad-panel">
-                        <h1 class="text-base mb-2">Create deck</h1>
+                        <div class="flex gap-2 items-center mb-2">
+                            <h1 class="text-base">Create deck</h1>
+                            <i class="ph ph-check-circle text-green-600" title="Deck is legal" v-if="isLegalDeck()"></i>
+                            <i class="ph ph-warning text-yellow-600" title="Deck is NOT legal" v-else></i>
+                        </div>
+                        
                         <input type="text" id="name" class="form-input w-full" v-model="name" maxlength="60" placeholder="Name" />
                         <template v-if="Object.keys(ownedCharacters).length > 0">
                             <div class="flex gap-2 rounded py-2">
@@ -53,6 +58,9 @@
                                                             <span class="shrink-0" v-if="slot.numberMode && !collectionMode">{{item.amount}} x</span>
                                                             <span class="shrink-0" :class="!hasEnoughInCollection(item.card.id, item.amount) ? 'font-bold text-red-500' : 'font-bold text-green-600'" v-if="collectionMode">{{item.amount}} / {{getAllowedSizeForSlot(item.card)}}</span>
                                                         </div>
+                                                        <p v-if="!isLegalCard(item.card)">
+                                                            <i class="ph ph-warning text-yellow-600" title="Card is NOT legal"></i>
+                                                        </p>
                                                         <a v-if="!slot.numberMode && !slot.disableRemoval && item.allowRemoval" href="#" class="flex align-center justify-center ml-2 no-underline" v-on:click.prevent.stop="removeCharacterFromSquad(item.card)">
                                                             <i class="ph ph-trash"></i>
                                                         </a>

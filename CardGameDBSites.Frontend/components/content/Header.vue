@@ -25,7 +25,7 @@ function submitSearch(event: Event) {
 </script>
 
 <template>
-  <div class="container relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100">
+  <div class="relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100">
     <div
       class="flex flex-col gap-4 items-center justify-center h-full z-10 relative"
     >

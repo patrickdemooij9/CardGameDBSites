@@ -97,6 +97,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent MainVariantType => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "mainVariantType");
 
 		///<summary>
+		/// Non-Legal Deck Types
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("nonLegalDeckTypes")]
+		public virtual global::System.Collections.Generic.IEnumerable<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent> NonLegalDeckTypes => this.Value<global::System.Collections.Generic.IEnumerable<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>>(_publishedValueFallback, "nonLegalDeckTypes");
+
+		///<summary>
 		/// Set code
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

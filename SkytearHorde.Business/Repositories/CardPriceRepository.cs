@@ -63,13 +63,13 @@ namespace SkytearHorde.Business.Repositories
         {
             var latestRecords = GetRecords(prices.Select(it => it.CardId).ToArray()).GroupBy(it => it.CardId).ToDictionary(it => it.Key, it => it);
 
-            using var scope = _scopeProvider.CreateScope();
             foreach (var record in prices)
             {
                 latestRecords.TryGetValue(record.CardId, out var lastRecords);
 
                 foreach (var price in record.Prices)
                 {
+                    using var scope = _scopeProvider.CreateScope(autoComplete: true);
                     var existingRecord = lastRecords?.FirstOrDefault(it => it.VariantId == price.VariantId);
                     if (existingRecord != null)
                     {
@@ -110,8 +110,6 @@ namespace SkytearHorde.Business.Repositories
                     _repositoryCachePolicy.ClearCache(record.CardId);
                 }
             }
-
-            scope.Complete();
         }
 
         private int PerformCount()
@@ -127,7 +125,7 @@ namespace SkytearHorde.Business.Repositories
             return [.. scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql()
                 .SelectAll()
                 .From<CardPriceRecordDBModel>()
-                .Where<CardPriceRecordDBModel>(it => ids.Contains(it.CardId))
+                .Where<CardPriceRecordDBModel>(it => ids.Contains(it.CardId) && it.IsLatest)
             )];
         }
     }

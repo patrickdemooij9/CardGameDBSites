@@ -17,6 +17,7 @@ namespace SkytearHorde.Entities.Models.Business
         public List<DeckCard> Cards { get; set; }
         public int AmountOfLikes { get; set; }
         public int Score { get; set; }
+        public bool IsLegal { get; set; }
 
         public Deck(string name) : this(0, name){}
 

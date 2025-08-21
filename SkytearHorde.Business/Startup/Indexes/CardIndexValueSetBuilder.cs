@@ -45,7 +45,7 @@ namespace SkytearHorde.Business.Startup.Indexes
             {
                 if (ability.Value is HeaderTextItemAbilityValue) continue; // No idea how to really parse this yet...
 
-                var values = ability.Value.GetValues();
+                var values = ability.Value.GetValues().Select(it => it.Replace(" ", "")).ToArray();
                 updatedValues[$"CustomField.{ability.Key}"] = values.ToList<object>();
                 if (ability.Value.GetAbility().IsMultiValue)
                 {

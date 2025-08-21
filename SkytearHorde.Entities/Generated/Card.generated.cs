@@ -128,6 +128,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual int MaxChildren => this.Value<int>(_publishedValueFallback, "maxChildren");
 
 		///<summary>
+		/// Non-Legal Deck Types
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("nonLegalDeckTypes")]
+		public virtual global::System.Collections.Generic.IEnumerable<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent> NonLegalDeckTypes => this.Value<global::System.Collections.Generic.IEnumerable<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>>(_publishedValueFallback, "nonLegalDeckTypes");
+
+		///<summary>
 		/// Questions
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

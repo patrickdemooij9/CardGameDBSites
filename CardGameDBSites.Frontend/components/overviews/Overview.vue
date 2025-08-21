@@ -48,8 +48,8 @@ function getPage() {
   return page.value;
 }
 
-function setPage(newPageNumber: number) {
-  const shouldReload = newPageNumber !== page.value;
+function setPage(newPageNumber: number, forceReload = true) {
+  const shouldReload = forceReload || newPageNumber !== page.value;
 
   page.value = newPageNumber;
 

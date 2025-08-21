@@ -37,5 +37,8 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
 
         [JsonProperty("mutations")]
         public DeckMutation[] Mutations { get; set; }
+
+        [JsonProperty("nonLegalDeckTypes")]
+        public int[] NonLegalDeckTypes { get; set; } = [];
     }
 }

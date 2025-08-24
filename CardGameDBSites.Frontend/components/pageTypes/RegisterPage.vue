@@ -133,7 +133,7 @@ onMounted(() => {
         <Button type="submit">Register</Button>
 
         <div class="flex gap-2">
-          <NuxtLink to="/register" class="no-underline hover:text-gray-500"> To login </NuxtLink>
+          <NuxtLink to="/login" class="no-underline hover:text-gray-500"> To login </NuxtLink>
           <NuxtLink to="/forgot-password" class="no-underline hover:text-gray-500">
             Forgot password?
           </NuxtLink>

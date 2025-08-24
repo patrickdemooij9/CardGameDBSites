@@ -78,7 +78,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost("likeDeck")]
-        public async Task<IActionResult> LikeDeck(int deckId)
+        public async Task<IActionResult> LikeDeck([FromBody] int deckId)
         {
             var currentUser = await _memberManager.GetCurrentMemberAsync();
             if (currentUser is null) return Unauthorized();

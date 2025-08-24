@@ -20,7 +20,7 @@ async function loadData(value: OverviewRefreshModel) {
     page: value.PageNumber,
     take: 20,
     userId: props.userId,
-    status: props.userId ? DeckStatus.NONE : undefined,
+    status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
   });
   if (value.LoadedCallback) {
     value.LoadedCallback();

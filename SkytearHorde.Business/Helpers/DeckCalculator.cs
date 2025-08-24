@@ -39,8 +39,7 @@ namespace SkytearHorde.Business.Helpers
         {
             return views switch
             {
-                int v when (v >= 200) => 30,
-                int v when (v >= 100) => 20,
+                int v when (v >= 100) => 15,
                 int v when (v >= 50) => 10,
                 int v when (v >= 10) => 5,
                 int v when (v >= 1) => 1,
@@ -55,7 +54,16 @@ namespace SkytearHorde.Business.Helpers
 
         private int GetPointsBasedOnCreateDate(DateTime createdDate)
         {
-            return createdDate.AddDays(30) > DateTime.UtcNow ? 10 : 0;
+            var dateSinceCreation = (DateTime.UtcNow - createdDate).TotalDays;
+            if (dateSinceCreation <= 7)
+            {
+                return 30;
+            }
+            if (dateSinceCreation <= 30)
+            {
+                return 15;
+            }
+            return 0;
         }
     }
 }

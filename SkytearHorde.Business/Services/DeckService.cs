@@ -270,6 +270,11 @@ namespace SkytearHorde.Business.Services
 
         public PagedResult<Deck> GetAll(DeckPagedRequest request)
         {
+            if (request.Status != DeckStatus.Published && !request.UserId.HasValue)
+            {
+                throw new InvalidOperationException("Can only get unpublished decks when user id is given");
+            }
+
             using var _ = _profiler.Step("GetAllDecks");
             var stopwatch = new Stopwatch();
             stopwatch.Start();

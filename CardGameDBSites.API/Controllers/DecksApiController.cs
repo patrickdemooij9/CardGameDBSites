@@ -56,10 +56,11 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpPost("query")]
         [ProducesResponseType(typeof(PagedResult<DeckApiModel>), 200)]
-        public IActionResult Query(DeckQueryPostModel query)
+        public async Task<IActionResult> Query(DeckQueryPostModel query)
         {
             var status = DeckStatus.Published;
-            if (_memberManager.IsLoggedIn())
+            var currentUser = await _memberManager.GetCurrentMemberAsync();
+            if (_memberManager.IsLoggedIn() && currentUser != null && query.UserId.HasValue && currentUser.Id == query.UserId.ToString())
             {
                 status = query.Status;
             }

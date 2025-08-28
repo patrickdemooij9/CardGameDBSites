@@ -57,7 +57,7 @@ namespace SkytearHorde.Business.Startup.Indexes
                 }
             }
 
-            var setName = card.SetName;
+            var setName = card.SetName.Replace(" ", "");
             updatedValues["CustomField.Set Name"] = [setName];
             updatedValues["CustomField.SetId"] = [card.SetId];
             updatedValues["Name"] = [card.DisplayName];

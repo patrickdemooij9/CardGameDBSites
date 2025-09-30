@@ -109,21 +109,35 @@ namespace SkytearHorde.Modules
                         itemName += $", {subname}";
                     }
 
-                    var media = _mediaService.CreateMediaWithIdentity(itemName, cardImageParentId, Image.ModelTypeAlias);
+                    IMedia? media = null;
+                    if (!string.IsNullOrWhiteSpace(item.ImageBase64))
+                    {
+                        if (item.Id.HasValue)
+                        {
+                            var variantCard = _cardService.GetVariant(item.Id.Value);
+                            media = _mediaService.GetById(variantCard!.Image!.Id) ?? _mediaService.CreateMediaWithIdentity(itemName, cardImageParentId, Image.ModelTypeAlias);
+                        }
+                        else
+                        {
+                            media = _mediaService.CreateMediaWithIdentity(itemName, cardImageParentId, Image.ModelTypeAlias);
+                        }
 
-                    using var mediaItemStream = new MemoryStream(Convert.FromBase64String(item.ImageBase64));
-                    media.SetValue(_mediaFileManager, _mediaUrlGenerators, _shortStringHelper, _contentTypeBaseServiceProvider, "umbracoFile", itemName + ".png", mediaItemStream);
-                    _mediaService.Save(media);
+                        using var mediaItemStream = new MemoryStream(Convert.FromBase64String(item.ImageBase64));
+                        media.SetValue(_mediaFileManager, _mediaUrlGenerators, _shortStringHelper, _contentTypeBaseServiceProvider, "umbracoFile", itemName + ".png", mediaItemStream);
+                        _mediaService.Save(media);
+                    }
 
                     var properties = new Dictionary<string, string>();
-                    var ignoredProperties = new string[] { "Name", "image", "image_base64" };
+                    var ignoredProperties = new string[] { "Name", "image", "image_base64", "Id", "ParentId", "VariantTypeId" };
                     foreach (var entry in item.Where(it => !ignoredProperties.Contains(it.Key, StringComparer.InvariantCultureIgnoreCase)))
                     {
                         properties.Add(entry.Key, entry.Value.ToString()!);
                     }
-                    importModels.Add(new ImportModel(null, itemName, setName)
+                    importModels.Add(new ImportModel(item.Id, itemName, setName)
                     {
-                        ImageId = media.Id,
+                        ParentId = item.ParentId,
+                        VariantTypeId = item.VariantTypeId,
+                        ImageId = media?.Id,
                         Properties = properties
                     });
                 }

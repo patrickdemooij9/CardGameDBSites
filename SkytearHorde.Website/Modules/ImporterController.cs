@@ -110,12 +110,14 @@ namespace SkytearHorde.Modules
                     }
 
                     IMedia? media = null;
+                    Dictionary<string, string> properties = new Dictionary<string, string>();
                     if (!string.IsNullOrWhiteSpace(item.ImageBase64))
                     {
                         if (item.Id.HasValue)
                         {
-                            var variantCard = _cardService.GetVariant(item.Id.Value);
-                            media = _mediaService.GetById(variantCard!.Image!.Id) ?? _mediaService.CreateMediaWithIdentity(itemName, cardImageParentId, Image.ModelTypeAlias);
+                            var card = _cardService.Get(item.Id.Value);
+                            media = _mediaService.GetById(card!.Image!.Id) ?? _mediaService.CreateMediaWithIdentity(itemName, cardImageParentId, Image.ModelTypeAlias);
+                            properties = card.Attributes.ToDictionary(it => it.Value.GetAbility().IsMultiValue ? $"{it.Key}_multiple" : it.Key, it => it.Value.GetAbilityValue());
                         }
                         else
                         {
@@ -127,11 +129,11 @@ namespace SkytearHorde.Modules
                         _mediaService.Save(media);
                     }
 
-                    var properties = new Dictionary<string, string>();
                     var ignoredProperties = new string[] { "Name", "image", "image_base64", "Id", "ParentId", "VariantTypeId" };
                     foreach (var entry in item.Where(it => !ignoredProperties.Contains(it.Key, StringComparer.InvariantCultureIgnoreCase)))
                     {
-                        properties.Add(entry.Key, entry.Value.ToString()!);
+                        var key = properties.Keys.FirstOrDefault(it => it.Replace("_multiple", "").Equals(entry.Key)) ?? entry.Key;
+                        properties[key] = entry.Value.ToString()!;
                     }
                     importModels.Add(new ImportModel(item.Id, itemName, setName)
                     {

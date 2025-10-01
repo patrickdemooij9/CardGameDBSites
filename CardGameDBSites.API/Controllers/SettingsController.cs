@@ -84,11 +84,11 @@ namespace CardGameDBSites.API.Controllers
             var actions = new List<DeckActionApiModel>();
             if (deckDetail.EnableForcetable)
             {
-                actions.Add(new DeckActionApiModel { DisplayName = "Try on ForceTable", Icon = "crown", Type = "ForceTable" });
+                actions.Add(new DeckActionApiModel { Id = Guid.NewGuid(), DisplayName = "Try on ForceTable", Icon = "crown", Type = "ForceTable" });
             }
             foreach (var action in deckDetail.ExportTypes.ToItems<IDeckExportType>())
             {
-                actions.Add(new DeckActionApiModel { DisplayName = action.DisplayName, Icon = action.IconName, Type = action.GetType().Name });
+                actions.Add(new DeckActionApiModel { Id = action.Key, DisplayName = action.DisplayName, Icon = action.IconName, Type = action.GetType().Name });
             }
             return Ok(new DeckTypeSettingsApiModel
             {

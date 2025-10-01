@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DeckActionApiModel = {
+    id: string;
     displayName: string;
     icon: string;
     type: string;

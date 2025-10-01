@@ -30,6 +30,7 @@ const selectedArea = ref<CreateDeckSelectedArea>();
 const deck = ref<CreateDeckModel>(deckSettings);
 
 const ignorePassiveFilters = ref(false);
+let isSubmitting = false;
 
 if (true) {
   //TODO: Depending on SelectFirstSlot
@@ -55,6 +56,7 @@ function selectSlot(
 }
 
 async function submitForm(publish: boolean) {
+  isSubmitting = true;
   const result = await new DeckService().post(deck.value, publish);
   router.push("/decks/" + result);
 }
@@ -70,7 +72,7 @@ function handleScroll() {
 }
 
 const toRemove = router.beforeEach((to, from, next) => {
-  if (from.fullPath === route.fullPath) {
+  if (from.fullPath === route.fullPath && !isSubmitting) {
     if (confirm("Are you sure you want to leave this page?")) {
       next();
     } else {

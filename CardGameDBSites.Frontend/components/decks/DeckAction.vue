@@ -19,7 +19,7 @@ const icons: {[key: string]: Component} = {
   <div v-if="action.type === 'Forcetable'">
     <a
       class="flex align-center gap-1 no-underline"
-      :href="'/umbraco/api/export/ExportForceTable?deckId=' + deck.id"
+      :href="'/api/proxy/umbraco/api/export/ExportForceTable?deckId=' + deck.id"
     >
       <component :is="icons['crown']"></component>
       <p>{{ action.displayName }}</p>
@@ -28,7 +28,7 @@ const icons: {[key: string]: Component} = {
   <div v-else>
     <a
       class="flex align-center gap-1 no-underline"
-      href="/umbraco/api/export/export?deckId=@DeckId&exportId=@exportType.Key"
+      :href="`/api/proxy/umbraco/api/export/export?deckId=${deck.id}&exportId=${action.id}`"
       target="_blank"
     >
       <component :is="icons[action.icon]"></component>

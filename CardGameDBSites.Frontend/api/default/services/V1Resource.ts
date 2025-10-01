@@ -48,14 +48,24 @@ export class V1Resource {
         });
     }
     /**
-     * @returns CurrentMemberApiModel OK
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiAccountIsLoggedIn(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/account/IsLoggedIn',
+        });
+    }
+    /**
+     * @returns string OK
      * @throws ApiError
      */
     public static postApiAccountLogin({
         requestBody,
     }: {
         requestBody?: LoginPostModel,
-    }): CancelablePromise<CurrentMemberApiModel> {
+    }): CancelablePromise<string> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/account/Login',
@@ -64,19 +74,42 @@ export class V1Resource {
         });
     }
     /**
-     * @returns CurrentMemberApiModel OK
+     * @returns string OK
      * @throws ApiError
      */
     public static postApiAccountRegister({
         requestBody,
     }: {
         requestBody?: RegisterPostModel,
-    }): CancelablePromise<CurrentMemberApiModel> {
+    }): CancelablePromise<string> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/account/Register',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiCardreaderRead({
+        apiKey,
+        formData,
+    }: {
+        apiKey?: string,
+        formData?: {
+            files?: Array<Blob>;
+        },
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/cardreader/read',
+            query: {
+                'apiKey': apiKey,
+            },
+            formData: formData,
+            mediaType: 'multipart/form-data',
         });
     }
     /**
@@ -182,6 +215,22 @@ export class V1Resource {
         });
     }
     /**
+     * @returns number OK
+     * @throws ApiError
+     */
+    public static postApiDeckbuilderSubmitLoggedIn({
+        requestBody,
+    }: {
+        requestBody?: CreateSquadPostModel,
+    }): CancelablePromise<number> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/deckbuilder/submitLoggedIn',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * @returns DeckApiModel OK
      * @throws ApiError
      */
@@ -203,16 +252,15 @@ export class V1Resource {
      * @throws ApiError
      */
     public static postApiDecksLikeDeck({
-        deckId,
+        requestBody,
     }: {
-        deckId?: number,
+        requestBody?: number,
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/decks/likeDeck',
-            query: {
-                'deckId': deckId,
-            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**

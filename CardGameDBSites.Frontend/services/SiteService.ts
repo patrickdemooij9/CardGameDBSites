@@ -1,5 +1,5 @@
 import type NavigationModel from "~/components/navigation/NavigationModel";
-import type { DeckBuilderApiModel, DeckBuilderSlotAmountApiModel, DeckTypeSettingsApiModel, SiteSettingsApiModel } from "../api/default";
+import { type SetOverviewSettingsApiModel, type DeckBuilderApiModel, type DeckBuilderSlotAmountApiModel, type DeckTypeSettingsApiModel, type SiteSettingsApiModel } from "../api/default";
 import type NavigationItem from "~/components/navigation/NavigationItemModel";
 import CreateDeckGroup from "~/components/decks/deckBuilder/models/CreateDeckGroup";
 import CreateDeckSlot from "~/components/decks/deckBuilder/models/CreateDeckSlot";
@@ -58,6 +58,10 @@ export default class SiteService {
       }
     });
     return result;
+  }
+
+  async getSetOverviewSettings(){
+    return await DoFetch<SetOverviewSettingsApiModel>("/api/settings/setOverview");
   }
 
   async getDeckBuilderSettings(typeId: number, deckId?: number): Promise<CreateDeckModel>{

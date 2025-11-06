@@ -5,6 +5,7 @@ import type { IApiContentModelBase } from '~/api/umbraco';
 import AccountDecks from '~/components/pageTypes/AccountDecks.vue';
 import CardDetailPage from '~/components/pageTypes/CardDetailPage.vue';
 import CardOverviewPage from '~/components/pageTypes/CardOverviewPage.vue';
+import CollectionPage from '~/components/pageTypes/CollectionPage.vue';
 import ContentPage from '~/components/pageTypes/contentPage.vue';
 import CreateDeck from '~/components/pageTypes/CreateDeck.vue';
 import DeckDetail from '~/components/pageTypes/DeckDetail.vue';
@@ -13,6 +14,8 @@ import ForgotPasswordPage from '~/components/pageTypes/ForgotPasswordPage.vue';
 import Homepage from '~/components/pageTypes/homepage.vue';
 import LoginPage from '~/components/pageTypes/LoginPage.vue';
 import RegisterPage from '~/components/pageTypes/RegisterPage.vue';
+import SetOverviewPage from '~/components/pageTypes/SetOverviewPage.vue';
+import SetPage from '~/components/pageTypes/SetPage.vue';
 import { DoFetch } from '~/helpers/RequestsHelper';
 import type { PageSeoModel } from '~/models/PageSeoModel';
 import { useAccountStore } from '~/stores/AccountStore';
@@ -57,7 +60,10 @@ const pageComponents: {[key: string]: Component} = {
     'login': LoginPage,
     'accountDecks': AccountDecks,
     'register': RegisterPage,
-    'forgotPassword': ForgotPasswordPage
+    'forgotPassword': ForgotPasswordPage,
+    'setOverview': SetOverviewPage,
+    'set': SetPage,
+    'collectionPage': CollectionPage
 }
 const pageComponent = pageComponents[componentName];
 </script>

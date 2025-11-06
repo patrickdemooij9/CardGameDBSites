@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { CardDetailApiModel } from '../models/CardDetailApiModel';
 import type { CardsQueryPostApiModel } from '../models/CardsQueryPostApiModel';
+import type { CollectionSummaryApiModel } from '../models/CollectionSummaryApiModel';
 import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
 import type { DeckApiModel } from '../models/DeckApiModel';
@@ -16,6 +17,8 @@ import type { MemberApiModel } from '../models/MemberApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
 import type { RegisterPostModel } from '../models/RegisterPostModel';
+import type { SetOverviewSettingsApiModel } from '../models/SetOverviewSettingsApiModel';
+import type { SetViewModel } from '../models/SetViewModel';
 import type { SiteSettingsApiModel } from '../models/SiteSettingsApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -333,6 +336,60 @@ export class V1Resource {
         });
     }
     /**
+     * @returns SetViewModel OK
+     * @throws ApiError
+     */
+    public static getApiSetsGet({
+        id,
+    }: {
+        id?: number,
+    }): CancelablePromise<SetViewModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/get',
+            query: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns SetViewModel OK
+     * @throws ApiError
+     */
+    public static getApiSetsGetAll(): CancelablePromise<Array<SetViewModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/getAll',
+        });
+    }
+    /**
+     * @returns SetViewModel OK
+     * @throws ApiError
+     */
+    public static getApiSetsGetByKey({
+        key,
+    }: {
+        key?: string,
+    }): CancelablePromise<SetViewModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/getByKey',
+            query: {
+                'key': key,
+            },
+        });
+    }
+    /**
+     * @returns CollectionSummaryApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSetsSummary(): CancelablePromise<CollectionSummaryApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/summary',
+        });
+    }
+    /**
      * @returns DeckBuilderApiModel OK
      * @throws ApiError
      */
@@ -364,6 +421,16 @@ export class V1Resource {
             query: {
                 'typeId': typeId,
             },
+        });
+    }
+    /**
+     * @returns SetOverviewSettingsApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSettingsSetOverview(): CancelablePromise<SetOverviewSettingsApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/settings/setOverview',
         });
     }
     /**

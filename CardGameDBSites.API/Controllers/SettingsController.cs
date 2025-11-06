@@ -116,6 +116,31 @@ namespace CardGameDBSites.API.Controllers
             });
         }
 
+        [HttpGet("setOverview")]
+        [ProducesResponseType(typeof(SetOverviewSettingsApiModel), 200)]
+        public IActionResult GetSetOverviewSettings()
+        {
+            var setOverview = _settingsService.GetSetOverview();
+            if (setOverview is null) return NotFound();
+
+            return Ok(new SetOverviewSettingsApiModel
+            {
+                Filters = setOverview.SetFilters.ToItems<OverviewFilter>().Select(it => new OverviewFilterApiModel
+                {
+                    Alias = it.IsExpansionFilter ? "Set Name" : it.Ability!.Name,
+                    DisplayName = it.DisplayName,
+                    IsInline = it.IsInline,
+                    AutoFillValues = it.AutoFillValues,
+                    Options = it.Items.ToItems<OverviewFilterItem>().Select(c => new OverviewFilterOptionApiModel
+                    {
+                        DisplayName = c.DisplayName,
+                        Value = c.Value,
+                        IconUrl = c.Icon?.Url(mode: UrlMode.Absolute)
+                    }).ToArray()
+                }).ToArray()
+            });
+        }
+
         [HttpGet("deckBuilder")]
         [ProducesResponseType(typeof(DeckBuilderApiModel), 200)]
         public IActionResult GetDeckBuilderSettings(int typeId)

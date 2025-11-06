@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CardService from "~/services/CardService";
 import type { OverviewFilterModel } from "./OverviewFilterModel";
-import type { PagedResultCardDetailApiModel } from "~/api/default";
+import { CardSearchFilterClauseType, type CardsQueryFilterClauseApiModel, type PagedResultCardDetailApiModel } from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import BaseCardOverview from "./BaseCardOverview.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
@@ -9,8 +9,9 @@ import { GetCrop } from "~/helpers/CropUrlHelper";
 const route = useRoute();
 const cardService = new CardService();
 
-defineProps<{
+const props = defineProps<{
   filters: OverviewFilterModel[];
+  setId?: number;
 }>();
 
 const pageNumber = ref(1);
@@ -19,6 +20,23 @@ if (pageNumberString) {
   pageNumber.value = Number.parseInt(pageNumberString as string);
 }
 
+const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
+  if (!props.setId) {
+    return [];
+  }
+  return [
+    {
+      clauseType: CardSearchFilterClauseType.AND,
+      filters: [
+        {
+          alias: "SetId",
+          values: [props.setId.toString()],
+        },
+      ],
+    },
+  ];
+})
+
 const hasPrices = false;
 const showCollection = false;
 </script>
@@ -26,6 +44,7 @@ const showCollection = false;
 <template>
   <BaseCardOverview
     :filters="filters"
+    :internal-filters="internalFilters"
     :white-background="true"
     v-slot="{ cards }"
   >

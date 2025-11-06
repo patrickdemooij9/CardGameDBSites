@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhMagnifyingGlass } from "@phosphor-icons/vue";
+import { PhArrowRight, PhMagnifyingGlass } from "@phosphor-icons/vue";
 import type { HeaderPropertiesModel } from "~/api/umbraco";
 
 const props = defineProps<{
@@ -25,7 +25,9 @@ function submitSearch(event: Event) {
 </script>
 
 <template>
-  <div class="relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100">
+  <div
+    class="relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100"
+  >
     <div
       class="flex flex-col gap-4 items-center justify-center h-full z-10 relative"
     >
@@ -55,9 +57,10 @@ function submitSearch(event: Event) {
         <NuxtLink
           .to="link.url!"
           v-for="link in props.content.searchLinks"
-          class="rounded bg-main-color text-white py-2 px-4 no-underline shadow-lg hover:bg-main-color-hover"
+          class="flex gap-1 items-center no-underline pointer"
         >
-          {{ link.title }}
+          <PhArrowRight/>
+          <p class="no-underline">{{ link.title }}</p>
         </NuxtLink>
       </div>
     </div>

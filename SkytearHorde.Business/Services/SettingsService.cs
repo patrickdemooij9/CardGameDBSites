@@ -62,6 +62,12 @@ namespace SkytearHorde.Business.Services
             return _siteService.GetRoot().FirstChild<Settings>().FirstChild<DeckSettings>();
         }
 
+        public SetOverview? GetSetOverview()
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            return _siteService.GetRoot().FirstChild<SetOverview>();
+        }
+
         public DeckTypeModel[] GetTypes()
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();

@@ -9,7 +9,7 @@ import type { OverviewFilterModel } from "./OverviewFilterModel";
 import Dropdown from "../shared/Dropdown.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
-defineProps<{
+const props = defineProps<{
   hideSearch: boolean;
   hideFilters: boolean;
   filters: OverviewFilterModel[];
@@ -98,11 +98,11 @@ function reloadData() {
     if (search.value) {
       url.searchParams.append("search", search.value);
     }
-    /*Object.entries(selectedFilters.value).forEach((entry) => {
-    entry[1].forEach((value) => {
-      url.searchParams.append(entry[0], value);
+    Object.entries(selectedFilters.value).forEach((entry) => {
+      entry[1].forEach((value) => {
+        url.searchParams.append(entry[0], value);
+      });
     });
-  });*/
     history.replaceState("", "", url);
   }
 
@@ -116,6 +116,17 @@ function reloadData() {
     },
   });
 }
+
+props.filters.forEach((filter) => {
+  if (route.query[filter.Alias]) {
+    const values = route.query[filter.Alias];
+    if (Array.isArray(values)) {
+      selectedFilters.value[filter.Alias] = values.map((v) => v!.toString());
+    } else {
+      selectedFilters.value[filter.Alias] = [values!.toString()];
+    }
+  }
+})
 
 reloadData();
 </script>

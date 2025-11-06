@@ -38,6 +38,9 @@ namespace SkytearHorde.Business.ContentFinders
             var deckPage = TryGetDeckPage(path);
             if (deckPage != null) return deckPage;
 
+            var setPage = TryGetSetPage(path, context);
+            if (setPage != null) return setPage;
+
             var cardPage = TryGetCardPage(path, context);
             return cardPage;
         }
@@ -91,6 +94,22 @@ namespace SkytearHorde.Business.ContentFinders
             redirectCard = !string.IsNullOrWhiteSpace(cardSet?.SetCode) && potentialSet is null;
 
             return card;
+        }
+
+        private IPublishedContent? TryGetSetPage(string path, UmbracoContextReference context)
+        {
+            var setOverview = _siteService.GetSetOverview();
+            if (setOverview is null || !path.StartsWith(setOverview.Url(mode: UrlMode.Relative)))
+                return null;
+
+            var urlSegment = path.Replace(setOverview.Url(mode: UrlMode.Relative), "");
+            var sets = _cardService.GetAllSets();
+            var set = sets.FirstOrDefault(it => it.UrlSegment!.Equals(urlSegment, StringComparison.InvariantCultureIgnoreCase));
+
+            if (set is null)
+                return null;
+
+            return context.UmbracoContext.Content?.GetById(set.Id);
         }
     }
 }

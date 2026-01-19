@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CardPriceApiModel } from './CardPriceApiModel';
+import type { CardVariantReferenceApiModel } from './CardVariantReferenceApiModel';
 import type { ImageCropsApiModel } from './ImageCropsApiModel';
 export type CardDetailApiModel = {
     baseId?: number;
@@ -14,5 +16,7 @@ export type CardDetailApiModel = {
     imageUrl?: ImageCropsApiModel;
     backImageUrl?: string | null;
     attributes?: Record<string, Array<string>>;
+    price?: CardPriceApiModel;
+    variants?: Array<CardVariantReferenceApiModel>;
 };
 

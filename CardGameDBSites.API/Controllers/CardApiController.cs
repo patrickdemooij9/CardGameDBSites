@@ -6,6 +6,7 @@ using RedditSharp;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Search;
+using SkytearHorde.Entities.Models.Business;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
@@ -19,16 +20,22 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly ISiteAccessor _siteAccessor;
         private readonly CardService _cardService;
+        private readonly CollectionService _collectionService;
+        private readonly CardPriceService _cardPriceService;
         private readonly SettingsService _settingsService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
 
         public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
+            CollectionService collectionService,
+            CardPriceService cardPriceService,
             SettingsService settingsService,
             IUmbracoContextFactory umbracoContextFactory)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
+            _collectionService = collectionService;
+            _cardPriceService = cardPriceService;
             _settingsService = settingsService;
             _umbracoContextFactory = umbracoContextFactory;
         }
@@ -48,7 +55,7 @@ namespace CardGameDBSites.API.Controllers
         public IActionResult ByIds(int[] ids)
         {
             var cards = _cardService.Get(ids);
-            return Ok(cards.Select(it => new CardDetailApiModel(it)));
+            return Ok(cards.Select(MapToApiModel));
         }
 
         [HttpGet("byId")]
@@ -59,7 +66,7 @@ namespace CardGameDBSites.API.Controllers
             var umbracoCard = ctx.UmbracoContext.Content.GetById(id);
             if (umbracoCard is null) return NotFound();
 
-            return Ok(new CardDetailApiModel(_cardService.Get(umbracoCard.Id)));
+            return Ok(MapToApiModel(_cardService.Get(umbracoCard.Id)));
         }
 
         [HttpPost("query")]
@@ -90,7 +97,7 @@ namespace CardGameDBSites.API.Controllers
                 })],
                 OrderBy = sorting,
                 VariantTypeId = model.VariantTypeId
-            }, out var totalItems).Select(it => new CardDetailApiModel(it));
+            }, out var totalItems).Select(MapToApiModel);
             return Ok(new PagedResult<CardDetailApiModel>(totalItems, model.PageNumber, model.PageSize)
             {
                 Items = result
@@ -102,6 +109,38 @@ namespace CardGameDBSites.API.Controllers
         public IActionResult GetAllValues(string abilityName)
         {
             return Ok(_cardService.GetCardValues(abilityName));
+        }
+
+        [HttpGet("variantTypes")]
+        [ProducesResponseType(typeof(CardVariantTypeApiModel[]), 200)]
+        public IActionResult GetVariantTypes()
+        {
+            return Ok(_collectionService.GetVariantTypes().Select(it => new CardVariantTypeApiModel
+            {
+                Id = it.Id,
+                DisplayName = it.DisplayName,
+                Color = it.Color,
+                Initial = it.Initial
+            }));
+        }
+
+        private CardDetailApiModel MapToApiModel(Card card)
+        {
+            var detail = new CardDetailApiModel(card);
+            if (_settingsService.GetSiteSettings().AllowPricing)
+            {
+                var prices = _cardPriceService.GetPrices(card);
+                if (prices.TryGetValue(card.VariantId, out CardPrice? value))
+                {
+                    detail.Price = new CardPriceApiModel
+                    {
+                        MarketPrice = value.MainPrice,
+                        ReferenceUrl = _cardPriceService.GetUrl(value, card)
+                    };
+                }
+            }
+
+            return detail;
         }
     }
 }

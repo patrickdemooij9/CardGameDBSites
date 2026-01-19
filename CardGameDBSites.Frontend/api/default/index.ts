@@ -8,12 +8,16 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { CardDetailApiModel } from './models/CardDetailApiModel';
+export type { CardPriceApiModel } from './models/CardPriceApiModel';
 export { CardSearchFilterClauseType } from './models/CardSearchFilterClauseType';
 export { CardSearchFilterMode } from './models/CardSearchFilterMode';
 export type { CardSectionApiModel } from './models/CardSectionApiModel';
 export type { CardsQueryFilterApiModel } from './models/CardsQueryFilterApiModel';
 export type { CardsQueryFilterClauseApiModel } from './models/CardsQueryFilterClauseApiModel';
 export type { CardsQueryPostApiModel } from './models/CardsQueryPostApiModel';
+export type { CardVariantReferenceApiModel } from './models/CardVariantReferenceApiModel';
+export type { CardVariantTypeApiModel } from './models/CardVariantTypeApiModel';
+export type { CollectionCardApiModel } from './models/CollectionCardApiModel';
 export type { CollectionSummaryApiModel } from './models/CollectionSummaryApiModel';
 export type { CreateSquadCardPostModel } from './models/CreateSquadCardPostModel';
 export type { CreateSquadPostModel } from './models/CreateSquadPostModel';
@@ -51,6 +55,7 @@ export type { RegisterPostModel } from './models/RegisterPostModel';
 export type { RequirementApiModel } from './models/RequirementApiModel';
 export { RestrictionType } from './models/RestrictionType';
 export type { SetOverviewSettingsApiModel } from './models/SetOverviewSettingsApiModel';
+export type { SetProgressApiModel } from './models/SetProgressApiModel';
 export type { SetViewModel } from './models/SetViewModel';
 export type { SiteSettingsApiModel } from './models/SiteSettingsApiModel';
 

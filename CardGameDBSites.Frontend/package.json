@@ -8,8 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "generateUmbracoApi": "openapi --input http://localhost:58528/umbraco/swagger/delivery/swagger.json --output api/umbraco --postfixServices Resource --useOptions",
-    "generateDefaultApi": "openapi --input http://localhost:58528/umbraco/swagger/default/swagger.json --output api/default --postfixServices Resource --useOptions"
+    "generateUmbracoApi": "openapi --input http://localhost:58529/umbraco/swagger/delivery/swagger.json --output api/umbraco --postfixServices Resource --useOptions",
+    "generateDefaultApi": "openapi --input http://localhost:58529/umbraco/swagger/default/swagger.json --output api/default --postfixServices Resource --useOptions"
   },
   "dependencies": {
     "@phosphor-icons/vue": "^2.2.1",

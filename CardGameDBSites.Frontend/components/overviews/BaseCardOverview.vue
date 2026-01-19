@@ -11,6 +11,7 @@ import {
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
 const cardService = new CardService();
+const collectionStore = useCollectionStore();
 
 const props = defineProps<{
   filters: OverviewFilterModel[];
@@ -38,10 +39,12 @@ async function loadData(value: OverviewRefreshModel) {
   Object.entries(value.SelectedFilters).forEach(([key, values]) => {
     filters.push({
       clauseType: CardSearchFilterClauseType.AND,
-      filters: [{
-        alias: key,
-        values: values,
-      }]
+      filters: [
+        {
+          alias: key,
+          values: values,
+        },
+      ],
     });
   });
   props.internalFilters?.forEach((filter) => {
@@ -55,6 +58,9 @@ async function loadData(value: OverviewRefreshModel) {
     filterClauses: filters,
     variantTypeId: 0,
   });
+  if (pagedCards.value) {
+    collectionStore.loadCards(pagedCards.value.items!.map((c) => c.baseId!));
+  }
   if (value.LoadedCallback) {
     value.LoadedCallback();
   }
@@ -88,7 +94,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
         v-if="(pagedCards.totalPages ?? 0) > 1"
       >
         <div
-        v-if="overview"
+          v-if="overview"
           class="flex items-center mt-3 border border-gray-400 rounded bg-white overflow-hidden"
         >
           <a

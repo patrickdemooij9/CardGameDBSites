@@ -4,6 +4,8 @@
 /* eslint-disable */
 import type { CardDetailApiModel } from '../models/CardDetailApiModel';
 import type { CardsQueryPostApiModel } from '../models/CardsQueryPostApiModel';
+import type { CardVariantTypeApiModel } from '../models/CardVariantTypeApiModel';
+import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
 import type { CollectionSummaryApiModel } from '../models/CollectionSummaryApiModel';
 import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
@@ -18,6 +20,7 @@ import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDet
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
 import type { RegisterPostModel } from '../models/RegisterPostModel';
 import type { SetOverviewSettingsApiModel } from '../models/SetOverviewSettingsApiModel';
+import type { SetProgressApiModel } from '../models/SetProgressApiModel';
 import type { SetViewModel } from '../models/SetViewModel';
 import type { SiteSettingsApiModel } from '../models/SiteSettingsApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -202,6 +205,68 @@ export class V1Resource {
         });
     }
     /**
+     * @returns CardVariantTypeApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCardsVariantTypes(): CancelablePromise<Array<CardVariantTypeApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/cards/variantTypes',
+        });
+    }
+    /**
+     * @returns CollectionCardApiModel OK
+     * @throws ApiError
+     */
+    public static postApiCollectionAddCards({
+        requestBody,
+    }: {
+        requestBody?: Record<string, number>,
+    }): CancelablePromise<Array<CollectionCardApiModel>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/addCards',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns CollectionCardApiModel OK
+     * @throws ApiError
+     */
+    public static postApiCollectionCards({
+        requestBody,
+    }: {
+        requestBody?: Array<number>,
+    }): CancelablePromise<Array<CollectionCardApiModel>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/cards',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns SetProgressApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCollectionSetsProgress(): CancelablePromise<Array<SetProgressApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/collection/setsProgress',
+        });
+    }
+    /**
+     * @returns CollectionSummaryApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCollectionSummary(): CancelablePromise<CollectionSummaryApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/collection/summary',
+        });
+    }
+    /**
      * @returns number OK
      * @throws ApiError
      */
@@ -377,16 +442,6 @@ export class V1Resource {
             query: {
                 'key': key,
             },
-        });
-    }
-    /**
-     * @returns CollectionSummaryApiModel OK
-     * @throws ApiError
-     */
-    public static getApiSetsSummary(): CancelablePromise<CollectionSummaryApiModel> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/sets/summary',
         });
     }
     /**

@@ -1,7 +1,35 @@
 <script setup lang="ts">
+import { PhChartBar } from "@phosphor-icons/vue";
 import SetService from "~/services/SetService";
+import ProgressBar from "../shared/ProgressBar.vue";
+import { DoServerFetch } from "~/helpers/RequestsHelper";
+import type { SetProgressApiModel } from "~/api/default";
 
 const sets = await new SetService().getAllSets();
+const setsProgress = ref<SetProgressApiModel[]>([]);
+
+const accountStore = useAccountStore();
+const isLoggedIn = await useAccountStore().checkLogin();
+
+function getProgress(setId: number): SetProgressApiModel | undefined {
+  return setsProgress.value.find((sp) => sp.setId === setId);
+}
+
+function calculateProgressFilled(setId: number): number {
+  const progress = getProgress(setId);
+  if (!progress || progress.totalCards === 0) {
+    return 0;
+  }
+  return (progress.ownedCards! / progress.totalCards!) * 100;
+}
+
+onMounted(async () => {
+  if (isLoggedIn) {
+    setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
+      "/api/collection/setsProgress"
+    );
+  }
+});
 </script>
 
 <template>
@@ -27,6 +55,10 @@ const sets = await new SetService().getAllSets();
       </div>
       <div class="flex justify-between gap-4">
         <div class="grow self-center">
+          <div v-if="accountStore.isLoggedIn">
+            <ProgressBar :percent-filled="calculateProgressFilled(set.id)" :description="`${getProgress(set.id)?.ownedCards}/${getProgress(set.id)?.totalCards}`"></ProgressBar>
+          </div>
+
           <!--@if (isLoggedIn)
                     {
                         if (collectionSettings.AllowSetCollecting)

@@ -1,6 +1,7 @@
 ﻿using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
+using SkytearHorde.Entities.Models.Business;
 using System.Diagnostics.CodeAnalysis;
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Models.Blocks;
@@ -199,12 +200,15 @@ namespace SkytearHorde.Business.Repositories
                 TeamRequirements = card.TeamRequirements.ToItems<ISquadRequirementConfig>().ToArray(),
                 AllowedChildren = card.AllowedChildren?.Select(it => it.Id).ToArray() ?? [],
                 MaxChildren = card.MaxChildren,
-                Mutations = card.DeckMutations?.ToItems<DeckMutation>().Select(it => new Entities.Models.Business.DeckMutation
+                Mutations = card.DeckMutations?.ToItems<Entities.Generated.DeckMutation>().Select(it => new Entities.Models.Business.DeckMutation
                 {
                     Alias = it.Alias!,
                     Change = it.Change,
                     SlotId = it.SlotId
                 }).ToArray() ?? [],
+                VariantReferences = card.Children<CardVariant>()?
+                    .Select(it => new CardVariantReference((it.VariantType as Variant)?.InternalID, it.Id, it.Set!.Id))
+                    .ToArray() ?? [],
                 NonLegalDeckTypes = card.NonLegalDeckTypes?.OfType<SquadSettings>().Select(it => it.TypeID).ToArray() ?? []
             };
         }
@@ -302,6 +306,7 @@ namespace SkytearHorde.Business.Repositories
                 AllowedChildren = card.AllowedChildren,
                 MaxChildren = card.MaxChildren,
                 Mutations = card.Mutations,
+                VariantReferences = card.VariantReferences,
                 NonLegalDeckTypes = card.NonLegalDeckTypes
             };
         }

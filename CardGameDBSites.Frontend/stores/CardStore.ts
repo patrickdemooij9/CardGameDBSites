@@ -1,11 +1,15 @@
 import { defineStore } from "pinia";
-import type { CardDetailApiModel } from "~/api/default";
+import type { CardDetailApiModel, CardVariantTypeApiModel } from "~/api/default";
 import { DoFetch } from "~/helpers/RequestsHelper";
 
 export const useCardsStore = defineStore("cardStore", {
   state: () => ({
     cards: {} as { [key: string]: CardDetailApiModel },
+    variantTypes: [] as CardVariantTypeApiModel[]
   }),
+  getters: {
+    getVariants: (state) => state.variantTypes
+  },
   actions: {
     async loadCards(cardIds: number[]) {
       const cards = await DoFetch<CardDetailApiModel[]>(
@@ -30,6 +34,21 @@ export const useCardsStore = defineStore("cardStore", {
         }
       );
       return card;
+    },
+
+    async loadVariantTypes(){
+      if (this.variantTypes.length > 0){
+        return;
+      }
+
+      const types = await DoFetch<CardVariantTypeApiModel[]>(
+        "/api/cards/variantTypes",
+        {
+          method: "GET"
+        }
+      );
+      this.variantTypes = types;
+      return types;
     }
   },
 });

@@ -53,10 +53,10 @@ namespace SkytearHorde.Business.BackgroundRunners
                         decksToRemove.Add(deckId);
                         continue;
                     }
-                    var views = _deckViewRepository.GetLast7Days(deckId);
+                    //var views = _deckViewRepository.GetLast7Days(deckId);
 
                     var deck = decks[deckId];
-                    var score = calculator.CalculateDeckScore(deck, views);
+                    var score = calculator.CalculateDeckScore(deck, Array.Empty<int>());
                     if (score != deck.Score)
                     {
                         _deckService.UpdateScore(deck, score);

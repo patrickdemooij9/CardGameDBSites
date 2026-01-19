@@ -24,6 +24,7 @@ namespace SkytearHorde.Entities.Models.Business
         public FrequentlyAskedQuestion[] Questions { get; set; }
         public string? FaqLink { get; set; }
         public CardSection[] Sections { get; set; }
+        public CardVariantReference[] VariantReferences { get; set; }
 
         // Requirements
         public SlotTargetRequirement[] SlotTargetRequirements { get; set; }
@@ -38,14 +39,15 @@ namespace SkytearHorde.Entities.Models.Business
         public Card(int id)
         {
             BaseId = id;
-            Attributes = new Dictionary<string, IAbilityValue>();
-            Questions = Array.Empty<FrequentlyAskedQuestion>();
-            Sections = Array.Empty<CardSection>();
-            Mutations = Array.Empty<DeckMutation>();
+            Attributes = [];
+            Questions = [];
+            Sections = [];
+            Mutations = [];
+            VariantReferences = [];
 
-            SlotTargetRequirements = Array.Empty<SlotTargetRequirement>();
-            SquadRequirements = Array.Empty<ISquadRequirementConfig>();
-            TeamRequirements = Array.Empty<ISquadRequirementConfig>();
+            SlotTargetRequirements = [];
+            SquadRequirements = [];
+            TeamRequirements = [];
         }
 
         public string[]? GetMultipleCardAttributeValue(string cardAttribute)

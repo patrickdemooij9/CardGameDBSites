@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Rewrite;
 using OfficeOpenXml;
 using OpenTelemetry.Metrics;
-using Prometheus;
 using SeoToolkit.Umbraco.MetaFields.Core.Notifications;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Cache;
@@ -51,7 +50,7 @@ if (!string.IsNullOrWhiteSpace(config.SentryLink))
     builder.WebHost.UseSentry(options =>
     {
         options.Dsn = config.SentryLink;
-        options.EnableTracing = true;
+        options.AutoRegisterTracing = true;
         options.UseOpenTelemetry();
         options.TracesSampleRate = 0.5f;
         options.SampleRate = 0.5f;

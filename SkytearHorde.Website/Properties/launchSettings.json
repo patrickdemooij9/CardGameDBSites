@@ -4,7 +4,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:58528",
+      "applicationUrl": "http://localhost:58529",
       "sslPort": 44344
     }
   },
@@ -20,7 +20,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:44344;http://localhost:58528;https://api.aidalon.local:5000",
+      "applicationUrl": "https://localhost:44344;http://localhost:58529;https://api.aidalon.local:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }      

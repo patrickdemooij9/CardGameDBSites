@@ -88,7 +88,7 @@ onMounted(async () => {
       <div
         class="flex flex-col items-center px-4 py-2 w-full bg-yellow-600 rounded-md"
       >
-        <p class="font-bold text-lg">${{ summaryData.marketPrice }}</p>
+        <p class="font-bold text-lg">${{ summaryData.marketPrice?.toFixed(2) ?? 0 }}</p>
         <p>Market price</p>
       </div>
     </div>

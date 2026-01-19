@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Rewrite;
 using OfficeOpenXml;
 using OpenTelemetry.Metrics;
-using Prometheus;
 using SeoToolkit.Umbraco.MetaFields.Core.Notifications;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Cache;
@@ -70,8 +69,7 @@ namespace SkytearHorde
                 .WithMetrics(opt =>
             {
                 opt.AddRuntimeInstrumentation()
-                    .AddAspNetCoreInstrumentation()
-                    .AddPrometheusExporter();
+                    .AddAspNetCoreInstrumentation();
             });
 
             services.AddSession((option) =>

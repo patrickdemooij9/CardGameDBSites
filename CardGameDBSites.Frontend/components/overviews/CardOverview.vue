@@ -1,12 +1,23 @@
 <script setup lang="ts">
 import CardService from "~/services/CardService";
 import type { OverviewFilterModel } from "./OverviewFilterModel";
-import { CardSearchFilterClauseType, type CardsQueryFilterClauseApiModel, type PagedResultCardDetailApiModel } from "~/api/default";
+import {
+  CardSearchFilterClauseType,
+  type CardDetailApiModel,
+  type CardsQueryFilterClauseApiModel,
+  type PagedResultCardDetailApiModel,
+} from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import BaseCardOverview from "./BaseCardOverview.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
+import { PhBooks } from "@phosphor-icons/vue";
+import Button from "../shared/Button.vue";
+import ButtonType from "../shared/ButtonType";
+import CollectionCardVariantPopup from "../popups/CollectionCardVariantPopup.vue";
 
 const route = useRoute();
+const accountService = useAccountStore();
+const collectionService = useCollectionStore();
 const cardService = new CardService();
 
 const props = defineProps<{
@@ -35,10 +46,16 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
       ],
     },
   ];
-})
+});
 
-const hasPrices = false;
-const showCollection = false;
+const showPrices = false;
+let showCollection = false;
+const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
+
+onMounted(async () => {
+  const isLoggedIn = await accountService.checkLogin();
+  showCollection = isLoggedIn; //Eventually also check for collection settings
+});
 </script>
 
 <template>
@@ -59,18 +76,32 @@ const showCollection = false;
           </div>
           <img v-else :src="GetCrop(card.imageUrl, undefined)" />
         </NuxtLink>
-        <div class="flex justify-between align-center mt-2" v-if="false">
-          <p>
+        <div class="flex justify-between align-center mt-2">
+          <p v-if="false">
             @card.SetCode.ToUpper() @(card.GetAbilityByType("SWU Id")?.Value)
           </p>
           <a
-            v-if="false"
-            href="@card.Price.Url"
+            v-if="card.price"
+            :href="card.price.referenceUrl"
             target="_blank"
             class="block bg-green-600 px-2.5 py-1 rounded-md text-white no-underline"
           >
-            <p>$ @card.Price.Price</p>
+            <p>$ {{ card.price.marketPrice }}</p>
           </a>
+        </div>
+        <div v-if="showCollection">
+          <hr class="mt-2" />
+          <div class="flex mt-2 gap-2 items-center justify-between">
+            <p>
+              <span>{{
+                collectionService.amount(card.baseId!)
+              }}</span>
+              <span class="md:inline hidden ml-2">copies</span>
+            </p>
+            <Button :button-type="ButtonType.Outline" class="flex justify-center" @click="collectionSelectedCard = card">
+              <PhBooks />
+            </Button>
+          </div>
         </div>
         <!--@if (Model.ShowCollection && card.Collection != null)
     {
@@ -113,4 +144,9 @@ const showCollection = false;
       </div>
     </div>
   </BaseCardOverview>
+  <CollectionCardVariantPopup
+    v-if="collectionSelectedCard"
+    :card="collectionSelectedCard"
+    @close="collectionSelectedCard = null">
+    </CollectionCardVariantPopup>
 </template>

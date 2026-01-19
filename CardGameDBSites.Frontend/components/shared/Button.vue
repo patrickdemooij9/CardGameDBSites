@@ -14,6 +14,8 @@ function getClasses(){
         return "bg-green-500 text-white hover:bg-green-600";
     } else if (buttonType === ButtonType.Danger){
       return "bg-red-500 text-white hover:bg-red-300";
+    } else if (buttonType === ButtonType.Outline){
+      return "bg-transparent border border-black text-black hover:bg-gray-200";
     }
 }
 </script>

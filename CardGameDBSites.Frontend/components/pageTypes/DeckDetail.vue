@@ -7,7 +7,8 @@ import type { CardDetailApiModel, DeckCardGroupApiModel } from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
-import CardService from "~/services/CardService";
+import { useCards } from "~/composables/useCards";
+import { GetCardValue } from "~/helpers/CardHelper";
 
 defineProps<{
   content: DeckDetailContentModel;
@@ -16,7 +17,6 @@ defineProps<{
 const route = useRoute();
 let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]);
-const cardService = new CardService();
 
 console.log(deckId);
 const deck = await new DeckService().get(deckId);
@@ -28,7 +28,7 @@ if (!deck || deck === null) {
 }
 
 const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
-const cards = await useCardsStore().loadCards(
+const cards = await useCards().loadCardsByIds(
   deck.cards?.map((card) => card.cardId!) ?? []
 );
 const mainCards = GetValidCards(
@@ -52,8 +52,8 @@ function getCardsInGroup(group: DeckCardGroupApiModel) {
   const groupCards = GetValidCards(cards, group.requirements ?? []);
   if (group.sorting && group.sorting.length > 0) {
     return groupCards.sort((a, b) => {
-      const aValue = cardService.GetValue<string>(a, group.sorting![0]);
-      const bValue = cardService.GetValue<string>(b, group.sorting![0]);
+      const aValue = GetCardValue<string>(a, group.sorting![0]);
+      const bValue = GetCardValue<string>(b, group.sorting![0]);
 
       if (Number.isNaN(aValue) || Number.isNaN(bValue)) {
         return (aValue as string).localeCompare(bValue as string);
@@ -177,7 +177,7 @@ function getImagesForCard(card: CardDetailApiModel) {
                       class="flex items-center h-5 w-[18px] text-black font-bold"
                     >
                       <span>{{
-                        cardService.GetValue(card, "Shard Cost")
+                        GetCardValue(card, "Shard Cost")
                       }}</span>
                       <img src="/images/cost.png" />
                     </div>

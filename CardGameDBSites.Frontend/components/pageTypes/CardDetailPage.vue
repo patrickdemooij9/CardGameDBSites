@@ -3,12 +3,13 @@ import type { CardDetailContentModel } from '~/api/umbraco';
 import SiteService from '~/services/SiteService';
 import CardDetailAbility from '../cards/CardDetailAbility.vue';
 import { GetCrop } from '~/helpers/CropUrlHelper';
+import { useCards } from '~/composables/useCards';
 
 const props = defineProps<{
   content: CardDetailContentModel;
 }>();
 
-const card = await useCardsStore().loadCard(props.content.id!);
+const card = await useCards().loadCardById(props.content.id!);
 const siteSettings = await new SiteService().getSettings();
 </script>
 

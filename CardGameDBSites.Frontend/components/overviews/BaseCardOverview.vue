@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import CardService from "~/services/CardService";
 import Overview from "./Overview.vue";
 import type { OverviewFilterModel } from "./OverviewFilterModel";
 import {
@@ -10,7 +9,6 @@ import {
 } from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
-const cardService = new CardService();
 const collectionStore = useCollectionStore();
 
 const props = defineProps<{
@@ -51,7 +49,7 @@ async function loadData(value: OverviewRefreshModel) {
     filters.push(filter);
   });
 
-  pagedCards.value = await cardService.query({
+  pagedCards.value = await useCards().queryCards({
     query: value.Query,
     pageNumber: value.PageNumber,
     pageSize: 30,
@@ -67,7 +65,7 @@ async function loadData(value: OverviewRefreshModel) {
 }
 
 async function loadLazyFilter(filter: OverviewFilterModel) {
-  const values = await cardService.getValues(filter.Alias);
+  const values = await useCards().getAbilityValues(filter.Alias);
   filter.Items = values.map((item) => {
     return {
       DisplayName: item,

@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import CardService from "~/services/CardService";
 import type { OverviewFilterModel } from "./OverviewFilterModel";
 import {
   CardSearchFilterClauseType,
   type CardDetailApiModel,
   type CardsQueryFilterClauseApiModel,
-  type PagedResultCardDetailApiModel,
+  type CardVariantTypeApiModel,
 } from "~/api/default";
-import type OverviewRefreshModel from "./OverviewRefreshModel";
 import BaseCardOverview from "./BaseCardOverview.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 import { PhBooks } from "@phosphor-icons/vue";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import CollectionCardVariantPopup from "../popups/CollectionCardVariantPopup.vue";
+import type { Store } from "pinia";
+import { useCards } from "~/composables/useCards";
 
 const route = useRoute();
 const accountService = useAccountStore();
 const collectionService = useCollectionStore();
-const cardService = new CardService();
+const cards = useCards();
 
 const props = defineProps<{
   filters: OverviewFilterModel[];
@@ -50,12 +50,32 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
 
 const showPrices = false;
 let showCollection = false;
+let collectionStore: Store<"collectionStore">;
+let mainVariants: CardVariantTypeApiModel[] = [];
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
 
 onMounted(async () => {
   const isLoggedIn = await accountService.checkLogin();
   showCollection = isLoggedIn; //Eventually also check for collection settings
+  collectionStore = useCollectionStore();
+  mainVariants = (await cards.loadVariantTypes()).filter(item => item.hasPage);
 });
+
+function getMainVariants(card: CardDetailApiModel){
+  const cardSetVariants = card.variants?.filter(v => v.setId == card.setId) ?? [];
+  return mainVariants.filter((item) => cardSetVariants.some((v) => v.variantTypeId == item.id));
+}
+
+function ownsVariant(card: CardDetailApiModel, variantTypeId?: number) {
+  const variant = card.variants?.find(
+    (item) => item.variantTypeId == variantTypeId && item.setId == card.setId,
+  );
+  return (
+    (useCollectionStore()
+      .getCards(card.baseId!)
+      .find((item) => variant == item.variantId)?.amount ?? 0) > 0
+  );
+}
 </script>
 
 <template>
@@ -77,8 +97,8 @@ onMounted(async () => {
           <img v-else :src="GetCrop(card.imageUrl, undefined)" />
         </NuxtLink>
         <div class="flex justify-between align-center mt-2">
-          <p v-if="false">
-            @card.SetCode.ToUpper() @(card.GetAbilityByType("SWU Id")?.Value)
+          <p v-if="true">
+            <span v-if="false">@card.SetCode.ToUpper() @(card.GetAbilityByType("SWU Id")?.Value)</span>
           </p>
           <a
             v-if="card.price"
@@ -92,13 +112,48 @@ onMounted(async () => {
         <div v-if="showCollection">
           <hr class="mt-2" />
           <div class="flex mt-2 gap-2 items-center justify-between">
-            <p>
-              <span>{{
-                collectionService.amount(card.baseId!)
-              }}</span>
-              <span class="md:inline hidden ml-2">copies</span>
-            </p>
-            <Button :button-type="ButtonType.Outline" class="flex justify-center" @click="collectionSelectedCard = card">
+            <p class="relative w-4 h-6" :style="{'width': (mainVariants.length * 8) + 'px'}">
+                <span
+                  :class="[
+                    ownsVariant(card, undefined)
+                      ? 'bg-red-600'
+                      : 'bg-[#cfcfcf]',
+                  ]"
+                  class="absolute top-0 flex align-center justify-center border border-white rounded h-6 w-4 pt-1 z-10"
+                  title="Base card"
+                >
+                  <span class="bg-white rounded-full w-2 h-2"></span>
+                </span>
+                <span
+                  v-for="(variant, index) in getMainVariants(card)"
+                  :key="variant.id"
+                  class="absolute top-0 flex align-center justify-center border border-white rounded h-6 w-4 pt-1"
+                  :title="variant.displayName"
+                  :style="{
+                    'background-color': ownsVariant(card, variant.id)
+                      ? variant.color!
+                      : '#cfcfcf',
+                    left: 10 + index * 10 + 'px',
+                    'z-index': mainVariants.length - index,
+                  }"
+                >
+                  <span
+                    v-if="variant.initial"
+                    class="text-white text-xs font-bold text-center"
+                    >{{ variant.initial }}</span
+                  >
+                  <span v-else class="bg-white rounded-full w-2 h-2"></span>
+                </span>
+              </p>
+            <span class="ml-2"
+              >{{ collectionService.amount(card.baseId!) }}
+              <span class="md:inline hidden">copies</span></span
+            >
+            <Button
+              :button-type="ButtonType.Outline"
+              class="flex justify-center"
+              @click="collectionSelectedCard = card"
+            >
               <PhBooks />
             </Button>
           </div>
@@ -147,6 +202,7 @@ onMounted(async () => {
   <CollectionCardVariantPopup
     v-if="collectionSelectedCard"
     :card="collectionSelectedCard"
-    @close="collectionSelectedCard = null">
-    </CollectionCardVariantPopup>
+    @close="collectionSelectedCard = null"
+  >
+  </CollectionCardVariantPopup>
 </template>

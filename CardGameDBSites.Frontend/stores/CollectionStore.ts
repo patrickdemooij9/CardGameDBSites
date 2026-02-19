@@ -31,13 +31,16 @@ export const useCollectionStore = defineStore("collectionStore", {
       return cardsGrouped;
     },
 
-    async save(values: {[key: number]: number}){
+    async save(cardId: number, values: {[key: number]: number}){
       const cards = await DoServerFetch<CollectionCardApiModel[]>(
         "/api/collection/addCards",
         true,
         {
           method: "POST",
-          body: values
+          body: values,
+          query: {
+            cardId
+          }
         }
       )
       const cardsGrouped = Object.groupBy(cards, (card) => card.cardId!);

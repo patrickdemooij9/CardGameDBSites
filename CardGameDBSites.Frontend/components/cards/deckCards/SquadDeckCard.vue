@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { DeckTypeSettingsApiModel, DeckApiModel } from "~/api/default";
-import { useCardsStore } from "~/stores/CardStore";
+import { useCards } from "~/composables/useCards";
 
 const props = defineProps<{
   deck: DeckApiModel;
   settings: DeckTypeSettingsApiModel
 }>();
 
-const cards = await useCardsStore().loadCards(props.deck.cards?.map((card) => card.cardId!) ?? []);
+const cards = await useCards().loadCardsByIds(props.deck.cards?.map((card) => card.cardId!) ?? []);
 </script>
 
 <template>

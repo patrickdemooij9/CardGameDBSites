@@ -8,7 +8,7 @@ import CreateDeckCardGroup from "~/components/decks/deckBuilder/models/CreateDec
 import { DynamicDeckAmountConfig, FixedDeckAmountConfig } from "~/components/decks/deckBuilder/models/CreateDeckSlotAmount";
 import { DoFetch } from "~/helpers/RequestsHelper";
 import DeckService from "./DeckService";
-import CardService from "./CardService";
+import { useCards } from "~/composables/useCards";
 
 export default class SiteService {
   static settings?: SiteSettingsApiModel;
@@ -101,8 +101,7 @@ export default class SiteService {
       if (deckId) {
         const deck = await new DeckService().get(deckId);
         if (deck) { //TODO: Also check if user is allowed to edit this deck
-          const cardStore = useCardsStore();
-          const cards = await cardStore.loadCards([... deck.cards!.map((deckCard) => deckCard.cardId!)]);
+          const cards = await useCards().loadCardsByIds([... deck.cards!.map((deckCard) => deckCard.cardId!)]);
           model.id = deckId;
           model.name = deck.name;
           model.description = deck.description ?? "";

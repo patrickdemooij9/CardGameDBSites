@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { type CollectionSummaryApiModel } from "~/api/default";
-import { DoFetch, DoOptionalServerFetch, DoServerFetch } from "~/helpers/RequestsHelper";
+import { DoServerFetch } from "~/helpers/RequestsHelper";
 import SetOverview from "../overviews/SetOverview.vue";
+import ProgressBar from "../shared/ProgressBar.vue";
 
 const accountStore = useAccountStore();
 const isLoggedIn = await useAccountStore().checkLogin();
+const showProgressBar = true;
+const progressPercent = 44.5;
 
 const summaryData = ref<CollectionSummaryApiModel>({
   uniqueCards: 0,
@@ -25,6 +28,10 @@ onMounted(async () => {
 <template>
   <div class="container px-4 md:px-8 py-4">
     <div class="flex md:flex-row md:items-center flex-col gap-6">
+      <div v-if="showProgressBar" class="grow">
+        <ProgressBar :percent-filled="progressPercent"></ProgressBar>
+        <small>Your progress towards a full collection.</small>
+      </div>
       <!--@if (_collectionService.ShowProgressBar())
         {
             <div id="progress-bar" class="grow">

@@ -2,6 +2,7 @@
 import type { CardDetailApiModel } from "~/api/default";
 import PopupBase from "~/components/popups/PopupBase.vue";
 import { PopupSize } from "./PopupTypes";
+import { useCards } from "~/composables/useCards";
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -11,19 +12,18 @@ const props = defineProps<{
   card: CardDetailApiModel;
 }>();
 
-const cardStore = useCardsStore();
+const cards = useCards();
 const collectionStore = useCollectionStore();
 await collectionStore.loadCards([props.card.baseId!]);
-await cardStore.loadVariantTypes();
+var variantTypes = (await cards.loadVariantTypes());
 
-const variantTypes = computed(() => cardStore.getVariants);
 const variantAmounts = ref<{ [key: number]: number }>({});
 collectionStore.getCards(props.card.baseId!).forEach((card) => {
   variantAmounts.value[card.variantId!] = card.amount!;
 });
 
 function getVariantType(variantTypeId: number) {
-  return variantTypes.value.find((it) => it.id === variantTypeId);
+  return variantTypes.find((it) => it.id === variantTypeId);
 }
 
 function updateVariantAmount(variantId: number, amount: number) {
@@ -31,7 +31,7 @@ function updateVariantAmount(variantId: number, amount: number) {
 }
 
 async function saveVariants() {
-  await collectionStore.save(variantAmounts.value);
+  await collectionStore.save(props.card.baseId!, variantAmounts.value);
   emit("close");
 }
 </script>
@@ -46,7 +46,7 @@ async function saveVariants() {
             Update the amount of cards that you have for <span class="font-semibold">{{ card.displayName }}</span>
           </p>
         </div>
-        <div class="flex gap-1 flex-col mt-4" v-for="variant in card.variants?.filter(v => v.setId == card.setId)">
+        <div class="flex gap-1 flex-col mt-4" v-for="variant in card.variants?.filter(v => v.setId == card.setId).sort((a, b) => (a.variantTypeId ?? 0) - (b.variantTypeId ?? 0))">
           <label class="font-bold">
             {{ variant.variantTypeId ? getVariantType(variant.variantTypeId)?.displayName : "Normal" }}
           </label>

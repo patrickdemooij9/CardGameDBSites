@@ -5,11 +5,10 @@ import {
   type CardsQueryFilterApiModel,
   type CardsQueryFilterClauseApiModel,
 } from "~/api/default";
-import type OverviewFilterValueModel from "~/components/overviews/OverviewFilterValueModel";
 import type { IRequirement } from "./IRequirement";
-import CardService from "../CardService";
 import RequirementType from "./RequirementType";
 import { IsValid } from "./RequirementService";
+import { GetCardValues } from "~/helpers/CardHelper";
 
 export default class ResourceRequirement implements IRequirement {
   RequirementType: RequirementType = RequirementType.Resource;
@@ -19,7 +18,7 @@ export default class ResourceRequirement implements IRequirement {
       config["mainCardsCondition"].every((c: Record<string, any>) => {
         c["alias"] = c["type"];
         return IsValid([card], [c]);
-      })
+      }),
     );
     /*if (
       mainCards.length === 0 ||
@@ -29,19 +28,18 @@ export default class ResourceRequirement implements IRequirement {
       return true;
     }*/
 
-    const cardService = new CardService();
     const resourcePool = Object.groupBy(
       mainCards.flatMap(
-        (c) => cardService.GetValues<string>(c, config["mainAbility"]) ?? []
+        (c) => GetCardValues<string>(c, config["mainAbility"]) ?? [],
       ),
-      (item) => item
+      (item) => item,
     );
     const otherCards = cards.filter((it) => !mainCards.includes(it));
 
     for (let i = 0; i < otherCards.length; i++) {
       const card = otherCards[i];
 
-      const cardValues = cardService.GetValues<string>(card, config.ability);
+      const cardValues = GetCardValues<string>(card, config.ability);
       if (!cardValues || cardValues.length === 0) {
         return false;
       }
@@ -73,7 +71,7 @@ export default class ResourceRequirement implements IRequirement {
   }
   ToFilters(
     cards: CardDetailApiModel[],
-    config: Record<string, any>
+    config: Record<string, any>,
   ): CardsQueryFilterClauseApiModel {
     if (config.singleResourceMode) {
       return {}; //TODO: Implement filters for single resource mode
@@ -83,21 +81,20 @@ export default class ResourceRequirement implements IRequirement {
       config["mainCardsCondition"].every((c: Record<string, any>) => {
         c["alias"] = c["type"];
         return IsValid([card], [c]);
-      })
+      }),
     );
 
-    const cardService = new CardService();
     const resourcePool = Object.groupBy(
       mainCards.flatMap(
-        (c) => cardService.GetValues<string>(c, config["mainAbility"]) ?? []
+        (c) => GetCardValues<string>(c, config["mainAbility"]) ?? [],
       ),
-      (item) => item
+      (item) => item,
     );
 
     const filters: CardsQueryFilterApiModel[] = [];
     const totalMainResources = Object.values(resourcePool).reduce(
       (prev, cur) => (prev += cur?.length ?? 0),
-      0
+      0,
     );
     config.possibleValues.forEach((value: string) => {
       filters.push({

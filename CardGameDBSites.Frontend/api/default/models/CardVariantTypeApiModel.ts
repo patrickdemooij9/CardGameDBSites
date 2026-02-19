@@ -5,6 +5,7 @@
 export type CardVariantTypeApiModel = {
     id: number;
     displayName: string;
+    hasPage?: boolean;
     color?: string | null;
     initial?: string | null;
 };

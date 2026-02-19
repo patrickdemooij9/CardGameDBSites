@@ -1,10 +1,10 @@
 import type { CardDetailApiModel, RequirementApiModel } from "~/api/default";
 import { DisplaySize, type DeckAmount } from "../DeckBuilderModels";
 import type CreateDeckCardGroup from "./CreateDeckCardGroup";
-import CardService from "~/services/CardService";
 import { FixedDeckAmountConfig, type CreateDeckSlotAmount } from "./CreateDeckSlotAmount";
 import { GetInvalidRequirements, IsValid } from "~/services/requirements/RequirementService";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
+import { GetCardValue } from "~/helpers/CardHelper";
 
 export default class CreateDeckSlot {
   id: number;
@@ -50,8 +50,7 @@ export default class CreateDeckSlot {
   }
 
   getCardMaxAmount(card: CardDetailApiModel) {
-    var cardService = new CardService();
-    return cardService.GetValue<number>(card, "Amount") ?? 0;
+    return GetCardValue<number>(card, "Amount") ?? 0;
   }
 
   getMaxAmount() {

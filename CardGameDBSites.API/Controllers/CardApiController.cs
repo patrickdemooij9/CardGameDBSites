@@ -119,6 +119,7 @@ namespace CardGameDBSites.API.Controllers
             {
                 Id = it.Id,
                 DisplayName = it.DisplayName,
+                HasPage = it.HasPage,
                 Color = it.Color,
                 Initial = it.Initial
             }));

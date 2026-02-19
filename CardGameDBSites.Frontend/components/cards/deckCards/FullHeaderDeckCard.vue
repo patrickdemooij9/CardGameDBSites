@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { DeckTypeSettingsApiModel, DeckApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
+import { useCards } from "~/composables/useCards";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
-import { useCardsStore } from "~/stores/CardStore";
 import { useMemberStore } from "~/stores/MemberStore";
 
 const props = defineProps<{
@@ -11,7 +11,7 @@ const props = defineProps<{
   settings: DeckTypeSettingsApiModel;
 }>();
 
-const cards = await useCardsStore().loadCards(
+const cards = await useCards().loadCardsByIds(
   props.deck.cards?.map((card) => card.cardId!) ?? []
 );
 const mainCard = GetValidCards(

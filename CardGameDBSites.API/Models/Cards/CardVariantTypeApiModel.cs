@@ -5,6 +5,7 @@
         public required int Id { get; set; }
         public required string DisplayName { get; set; }
 
+        public bool HasPage { get; set; }
         public string? Color { get; set; }
         public string? Initial { get; set; }
     }

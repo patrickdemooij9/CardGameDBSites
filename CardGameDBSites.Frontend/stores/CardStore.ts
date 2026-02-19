@@ -1,54 +1,56 @@
-import { defineStore } from "pinia";
-import type { CardDetailApiModel, CardVariantTypeApiModel } from "~/api/default";
-import { DoFetch } from "~/helpers/RequestsHelper";
+import { defineStore } from 'pinia'
+import type { CardDetailApiModel, CardVariantTypeApiModel } from '~/api/default'
 
-export const useCardsStore = defineStore("cardStore", {
+const CARD_TTL_MS = 10 * 60 * 1000 // 10 minutes
+
+interface CachedCard {
+  data: CardDetailApiModel
+  fetchedAt: number
+}
+
+export const useCardsStore = defineStore('cards', {
   state: () => ({
-    cards: {} as { [key: string]: CardDetailApiModel },
-    variantTypes: [] as CardVariantTypeApiModel[]
-  }),
-  getters: {
-    getVariants: (state) => state.variantTypes
-  },
-  actions: {
-    async loadCards(cardIds: number[]) {
-      const cards = await DoFetch<CardDetailApiModel[]>(
-        "/api/cards/byIds",
-        {
-          method: "POST",
-          body: cardIds,
-        }
-      );
-
-      cards.forEach((card) => {
-        this.cards[card.baseId!] = card;
-      });
-      return cards;
-    },
-
-    async loadCard(cardId: string){
-      const card = await DoFetch<CardDetailApiModel>(
-        "/api/cards/byId?id=" + cardId,
-        {
-          method: "GET"
-        }
-      );
-      return card;
-    },
-
-    async loadVariantTypes(){
-      if (this.variantTypes.length > 0){
-        return;
-      }
-
-      const types = await DoFetch<CardVariantTypeApiModel[]>(
-        "/api/cards/variantTypes",
-        {
-          method: "GET"
-        }
-      );
-      this.variantTypes = types;
-      return types;
+    cards: {} as Record<string, CachedCard>,
+    variantTypes: {
+      data: [] as CardVariantTypeApiModel[],
+      fetchedAt: null as number | null
     }
+  }),
+
+  getters: {
+    getCard:
+      (state) =>
+      (id: string): CardDetailApiModel | null =>
+        state.cards[id]?.data ?? null,
+
+    isCardExpired:
+      () =>
+      (cached: CachedCard) =>
+        Date.now() - cached.fetchedAt > CARD_TTL_MS,
+
+    hasVariantTypes: state => state.variantTypes.data.length > 0,
+    areVariantTypesExpired: state =>
+      !state.variantTypes.fetchedAt ||
+      Date.now() - state.variantTypes.fetchedAt > CARD_TTL_MS
   },
-});
+
+  actions: {
+    setCards(cards: CardDetailApiModel[]) {
+      const now = Date.now()
+      cards.forEach(card => {
+        if (!card.baseId) return
+        this.cards[card.baseId] = {
+          data: card,
+          fetchedAt: now
+        }
+      })
+    },
+
+    setVariantTypes(types: CardVariantTypeApiModel[]) {
+      this.variantTypes = {
+        data: types,
+        fetchedAt: Date.now()
+      }
+    }
+  }
+})

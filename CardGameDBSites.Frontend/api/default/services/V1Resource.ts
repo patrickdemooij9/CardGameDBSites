@@ -219,13 +219,18 @@ export class V1Resource {
      * @throws ApiError
      */
     public static postApiCollectionAddCards({
+        cardId,
         requestBody,
     }: {
+        cardId?: number,
         requestBody?: Record<string, number>,
     }): CancelablePromise<Array<CollectionCardApiModel>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/collection/addCards',
+            query: {
+                'cardId': cardId,
+            },
             body: requestBody,
             mediaType: 'application/json',
         });

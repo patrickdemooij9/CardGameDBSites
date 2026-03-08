@@ -52,7 +52,7 @@ namespace SkytearHorde.Business.Helpers
             public BlockListUdi Layout { get; set; }
 
             [JsonProperty("contentData")]
-            public List<Dictionary<string, string>> ContentData { get; set; }
+            public List<Dictionary<string, string>> ContentData { get; set; } = [];
 
             [JsonProperty("settingsData")]
             public List<Dictionary<string, string>> SettingsData { get; set; }

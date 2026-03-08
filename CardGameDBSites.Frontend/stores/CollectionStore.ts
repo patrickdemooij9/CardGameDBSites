@@ -1,5 +1,6 @@
 import type { CollectionCardApiModel } from "~/api/default";
 import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
+import type { PackPostApiModel, PackVerifySuccessApiModel, PackVerifyErrorApiModel } from "~/models/PackApiModel";
 
 export const useCollectionStore = defineStore("collectionStore", {
   state: () => ({
@@ -47,6 +48,28 @@ export const useCollectionStore = defineStore("collectionStore", {
       Object.entries(cardsGrouped).forEach((entry) => {
         this.cards[Number(entry[0])] = entry[1]!;
       });
+    },
+
+    async verifyPack(postModel: PackPostApiModel): Promise<PackVerifySuccessApiModel | PackVerifyErrorApiModel> {
+      return await DoServerFetch<PackVerifySuccessApiModel | PackVerifyErrorApiModel>(
+        "/api/collection/verifyPack",
+        true,
+        {
+          method: "POST",
+          body: postModel
+        }
+      );
+    },
+
+    async addPack(postModel: PackPostApiModel): Promise<void> {
+      await DoServerFetch(
+        "/api/collection/addPack",
+        true,
+        {
+          method: "POST",
+          body: postModel
+        }
+      );
     }
   },
 });

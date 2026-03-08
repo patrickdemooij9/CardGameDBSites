@@ -11,6 +11,7 @@ defineProps<{
 
 const router = useRouter();
 const memberId = ref<number | undefined>(undefined);
+const isLoading = ref(true);
 
 onMounted(async () => {
     const isLoggedIn = await useAccountStore().checkLogin();
@@ -19,11 +20,15 @@ onMounted(async () => {
     }
 
     memberId.value = useAccountStore().member?.id;
+    isLoading.value = false;
 })
 </script>
 
 <template>
-    <div class="container px-4 pt-8 md:px-8 mb-6" v-if="memberId">
+    <div v-if="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+    <div v-else class="container px-4 pt-8 md:px-8 mb-6" v-if="memberId">
         <h1>Your decks</h1>
         <BaseDeckOverview
             :decks-per-row="1"

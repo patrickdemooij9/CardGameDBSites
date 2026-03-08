@@ -53,12 +53,14 @@ let showCollection = false;
 let collectionStore: Store<"collectionStore">;
 let mainVariants: CardVariantTypeApiModel[] = [];
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
+const isLoading = ref(true);
 
 onMounted(async () => {
   const isLoggedIn = await accountService.checkLogin();
   showCollection = isLoggedIn; //Eventually also check for collection settings
   collectionStore = useCollectionStore();
   mainVariants = (await cards.loadVariantTypes()).filter(item => item.hasPage);
+  isLoading.value = false;
 });
 
 function getMainVariants(card: CardDetailApiModel){
@@ -79,7 +81,11 @@ function ownsVariant(card: CardDetailApiModel, variantTypeId?: number) {
 </script>
 
 <template>
+  <div v-if="isLoading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
   <BaseCardOverview
+    v-else
     :filters="filters"
     :internal-filters="internalFilters"
     :white-background="true"

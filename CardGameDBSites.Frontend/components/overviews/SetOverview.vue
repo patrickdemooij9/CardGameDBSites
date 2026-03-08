@@ -7,6 +7,7 @@ import type { SetProgressApiModel } from "~/api/default";
 
 const sets = await new SetService().getAllSets();
 const setsProgress = ref<SetProgressApiModel[]>([]);
+const isLoading = ref(true);
 
 const accountStore = useAccountStore();
 const isLoggedIn = await useAccountStore().checkLogin();
@@ -29,11 +30,15 @@ onMounted(async () => {
       "/api/collection/setsProgress"
     );
   }
+  isLoading.value = false;
 });
 </script>
 
 <template>
-  <div class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
+  <div v-if="isLoading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+  <div v-else class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
     <div
       v-for="set in sets"
       class="flex flex-col gap-2 rounded-md border-2 border-gray-300 bg-white p-4"

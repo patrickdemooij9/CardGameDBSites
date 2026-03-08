@@ -14,6 +14,7 @@ import type CreateDeckSlot from "./models/CreateDeckSlot";
 
 const route = useRoute();
 const router = useRouter();
+const isLoading = ref(true);
 let deckId: number | undefined = undefined;
 if (route.query["id"]) {
   const query = route.query["id"];
@@ -23,6 +24,7 @@ if (route.query["id"]) {
 }
 
 const deckSettings = await new SiteService().getDeckBuilderSettings(1, deckId)!;
+isLoading.value = false;
 
 const currentTab = ref<DeckBuilderTab>(DeckBuilderTab.Deck);
 const selectedCard = ref<CardDetailApiModel>();
@@ -101,7 +103,10 @@ onUnmounted(() => {
 
 <template>
   <div>
-    <div class="container">
+    <div v-if="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+    <div v-else class="container">
       <div class="flex gap-4 sticky top-0 z-10 text-md bg-white p-4 md:hidden">
         <button
           class="border-b-2 px-2 py-1"

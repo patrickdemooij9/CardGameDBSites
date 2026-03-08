@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { type CollectionSummaryApiModel, type SetViewModel, type CardVariantTypeApiModel } from "~/api/default";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
+import { useAppToast } from "~/composables/useAppToast";
 import SetOverview from "../overviews/SetOverview.vue";
 import ProgressBar from "../shared/ProgressBar.vue";
 import PopupBase from "../popups/PopupBase.vue";
 import CardPackModal from "../popups/CardPackModal.vue";
 import { PopupSize } from "../popups/PopupTypes";
+import Button from "../shared/Button.vue";
+import ButtonType from "../shared/ButtonType";
 
 const accountStore = useAccountStore();
 const isLoggedIn = await useAccountStore().checkLogin();
+const appToast = useAppToast();
 const showProgressBar = true;
 const progressPercent = 44.5;
 const isLoading = ref(true);
@@ -61,17 +65,12 @@ async function handleImport() {
     const formData = new FormData();
     formData.append("file", selectedFile.value);
 
-    const response = await fetch(`/api/collection/import?overwrite=${overwriteCollection.value}`, {
+    await DoServerFetch(`/api/collection/import?overwrite=${overwriteCollection.value}`, true, {
       method: "POST",
-      credentials: "include",
       body: formData,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Import failed");
-    }
-
+    appToast.success("Collection imported successfully!");
     showImportPopup.value = false;
     selectedFile.value = null;
     overwriteCollection.value = false;
@@ -221,13 +220,14 @@ async function handlePackAdded() {
     </div>
 
     <template #actions>
-      <button 
+      <Button 
         @click="handleImport" 
+        :button-type="ButtonType.Success"
         :disabled="isImporting || !selectedFile"
         class="btn disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {{ isImporting ? 'Importing...' : 'Import' }}
-      </button>
+      </Button>
     </template>
   </PopupBase>
 

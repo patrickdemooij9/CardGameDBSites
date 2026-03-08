@@ -6,6 +6,7 @@ import type { CardDetailApiModel } from '../models/CardDetailApiModel';
 import type { CardsQueryPostApiModel } from '../models/CardsQueryPostApiModel';
 import type { CardVariantTypeApiModel } from '../models/CardVariantTypeApiModel';
 import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
+import type { CollectionExportType } from '../models/CollectionExportType';
 import type { CollectionSummaryApiModel } from '../models/CollectionSummaryApiModel';
 import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
@@ -14,8 +15,11 @@ import type { DeckBuilderApiModel } from '../models/DeckBuilderApiModel';
 import type { DeckQueryPostModel } from '../models/DeckQueryPostModel';
 import type { DeckTypeSettingsApiModel } from '../models/DeckTypeSettingsApiModel';
 import type { ForgotPasswordPostModel } from '../models/ForgotPasswordPostModel';
+import type { IActionResult } from '../models/IActionResult';
 import type { LoginPostModel } from '../models/LoginPostModel';
 import type { MemberApiModel } from '../models/MemberApiModel';
+import type { PackPostApiModel } from '../models/PackPostApiModel';
+import type { PackVerifySuccessApiModel } from '../models/PackVerifySuccessApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
 import type { RegisterPostModel } from '../models/RegisterPostModel';
@@ -236,6 +240,22 @@ export class V1Resource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiCollectionAddPack({
+        requestBody,
+    }: {
+        requestBody?: PackPostApiModel,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/addPack',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * @returns CollectionCardApiModel OK
      * @throws ApiError
      */
@@ -249,6 +269,40 @@ export class V1Resource {
             url: '/api/collection/cards',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns binary OK
+     * @throws ApiError
+     */
+    public static getApiCollectionExport({
+        exportType,
+    }: {
+        exportType?: CollectionExportType,
+    }): CancelablePromise<Blob> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/collection/export',
+            query: {
+                'exportType': exportType,
+            },
+        });
+    }
+    /**
+     * @returns IActionResult OK
+     * @throws ApiError
+     */
+    public static postApiCollectionImport({
+        overwrite,
+    }: {
+        overwrite?: boolean,
+    }): CancelablePromise<IActionResult> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/import',
+            query: {
+                'overwrite': overwrite,
+            },
         });
     }
     /**
@@ -269,6 +323,25 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/collection/summary',
+        });
+    }
+    /**
+     * @returns PackVerifySuccessApiModel OK
+     * @throws ApiError
+     */
+    public static postApiCollectionVerifyPack({
+        requestBody,
+    }: {
+        requestBody?: PackPostApiModel,
+    }): CancelablePromise<PackVerifySuccessApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/verifyPack',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+            },
         });
     }
     /**

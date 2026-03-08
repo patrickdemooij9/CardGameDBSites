@@ -30,10 +30,12 @@ export default defineEventHandler(async (event) => {
     queryString ? `?${queryString}` : ""
   }`;
 
+  const contentType = getRequestHeader(event, "Content-Type") || "application/json";
+
   try {
     // Use $fetch to call backend API and get raw response
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      "Content-Type": contentType,
     };
 
     if (jwt) {
@@ -53,17 +55,9 @@ export default defineEventHandler(async (event) => {
     const body =
       method !== "GET" && method !== "HEAD" ? await readBody(event) : undefined;
 
-    const response = await $fetch(backendUrl, {
-      method: method,
-      headers: {
-        ...headers,
-        "Content-Type": "application/json",
-      },
-      body: body,
-    });
-
-    // Respond with backend data
-    return response;
+ return await proxyRequest(event, backendUrl, {
+     headers: { Authorization: `Bearer ${jwt}` }
+   });
   } catch (error) {
     console.error("Proxy fetch error:", error);
     throw error;

@@ -25,7 +25,7 @@
         <input 
           v-model="item.id" 
           class="form-input w-full px-2 py-1 border rounded" 
-          :placeholder="(index + 1).toString().padStart(3, '0')"
+          :placeholder="(index + 1).toString()"
         />
         <select 
           v-model="item.variantTypeId" 
@@ -40,70 +40,53 @@
     </div>
 
     <template #actions>
-      <button 
+      <Button 
         @click="handleVerify" 
         :disabled="isVerifying"
+        :button-type="ButtonType.Success"
         class="btn bg-green-400 hover:bg-green-500 text-white"
       >
         {{ isVerifying ? 'Verifying...' : 'Confirm' }}
-      </button>
+      </Button>
     </template>
   </PopupBase>
 
   <!-- Verify Modal -->
-  <Teleport to="#root">
-    <div
-      v-if="showVerifyModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
-    >
-      <div class="relative bg-white rounded-lg shadow-lg w-screen mx-4 max-h-screen overflow-auto md:w-[50vw]">
-        <button
-          class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors"
-          @click.prevent="showVerifyModal = false"
-        >
-          <PhX class="h-6 w-6" />
-        </button>
-        <div class="p-6">
-          <h3 class="text-lg font-bold mb-2">Add a card pack</h3>
-          <p class="text-gray-600 mb-4">We found the following cards to import</p>
-          
-          <div class="space-y-1 max-h-64 overflow-y-auto">
-            <div 
-              v-for="card in verifiedCards" 
-              :key="card.baseId"
-              class="w-full border py-2 px-3 rounded mb-1"
-            >
-              {{ card.displayName }} ({{ getVariantName(card.variantTypeId) }})
-            </div>
-          </div>
-        </div>
-        <div class="bg-gray-50 px-4 py-3 gap-2 sm:flex sm:flex-row-reverse sm:px-6">
-          <button 
-            @click="handleAddPack" 
-            :disabled="isAdding"
-            class="btn bg-green-400 hover:bg-green-500 text-white"
-          >
-            {{ isAdding ? 'Adding...' : 'Confirm' }}
-          </button>
-          <button 
-            @click="showVerifyModal = false"
-            class="btn bg-white hover:bg-gray-50 text-gray-900"
-          >
-            Cancel
-          </button>
-        </div>
+   <PopupBase v-if="showVerifyModal" :size="PopupSize.Medium" @close="showVerifyModal = false">
+    <h3 class="text-lg font-bold mb-2">We found the following cards to import</h3>
+    
+    <div class="space-y-1 max-h-64 overflow-y-auto">
+      <div 
+        v-for="card in verifiedCards" 
+        :key="card.baseId"
+        class="w-full border py-2 px-3 rounded mb-1"
+      >
+        {{ card.displayName }} ({{ getVariantName(card.variantTypeId) }})
       </div>
     </div>
-  </Teleport>
+
+    <template #actions>
+      <Button 
+        @click="handleAddPack" 
+        :disabled="isAdding"
+        :button-type="ButtonType.Success"
+        class="btn bg-green-400 hover:bg-green-500 text-white"
+      >
+        {{ isAdding ? 'Adding...' : 'Confirm' }}
+      </Button>
+    </template>
+
+   </PopupBase>
 </template>
 
 <script setup lang="ts">
-import { PhX } from "@phosphor-icons/vue";
 import PopupBase from "./PopupBase.vue";
 import { PopupSize } from "./PopupTypes";
 import type { SetViewModel, CardVariantTypeApiModel } from "~/api/default";
 import type { PackPostApiModel, PackVerifyCardApiModel } from "~/models/PackApiModel";
 import { useCollectionStore } from "~/stores/CollectionStore";
+import Button from "../shared/Button.vue";
+import ButtonType from "../shared/ButtonType";
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -117,7 +100,7 @@ const props = defineProps<{
   variantTypes: CardVariantTypeApiModel[];
 }>();
 
-const selectedSetId = ref(props.sets[0]?.id ?? 0);
+const selectedSetId = ref(props.sets[props.sets.length - 1]?.id ?? 0);
 const packItems = ref<{ id: string; variantTypeId: number | null }[]>(
   Array.from({ length: 16 }, (_, i) => ({ id: "", variantTypeId: null }))
 );
@@ -147,6 +130,7 @@ async function handleVerify() {
     };
 
     const result = await collectionStore.verifyPack(postModel);
+    console.log(result);
     
     if ("errorMessage" in result) {
       errorMessage.value = result.errorMessage;
@@ -155,7 +139,8 @@ async function handleVerify() {
       showVerifyModal.value = true;
     }
   } catch (error: any) {
-    errorMessage.value = error.message || "An error occurred during verification";
+    console.error(error);
+    errorMessage.value = error.data.data.errorMessage || "An error occurred during verification";
   } finally {
     isVerifying.value = false;
   }

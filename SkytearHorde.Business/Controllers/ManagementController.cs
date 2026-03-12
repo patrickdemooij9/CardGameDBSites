@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Discord.Rest;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
@@ -60,24 +61,26 @@ namespace SkytearHorde.Business.Controllers
 
             var allCards = _cardService.GetAllBySet(setId, true).ToArray();
             var baseCards = allCards.Where(it => !it.VariantTypeId.HasValue).ToDictionary(it => it.BaseId, it => it);
-            var variantCards = allCards.Where(it => it.VariantTypeId == variantTypeId).ToArray();
-            var random = new Random();
-            for (var i = 0; i < 10; i++)
+            var variantCards = allCards.Where(it => it.VariantTypeId == variantTypeId).OrderBy(it =>
             {
-                var card = variantCards[random.Next(variantCards.Count())];
-                if (!baseCards.TryGetValue(card.BaseId, out var baseCard))
+                if (!baseCards.TryGetValue(it.BaseId, out var baseCard))
                 {
-                    resultMessage += $"\r\nCould not find base card for {card.BaseId}";
-                    continue;
+                    resultMessage += $"\r\nCould not find base card for {it.BaseId}";
+                    return -1;
                 }
                 var baseCardId = baseCard.GetMultipleCardAttributeValue(attributeId)?.FirstOrDefault();
                 if (baseCardId is null || !int.TryParse(baseCardId, out var parsedBaseCardId))
                 {
-                    resultMessage += $"\r\nCould not find attribute for card {card.BaseId}";
-                    continue;
+                    resultMessage += $"\r\nCould not find attribute for card {it.BaseId}";
+                    return -1;
                 }
-
-                var proposedVariantId = parsedBaseCardId + startingNumber;
+                return parsedBaseCardId;
+            }).ToArray();
+            var random = new Random();
+            for (var i = 0; i < 10; i++)
+            {
+                var card = variantCards[random.Next(variantCards.Length)];
+                var proposedVariantId = startingNumber + variantCards.IndexOf(card);
                 resultMessage += $"\r\nProposed id for variant {card.VariantId}: {proposedVariantId}";
             }
             return Ok(resultMessage);
@@ -95,21 +98,23 @@ namespace SkytearHorde.Business.Controllers
             }
             var allCards = _cardService.GetAllBySet(setId, true).ToArray();
             var baseCards = allCards.Where(it => !it.VariantTypeId.HasValue).ToDictionary(it => it.BaseId, it => it);
-            var variantCards = allCards.Where(it => it.VariantTypeId == variantTypeId).ToArray();
-            var updatedCards = 0;
-
-            foreach (var card in variantCards)
+            var variantCards = allCards.Where(it => it.VariantTypeId == variantTypeId).OrderBy(it =>
             {
-                if (!baseCards.TryGetValue(card.BaseId, out var baseCard))
+                if (!baseCards.TryGetValue(it.BaseId, out var baseCard))
                 {
-                    continue;
+                    return -1;
                 }
                 var baseCardId = baseCard.GetMultipleCardAttributeValue(attributeId)?.FirstOrDefault();
                 if (baseCardId is null || !int.TryParse(baseCardId, out var parsedBaseCardId))
                 {
-                    continue;
+                    return -1;
                 }
+                return parsedBaseCardId;
+            }).ToArray();
+            var updatedCards = 0;
 
+            foreach (var card in variantCards)
+            {
                 var content = _contentService.GetById(card.VariantId)!;
                 var newAttributes = new List<Dictionary<string, string>>();
                 var attributesJson = content.GetValue("attributes");
@@ -134,7 +139,7 @@ namespace SkytearHorde.Business.Controllers
                         };
                     newAttributes.Add(existingIdAttribute);
                 }
-                var proposedVariantId = parsedBaseCardId + startingNumber;
+                var proposedVariantId = startingNumber + variantCards.IndexOf(card);
                 existingIdAttribute["value"] = proposedVariantId.ToString();
 
                 content.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(newAttributes!, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));

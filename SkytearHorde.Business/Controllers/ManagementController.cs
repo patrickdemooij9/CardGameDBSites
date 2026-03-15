@@ -76,10 +76,8 @@ namespace SkytearHorde.Business.Controllers
                 }
                 return parsedBaseCardId;
             }).ToArray();
-            var random = new Random();
-            for (var i = 0; i < 10; i++)
+            foreach (var card in variantCards)
             {
-                var card = variantCards[random.Next(variantCards.Length)];
                 var proposedVariantId = startingNumber + variantCards.IndexOf(card);
                 resultMessage += $"\r\nProposed id for variant {card.VariantId}: {proposedVariantId}";
             }

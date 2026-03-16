@@ -54,13 +54,13 @@ namespace SkytearHorde.Business.Controllers
         }
 
         [HttpPost]
-        public IActionResult SetVariantIdsCheck(int setId, int siteId, int variantTypeId, int startingNumber, string attributeId)
+        public IActionResult SetVariantIdsCheck(int setId, int siteId, int variantTypeId, int startingNumber, string attributeId, int? parentTypeId = null)
         {
             _siteAccessor.SetSiteId(siteId);
             var resultMessage = $"Set variant ids for set {setId} and variant type {variantTypeId} starting from {startingNumber}";
 
             var allCards = _cardService.GetAllBySet(setId, true).ToArray();
-            var baseCards = allCards.Where(it => !it.VariantTypeId.HasValue).ToDictionary(it => it.BaseId, it => it);
+            var baseCards = allCards.Where(it => it.VariantTypeId == parentTypeId).ToDictionary(it => it.BaseId, it => it);
             var variantCards = allCards.Where(it => it.VariantTypeId == variantTypeId).OrderBy(it =>
             {
                 if (!baseCards.TryGetValue(it.BaseId, out var baseCard))
@@ -85,7 +85,7 @@ namespace SkytearHorde.Business.Controllers
         }
 
         [HttpPost]
-        public IActionResult SetVariantIds(int setId, int siteId, int variantTypeId, int startingNumber, string attributeId)
+        public IActionResult SetVariantIds(int setId, int siteId, int variantTypeId, int startingNumber, string attributeId, int? parentTypeId = null)
         {
             _siteAccessor.SetSiteId(siteId);
 
@@ -95,7 +95,7 @@ namespace SkytearHorde.Business.Controllers
                 throw new Exception("Could not find attribute container or attribute");
             }
             var allCards = _cardService.GetAllBySet(setId, true).ToArray();
-            var baseCards = allCards.Where(it => !it.VariantTypeId.HasValue).ToDictionary(it => it.BaseId, it => it);
+            var baseCards = allCards.Where(it => it.VariantTypeId == parentTypeId).ToDictionary(it => it.BaseId, it => it);
             var variantCards = allCards.Where(it => it.VariantTypeId == variantTypeId).OrderBy(it =>
             {
                 if (!baseCards.TryGetValue(it.BaseId, out var baseCard))

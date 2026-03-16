@@ -13,9 +13,13 @@ const tagLines = [
   "Your Complete Card Game Companion",
   "Card Data at Your Fingertips",
 ];
-// Randomly select a tag line
-const randomIndex = Math.floor(Math.random() * tagLines.length);
-const selectedTagLine = tagLines[randomIndex];
+
+const selectedTagLine = ref(tagLines[0]);
+
+onMounted(() => {
+  const randomIndex = Math.floor(Math.random() * tagLines.length);
+  selectedTagLine.value = tagLines[randomIndex];
+});
 
 function submitSearch(event: Event) {
   event.preventDefault();

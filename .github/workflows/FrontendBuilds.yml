@@ -35,13 +35,7 @@ jobs:
         run: npm ci
 
       - name: Build Nuxt for Cloudflare
-        env:
-          NITRO_PRESET: cloudflare_module
-          NUXT_API_BASE_URL: ${{ matrix.site.api_base_url }}
-          NUXT_PUBLIC_API_BASE_URL: ${{ matrix.site.api_base_url }}
-          API_BASE_URL: ${{ matrix.site.api_base_url }}
-          NUXT_PUBLIC_SITE_ID: ${{ matrix.site.site_id }}
-        run: npm run build
+        run: npx nuxi build --preset cloudflare
 
       - name: Deploy with Wrangler
         env:

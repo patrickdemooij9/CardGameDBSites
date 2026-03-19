@@ -4,6 +4,7 @@ import { useMembers } from "~/composables/useMembers";
 import { useCards } from "~/composables/useCards";
 import DeckService from "~/services/DeckService";
 import SiteService from "~/services/SiteService";
+import DeckCard from "./DeckCard.vue";
 
 const props = defineProps<{
   decks: DeckApiModel[];

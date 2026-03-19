@@ -103,7 +103,7 @@ function reloadData() {
         url.searchParams.append(entry[0], value);
       });
     });
-    history.replaceState("", "", url);
+    history.replaceState(history.state, "", url);
   }
 
   isLoading.value = true;

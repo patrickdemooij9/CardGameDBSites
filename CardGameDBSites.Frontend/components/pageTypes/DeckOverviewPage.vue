@@ -8,11 +8,11 @@ defineProps<{
 </script>
 
 <template>
-  <div class="container px-4 md:px-8 mb-16">
+  <div class="container px-4 py-4 md:px-8 mb-16">
     <div class="row justify-center">
       <div class="section-title">
         <h1>{{ content.properties?.title }}</h1>
-        <p v-html="content.properties?.description"></p>
+        <p v-html="content.properties?.description?.markup"></p>
       </div>
     </div>
 

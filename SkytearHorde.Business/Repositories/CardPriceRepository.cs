@@ -122,6 +122,7 @@ namespace SkytearHorde.Business.Repositories
         private List<CardPriceRecordDBModel> GetRecords(int[] ids)
         {
             using var scope = _scopeProvider.CreateScope();
+            if (ids.Length == 0) return [];
             return [.. scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql()
                 .SelectAll()
                 .From<CardPriceRecordDBModel>()

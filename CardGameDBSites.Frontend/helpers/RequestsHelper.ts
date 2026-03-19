@@ -11,6 +11,14 @@ export function DoFetch<T>(
   return $fetch<T>(`${config.public.API_BASE_URL}${url}`, options);
 }
 
+export async function DoFetch2<T>(
+  api: typeof $fetch,
+  url: string,
+  options?: NitroFetchOptions<string>
+): Promise<T> {
+  return api<T>(url, options);
+}
+
 export async function DoServerFetch<T>(
   url: string,
   useProxy: boolean = true,

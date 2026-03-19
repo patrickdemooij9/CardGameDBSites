@@ -59,8 +59,9 @@ function submitSearch(event: Event) {
       </form>
       <div class="flex gap-2" v-if="props.content.searchLinks">
         <NuxtLink
-          .to="link.url!"
+          :to="link.url!"
           v-for="link in props.content.searchLinks"
+          :key="link.url!"
           class="flex gap-1 items-center no-underline pointer"
         >
           <PhArrowRight/>

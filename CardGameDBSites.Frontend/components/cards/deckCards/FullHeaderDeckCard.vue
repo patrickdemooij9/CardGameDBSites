@@ -1,28 +1,25 @@
 <script setup lang="ts">
-import type { DeckTypeSettingsApiModel, DeckApiModel } from "~/api/default";
+import type { CardDetailApiModel, DeckTypeSettingsApiModel, DeckApiModel, MemberApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
-import { useCards } from "~/composables/useCards";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
-import { useMemberStore } from "~/stores/MemberStore";
 
 const props = defineProps<{
   deck: DeckApiModel;
   settings: DeckTypeSettingsApiModel;
+  member?: MemberApiModel;
+  cards?: Record<number, CardDetailApiModel>;
 }>();
 
-const cards = await useCards().loadCardsByIds(
-  props.deck.cards?.map((card) => card.cardId!) ?? []
+const deckCards = computed(() => 
+  props.deck.cards?.map(c => props.cards?.[c.cardId!]).filter(Boolean) as CardDetailApiModel[] ?? []
 );
 const mainCard = GetValidCards(
-  cards,
+  deckCards.value,
   props.settings.mainCardRequirements ?? []
 )[0];
 
-let createdBy = "Anonymous";
-if (props.deck.createdBy){
-  createdBy = (await useMemberStore().loadMembers([props.deck.createdBy]))[0].displayName;
-}
+const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
 </script>
 
 <template>

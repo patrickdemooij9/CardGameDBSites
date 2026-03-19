@@ -5,6 +5,7 @@ import {
   type CardDetailApiModel,
   type CardsQueryFilterClauseApiModel,
   type CardVariantTypeApiModel,
+  type PagedResultCardDetailApiModel,
 } from "~/api/default";
 import BaseCardOverview from "./BaseCardOverview.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
@@ -50,18 +51,24 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
 
 const showPrices = false;
 let showCollection = false;
-let collectionStore: Store<"collectionStore">;
 let mainVariants: CardVariantTypeApiModel[] = [];
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
 const isLoading = ref(true);
+let isLoggedIn = ref(false);
 
 onMounted(async () => {
-  const isLoggedIn = await accountService.checkLogin();
-  showCollection = isLoggedIn; //Eventually also check for collection settings
-  collectionStore = useCollectionStore();
+  isLoggedIn.value = await accountService.checkLogin();
+  showCollection = isLoggedIn.value; //Eventually also check for collection settings
   mainVariants = (await cards.loadVariantTypes()).filter(item => item.hasPage);
   isLoading.value = false;
 });
+
+function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
+  if (!isLoggedIn.value) {
+    return;
+  }
+  collectionService.loadCards(cards.items!.map((c) => c.baseId!));
+}
 
 function getMainVariants(card: CardDetailApiModel){
   const cardSetVariants = card.variants?.filter(v => v.setId == card.setId) ?? [];
@@ -90,6 +97,7 @@ function ownsVariant(card: CardDetailApiModel, variantTypeId?: number) {
     :internal-filters="internalFilters"
     :white-background="true"
     v-slot="{ cards }"
+    @reloaded="loadCollectionCards"
   >
     <div
       class="container px-4 md:px-8 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6"

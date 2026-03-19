@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DeckStatus, type PagedResultDeckApiModel } from "~/api/default";
 import DeckService from "~/services/DeckService";
+import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import Overview from "./Overview.vue";
 
@@ -22,6 +23,7 @@ async function loadData(value: OverviewRefreshModel) {
     userId: props.userId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
   });
+
   if (value.LoadedCallback) {
     value.LoadedCallback();
   }
@@ -38,12 +40,7 @@ async function loadData(value: OverviewRefreshModel) {
     ref="overview"
   >
     <div v-if="pagedDecks">
-      <div
-        :class="gridClass"
-        class="grid grid-cols-1 auto-rows-fr md:grid-cols-2 gap-4 w-full"
-      >
-        <slot :decks="pagedDecks"></slot>
-      </div>
+      <DeckCardCollection :decks="pagedDecks.items ?? []" :decks-per-row="props.decksPerRow"></DeckCardCollection>
 
       <div
         class="mt-8 row justify-center"

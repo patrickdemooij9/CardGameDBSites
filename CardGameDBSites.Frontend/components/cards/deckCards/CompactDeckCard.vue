@@ -1,30 +1,23 @@
 <script setup lang="ts">
 import { PhNotepad } from "@phosphor-icons/vue";
-import type { DeckApiModel, DeckTypeSettingsApiModel } from "~/api/default";
+import type { CardDetailApiModel, DeckApiModel, DeckTypeSettingsApiModel, MemberApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
-import { useCards } from "~/composables/useCards";
 import { GetCrop, GetCropUrl } from "~/helpers/CropUrlHelper";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
-import { useMemberStore } from "~/stores/MemberStore";
 
 const props = defineProps<{
   deck: DeckApiModel;
   settings: DeckTypeSettingsApiModel;
+  member?: MemberApiModel;
+  cards?: Record<number, CardDetailApiModel>;
 }>();
 
-const cards = await useCards().loadCardsByIds(
-  props.deck.cards?.map((card) => card.cardId!) ?? []
+const deckCards = computed(() => 
+  props.deck.cards?.map(c => props.cards?.[c.cardId!]).filter(Boolean) as CardDetailApiModel[] ?? []
 );
-const mainCards = GetValidCards(
-  cards,
-  props.settings.mainCardRequirements ?? []
-);
-
-let createdBy = "Anonymous";
-if (props.deck.createdBy){
-  createdBy = (await useMemberStore().loadMembers([props.deck.createdBy]))[0].displayName;
-}
+const mainCards = computed(() => GetValidCards(deckCards.value, props.settings.mainCardRequirements ?? []));
+const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
 </script>
 
 <template>

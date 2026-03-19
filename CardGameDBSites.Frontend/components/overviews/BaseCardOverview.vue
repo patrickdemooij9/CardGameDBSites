@@ -9,12 +9,14 @@ import {
 } from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
-const collectionStore = useCollectionStore();
-
 const props = defineProps<{
   filters: OverviewFilterModel[];
   internalFilters?: CardsQueryFilterClauseApiModel[];
   whiteBackground: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: "reloaded", value: PagedResultCardDetailApiModel): void;
 }>();
 
 const pagedCards = ref<PagedResultCardDetailApiModel>();
@@ -56,12 +58,10 @@ async function loadData(value: OverviewRefreshModel) {
     filterClauses: filters,
     variantTypeId: 0,
   });
-  if (pagedCards.value) {
-    collectionStore.loadCards(pagedCards.value.items!.map((c) => c.baseId!));
-  }
   if (value.LoadedCallback) {
     value.LoadedCallback();
   }
+  emit("reloaded", pagedCards.value);
 }
 
 async function loadLazyFilter(filter: OverviewFilterModel) {

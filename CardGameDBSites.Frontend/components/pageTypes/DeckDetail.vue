@@ -8,6 +8,7 @@ import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 import { useCards } from "~/composables/useCards";
+import { useMembers } from "~/composables/useMembers";
 import { GetCardValue } from "~/helpers/CardHelper";
 
 defineProps<{
@@ -38,7 +39,7 @@ const mainCards = GetValidCards(
 
 let createdBy = "Anonymous";
 if (deck.createdBy) {
-  createdBy = (await useMemberStore().loadMembers([deck.createdBy]))[0]
+  createdBy = (await useMembers().loadMembersByIds([deck.createdBy]))[0]
     .displayName;
 }
 

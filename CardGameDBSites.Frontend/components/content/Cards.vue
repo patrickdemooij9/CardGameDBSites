@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { DeckStatus } from "~/api/default";
-import type { CardsElementModel, CardsPropertiesModel } from "~/api/umbraco";
+import type { CardsPropertiesModel } from "~/api/umbraco";
 import DeckService from "~/services/DeckService";
-import DeckCard from "../cards/deckCards/DeckCard.vue";
+import DeckCardCollection from "../cards/deckCards/DeckCardCollection.vue";
 
 const props = defineProps<{
   content: CardsPropertiesModel;
@@ -14,6 +14,7 @@ const decks = await new DeckService().query({
   take: props.content.amount ?? 4,
   status: DeckStatus.PUBLISHED,
 });
+
 const gridClass = ref("lg:grid-cols-" + props.content.amountPerRow);
 </script>
 
@@ -26,12 +27,5 @@ const gridClass = ref("lg:grid-cols-" + props.content.amountPerRow);
       {{ content.title }}
     </h2>
   </div>
-  <div
-    :class="[gridClass]"
-    class="grid grid-cols-1 auto-rows-fr md:grid-cols-2 gap-4 w-full"
-  >
-    <div v-for="deck in decks.items">
-      <DeckCard :deck="deck"></DeckCard>
-    </div>
-  </div>
+  <DeckCardCollection :decks="decks.items ?? []" :decks-per-row="props.content.amountPerRow ?? 4"></DeckCardCollection>
 </template>

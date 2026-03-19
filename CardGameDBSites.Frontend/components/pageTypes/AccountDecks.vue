@@ -33,7 +33,7 @@ onMounted(async () => {
         <BaseDeckOverview
             :decks-per-row="1"
             :user-id="memberId">
-            <template #default="{ decks }">
+            <template #default="{ decks, members }">
                 <div v-if="decks!.items!.length === 0" class="text-center">
                     <p>You have no decks yet. Create one to get started!</p>
                     <router-link to="/create-squad" class="btn btn-primary">Create Deck</router-link>

@@ -14,6 +14,10 @@ jobs:
             worker_name: aidalondb
             site_id: aidalondb
             api_base_url: https://api.aidalon-db.com
+          - name: sw-unlimited-db
+            worker_name: sw-unlimited-db
+            site_id: sw-unlimited-db
+            api_base_url: https://api.sw-unlimited-db.com
 
     name: Deploy ${{ matrix.site.name }}
     defaults:

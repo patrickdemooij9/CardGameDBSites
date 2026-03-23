@@ -7,7 +7,7 @@ const props = defineProps<{
 }>();
 
 const search = ref("");
-const tagLines = [
+const tagLines = props.content.subtitles ?? [
   "Every Card. Every Set. One Place",
   "The Ultimate Card Game Database",
   "Your Complete Card Game Companion",
@@ -36,7 +36,7 @@ function submitSearch(event: Event) {
       class="flex flex-col gap-4 items-center justify-center h-full z-10 relative"
     >
       <div class="pb-6 text-center">
-        <h1 class="text-6xl pb-2">Aidalon-DB</h1>
+        <h1 class="text-6xl pb-2">{{ content.title }}</h1>
         <h2 class="text-2xl">{{ selectedTagLine }}</h2>
       </div>
       <form
@@ -59,9 +59,9 @@ function submitSearch(event: Event) {
       </form>
       <div class="flex gap-2" v-if="props.content.searchLinks">
         <NuxtLink
-          :to="link.url!"
+          :to="link.route?.path ?? link.url!"
           v-for="link in props.content.searchLinks"
-          :key="link.url!"
+          :key="link.route?.path ?? link.url!"
           class="flex gap-1 items-center no-underline pointer"
         >
           <PhArrowRight/>

@@ -24,17 +24,17 @@ const deck = await new DeckService().get(deckId);
 if (!deck || deck === null) {
   throw createError({
     statusCode: 404,
-    statusMessage: 'Resource Not Found'
-  })
+    statusMessage: "Resource Not Found",
+  });
 }
 
 const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
 const cards = await useCards().loadCardsByIds(
-  deck.cards?.map((card) => card.cardId!) ?? []
+  deck.cards?.map((card) => card.cardId!) ?? [],
 );
 const mainCards = GetValidCards(
   cards,
-  deckSettings!.mainCardRequirements ?? []
+  deckSettings!.mainCardRequirements ?? [],
 );
 
 let createdBy = "Anonymous";
@@ -146,7 +146,7 @@ function getImagesForCard(card: CardDetailApiModel) {
                 class="md:grid grid-flow-col grid-cols-2 gap-2"
                 :style="{
                   'grid-template-rows': `repeat(${Math.ceil(
-                    getCardsInGroup(group).length / 2
+                    getCardsInGroup(group).length / 2,
                   )}, 1fr)`,
                 }"
               >
@@ -174,13 +174,24 @@ function getImagesForCard(card: CardDetailApiModel) {
                     >
                       <span>3</span>
                     </div>-->
-                    <div
-                      class="flex items-center h-5 w-[18px] text-black font-bold"
-                    >
-                      <span>{{
-                        GetCardValue(card, "Shard Cost")
-                      }}</span>
-                      <img src="/images/cost.png" />
+                    <div v-if="deckSettings.costImageUrl">
+                      <div v-if="deckSettings.renderCostOnImage">
+                        <div
+                          class="flex justify-center bg-contain bg-no-repeat h-5 w-[18px] text-white font-bold"
+                          :style="{
+                            'background-image': `url(${deckSettings.costImageUrl})`
+                          }"
+                        >
+                          <span>{{ GetCardValue(card, "Cost") }}</span>
+                        </div>
+                      </div>
+                      <div
+                        class="flex items-center h-5 w-[18px] text-black font-bold"
+                        v-else
+                      >
+                        <span>{{ GetCardValue(card, "Shard Cost") }}</span>
+                        <img :src="deckSettings.costImageUrl" />
+                      </div>
                     </div>
                     <div class="flex gap-2">
                       <img

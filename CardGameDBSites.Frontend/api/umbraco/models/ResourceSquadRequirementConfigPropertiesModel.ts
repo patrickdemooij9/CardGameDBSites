@@ -6,8 +6,11 @@ import type { ApiBlockListModel } from './ApiBlockListModel';
 import type { IApiContentModel } from './IApiContentModel';
 import type { SquadRequirementConfigPropertiesModel } from './SquadRequirementConfigPropertiesModel';
 export type ResourceSquadRequirementConfigPropertiesModel = (SquadRequirementConfigPropertiesModel & {
+    mainAbility?: Array<IApiContentModel> | null;
+    mainAbilityMaxSize?: number | null;
     ability?: Array<IApiContentModel> | null;
     mainCardConditions?: ApiBlockListModel;
-    requireAllResources?: boolean | null;
+    singleResourceMode?: boolean | null;
+    possibleValues?: Array<string> | null;
 });
 

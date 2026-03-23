@@ -2,4 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type SquadRequirementConfigPropertiesModel = Record<string, any>;
+export type SquadRequirementConfigPropertiesModel = {
+    restrictionType?: string | null;
+    errorMessage?: string | null;
+};
+

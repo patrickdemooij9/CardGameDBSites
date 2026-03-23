@@ -13,5 +13,8 @@ namespace CardGameDBSites.API.Models
         public DeckActionApiModel[] Actions { get; set; } = [];
         public DeckCardImageRuleApiModel[] ImageRules { get; set; } = [];
         public RequirementApiModel[] MainCardRequirements { get; set; } = [];
+
+        public string? CostImageUrl { get; set; }
+        public bool RenderCostOnImage { get; set; }
     }
 }

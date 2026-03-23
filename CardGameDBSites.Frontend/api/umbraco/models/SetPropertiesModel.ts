@@ -12,6 +12,7 @@ export type SetPropertiesModel = {
     hasBeenReleased?: boolean | null;
     mainVariantType?: Array<IApiContentModel> | null;
     tcgPlayerCategory?: number | null;
+    nonLegalDeckTypes?: Array<IApiContentModel> | null;
     cards?: Array<IApiContentModel> | null;
 };
 

@@ -198,6 +198,8 @@ export type { IApiMediaWithCropsResponseModel } from './models/IApiMediaWithCrop
 export type { ImageCropCoordinatesModel } from './models/ImageCropCoordinatesModel';
 export type { ImageCropModel } from './models/ImageCropModel';
 export type { ImageFocalPointModel } from './models/ImageFocalPointModel';
+export type { ImportMappingElementModel } from './models/ImportMappingElementModel';
+export type { ImportMappingPropertiesModel } from './models/ImportMappingPropertiesModel';
 export type { IntroductionCompositionElementModel } from './models/IntroductionCompositionElementModel';
 export type { IntroductionCompositionPropertiesModel } from './models/IntroductionCompositionPropertiesModel';
 export type { KeywordImageElementModel } from './models/KeywordImageElementModel';

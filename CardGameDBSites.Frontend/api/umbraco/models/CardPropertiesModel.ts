@@ -21,6 +21,7 @@ export type CardPropertiesModel = {
     allowedChildren?: Array<IApiContentModel> | null;
     maxChildren?: number | null;
     deckMutations?: ApiBlockListModel;
+    nonLegalDeckTypes?: Array<IApiContentModel> | null;
     embedFooterText?: string | null;
 };
 

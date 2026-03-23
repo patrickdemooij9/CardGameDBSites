@@ -8,7 +8,7 @@ export type CollectionSettingsPropertiesModel = {
     allowSetCollecting?: boolean | null;
     allowCardCollecting?: boolean | null;
     showProgressBar?: boolean | null;
-    variants?: ApiBlockListModel;
+    mapping?: ApiBlockListModel;
     mainIdentifier?: Array<IApiContentModel> | null;
 };
 

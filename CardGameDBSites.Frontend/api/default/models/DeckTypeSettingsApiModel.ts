@@ -14,5 +14,7 @@ export type DeckTypeSettingsApiModel = {
     actions?: Array<DeckActionApiModel>;
     imageRules?: Array<DeckCardImageRuleApiModel>;
     mainCardRequirements?: Array<RequirementApiModel>;
+    costImageUrl?: string | null;
+    renderCostOnImage?: boolean;
 };
 

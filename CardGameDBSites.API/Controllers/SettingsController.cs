@@ -112,7 +112,9 @@ namespace CardGameDBSites.API.Controllers
                         Requirements = [..it.Conditions.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))]
                     })],
                 MainCardRequirements = [.. deckTypeSettings.MainCard.ToItems<ISquadRequirementConfig>()
-                    .Select(it => new RequirementApiModel(it))]
+                    .Select(it => new RequirementApiModel(it))],
+                CostImageUrl = deckTypeSettings.CostIcon?.Url(mode: UrlMode.Absolute),
+                RenderCostOnImage = deckTypeSettings.RenderCostInIcon
             });
         }
 

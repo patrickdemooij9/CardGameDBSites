@@ -11,5 +11,8 @@ export type CardAttributePropertiesModel = {
     hideFromDiscord?: boolean | null;
     isDiscordInline?: boolean | null;
     examineIsInteger?: boolean | null;
+    countValues?: Array<string> | null;
+    generalSearchable?: boolean | null;
+    searchAlias?: string | null;
 };
 

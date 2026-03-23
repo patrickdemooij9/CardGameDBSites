@@ -14,6 +14,7 @@ export type VariantPropertiesModel = {
     childOfBase?: boolean | null;
     childOf?: Array<IApiContentModel> | null;
     manuallyAdd?: boolean | null;
+    automaticallyCreateOnVariant?: Array<IApiContentModel> | null;
     color?: string | null;
     initial?: string | null;
 };

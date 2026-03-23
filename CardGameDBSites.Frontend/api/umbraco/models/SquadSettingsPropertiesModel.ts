@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ApiBlockListModel } from './ApiBlockListModel';
+import type { IApiMediaWithCropsModel } from './IApiMediaWithCropsModel';
 export type SquadSettingsPropertiesModel = {
     typeID?: number | null;
     typeDisplayName?: string | null;
@@ -19,5 +20,7 @@ export type SquadSettingsPropertiesModel = {
     showDeckColors?: boolean | null;
     amountOfSquadCards?: number | null;
     colorLogic?: ApiBlockListModel;
+    costIcon?: Array<IApiMediaWithCropsModel> | null;
+    renderCostInIcon?: boolean | null;
 };
 

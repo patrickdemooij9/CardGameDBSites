@@ -65,6 +65,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel ColorLogic => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "colorLogic");
 
 		///<summary>
+		/// Cost Icon
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("costIcon")]
+		public virtual global::Umbraco.Cms.Core.Models.MediaWithCrops CostIcon => this.Value<global::Umbraco.Cms.Core.Models.MediaWithCrops>(_publishedValueFallback, "costIcon");
+
+		///<summary>
 		/// Default Names
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
@@ -93,6 +101,13 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[ImplementPropertyType("overwriteAmount")]
 		public virtual int OverwriteAmount => this.Value<int>(_publishedValueFallback, "overwriteAmount");
+
+		///<summary>
+		/// Render Cost in Icon
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("renderCostInIcon")]
+		public virtual bool RenderCostInIcon => this.Value<bool>(_publishedValueFallback, "renderCostInIcon");
 
 		///<summary>
 		/// Restrictions: Restrictions for all the cards together

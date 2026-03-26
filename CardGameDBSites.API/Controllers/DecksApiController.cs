@@ -1,7 +1,9 @@
 ﻿using CardGameDBSites.API.Attributes;
+using CardGameDBSites.API.Models.Decks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Asn1.Ocsp;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
@@ -25,12 +27,18 @@ namespace CardGameDBSites.API.Controllers
         private readonly DeckService _deckService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly IMemberManager _memberManager;
+        private readonly CardPriceService _cardPriceService;
 
-        public DecksApiController(DeckService deckService, ISiteAccessor siteAccessor, IMemberManager memberManager)
+        public DecksApiController(
+            DeckService deckService,
+            ISiteAccessor siteAccessor,
+            IMemberManager memberManager,
+            CardPriceService cardPriceService)
         {
             _deckService = deckService;
             _siteAccessor = siteAccessor;
             _memberManager = memberManager;
+            _cardPriceService = cardPriceService;
         }
 
         [HttpGet("get")]
@@ -51,7 +59,9 @@ namespace CardGameDBSites.API.Controllers
             {
                 return NotFound();
             }
-            return Ok(new DeckApiModel(deck));
+
+            var price = _cardPriceService.GetPriceByDeck(deck);
+            return Ok(new DeckApiModel(deck, new DeckPriceApiModel { MarketPrice = price}));
         }
 
         [HttpPost("query")]
@@ -75,7 +85,14 @@ namespace CardGameDBSites.API.Controllers
                 UserId = query.UserId,
                 OrderBy = query.OrderBy
             });
-            return Ok(decks);
+            return Ok(new PagedResult<DeckApiModel>(decks.TotalItems, query.Page, query.Take)
+            {
+                Items = decks.Items?.Select(deck =>
+                {
+                    var price = _cardPriceService.GetPriceByDeck(deck); //TODO: Bundle this
+                    return new DeckApiModel(deck, new DeckPriceApiModel { MarketPrice = price });
+                 }).ToArray() ?? []
+            });
         }
 
         [HttpPost("likeDeck")]

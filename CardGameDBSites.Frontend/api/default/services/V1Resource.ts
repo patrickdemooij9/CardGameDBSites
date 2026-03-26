@@ -8,6 +8,7 @@ import type { CardVariantTypeApiModel } from '../models/CardVariantTypeApiModel'
 import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
 import type { CollectionExportType } from '../models/CollectionExportType';
 import type { CollectionSummaryApiModel } from '../models/CollectionSummaryApiModel';
+import type { CommentViewModel } from '../models/CommentViewModel';
 import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
 import type { DeckApiModel } from '../models/DeckApiModel';
@@ -341,6 +342,23 @@ export class V1Resource {
             mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
+            },
+        });
+    }
+    /**
+     * @returns CommentViewModel OK
+     * @throws ApiError
+     */
+    public static getApiComments({
+        deckId,
+    }: {
+        deckId?: number,
+    }): CancelablePromise<Array<CommentViewModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/comments',
+            query: {
+                'deckId': deckId,
             },
         });
     }

@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { DeckCardApiModel } from './DeckCardApiModel';
+import type { DeckPriceApiModel } from './DeckPriceApiModel';
 export type DeckApiModel = {
     id?: number;
     name?: string;
@@ -15,5 +16,6 @@ export type DeckApiModel = {
     amountOfLikes?: number;
     score?: number;
     cards?: Array<DeckCardApiModel>;
+    price?: DeckPriceApiModel;
 };
 

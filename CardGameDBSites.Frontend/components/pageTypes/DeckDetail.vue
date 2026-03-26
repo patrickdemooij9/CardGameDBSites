@@ -3,13 +3,14 @@ import type { DeckDetailContentModel } from "~/api/umbraco";
 import DeckService from "~/services/DeckService";
 import DeckLike from "../decks/DeckLike.vue";
 import SiteService from "~/services/SiteService";
-import type { CardDetailApiModel, DeckCardGroupApiModel } from "~/api/default";
+import type { CardDetailApiModel, CollectionCardApiModel, DeckCardGroupApiModel } from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 import { useCards } from "~/composables/useCards";
 import { useMembers } from "~/composables/useMembers";
 import { GetCardValue } from "~/helpers/CardHelper";
+import CommentSection from "../comments/CommentSection.vue";
 
 defineProps<{
   content: DeckDetailContentModel;
@@ -19,7 +20,6 @@ const route = useRoute();
 let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]);
 
-console.log(deckId);
 const deck = await new DeckService().get(deckId);
 if (!deck || deck === null) {
   throw createError({
@@ -28,7 +28,10 @@ if (!deck || deck === null) {
   });
 }
 
+const accountService = useAccountStore();
+const collectionService = useCollectionStore();
 const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
+const comments = (await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(
   deck.cards?.map((card) => card.cardId!) ?? [],
 );
@@ -43,8 +46,15 @@ if (deck.createdBy) {
     .displayName;
 }
 
-const showPrices = false;
-const isLoggedIn = false;
+const isLoggedIn = ref(false);
+const collectionMode = ref(false);
+
+onMounted(async () => {
+  isLoggedIn.value = await accountService.checkLogin();
+  if (isLoggedIn.value) {
+    collectionService.loadCards(deck.cards?.map((card) => card.cardId!) ?? []);
+  }
+});
 
 function getDeckCard(cardId: number) {
   return deck.cards?.find((card) => card.cardId === cardId);
@@ -73,6 +83,9 @@ function getImagesForCard(card: CardDetailApiModel) {
   });
   return images;
 }
+function getCollectionCount(cardId: number){
+  return collectionService.getCards(cardId)?.reduce((sum, card) => sum + (card.amount ?? 0), 0) ?? 0;
+}
 </script>
 
 <template>
@@ -92,12 +105,12 @@ function getImagesForCard(card: CardDetailApiModel) {
           </div>
         </div>
 
-        <div class="shrink-0" v-if="showPrices">
+        <div class="shrink-0" v-if="deck.price">
           <p
             class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white cursor-pointer"
             onclick="document.querySelector('#buyCardsForm').submit()"
           >
-            $@deckCost.ToString("0.00")
+            ${{ deck.price?.marketPrice.toFixed(2) }}
           </p>
         </div>
       </div>
@@ -122,11 +135,11 @@ function getImagesForCard(card: CardDetailApiModel) {
         <div class="md:w-2/3 shrink-0">
           <div class="flex align-center justify-between gap-4">
             <h2 class="text-lg">Decklist</h2>
-            <div v-if="isLoggedIn">
+            <div v-if="isLoggedIn" class="flex gap-2 items-center">
               <input
                 type="checkbox"
                 id="compare-collection"
-                data-toggle=".js-collection-info"
+                v-model="collectionMode"
               />
               <label for="compare-collection">Compare with collection</label>
             </div>
@@ -156,24 +169,14 @@ function getImagesForCard(card: CardDetailApiModel) {
                   v-cursor-image="card.imageUrl?.url"
                 >
                   <div class="flex gap-2">
-                    <!--@if (_isLoggedIn)
-                {
-                    var collectionAmount = GetAmountFromCollection(card.BaseId);
-                    <span class="flex gap-0.5 js-collection-info font-bold" style="display:none;">
-                        <span class="@(collectionAmount >= deckCard.Amount ? "text-green-600" : "text-red-600")">@collectionAmount</span>
+                    <span class="flex gap-0.5 js-collection-info font-bold" v-if="collectionMode">
+                        <span :class="[getCollectionCount(card.baseId!) >= (getDeckCard(card.baseId!)?.amount ?? 0) ? 'text-green-600' : 'text-red-600']">{{ getCollectionCount(card.baseId!) }}</span>
                         <span>/</span>
-                        <span>@deckCard.Amount</span>
+                        <span>{{ getDeckCard(card.baseId!)?.amount }}</span>
                     </span>
-                  }-->
-                    <span class="js-collection-info"
+                    <span class="js-collection-info" v-else
                       >{{ getDeckCard(card.baseId!)?.amount }} x</span
                     >
-                    <!--<div
-                      class="flex justify-center bg-contain bg-no-repeat h-5 w-[18px] text-white font-bold"
-                      style="background-image: url('/images/cost.png')"
-                    >
-                      <span>3</span>
-                    </div>-->
                     <div v-if="deckSettings.costImageUrl">
                       <div v-if="deckSettings.renderCostOnImage">
                         <div
@@ -206,7 +209,6 @@ function getImagesForCard(card: CardDetailApiModel) {
               </div>
             </div>
           </template>
-          <!--TODO: Cards-->
         </div>
         <div v-if="deck.description">
           <h2 class="text-lg pb-2">Description</h2>
@@ -217,6 +219,7 @@ function getImagesForCard(card: CardDetailApiModel) {
       </div>
 
       <div class="pt-4">
+        <CommentSection :comments="comments"></CommentSection>
         <!--TODO: Comments-->
       </div>
     </div>

@@ -7,63 +7,56 @@ namespace SkytearHorde.Business.Helpers
         public int CalculateDeckScore(Deck deck, int[] last7DaysViews)
         {
             double score = 0;
-            if (!string.IsNullOrWhiteSpace(deck.Description))
-            {
-                score += GetPointsBasedOnDescription(deck.Description);
-            }
-            if (deck.CreatedBy != null)
-            {
-                score += 10;
-            }
+
+            // 1. View velocity (recent days matter MUCH more)
             for (int i = 0; i < last7DaysViews.Length; i++)
             {
-                var points = GetPointsBasedOnViews(last7DaysViews[i]);
-                score += points * (7 / (i + 1));
+                // i = 0 is today → highest weight
+                double weight = 1.0 / (i + 1);
+
+                // Boost recent days more aggressively
+                if (i == 0) weight *= 3;
+                else if (i <= 2) weight *= 2;
+
+                score += last7DaysViews[i] * weight;
             }
-            score += GetPointsBasedOnLikes(deck.AmountOfLikes);
-            score += GetPointsBasedOnCreateDate(deck.CreatedDate);
+
+            // 2. Growth factor (are views increasing?)
+            int recentViews = last7DaysViews.Take(2).Sum();
+            int olderViews = last7DaysViews.TakeLast(2).Sum();
+
+            if (olderViews > 0)
+            {
+                double growthRatio = (double)recentViews / olderViews;
+
+                // Only reward real growth
+                if (growthRatio > 1.2)
+                {
+                    score += growthRatio * 20;
+                }
+            }
+
+            // 3. Recent likes (not total dominance)
+            score += Math.Min(deck.AmountOfLikes, 50); // cap influence
+
+            // 4. Strong recency boost (decays fast)
+            var daysSinceCreation = (DateTime.UtcNow - deck.CreatedDate).TotalDays;
+
+            if (daysSinceCreation <= 3)
+                score += 50;
+            else if (daysSinceCreation <= 7)
+                score += 30;
+            else if (daysSinceCreation <= 14)
+                score += 10;
+
+            // 5. Quality signals (light weight)
+            if (!string.IsNullOrWhiteSpace(deck.Description))
+                score += 5;
+
+            if (deck.CreatedBy != null)
+                score += 5;
 
             return (int)Math.Ceiling(score);
-        }
-
-        private int GetPointsBasedOnDescription(string description)
-        {
-            if (description.Length > 100)
-            {
-                return 20;
-            }
-            return 5;
-        }
-
-        private int GetPointsBasedOnViews(int views)
-        {
-            return views switch
-            {
-                int v when (v >= 100) => 15,
-                int v when (v >= 50) => 10,
-                int v when (v >= 10) => 5,
-                int v when (v >= 1) => 1,
-                _ => 0,
-            };
-        }
-
-        private int GetPointsBasedOnLikes(int likes)
-        {
-            return Math.Max(20, likes * 2);
-        }
-
-        private int GetPointsBasedOnCreateDate(DateTime createdDate)
-        {
-            var dateSinceCreation = (DateTime.UtcNow - createdDate).TotalDays;
-            if (dateSinceCreation <= 7)
-            {
-                return 30;
-            }
-            if (dateSinceCreation <= 30)
-            {
-                return 15;
-            }
-            return 0;
         }
     }
 }

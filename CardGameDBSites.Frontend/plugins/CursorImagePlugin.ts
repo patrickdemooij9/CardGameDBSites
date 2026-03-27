@@ -28,20 +28,22 @@ export default defineNuxtPlugin((nuxtApp) => {
       });
 
       function updateCursorImageLocation(event: MouseEvent) {
-        if (cursorImageElemRect.height + event.clientY >= window.innerHeight) {
+        const rect = cursorImageElem.getBoundingClientRect();
+
+        if (rect.height + event.clientY >= window.innerHeight) {
           cursorImageElem.style.top = `${
-            event.pageY - cursorImageElemRect.height
+            event.pageY - rect.height
           }px`;
         } else {
           cursorImageElem.style.top = `${event.pageY - 20}px`;
         }
 
         if (
-          cursorImageElemRect.width + event.clientX + 40 >=
+          rect.width + event.clientX + 40 >=
           window.innerWidth
         ) {
           cursorImageElem.style.left = `${
-            event.pageX - cursorImageElemRect.width - 20
+            event.pageX - rect.width - 20
           }px`;
         } else {
           cursorImageElem.style.left = `${event.pageX + 20}px`;

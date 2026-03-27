@@ -346,17 +346,54 @@ export class V1Resource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiCommentsAddDeckComment({
+        deckId,
+        comment,
+    }: {
+        deckId?: number,
+        comment?: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/comments/addDeckComment',
+            query: {
+                'deckId': deckId,
+                'comment': comment,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static deleteApiCommentsDeleteDeckComment({
+        commentId,
+    }: {
+        commentId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/comments/deleteDeckComment',
+            query: {
+                'commentId': commentId,
+            },
+        });
+    }
+    /**
      * @returns CommentViewModel OK
      * @throws ApiError
      */
-    public static getApiComments({
+    public static getApiCommentsGetByDeck({
         deckId,
     }: {
         deckId?: number,
     }): CancelablePromise<Array<CommentViewModel>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/comments',
+            url: '/api/comments/getByDeck',
             query: {
                 'deckId': deckId,
             },

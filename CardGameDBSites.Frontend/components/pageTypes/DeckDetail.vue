@@ -3,7 +3,12 @@ import type { DeckDetailContentModel } from "~/api/umbraco";
 import DeckService from "~/services/DeckService";
 import DeckLike from "../decks/DeckLike.vue";
 import SiteService from "~/services/SiteService";
-import type { CardDetailApiModel, CollectionCardApiModel, DeckCardGroupApiModel } from "~/api/default";
+import type {
+  CardDetailApiModel,
+  CollectionCardApiModel,
+  CommentViewModel,
+  DeckCardGroupApiModel,
+} from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
@@ -31,7 +36,7 @@ if (!deck || deck === null) {
 const accountService = useAccountStore();
 const collectionService = useCollectionStore();
 const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
-const comments = (await useComments().loadCommentsByDeckId(deckId));
+const comments = ref(await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(
   deck.cards?.map((card) => card.cardId!) ?? [],
 );
@@ -83,8 +88,25 @@ function getImagesForCard(card: CardDetailApiModel) {
   });
   return images;
 }
-function getCollectionCount(cardId: number){
-  return collectionService.getCards(cardId)?.reduce((sum, card) => sum + (card.amount ?? 0), 0) ?? 0;
+function getCollectionCount(cardId: number) {
+  return (
+    collectionService
+      .getCards(cardId)
+      ?.reduce((sum, card) => sum + (card.amount ?? 0), 0) ?? 0
+  );
+}
+
+function handleCommentAdded(comment: string) {
+  useComments()
+    .saveCommentByDeckId(deckId, comment)
+    .then((loadedComment) => {
+      comments.value.push(loadedComment);
+    });
+}
+
+function handleCommentDeleted(comment: CommentViewModel) {
+  comments.value = comments.value.filter((c) => c.id !== comment.id);
+  useComments().deleteDeckComment(comment.id);
 }
 </script>
 
@@ -169,10 +191,21 @@ function getCollectionCount(cardId: number){
                   v-cursor-image="card.imageUrl?.url"
                 >
                   <div class="flex gap-2">
-                    <span class="flex gap-0.5 js-collection-info font-bold" v-if="collectionMode">
-                        <span :class="[getCollectionCount(card.baseId!) >= (getDeckCard(card.baseId!)?.amount ?? 0) ? 'text-green-600' : 'text-red-600']">{{ getCollectionCount(card.baseId!) }}</span>
-                        <span>/</span>
-                        <span>{{ getDeckCard(card.baseId!)?.amount }}</span>
+                    <span
+                      class="flex gap-0.5 js-collection-info font-bold"
+                      v-if="collectionMode"
+                    >
+                      <span
+                        :class="[
+                          getCollectionCount(card.baseId!) >=
+                          (getDeckCard(card.baseId!)?.amount ?? 0)
+                            ? 'text-green-600'
+                            : 'text-red-600',
+                        ]"
+                        >{{ getCollectionCount(card.baseId!) }}</span
+                      >
+                      <span>/</span>
+                      <span>{{ getDeckCard(card.baseId!)?.amount }}</span>
                     </span>
                     <span class="js-collection-info" v-else
                       >{{ getDeckCard(card.baseId!)?.amount }} x</span
@@ -182,7 +215,7 @@ function getCollectionCount(cardId: number){
                         <div
                           class="flex justify-center bg-contain bg-no-repeat h-5 w-[18px] text-white font-bold"
                           :style="{
-                            'background-image': `url(${deckSettings.costImageUrl})`
+                            'background-image': `url(${deckSettings.costImageUrl})`,
                           }"
                         >
                           <span>{{ GetCardValue(card, "Cost") }}</span>
@@ -219,8 +252,11 @@ function getCollectionCount(cardId: number){
       </div>
 
       <div class="pt-4">
-        <CommentSection :comments="comments"></CommentSection>
-        <!--TODO: Comments-->
+        <CommentSection
+          :comments="comments"
+          @add-comment="handleCommentAdded"
+          @delete-comment="handleCommentDeleted"
+        ></CommentSection>
       </div>
     </div>
     <div

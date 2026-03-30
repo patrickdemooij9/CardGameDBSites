@@ -14,7 +14,7 @@ export type CardDetailApiModel = {
     setName?: string;
     urlSegment?: string;
     imageUrl?: ImageCropsApiModel;
-    backImageUrl?: string | null;
+    backImageUrl?: ImageCropsApiModel;
     attributes?: Record<string, Array<string>>;
     price?: CardPriceApiModel;
     variants?: Array<CardVariantReferenceApiModel>;

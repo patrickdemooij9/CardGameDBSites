@@ -24,7 +24,8 @@ const abilityValue = props.card.attributes![props.section.ability!];
         :content="abilityValue.join(', ')"
       />
       <template v-else>
-        <p
+        <div class="flex gap-2">
+          <p
           v-for="(item, index) in abilityValue"
           v-if="!section.overviewPageUrl"
           :key="index"
@@ -32,15 +33,16 @@ const abilityValue = props.card.attributes![props.section.ability!];
         >
           {{ item }}
         </p>
-        <a
+        <NuxtLink
           v-for="(item, abilityIndex) in abilityValue"
           v-else
           :key="abilityIndex"
-          :href="section.overviewPageUrl"
+          :to="`${section.overviewPageUrl}?${section.ability}=${encodeURIComponent(item)}`"
           class="p-1 rounded bg-main-color text-white inline-block text-xs no-underline"
         >
           {{ item }}
-        </a>
+        </NuxtLink>
+        </div>
       </template>
     </div>
   </div>

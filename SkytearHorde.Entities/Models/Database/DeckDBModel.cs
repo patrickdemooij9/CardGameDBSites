@@ -36,5 +36,8 @@ namespace SkytearHorde.Entities.Models.Database
         [Column("DeletedDate")]
         [NullSetting(NullSetting = NullSettings.Null)]
         public DateTime? DeletedDate { get; set; }
+
+        [Column("TotalViews")]
+        public int TotalViews { get; set; }
     }
 }

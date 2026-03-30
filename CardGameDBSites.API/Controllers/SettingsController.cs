@@ -48,6 +48,7 @@ namespace CardGameDBSites.API.Controllers
                 BorderColor = settings.BorderColor,
                 SiteName = settings.SiteName,
                 ShowLogin = settings.ShowLogin,
+                ShowPrices = settings.AllowPricing,
                 LoginPageUrl = loginPageUrl,
                 AccountNavigation = accountNavigation,
                 Navigation = [.. settings.Navigation.Select(MapNavigationItem)],
@@ -88,7 +89,27 @@ namespace CardGameDBSites.API.Controllers
             }
             foreach (var action in deckDetail.ExportTypes.ToItems<IDeckExportType>())
             {
-                actions.Add(new DeckActionApiModel { Id = action.Key, DisplayName = action.DisplayName, Icon = action.IconName, Type = action.GetType().Name });
+                var deckAction = new DeckActionApiModel { Id = action.Key, DisplayName = action.DisplayName, Icon = action.IconName, Type = action.GetType().Name };
+                if (action is DeckExportGroup group)
+                {
+                    deckAction.PopupTitle = group.Title;
+                    deckAction.PopupDescription = group.Description?.ToString();
+                    deckAction.IsCopyClipboard = group.IsCopyToClipboard;
+                    deckAction.SubActions = [.. group.Items.ToItems<DeckExportGroupItem>().Select(subAction => {
+                        var exportType = subAction.ExportType.ToItems<IDeckExportType>().First();
+                        return new DeckActionApiModel
+                        {
+                            Id = exportType.Key,
+                            DisplayName = exportType.DisplayName!,
+                            PopupTitle = subAction.Title!,
+                            PopupDescription = subAction.Description?.ToString(),
+                            IsCopyClipboard = exportType.IsCopyToClipboard,
+                            Type = subAction.GetType().Name,
+                        };
+                    })];
+                }
+
+                actions.Add(deckAction);
             }
             return Ok(new DeckTypeSettingsApiModel
             {
@@ -177,7 +198,7 @@ namespace CardGameDBSites.API.Controllers
             var groups = slot.Groupings.ToItems<DeckCardGroup>().ToArray();
             if (groups.Length == 0) // Always have a group to put items in
             {
-                return [ new DeckBuilderDeckCardGroupApiModel() { DisplayName = string.Empty }];
+                return [new DeckBuilderDeckCardGroupApiModel() { DisplayName = string.Empty }];
             }
 
             return groups.Select(it => new DeckBuilderDeckCardGroupApiModel

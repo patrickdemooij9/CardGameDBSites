@@ -22,9 +22,9 @@ const siteSettings = await new SiteService().getSettings();
               <img v-if="card.imageUrl" class="sm:h-80" :src="GetCrop(card.imageUrl, undefined)" />
             </div>
   
-            <!--<div v-if="card.backImage">
-              <img class="sm:h-80" :src="card.backImage" />
-            </div>-->
+            <div v-if="card.backImageUrl">
+              <img class="sm:h-80" :src="GetCrop(card.backImageUrl, undefined)" />
+            </div>
           </div>
           <div class="w-full">
             <div class="bg-white rounded">

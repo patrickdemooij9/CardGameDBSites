@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Asn1.Ocsp;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
+using SkytearHorde.Business.Processors;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Models.Business;
@@ -28,17 +29,23 @@ namespace CardGameDBSites.API.Controllers
         private readonly ISiteAccessor _siteAccessor;
         private readonly IMemberManager _memberManager;
         private readonly CardPriceService _cardPriceService;
+        private readonly DeckTrackingProcessor _deckTrackingProcessor;
+        private readonly SettingsService _settingsService;
 
         public DecksApiController(
             DeckService deckService,
             ISiteAccessor siteAccessor,
             IMemberManager memberManager,
-            CardPriceService cardPriceService)
+            CardPriceService cardPriceService,
+            DeckTrackingProcessor deckTrackingProcessor,
+            SettingsService settingsService)
         {
             _deckService = deckService;
             _siteAccessor = siteAccessor;
             _memberManager = memberManager;
             _cardPriceService = cardPriceService;
+            _deckTrackingProcessor = deckTrackingProcessor;
+            _settingsService = settingsService;
         }
 
         [HttpGet("get")]
@@ -60,8 +67,13 @@ namespace CardGameDBSites.API.Controllers
                 return NotFound();
             }
 
+            DeckPriceApiModel? priceModel = null;
+            if (_settingsService.GetSiteSettings().AllowPricing)
+            {
+                priceModel = new DeckPriceApiModel { MarketPrice = _cardPriceService.GetPriceByDeck(deck) };
+            }
             var price = _cardPriceService.GetPriceByDeck(deck);
-            return Ok(new DeckApiModel(deck, new DeckPriceApiModel { MarketPrice = price}));
+            return Ok(new DeckApiModel(deck, priceModel));
         }
 
         [HttpPost("query")]
@@ -105,6 +117,13 @@ namespace CardGameDBSites.API.Controllers
             if (deck is null) return Unauthorized();
 
             _deckService.ToggleLikeDeck(deck, int.Parse(currentUser.Id));
+            return Ok();
+        }
+
+        [HttpPost("viewDeck")]
+        public async Task<IActionResult> ViewDeck([FromBody] int deckId)
+        {
+            _deckTrackingProcessor.AddDeckView(deckId);
             return Ok();
         }
     }

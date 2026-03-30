@@ -67,7 +67,9 @@ namespace SkytearHorde.Business.Startup.Migrations
                 .To<CardPriceLatestMigration>("v28")
                 .To<DeckLegalMigration>("v29")
                 .To<DeckIndexesMigration>("v30")
-                .To<CollectionCardIndexesMigration>("v31");
+                .To<CollectionCardIndexesMigration>("v31")
+                .To<CardPriceIndexMigration>("v32")
+                .To<DeckViewIndexAndTotalViewsMigration>("v33");
 
             var upgrader = new Upgrader(migrationPlan);
             upgrader.Execute(_migrationPlanExecutor, _coreScopeProvider, _keyValueService);

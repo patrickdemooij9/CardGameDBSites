@@ -1,4 +1,4 @@
-﻿using SkytearHorde.Entities.Models.Database;
+using SkytearHorde.Entities.Models.Database;
 using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Extensions;
 
@@ -34,6 +34,8 @@ namespace SkytearHorde.Business.Repositories
             existingModel.Views += views;
             scope.Database.Save(existingModel);
 
+            scope.Database.Execute("UPDATE Deck SET TotalViews = TotalViews + @0 WHERE Id = @1", views, deckId);
+
             scope.Complete();
         }
 
@@ -46,6 +48,13 @@ namespace SkytearHorde.Business.Repositories
                 .Select("Views")
                 .From<DeckViewDBModel>()
                 .Where<DeckViewDBModel>(it => it.DeckId == deckId && date <= it.Date)).Take(7).ToArray();
+        }
+
+        public void CleanupOldViews()
+        {
+            using var scope = _scopeProvider.CreateScope();
+            scope.Database.Execute("DELETE FROM DeckView WHERE Date < DATEADD(day, -30, GETUTCDATE())");
+            scope.Complete();
         }
     }
 }

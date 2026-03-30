@@ -21,6 +21,7 @@ export type { CollectionCardApiModel } from './models/CollectionCardApiModel';
 export { CollectionExportType } from './models/CollectionExportType';
 export type { CollectionSummaryApiModel } from './models/CollectionSummaryApiModel';
 export type { CommentViewModel } from './models/CommentViewModel';
+export type { CreateCommentPostModel } from './models/CreateCommentPostModel';
 export type { CreateSquadCardPostModel } from './models/CreateSquadCardPostModel';
 export type { CreateSquadPostModel } from './models/CreateSquadPostModel';
 export type { CreateSquadSlotPostModel } from './models/CreateSquadSlotPostModel';

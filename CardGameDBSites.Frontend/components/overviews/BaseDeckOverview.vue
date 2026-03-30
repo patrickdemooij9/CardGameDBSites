@@ -7,6 +7,7 @@ import Overview from "./Overview.vue";
 
 const props = defineProps<{
   decksPerRow: number;
+  typeId?: number;
   userId?: number;
 }>();
 
@@ -21,6 +22,7 @@ async function loadData(value: OverviewRefreshModel) {
     page: value.PageNumber,
     take: 20,
     userId: props.userId,
+    typeId: props.typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
   });
 

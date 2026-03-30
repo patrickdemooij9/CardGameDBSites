@@ -132,7 +132,7 @@ async function toggleMarkdownPreview(){
                     class="flex justify-between"
                     :class="{
                       'w-full':
-                        location.getMaxAmount() > 1 || location.minCards > 1,
+                        (location.getMaxAmount() ?? 0) > 1 || location.minCards > 1,
                     }"
                   >
                     <div>

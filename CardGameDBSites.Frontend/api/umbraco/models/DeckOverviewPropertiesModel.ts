@@ -10,5 +10,6 @@ export type DeckOverviewPropertiesModel = {
     decksPerRow?: number | null;
     squadCards?: number | null;
     squadSettings?: Array<IApiContentModel> | null;
+    squadSettingsId?: number | null;
 };
 

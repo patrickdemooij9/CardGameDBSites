@@ -38,7 +38,7 @@ const collectionService = useCollectionStore();
 const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
 const comments = ref(await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(
-  deck.cards?.map((card) => card.cardId!) ?? [],
+  deck.cards?.sort((a, b) => (a.slotId ?? 0) - (b.slotId ?? 0)).map((card) => card.cardId!) ?? [],
 );
 const mainCards = GetValidCards(
   cards,
@@ -59,6 +59,8 @@ onMounted(async () => {
   if (isLoggedIn.value) {
     collectionService.loadCards(deck.cards?.map((card) => card.cardId!) ?? []);
   }
+
+  new DeckService().viewDeck(deckId);
 });
 
 function getDeckCard(cardId: number) {

@@ -485,6 +485,7 @@ namespace SkytearHorde.Business.Repositories
                 IsPublished = deck.Published,
                 IsLegal = deck.IsLegal,
                 Score = deck.Score,
+                TotalViews = deck.TotalViews,
                 Cards = cards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)
                 {
                     Children = cardChildren.Where(c => c.ParentId == it.Id).Select(c => new DeckCardChild
@@ -500,7 +501,7 @@ namespace SkytearHorde.Business.Repositories
         private Sql<ISqlContext> BaseQuery(ISqlContext sqlContext)
         {
             return sqlContext.Sql()
-                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, (SELECT COUNT(*) FROM DeckLike WHERE DeckId = d.Id) as 'AmountOfLikes'")
+                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, (SELECT COUNT(*) FROM DeckLike WHERE DeckId = d.Id) as 'AmountOfLikes'")
                 .From<DeckDBModel>("d")
                 .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
         }

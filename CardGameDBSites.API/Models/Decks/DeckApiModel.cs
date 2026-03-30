@@ -16,9 +16,9 @@ namespace SkytearHorde.Entities.Models.ViewModels
         public int AmountOfLikes { get; set; }
         public int Score { get; set; }
         public DeckCardApiModel[] Cards { get; set; }
-        public DeckPriceApiModel Price { get; set; }
+        public DeckPriceApiModel? Price { get; set; }
 
-        public DeckApiModel(Deck deck, DeckPriceApiModel price)
+        public DeckApiModel(Deck deck, DeckPriceApiModel? price)
         {
             Id = deck.Id;
             Name = deck.Name;

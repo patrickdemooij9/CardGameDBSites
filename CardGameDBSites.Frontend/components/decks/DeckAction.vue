@@ -1,22 +1,33 @@
 <script setup lang="ts">
-import { PhCardsThree, PhCrown, PhImage, PhPiggyBank } from "@phosphor-icons/vue";
+import {
+  PhCardsThree,
+  PhCrown,
+  PhImage,
+  PhPiggyBank,
+} from "@phosphor-icons/vue";
 import type { DeckActionApiModel, DeckApiModel } from "~/api/default";
+import PopupBase from "../popups/PopupBase.vue";
+import { PopupSize } from "../popups/PopupTypes";
+import Button from "../shared/Button.vue";
+import ButtonType from "../shared/ButtonType";
 
 defineProps<{
   deck: DeckApiModel;
   action: DeckActionApiModel;
 }>();
 
-const icons: {[key: string]: Component} = {
-  'crown': PhCrown,
-  'cards-three': PhCardsThree,
-  'image': PhImage,
-  'piggy-bank': PhPiggyBank
+const showModal = ref(false);
+
+const icons: { [key: string]: Component } = {
+  crown: PhCrown,
+  "cards-three": PhCardsThree,
+  image: PhImage,
+  "piggy-bank": PhPiggyBank,
 };
 </script>
 
 <template>
-  <div v-if="action.type === 'Forcetable'">
+  <div v-if="action.type === 'ForceTable'">
     <a
       class="flex align-center gap-1 no-underline"
       :href="'/api/proxy/umbraco/api/export/ExportForceTable?deckId=' + deck.id"
@@ -24,6 +35,15 @@ const icons: {[key: string]: Component} = {
       <component :is="icons['crown']"></component>
       <p>{{ action.displayName }}</p>
     </a>
+  </div>
+  <div v-else-if="action.type === 'DeckExportGroup'">
+    <button
+      class="flex align-center gap-1 no-underline"
+      @click="showModal = true"
+    >
+      <component :is="icons[action.icon]"></component>
+      <p>{{ action.displayName }}</p>
+    </button>
   </div>
   <div v-else>
     <a
@@ -35,4 +55,33 @@ const icons: {[key: string]: Component} = {
       <p>{{ action.displayName }}</p>
     </a>
   </div>
+
+  <PopupBase
+    v-if="showModal"
+    :size="PopupSize.Small"
+    @close="showModal = false"
+  >
+    <h3 class="text-lg font-bold mb-2">{{ action.popupTitle }}</h3>
+    <p class="text-gray-600" v-html="action.popupDescription"></p>
+    <div v-for="subAction in action.subActions ?? []" class="mt-4">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">
+        {{ subAction.popupTitle }}
+      </h3>
+      <div class="mt-2 mb-2">
+        <div v-html="subAction.popupDescription"></div>
+        <a
+          :href="`/api/proxy/umbraco/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"
+          class="no-underline"
+        >
+          <Button :button-type="ButtonType.Outline" class="w-full mt-2">
+            <div class="flex gap-2 align-center">
+              <p>
+                {{ subAction.displayName }}
+              </p>
+            </div>
+          </Button>
+        </a>
+      </div>
+    </div>
+  </PopupBase>
 </template>

@@ -51,11 +51,12 @@ namespace SkytearHorde.Business.Repositories
 
             var date = DateTime.UtcNow;
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
-            return scope.Database.Fetch<DeckCalculateRequest>(scope.SqlContext.Sql()
-                .Select("DeckId,SiteId")
+            return [.. scope.Database.Fetch<DeckCalculateRequest>(scope.SqlContext.Sql()
+                .Select("DeckId,SiteId,NextCalculateDate")
                 .From<DeckCalculateScoreDBModel>()
                 .LeftJoin<DeckDBModel>().On<DeckCalculateScoreDBModel, DeckDBModel>((left, right) => left.DeckId == right.Id)
-                .Where<DeckCalculateScoreDBModel>(it => it.NextCalculateDate <= date)).Take(100).ToArray();
+                .OrderBy<DeckCalculateScoreDBModel>(it => it.NextCalculateDate)).Take(100)
+                    .Where(it => it.NextCalculateDate <= date)];
         }
     }
 }

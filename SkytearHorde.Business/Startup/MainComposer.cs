@@ -114,6 +114,7 @@ namespace SkytearHorde.Business.Startup
             //builder.Services.AddHostedService<AdReportTask>();
             builder.Services.AddHostedService<CardPriceSyncTask>();
             builder.Services.AddHostedService<RedditDailyCardTask>();
+            builder.Services.AddHostedService<DeckViewCleanupTask>();
 
             builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();
 

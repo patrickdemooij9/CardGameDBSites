@@ -80,6 +80,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent SquadSettings => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "squadSettings");
 
 		///<summary>
+		/// Squad Settings Id: TEMP until I find something better than the delivery api
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[ImplementPropertyType("squadSettingsId")]
+		public virtual int SquadSettingsId => this.Value<int>(_publishedValueFallback, "squadSettingsId");
+
+		///<summary>
 		/// Title
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

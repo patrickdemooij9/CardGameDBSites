@@ -17,7 +17,7 @@ namespace CardGameDBSites.API.Models
         public string SetName { get; set; }
         public string UrlSegment { get; set; }
         public ImageCropsApiModel? ImageUrl { get; set; }
-        public string? BackImageUrl { get; set; }
+        public ImageCropsApiModel? BackImageUrl { get; set; }
 
         public Dictionary<string, string[]> Attributes { get; set; }
 
@@ -34,7 +34,7 @@ namespace CardGameDBSites.API.Models
             SetName = card.SetName;
             UrlSegment = card.UrlSegment;
             ImageUrl = card.Image is null ? null : ImageCropHelper.ToApiModels(card.Image, "icon");
-            BackImageUrl = card.BackImage?.Url(mode: UrlMode.Absolute);
+            BackImageUrl = card.BackImage is null ? null : ImageCropHelper.ToApiModels(card.BackImage, "icon");
             Attributes = card.Attributes.ToDictionary(it => it.Key, it => it.Value.GetValues());
 
             Variants = [.. card.VariantReferences.Select(it => new CardVariantReferenceApiModel(it.VariantTypeId, it.CardVariantId, it.SetId))];

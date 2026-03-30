@@ -14,6 +14,7 @@ namespace CardGameDBSites.API.Models
         public required string BorderColor { get; set; }
         public required string SiteName { get; set; }
         public required bool ShowLogin { get; set; }
+        public required bool ShowPrices { get; set; }
         public string? LoginPageUrl { get; set; }
         public NavigationItemApiModel[] AccountNavigation { get; set; }
         public NavigationItemApiModel[] Navigation { get; set; }

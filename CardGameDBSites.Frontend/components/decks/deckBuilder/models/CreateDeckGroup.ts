@@ -1,7 +1,10 @@
 import type { CardDetailApiModel, RequirementApiModel } from "~/api/default";
 import type CreateDeckSlot from "./CreateDeckSlot";
 import CreateDeckValidation from "./CreateDeckValidation";
-import { GetInvalidRequirements, IsValid } from "~/services/requirements/RequirementService";
+import {
+  GetInvalidRequirements,
+  IsValid,
+} from "~/services/requirements/RequirementService";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
 
 export default class CreateDeckGroup {
@@ -22,7 +25,12 @@ export default class CreateDeckGroup {
   getMaxAmount() {
     let maxAmount = 0;
     this.slots.forEach((slot) => {
-      maxAmount += slot.getMaxAmount();
+      const amount = slot.getMaxAmount();
+      if (amount) {
+        maxAmount += amount;
+      } else {
+        maxAmount += slot.minCards;
+      }
     });
     return maxAmount;
   }
@@ -50,7 +58,10 @@ export default class CreateDeckGroup {
       }
       cards.push(...slot.getCards());
     });
-    const invalidRequirements = GetInvalidRequirements(cards, this.requirements);
+    const invalidRequirements = GetInvalidRequirements(
+      cards,
+      this.requirements,
+    );
     invalidRequirements.forEach((requirement) => {
       errors.push({
         errorMessage: requirement.errorMessage ?? "Requirement not met",

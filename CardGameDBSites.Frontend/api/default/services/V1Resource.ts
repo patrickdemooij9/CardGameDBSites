@@ -9,6 +9,7 @@ import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
 import type { CollectionExportType } from '../models/CollectionExportType';
 import type { CollectionSummaryApiModel } from '../models/CollectionSummaryApiModel';
 import type { CommentViewModel } from '../models/CommentViewModel';
+import type { CreateCommentPostModel } from '../models/CreateCommentPostModel';
 import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
 import type { DeckApiModel } from '../models/DeckApiModel';
@@ -346,23 +347,19 @@ export class V1Resource {
         });
     }
     /**
-     * @returns any OK
+     * @returns CommentViewModel OK
      * @throws ApiError
      */
     public static postApiCommentsAddDeckComment({
-        deckId,
-        comment,
+        requestBody,
     }: {
-        deckId?: number,
-        comment?: string,
-    }): CancelablePromise<any> {
+        requestBody?: CreateCommentPostModel,
+    }): CancelablePromise<CommentViewModel> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/comments/addDeckComment',
-            query: {
-                'deckId': deckId,
-                'comment': comment,
-            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**

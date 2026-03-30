@@ -13,6 +13,7 @@ const decks = await new DeckService().query({
   page: 1,
   take: props.content.amount ?? 4,
   status: DeckStatus.PUBLISHED,
+  orderBy: props.content.type === "MostPopular" ? "popular" : undefined
 });
 
 const gridClass = ref("lg:grid-cols-" + props.content.amountPerRow);

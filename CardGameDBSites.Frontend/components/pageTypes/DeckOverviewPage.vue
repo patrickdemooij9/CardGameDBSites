@@ -2,9 +2,11 @@
 import type { DeckOverviewContentModel } from "~/api/umbraco";
 import DeckOverview from "../overviews/DeckOverview.vue";
 
-defineProps<{
+const props = defineProps<{
   content: DeckOverviewContentModel;
 }>();
+
+const typeId: number | undefined = props.content.properties?.squadSettingsId ?? undefined;
 </script>
 
 <template>
@@ -18,6 +20,7 @@ defineProps<{
 
     <DeckOverview
       :decks-per-row="content.properties?.decksPerRow ?? 4"
+      :type-id="typeId"
     ></DeckOverview>
   </div>
 </template>

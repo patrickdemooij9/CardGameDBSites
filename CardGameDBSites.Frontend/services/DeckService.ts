@@ -77,4 +77,15 @@ export default class DeckService {
     );
     return result!;
   }
+
+  async viewDeck(deckId: number) {
+    DoServerFetch<boolean>(
+      "/api/decks/viewDeck",
+      true,
+      {
+        method: "POST",
+        body: JSON.stringify(deckId),
+      },
+    );
+  }
 }

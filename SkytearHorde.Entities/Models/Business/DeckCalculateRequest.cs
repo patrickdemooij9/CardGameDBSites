@@ -4,5 +4,6 @@
     {
         public int DeckId { get; set; }
         public int SiteId { get; set; }
+        public DateTime NextCalculateDate { get; set; }
     }
 }

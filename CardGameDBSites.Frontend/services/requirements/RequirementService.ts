@@ -4,11 +4,13 @@ import type OverviewFilterValueModel from "~/components/overviews/OverviewFilter
 import NotEqualValueRequirement from "./NotEqualValueRequirement";
 import ResourceRequirement from "./ResourceRequirement";
 import type { IRequirement } from "./IRequirement";
+import ConditionalRequirement from "./ConditionalRequirement";
 
 const requirementHandlers: IRequirement[] = [
     new EqualValueRequirement(),
     new NotEqualValueRequirement(),
-    new ResourceRequirement()
+    new ResourceRequirement(),
+    new ConditionalRequirement()
 ]
 
 export function GetValidCards(cards: CardDetailApiModel[], requirements: RequirementApiModel[])

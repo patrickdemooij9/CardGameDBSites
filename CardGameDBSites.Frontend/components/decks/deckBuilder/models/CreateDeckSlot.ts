@@ -58,7 +58,11 @@ export default class CreateDeckSlot {
   }
 
   isFull() {
-    return this.getAmount() >= this.getMaxAmount();
+    const maxAmount = this.getMaxAmount();
+    if (maxAmount === undefined) { // Unlimited amount
+      return false;
+    }
+    return this.getAmount() >= maxAmount;
   }
 
   validate(): CreateDeckValidationItem[] | undefined {
@@ -72,7 +76,7 @@ export default class CreateDeckSlot {
     
     const amount = this.getAmount();
     const maxAmount = this.getMaxAmount();
-    return amount >= this.minCards && amount <= maxAmount ? undefined : [{
+    return amount >= this.minCards && (maxAmount === undefined || amount <= maxAmount) ? undefined : [{
       errorMessage: "Not valid amount",
       showMessage: false,
     }];

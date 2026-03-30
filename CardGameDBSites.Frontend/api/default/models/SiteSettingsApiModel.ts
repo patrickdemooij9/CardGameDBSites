@@ -12,6 +12,7 @@ export type SiteSettingsApiModel = {
     borderColor: string;
     siteName: string;
     showLogin: boolean;
+    showPrices: boolean;
     loginPageUrl?: string | null;
     accountNavigation?: Array<NavigationItemApiModel>;
     navigation?: Array<NavigationItemApiModel>;

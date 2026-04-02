@@ -66,7 +66,7 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent MainAbility => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "mainAbility");
 
 		///<summary>
-		/// Main Ability Max Size
+		/// Main Ability Max Size: If enabled, will use budget mode
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[ImplementPropertyType("mainAbilityMaxSize")]

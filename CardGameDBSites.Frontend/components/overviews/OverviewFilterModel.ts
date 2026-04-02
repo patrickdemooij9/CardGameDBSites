@@ -1,10 +1,22 @@
+import type { CardsQueryFilterClauseApiModel } from "~/api/default";
+
+export enum OverviewFilterType {
+    INLINE = "INLINE",
+
+    CHECKBOX = "CHECKBOX",
+    DROPDOWN = "DROPDOWN",
+}
+
 export interface OverviewFilterModel {
     Alias: string;
     DisplayName: string;
-    IsInline: boolean;
+    Type: OverviewFilterType;
 
     Items: OverviewFilterItemModel[];
     AutoFillValues: boolean;
+    DefaultEnabled?: boolean;
+
+    ToFiltersHandler?: (values: string[]) => CardsQueryFilterClauseApiModel[];
 }
 
 export interface OverviewFilterItemModel {

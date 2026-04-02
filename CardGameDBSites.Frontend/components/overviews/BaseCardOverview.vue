@@ -31,17 +31,25 @@ watch(
       overview.value?.setPage(1, true);
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 async function loadData(value: OverviewRefreshModel) {
   const filters: CardsQueryFilterClauseApiModel[] = [];
-  Object.entries(value.SelectedFilters).forEach(([key, values]) => {
+  value.SelectedFilters.forEach((values, key) => {
+    if (values.length === 0) {
+      return;
+    }
+    if (key.ToFiltersHandler) {
+      filters.push(...key.ToFiltersHandler(values));
+      return;
+    }
+
     filters.push({
       clauseType: CardSearchFilterClauseType.AND,
       filters: [
         {
-          alias: key,
+          alias: key.Alias,
           values: values,
         },
       ],

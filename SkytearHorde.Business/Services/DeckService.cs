@@ -73,7 +73,7 @@ namespace SkytearHorde.Business.Services
             var teamRequirements = squadSettings.Restrictions.ToItems<ISquadRequirementConfig>().ToList();
             teamRequirements.AddRange(teamCharacters?.SelectMany(it => it.TeamRequirements) ?? Enumerable.Empty<ISquadRequirementConfig>());
 
-            foreach (var teamRequirement in teamRequirements)
+            foreach (var teamRequirement in teamRequirements.Where(it => it.RestrictionType != "Filter"))
             {
                 if (!teamRequirement.GetRequirement().IsValid(teamCharacters))
                     throw new InvalidOperationException("Not valid");
@@ -99,7 +99,7 @@ namespace SkytearHorde.Business.Services
 
                 var squadRequirements = squadConfig.Requirements.ToItems<ISquadRequirementConfig>().ToList();
                 squadRequirements.AddRange(characters?.SelectMany(it => it.SquadRequirements) ?? Enumerable.Empty<ISquadRequirementConfig>());
-                foreach (var requirement in squadRequirements)
+                foreach (var requirement in squadRequirements.Where(it => it.RestrictionType != "Filter"))
                 {
                     if (!requirement.GetRequirement().IsValid(characters))
                         throw new InvalidOperationException("Not valid");
@@ -128,7 +128,9 @@ namespace SkytearHorde.Business.Services
                         }
                         else if (maxCardsConfig is DynamicSquadSlotAmount dynamicSquadSlotAmount)
                         {
-                            var requirements = dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>().Select(it => it.GetRequirement()).ToArray();
+                            var requirements = dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>()
+                                .Where(it => it.RestrictionType != "Filter")
+                                .Select(it => it.GetRequirement()).ToArray();
                             maxCards = cards.Where(it => requirements.All(r => r.IsValid([it]))).Count();
                         }
 
@@ -183,7 +185,7 @@ namespace SkytearHorde.Business.Services
                     {
                         slotRequirements.AddRange(additionalSquadRequirements[i]);
                     }
-                    foreach (var requirement in slotRequirements)
+                    foreach (var requirement in slotRequirements.Where(it => it.RestrictionType != "Filter"))
                     {
                         if (!requirement.GetRequirement().IsValid(cards))
                             throw new InvalidOperationException("Slot not valid");

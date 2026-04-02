@@ -66,7 +66,7 @@ export default class CreateDeckSlot {
   }
 
   validate(): CreateDeckValidationItem[] | undefined {
-    const invalidRequirements = GetInvalidRequirements(this.getCards(), this.requirements);
+    const invalidRequirements = GetInvalidRequirements(this.getCards(), this.requirements, false);
     if (invalidRequirements.length > 0){
       return invalidRequirements.map((requirement) => ({
         errorMessage: requirement.errorMessage ?? "Not valid requirement",
@@ -126,7 +126,7 @@ export default class CreateDeckSlot {
     if (currentSize) {
       currentSize.amount++;
     } else {
-      const groupToAdd = this.cardGroups.find((group) => IsValid([card], group.requirements));
+      const groupToAdd = this.cardGroups.find((group) => IsValid([card], group.requirements, true));
       if (groupToAdd){
         groupToAdd.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
       }

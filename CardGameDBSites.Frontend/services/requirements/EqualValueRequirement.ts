@@ -19,9 +19,9 @@ export default class EqualValueRequirement implements IRequirement {
     });
   }
 
-  ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel {
+  ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel[] {
     const values = config.values as string[];
-    return {
+    return [{
       clauseType: CardSearchFilterClauseType.AND,
       filters: [
         {
@@ -30,6 +30,6 @@ export default class EqualValueRequirement implements IRequirement {
           mode: CardSearchFilterMode.CONTAINS,
         },
       ],
-    };
+    }];
   }
 }

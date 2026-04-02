@@ -20,9 +20,9 @@ export default class NotEqualValueRequirement implements IRequirement {
     });
   }
 
-  ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel {
+  ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel[] {
     const values = config.values as string[];
-    return {
+    return [{
       clauseType: CardSearchFilterClauseType.NOT,
       filters: [
         {
@@ -31,6 +31,6 @@ export default class NotEqualValueRequirement implements IRequirement {
           mode: CardSearchFilterMode.CONTAINS,
         },
       ],
-    };
+    }];
   }
 }

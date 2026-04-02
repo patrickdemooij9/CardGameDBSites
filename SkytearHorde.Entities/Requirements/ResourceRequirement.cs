@@ -4,8 +4,13 @@ using SkytearHorde.Entities.Interfaces;
 
 namespace SkytearHorde.Entities.Requirements
 {
-    // Requirement where cards gives resources that are then required by the other ones.
-    // Almost the same as SameValueRequirement, but not all cards need to have the same requirements as each other.
+    public enum ResourceMode
+    {
+        ContainsAny,
+        Budget,
+        Subset
+    }
+
     public class ResourceRequirement : ISquadRequirement
     {
         public string Alias => RequirementConstants.ResourceAlias;
@@ -13,14 +18,16 @@ namespace SkytearHorde.Entities.Requirements
         private readonly string _mainAbilityName;
         private readonly string _abilityName;
         private readonly ISquadRequirement[] _mainCardsConditions;
-        private readonly bool _singleResourceMode;
+        private readonly ResourceMode _resourceMode;
+        private readonly int _totalBudget;
 
-        public ResourceRequirement(string mainAbilityName, string abilityName, ISquadRequirement[] mainCardsConditions, bool singleResourceMode)
+        public ResourceRequirement(string mainAbilityName, string abilityName, ISquadRequirement[] mainCardsConditions, ResourceMode resourceMode, int totalBudget = 6)
         {
             _mainAbilityName = mainAbilityName;
             _abilityName = abilityName;
             _mainCardsConditions = mainCardsConditions;
-            _singleResourceMode = singleResourceMode;
+            _resourceMode = resourceMode;
+            _totalBudget = totalBudget;
         }
 
         public bool IsValid(Card[] cards)
@@ -29,22 +36,41 @@ namespace SkytearHorde.Entities.Requirements
             if (mainCards.Length == 0) return false;
 
             var resourcePool = mainCards.SelectMany(it => it.GetMultipleCardAttributeValue(_mainAbilityName)!).GroupBy(it => it).ToDictionary(it => it.Key, it => it.ToArray());
-            foreach(var card in cards.Except(mainCards))
+
+            foreach (var card in cards.Except(mainCards))
             {
                 var values = card.GetMultipleCardAttributeValue(_abilityName)?.ToArray();
                 if (values is null || values.Length == 0)
                     return false;
 
-                var cardResourcePool = values.GroupBy(it => it);
-                foreach (var resource in cardResourcePool)
+                switch (_resourceMode)
                 {
-                    if (!resourcePool.ContainsKey(resource.Key))
-                        return false;
-                    if (!_singleResourceMode)
-                        continue;
-                    if (resourcePool[resource.Key].Length >= resource.Count())
-                        continue;
-                    return false;
+                    case ResourceMode.ContainsAny:
+                        if (!values.Any(resourcePool.ContainsKey))
+                            return false;
+                        break;
+
+                    case ResourceMode.Budget:
+                        var totalMainResources = resourcePool.Values.Sum(v => v.Length);
+                        var remainingBudget = _totalBudget - totalMainResources;
+                        var cardResourcePool = values.GroupBy(it => it);
+                        var newResourceCount = cardResourcePool
+                            .Where(g => !resourcePool.ContainsKey(g.Key))
+                            .Sum(g => g.Count());
+                        if (newResourceCount > remainingBudget)
+                            return false;
+                        break;
+
+                    default: // Subset
+                        var cardResources = values.GroupBy(it => it);
+                        foreach (var resource in cardResources)
+                        {
+                            if (!resourcePool.ContainsKey(resource.Key))
+                                return false;
+                            if (resourcePool[resource.Key].Length < resource.Count())
+                                return false;
+                        }
+                        break;
                 }
             }
             return true;

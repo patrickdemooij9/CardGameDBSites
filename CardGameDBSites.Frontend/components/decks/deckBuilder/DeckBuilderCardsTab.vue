@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import BaseCardOverview from "~/components/overviews/BaseCardOverview.vue";
 import DeckBuilderTab from "./DeckBuilderTab";
-import type { CardDetailApiModel } from "~/api/default";
+import {
+  RestrictionType,
+  type CardDetailApiModel,
+  type RequirementApiModel,
+} from "~/api/default";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
 import { GetFilters } from "~/services/requirements/RequirementService";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
@@ -10,6 +14,10 @@ import ButtonType from "~/components/shared/ButtonType";
 import { GetMarkdown } from "~/services/MarkdownService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import { GetCrop } from "~/helpers/CropUrlHelper";
+import {
+  OverviewFilterType,
+  type OverviewFilterModel,
+} from "~/components/overviews/OverviewFilterModel";
 
 const emit = defineEmits<{
   (e: "update:currentTab", value: DeckBuilderTab): void;
@@ -28,19 +36,67 @@ const description = ref("");
 const markdownPreview = ref(false);
 const markdownPreviewText = ref("");
 
+function getUserFilters() {
+  if (!props.currentArea) {
+    return [];
+  }
+
+  const allRequirements = [
+    ...props.currentArea.group.requirements,
+    ...props.currentArea.slot.requirements,
+  ];
+
+  return allRequirements
+    .filter((req) => req.restrictionType === RestrictionType.FILTER)
+    .map<OverviewFilterModel>((req) => {
+      return {
+        Alias: req.config?.ability ?? req.alias ?? "Filter",
+        DisplayName: req.config?.displayName ?? req.alias ?? "Filter",
+        Type: OverviewFilterType.CHECKBOX,
+        Items: [],
+        AutoFillValues: false,
+        DefaultEnabled: true,
+        ToFiltersHandler: (_) => {
+          return GetFilters(
+            props.currentArea!.group.getCards(),
+            [req],
+            props.ignorePassiveFilters,
+          );
+        },
+      };
+    });
+}
+
 function getInternalFilters() {
   if (!props.currentArea) {
     return [];
   }
   const cards = props.currentArea.group.getCards();
   return [
-    ...GetFilters(cards, props.currentArea.group.requirements, props.ignorePassiveFilters),
-    ...GetFilters(cards, props.currentArea.slot.requirements, props.ignorePassiveFilters)
+    ...GetFilters(
+      cards,
+      props.currentArea.group.requirements.filter(
+        (req) => req.restrictionType !== RestrictionType.FILTER,
+      ),
+      props.ignorePassiveFilters,
+    ),
+    ...GetFilters(
+      cards,
+      props.currentArea.slot.requirements.filter(
+        (req) => req.restrictionType !== RestrictionType.FILTER,
+      ),
+      props.ignorePassiveFilters,
+    ),
   ];
 }
 
 function getSlotsForCard(card: CardDetailApiModel) {
-  return props.deck.getSlotsForCard(card).filter((slot) => props.currentArea === undefined || props.currentArea.slot === slot);
+  return props.deck
+    .getSlotsForCard(card)
+    .filter(
+      (slot) =>
+        props.currentArea === undefined || props.currentArea.slot === slot,
+    );
 }
 
 function addToSquad(slot: CreateDeckSlot, character: CardDetailApiModel) {
@@ -52,7 +108,7 @@ function removeFromSquad(slot: CreateDeckSlot, card: CardDetailApiModel) {
   slot.removeCard(card);
 }
 
-async function toggleMarkdownPreview(){
+async function toggleMarkdownPreview() {
   if (markdownPreview) {
     markdownPreviewText.value = await GetMarkdown(description.value);
   }
@@ -93,12 +149,20 @@ async function toggleMarkdownPreview(){
         Details
       </button>
     </div>
-    <div class="mt-4" :class="{'md:block': currentTab === DeckBuilderTab.Cards || currentTab === DeckBuilderTab.Deck, 'hidden': currentTab !== DeckBuilderTab.Cards}">
+    <div
+      class="mt-4"
+      :class="{
+        'md:block':
+          currentTab === DeckBuilderTab.Cards ||
+          currentTab === DeckBuilderTab.Deck,
+        hidden: currentTab !== DeckBuilderTab.Cards,
+      }"
+    >
       <BaseCardOverview
-        :filters="[]"
+        :filters="getUserFilters()"
         :internal-filters="getInternalFilters()"
         :white-background="false"
-        v-slot="{ cards }"
+        v-slot="{cards}"
       >
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-5">
           <div v-for="character in cards.items" :key="character.baseId">
@@ -126,13 +190,17 @@ async function toggleMarkdownPreview(){
                     <i class="ph ph-info"></i>
                   </div>
                 </div>
-                <div class="flex flex-col align-middle gap-2" v-if="!preselectFirstSlot">
+                <div
+                  class="flex flex-col align-middle gap-2"
+                  v-if="!preselectFirstSlot"
+                >
                   <div
                     v-for="location in getSlotsForCard(character)"
                     class="flex justify-between"
                     :class="{
                       'w-full':
-                        (location.getMaxAmount() ?? 0) > 1 || location.minCards > 1,
+                        (location.getMaxAmount() ?? 0) > 1 ||
+                        location.minCards > 1,
                     }"
                   >
                     <div>
@@ -168,7 +236,9 @@ async function toggleMarkdownPreview(){
                       <div>
                         <button
                           v-if="!location.numberMode"
-                          v-on:click.prevent.stop="addToSquad(location, character)"
+                          v-on:click.prevent.stop="
+                            addToSquad(location, character)
+                          "
                           type="button"
                           class="pointer rounded-lg bg-white text-black border-none w-fit px-4 py-3"
                         >
@@ -176,7 +246,9 @@ async function toggleMarkdownPreview(){
                         </button>
                         <button
                           v-if="location.numberMode"
-                          v-on:click.prevent.stop="addToSquad(location, character)"
+                          v-on:click.prevent.stop="
+                            addToSquad(location, character)
+                          "
                           type="button"
                           class="pointer rounded-lg bg-white text-black border-none w-fit px-4 py-3"
                         >
@@ -188,7 +260,10 @@ async function toggleMarkdownPreview(){
                 </div>
               </div>
             </a>
-            <div class="flex flex-col align-middle gap-2 mt-2" v-if="preselectFirstSlot">
+            <div
+              class="flex flex-col align-middle gap-2 mt-2"
+              v-if="preselectFirstSlot"
+            >
               <div
                 v-for="location in getSlotsForCard(character)"
                 class="flex justify-between w-full"
@@ -216,13 +291,9 @@ async function toggleMarkdownPreview(){
                 </div>
                 <div>
                   <Button
-                    v-on:click.prevent.stop="
-                      addToSquad(location, character)
-                    "
+                    v-on:click.prevent.stop="addToSquad(location, character)"
                     type="button"
-                    :disabled="
-                      !location.canAddCard(character)
-                    "
+                    :disabled="!location.canAddCard(character)"
                     class="rounded-lg"
                   >
                     <span v-if="!location.numberMode">Add</span>

@@ -6,9 +6,10 @@ import type {
   OverviewFilterItemPropertiesModel,
 } from "~/api/umbraco";
 import CardOverview from "../overviews/CardOverview.vue";
-import type {
-  OverviewFilterItemModel,
-  OverviewFilterModel,
+import {
+  OverviewFilterType,
+  type OverviewFilterItemModel,
+  type OverviewFilterModel,
 } from "../overviews/OverviewFilterModel";
 import { GetAbsoluteUrl } from "~/helpers/CropUrlHelper";
 
@@ -24,7 +25,7 @@ const filters =
         ? "Set Name"
         : (castedItem.ability as IApiContentModel[])[0].name ?? "",
       DisplayName: castedItem?.displayName ?? "",
-      IsInline: castedItem?.isInline ?? false,
+      Type: castedItem?.isInline ? OverviewFilterType.INLINE : OverviewFilterType.DROPDOWN,
       AutoFillValues: castedItem?.autoFillValues ?? false,
       Items:
         castedItem?.items?.items?.map<OverviewFilterItemModel>((child) => {

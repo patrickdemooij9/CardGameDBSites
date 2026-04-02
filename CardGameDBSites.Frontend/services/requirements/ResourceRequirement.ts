@@ -9,116 +9,198 @@ import type { IRequirement } from "./IRequirement";
 import RequirementType from "./RequirementType";
 import { IsValid } from "./RequirementService";
 import { GetCardValues } from "~/helpers/CardHelper";
+import ResourceMode from "./ResourceMode";
+
+function resolveResourceMode(config: Record<string, any>): ResourceMode {
+  if (config.resourceMode) {
+    return config.resourceMode as ResourceMode;
+  }
+  return config.singleResourceMode ? ResourceMode.Subset : ResourceMode.Budget;
+}
+
+function getMainCards(
+  cards: CardDetailApiModel[],
+  config: Record<string, any>,
+): CardDetailApiModel[] {
+  return cards.filter((card) =>
+    config["mainCardsCondition"].every((c: Record<string, any>) => {
+      c["alias"] = c["type"];
+      return IsValid([card], [c], false);
+    }),
+  );
+}
+
+function buildResourcePool(
+  mainCards: CardDetailApiModel[],
+  mainAbility: string,
+): Record<string, string[]> {
+  return Object.groupBy(
+    mainCards.flatMap((c) => GetCardValues<string>(c, mainAbility) ?? []),
+    (item) => item,
+  ) as Record<string, string[]>;
+}
 
 export default class ResourceRequirement implements IRequirement {
   RequirementType: RequirementType = RequirementType.Resource;
 
   IsValid(cards: CardDetailApiModel[], config: Record<string, any>): boolean {
-    const mainCards = cards.filter((card) =>
-      config["mainCardsCondition"].every((c: Record<string, any>) => {
-        c["alias"] = c["type"];
-        return IsValid([card], [c]);
-      }),
-    );
-    /*if (
-      mainCards.length === 0 ||
-      (config.mainAbilityMaxSize > 0 &&
-        mainCards.length < config.mainAbilityMaxSize)
-    ) {
-      return true;
-    }*/
+    const mainCards = getMainCards(cards, config);
+    if (mainCards.length === 0) return false;
 
-    const resourcePool = Object.groupBy(
-      mainCards.flatMap(
-        (c) => GetCardValues<string>(c, config["mainAbility"]) ?? [],
-      ),
-      (item) => item,
-    );
+    const resourcePool = buildResourcePool(mainCards, config["mainAbility"]);
     const otherCards = cards.filter((it) => !mainCards.includes(it));
+    const mode = resolveResourceMode(config);
 
     for (let i = 0; i < otherCards.length; i++) {
       const card = otherCards[i];
-
       const cardValues = GetCardValues<string>(card, config.ability);
       if (!cardValues || cardValues.length === 0) {
         return false;
       }
 
-      let valid = true;
-      const otherCardResource = Object.groupBy(cardValues, (item) => item);
+      const cardResource = Object.groupBy(cardValues, (item) => item);
 
-      Object.entries(otherCardResource).forEach((item) => {
-        const mainResourcePool = resourcePool[item[0]];
-        if (!mainResourcePool) {
-          valid = false;
-          return;
-        }
-        if (config.singleResourceMode) {
-          return;
-        }
-        if (mainResourcePool.length >= item[1]!.length) {
-          return;
+      switch (mode) {
+        case ResourceMode.ContainsAny: {
+          const hasOverlap = Object.keys(cardResource).some(
+            (key) => resourcePool[key],
+          );
+          if (!hasOverlap) return false;
+          break;
         }
 
-        valid = false;
-      });
+        case ResourceMode.Budget: {
+          const totalMainResources = Object.values(resourcePool).reduce(
+            (prev, cur) => prev + (cur?.length ?? 0),
+            0,
+          );
+          const totalBudget = config.totalBudget ?? 6;
+          const remainingBudget = totalBudget - totalMainResources;
 
-      if (!valid) {
-        return false;
+          const newResourceCount = Object.entries(cardResource)
+            .filter(([key]) => !resourcePool[key])
+            .reduce((prev, [, vals]) => prev + (vals?.length ?? 0), 0);
+
+          if (newResourceCount > remainingBudget) return false;
+          break;
+        }
+
+        case ResourceMode.Subset: {
+          for (const [key, values] of Object.entries(cardResource)) {
+            if (!resourcePool[key]) return false;
+            const mainPool = resourcePool[key];
+            if (!mainPool || mainPool.length < (values?.length ?? 0))
+              return false;
+          }
+          break;
+        }
       }
     }
     return true;
   }
+
   ToFilters(
     cards: CardDetailApiModel[],
     config: Record<string, any>,
-  ): CardsQueryFilterClauseApiModel {
-    if (config.singleResourceMode) {
-      return {}; //TODO: Implement filters for single resource mode
+  ): CardsQueryFilterClauseApiModel[] | undefined {
+    const mainCards = getMainCards(cards, config);
+    if (mainCards.length === 0) return undefined;
+
+    const resourcePool = buildResourcePool(mainCards, config["mainAbility"]);
+    const mode = resolveResourceMode(config);
+    const possibleValues: string[] = config.possibleValues ?? [];
+
+    switch (mode) {
+      case ResourceMode.ContainsAny: {
+        const filters: CardsQueryFilterApiModel[] = possibleValues
+          .filter((value) => resourcePool[value])
+          .map((value) => ({
+            alias: `${config.ability}.${value}.Amount`,
+            values: ["1"],
+            mode: CardSearchFilterMode.HIGHER,
+          }));
+
+        if (filters.length === 0) return undefined;
+        return [
+          {
+            clauseType: CardSearchFilterClauseType.AND,
+            filters,
+          },
+        ];
+      }
+
+      case ResourceMode.Budget: {
+        const filters: CardsQueryFilterApiModel[] = [];
+        const totalMainResources = Object.values(resourcePool).reduce(
+          (prev, cur) => (prev += cur?.length ?? 0),
+          0,
+        );
+
+        const mainBudget = config["mainAbilityMaxSize"] ?? 6;
+        config.possibleValues.forEach((value: string) => {
+          filters.push({
+            alias: `${config.ability}.${value}.Amount`,
+            values: [
+              "1",
+              (
+                mainBudget -
+                totalMainResources +
+                (resourcePool[value]?.length ?? 0)
+              ).toString(),
+            ],
+            mode: CardSearchFilterMode.RANGE,
+          });
+          filters.push({
+            alias: `${config.mainAbility}.${value}.Amount`,
+            values: ["1", mainBudget.toString()], //TODO: Need to figure out how this will work
+            mode: CardSearchFilterMode.RANGE,
+          });
+        });
+
+        return [
+          {
+            clauseType: CardSearchFilterClauseType.AND,
+            filters,
+          },
+        ];
+      }
+
+      case ResourceMode.Subset: {
+        const yesFilters: CardsQueryFilterApiModel[] = [];
+        const noFilters: CardsQueryFilterClauseApiModel[] = [];
+
+        possibleValues.forEach((value: string) => {
+          if (!resourcePool[value] || !resourcePool[value].length) {
+            noFilters.push({
+              clauseType: CardSearchFilterClauseType.AND,
+              filters: [
+                {
+                  alias: `${config.ability}.${value}.Amount`,
+                  values: ["0"],
+                  mode: CardSearchFilterMode.LOWER,
+                },
+              ],
+            });
+            return;
+          }
+          yesFilters.push({
+            alias: `${config.ability}.${value}.Amount`,
+            values: ["1", resourcePool[value].length.toString()],
+            mode: CardSearchFilterMode.RANGE,
+          });
+        });
+
+        return [
+          {
+            clauseType: CardSearchFilterClauseType.AND,
+            filters: yesFilters,
+          },
+          ...noFilters,
+        ];
+      }
+
+      default:
+        return undefined;
     }
-
-    const mainCards = cards.filter((card) =>
-      config["mainCardsCondition"].every((c: Record<string, any>) => {
-        c["alias"] = c["type"];
-        return IsValid([card], [c]);
-      }),
-    );
-
-    const resourcePool = Object.groupBy(
-      mainCards.flatMap(
-        (c) => GetCardValues<string>(c, config["mainAbility"]) ?? [],
-      ),
-      (item) => item,
-    );
-
-    const filters: CardsQueryFilterApiModel[] = [];
-    const totalMainResources = Object.values(resourcePool).reduce(
-      (prev, cur) => (prev += cur?.length ?? 0),
-      0,
-    );
-    config.possibleValues.forEach((value: string) => {
-      filters.push({
-        alias: `${config.ability}.${value}.Amount`,
-        values: [
-          "1",
-          (
-            6 -
-            totalMainResources +
-            (resourcePool[value]?.length ?? 0)
-          ).toString(),
-        ],
-        mode: CardSearchFilterMode.RANGE,
-      });
-      filters.push({
-        alias: `${config.mainAbility}.${value}.Amount`,
-        values: ["1", "6"], //TODO: Need to figure out how this will work
-        mode: CardSearchFilterMode.RANGE,
-      });
-    });
-
-    return {
-      clauseType: CardSearchFilterClauseType.AND,
-      filters,
-    };
   }
 }

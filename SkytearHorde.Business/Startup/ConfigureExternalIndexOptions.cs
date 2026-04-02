@@ -25,6 +25,13 @@ namespace SkytearHorde.Business.Startup
                 options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Pip Source.Omniworks.Amount", FieldDefinitionTypes.Integer));
                 options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Pip Source.Collective.Amount", FieldDefinitionTypes.Integer));
                 options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Pip Source.Remnants.Amount", FieldDefinitionTypes.Integer));
+
+                options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.Aggression.Amount", FieldDefinitionTypes.Integer));
+                options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.Heroism.Amount", FieldDefinitionTypes.Integer));
+                options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.Cunning.Amount", FieldDefinitionTypes.Integer));
+                options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.Villainy.Amount", FieldDefinitionTypes.Integer));
+                options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.Vigilance.Amount", FieldDefinitionTypes.Integer));
+                options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.Command.Amount", FieldDefinitionTypes.Integer));
             }
         }
 

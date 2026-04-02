@@ -2,7 +2,7 @@
 import type { IApiContentModel } from "~/api/umbraco";
 import SetService from "~/services/SetService";
 import CardOverview from "../overviews/CardOverview.vue";
-import type { OverviewFilterModel } from "../overviews/OverviewFilterModel";
+import { OverviewFilterType, type OverviewFilterModel } from "../overviews/OverviewFilterModel";
 import SiteService from "~/services/SiteService";
 
 const props = defineProps<{
@@ -15,7 +15,7 @@ const filters: OverviewFilterModel[] = settings.filters?.map<OverviewFilterModel
   return {
     Alias: filter.alias,
     DisplayName: filter.displayName,
-    IsInline: filter.isInline ?? false,
+    Type: filter.isInline ? OverviewFilterType.INLINE : OverviewFilterType.DROPDOWN,
     AutoFillValues: filter.autoFillValues ?? false,
     Items: filter.options?.map((item) => {
       return {

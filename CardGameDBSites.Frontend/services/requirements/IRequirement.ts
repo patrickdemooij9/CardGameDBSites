@@ -5,5 +5,5 @@ export interface IRequirement {
     RequirementType: RequirementType;
 
     IsValid(cards: CardDetailApiModel[], config: Record<string, any>): boolean;
-    ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel | undefined;
+    ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel[] | undefined;
 }

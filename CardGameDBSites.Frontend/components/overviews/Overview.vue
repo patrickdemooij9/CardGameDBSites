@@ -5,7 +5,10 @@ import {
   PhMagnifyingGlass,
   PhX,
 } from "@phosphor-icons/vue";
-import type { OverviewFilterModel } from "./OverviewFilterModel";
+import {
+  OverviewFilterType,
+  type OverviewFilterModel,
+} from "./OverviewFilterModel";
 import Dropdown from "../shared/Dropdown.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 
@@ -107,9 +110,15 @@ function reloadData() {
   }
 
   isLoading.value = true;
+
+  const filters = new Map<OverviewFilterModel, string[]>();
+  selectedFilters.value &&
+    Object.entries(selectedFilters.value).forEach(([key, values]) => {
+      filters.set(props.filters.find((f) => f.Alias === key)!, values);
+    });
   emit("reload", {
     Query: search.value,
-    SelectedFilters: selectedFilters.value,
+    SelectedFilters: filters,
     PageNumber: page.value,
     LoadedCallback: () => {
       isLoading.value = false;
@@ -117,18 +126,36 @@ function reloadData() {
   });
 }
 
-props.filters.forEach((filter) => {
-  if (route.query[filter.Alias]) {
-    const values = route.query[filter.Alias];
-    if (Array.isArray(values)) {
-      selectedFilters.value[filter.Alias] = values.map((v) => v!.toString());
-    } else {
-      selectedFilters.value[filter.Alias] = [values!.toString()];
+watch(
+  () => props.filters,
+  (newVal, oldVal) => {
+    // Compare JSON stringified values for a shallow equality check
+    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+      init();
     }
-  }
-})
+  },
+  { deep: true },
+);
 
-reloadData();
+function init() {
+  selectedFilters.value = {};
+  props.filters.forEach((filter) => {
+    if (route.query[filter.Alias]) {
+      const values = route.query[filter.Alias];
+      if (Array.isArray(values)) {
+        selectedFilters.value[filter.Alias] = values.map((v) => v!.toString());
+      } else {
+        selectedFilters.value[filter.Alias] = [values!.toString()];
+      }
+    } else if (filter.DefaultEnabled) {
+      selectedFilters.value[filter.Alias] = ["true"];
+    }
+  });
+
+  reloadData();
+}
+
+init();
 </script>
 
 <template>
@@ -166,7 +193,11 @@ reloadData();
       </div>
       <div v-if="filtersOpen" class="py-4 border-b-2 border-gray-300">
         <div class="flex gap-4">
-          <div v-for="filter in filters.filter((filter) => filter.IsInline)">
+          <div
+            v-for="filter in filters.filter(
+              (filter) => filter.Type === OverviewFilterType.INLINE,
+            )"
+          >
             <p class="font-bold">{{ filter.DisplayName }}</p>
             <div
               class="flex flex-wrap items-center md:gap-2 bg-gray-300 rounded"
@@ -202,7 +233,9 @@ reloadData();
                         </div>
                     </div>-->
           <Dropdown
-            v-for="filter in filters.filter((filter) => !filter.IsInline)"
+            v-for="filter in filters.filter(
+              (filter) => filter.Type === OverviewFilterType.DROPDOWN,
+            )"
             @open="() => loadLazyDropdownItemsIfNeeded(filter)"
           >
             <template #button>
@@ -234,6 +267,22 @@ reloadData();
               </label>
             </template>
           </Dropdown>
+          <button
+            v-for="filter in filters.filter(
+              (filter) => filter.Type === OverviewFilterType.CHECKBOX,
+            )"
+            :key="filter.Alias"
+            type="button"
+            class="px-3 py-1 rounded border text-sm"
+            :class="
+              isSelectedFilter(filter.Alias, 'true')
+                ? 'bg-main-color text-white border-main-color'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
+            "
+            @click="() => selectFilter(filter.Alias, 'true')"
+          >
+            {{ filter.DisplayName }}
+          </button>
         </div>
       </div>
 

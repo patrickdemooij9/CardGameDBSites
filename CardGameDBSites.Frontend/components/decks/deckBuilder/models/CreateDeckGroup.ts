@@ -61,6 +61,7 @@ export default class CreateDeckGroup {
     const invalidRequirements = GetInvalidRequirements(
       cards,
       this.requirements,
+      false
     );
     invalidRequirements.forEach((requirement) => {
       errors.push({

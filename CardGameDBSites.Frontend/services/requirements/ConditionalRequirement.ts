@@ -66,7 +66,7 @@ export default class ConditionalRequirement implements IRequirement {
   ToFilters(
     cards: CardDetailApiModel[],
     config: Record<string, any>,
-  ): CardsQueryFilterClauseApiModel | undefined {
+  ): CardsQueryFilterClauseApiModel[] | undefined {
     const conditions = config["condition"] as IConditionalRequirementConfig[];
     let conditionMet = true;
     for (const condition of conditions) {
@@ -101,15 +101,12 @@ export default class ConditionalRequirement implements IRequirement {
         }
         const requirementFilterClause = requirementHandler.ToFilters(cards, requirement.config);
         if (requirementFilterClause) {
-            filters.push(requirementFilterClause);
+            filters.push(...requirementFilterClause);
         }
     }
     if (filters.length === 0) {
         return undefined;
     }
-    return {
-        clauseType: CardSearchFilterClauseType.AND,
-        filters: filters.flatMap((filter) => filter.filters ?? []),
-    };
+    return filters;
   }
 }

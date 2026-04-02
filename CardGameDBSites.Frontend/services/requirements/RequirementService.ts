@@ -34,15 +34,22 @@ export function GetValidCards(cards: CardDetailApiModel[], requirements: Require
     return result;
 }
 
-export function IsValid(cards: CardDetailApiModel[], requirements: RequirementApiModel[])
+export function IsValid(cards: CardDetailApiModel[], requirements: RequirementApiModel[], ignorePassive: boolean)
 {
-    return GetInvalidRequirements(cards, requirements).length === 0;
+    return GetInvalidRequirements(cards, requirements, ignorePassive).length === 0;
 }
 
-export function GetInvalidRequirements(cards: CardDetailApiModel[], requirements: RequirementApiModel[])
+export function GetInvalidRequirements(cards: CardDetailApiModel[], requirements: RequirementApiModel[], ignorePassive: boolean)
 {
     const invalidRequirements: RequirementApiModel[] = [];
     requirements.forEach((requirement) => {
+        if (requirement.restrictionType === RestrictionType.FILTER) {
+            return;
+        }
+        if (ignorePassive && requirement.restrictionType == RestrictionType.PASSIVE) {
+            return;
+        }
+
         const requirementHandler = requirementHandlers.find((handler) => handler.RequirementType === requirement.alias);
         if (!requirementHandler){
             console.warn(`No handler found for requirement type ${requirement.alias}`);
@@ -72,7 +79,7 @@ export function GetFilters(cards: CardDetailApiModel[], requirements: Requiremen
 
         const requirementFilterClause = requirementHandler.ToFilters(cards, requirement.config!);
         if (requirementFilterClause){
-            filters.push(requirementFilterClause);
+            filters.push(...requirementFilterClause);
         }
     })
     return filters;

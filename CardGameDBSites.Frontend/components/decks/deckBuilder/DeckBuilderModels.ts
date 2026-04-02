@@ -115,12 +115,20 @@ export interface RequiredCardConfig {
     requiredCardId: number;
 }
 
+export enum ResourceMode {
+    ContainsAny = "ContainsAny",
+    Budget = "Budget",
+    Subset = "Subset",
+}
+
 export interface ResourceRequirementConfig {
     mainAbility: string;
     mainAbilityMaxSize: number;
     ability: string;
     mainCardsCondition: { [key: string]: any }[];
     singleResourceMode: boolean;
+    resourceMode?: ResourceMode;
+    totalBudget?: number;
 }
 
 export interface ChildOfRequirementConfig {

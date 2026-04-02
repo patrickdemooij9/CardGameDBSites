@@ -15,7 +15,7 @@ export class CreateDeckModel {
     const slots: CreateDeckSlot[] = [];
     this.groups.forEach((group) => {
       group.slots.forEach((slot) => {
-        if (IsValid([card], slot.requirements)){
+        if (IsValid([card], slot.requirements, true)){
           slots.push(slot);
         }
       });

@@ -5,4 +5,5 @@
 export enum RestrictionType {
     HARD = 'Hard',
     PASSIVE = 'Passive',
+    FILTER = 'Filter',
 }

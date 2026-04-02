@@ -3,6 +3,7 @@
     public enum RestrictionType
     {
         Hard,
-        Passive
+        Passive,
+        Filter
     }
 }

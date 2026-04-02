@@ -108,7 +108,7 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(string[]), 200)]
         public IActionResult GetAllValues(string abilityName)
         {
-            return Ok(_cardService.GetCardValues(abilityName));
+            return Ok(_cardService.GetCardValues(abilityName).Order());
         }
 
         [HttpGet("variantTypes")]

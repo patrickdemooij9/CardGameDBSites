@@ -23,7 +23,7 @@ namespace SkytearHorde.Tests.RequirementTests
             var allCards = new[] { mainCard, otherCard };
 
             var mainCondition = CreateCardCondition("Provides", "Energy");
-            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, false);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Subset);
 
             var result = requirement.IsValid(allCards);
 
@@ -44,7 +44,7 @@ namespace SkytearHorde.Tests.RequirementTests
             var allCards = new[] { mainCard, otherCard };
 
             var mainCondition = CreateCardCondition("Provides", "Energy");
-            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, false);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Subset);
 
             var result = requirement.IsValid(allCards);
 
@@ -60,7 +60,7 @@ namespace SkytearHorde.Tests.RequirementTests
             });
 
             var mainCondition = CreateCardCondition("Provides", "Energy");
-            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, false);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Subset);
 
             var result = requirement.IsValid(new[] { card });
 
@@ -78,7 +78,7 @@ namespace SkytearHorde.Tests.RequirementTests
             var allCards = new[] { mainCard, otherCard };
 
             var mainCondition = CreateCardCondition("Provides", "Energy");
-            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, false);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Subset);
 
             var result = requirement.IsValid(allCards);
 
@@ -86,7 +86,7 @@ namespace SkytearHorde.Tests.RequirementTests
         }
 
         [Test]
-        public void IsValid_SingleResourceMode_InsufficientQuantity_ReturnsFalse()
+        public void IsValid_SubsetMode_InsufficientQuantity_ReturnsFalse()
         {
             var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
             {
@@ -99,7 +99,7 @@ namespace SkytearHorde.Tests.RequirementTests
             var allCards = new[] { mainCard, otherCard };
 
             var mainCondition = CreateCardCondition("Provides", "Energy");
-            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, true);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Subset);
 
             var result = requirement.IsValid(allCards);
 
@@ -107,7 +107,7 @@ namespace SkytearHorde.Tests.RequirementTests
         }
 
         [Test]
-        public void IsValid_SingleResourceMode_SufficientQuantity_ReturnsTrue()
+        public void IsValid_SubsetMode_SufficientQuantity_ReturnsTrue()
         {
             var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
             {
@@ -120,7 +120,7 @@ namespace SkytearHorde.Tests.RequirementTests
             var allCards = new[] { mainCard, otherCard };
 
             var mainCondition = CreateCardCondition("Provides", "Energy");
-            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, true);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Subset);
 
             var result = requirement.IsValid(allCards);
 
@@ -145,7 +145,133 @@ namespace SkytearHorde.Tests.RequirementTests
             var allCards = new[] { main1, main2, other };
 
             var mainCondition = CreateCardCondition("Provides", null);
-            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, false);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Subset);
+
+            var result = requirement.IsValid(allCards);
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsValid_ContainsAny_HasOverlap_ReturnsTrue()
+        {
+            var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
+            {
+                { "Provides", new[] { "Energy", "Mana" } }
+            });
+            var otherCard = CardTestHelper.CreateCard(2, new Dictionary<string, string[]>
+            {
+                { "Requires", new[] { "Mana" } }
+            });
+            var allCards = new[] { mainCard, otherCard };
+
+            var mainCondition = CreateCardCondition("Provides", null);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.ContainsAny);
+
+            var result = requirement.IsValid(allCards);
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsValid_ContainsAny_NoOverlap_ReturnsFalse()
+        {
+            var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
+            {
+                { "Provides", new[] { "Energy" } }
+            });
+            var otherCard = CardTestHelper.CreateCard(2, new Dictionary<string, string[]>
+            {
+                { "Requires", new[] { "Mana" } }
+            });
+            var allCards = new[] { mainCard, otherCard };
+
+            var mainCondition = CreateCardCondition("Provides", null);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.ContainsAny);
+
+            var result = requirement.IsValid(allCards);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void IsValid_ContainsAny_MultipleResources_HasOneOverlap_ReturnsTrue()
+        {
+            var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
+            {
+                { "Provides", new[] { "Energy" } }
+            });
+            var otherCard = CardTestHelper.CreateCard(2, new Dictionary<string, string[]>
+            {
+                { "Requires", new[] { "Energy", "Mana" } }
+            });
+            var allCards = new[] { mainCard, otherCard };
+
+            var mainCondition = CreateCardCondition("Provides", null);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.ContainsAny);
+
+            var result = requirement.IsValid(allCards);
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsValid_BudgetMode_WithinBudget_ReturnsTrue()
+        {
+            var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
+            {
+                { "Provides", new[] { "Energy" } }
+            });
+            var otherCard = CardTestHelper.CreateCard(2, new Dictionary<string, string[]>
+            {
+                { "Requires", new[] { "Mana" } }
+            });
+            var allCards = new[] { mainCard, otherCard };
+
+            var mainCondition = CreateCardCondition("Provides", null);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Budget, totalBudget: 6);
+
+            var result = requirement.IsValid(allCards);
+
+            Assert.That(result, Is.True);
+        }
+
+        [Test]
+        public void IsValid_BudgetMode_ExceedsBudget_ReturnsFalse()
+        {
+            var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
+            {
+                { "Provides", new[] { "Energy" } }
+            });
+            var otherCard = CardTestHelper.CreateCard(2, new Dictionary<string, string[]>
+            {
+                { "Requires", new[] { "Mana", "Fire", "Water", "Earth", "Wind", "Dark" } }
+            });
+            var allCards = new[] { mainCard, otherCard };
+
+            var mainCondition = CreateCardCondition("Provides", null);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Budget, totalBudget: 6);
+
+            var result = requirement.IsValid(allCards);
+
+            Assert.That(result, Is.False);
+        }
+
+        [Test]
+        public void IsValid_BudgetMode_ExistingResourceDoesNotCount_ReturnsTrue()
+        {
+            var mainCard = CardTestHelper.CreateCard(1, new Dictionary<string, string[]>
+            {
+                { "Provides", new[] { "Energy", "Mana" } }
+            });
+            var otherCard = CardTestHelper.CreateCard(2, new Dictionary<string, string[]>
+            {
+                { "Requires", new[] { "Energy", "Mana" } }
+            });
+            var allCards = new[] { mainCard, otherCard };
+
+            var mainCondition = CreateCardCondition("Provides", null);
+            var requirement = new ResourceRequirement("Provides", "Requires", new[] { mainCondition }, ResourceMode.Budget, totalBudget: 6);
 
             var result = requirement.IsValid(allCards);
 

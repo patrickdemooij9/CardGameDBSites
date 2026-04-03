@@ -3,6 +3,7 @@ import type CreateDeckGroup from "./CreateDeckGroup";
 import type CreateDeckSlot from "./CreateDeckSlot";
 import { IsValid } from "~/services/requirements/RequirementService";
 import CreateDeckValidation from "./CreateDeckValidation";
+import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
 
 export class CreateDeckModel {
   id?: number;
@@ -37,6 +38,30 @@ export class CreateDeckModel {
       maxAmount += group.getMaxAmount();
     });
     return maxAmount;
+  }
+
+  isLegalCard(card: CardDetailApiModel): boolean {
+    if (!this.typeId) return true;
+    const nonLegalDeckTypes = card.nonLegalDeckTypes ?? [];
+    return !nonLegalDeckTypes.includes(this.typeId);
+  }
+
+  getIllegalCards(): CardDetailApiModel[] {
+    const allCards: CardDetailApiModel[] = [];
+    this.groups.forEach((group) => {
+      group.slots.forEach((slot) => {
+        slot.cardGroups.forEach((cardGroup) => {
+          cardGroup.cards.forEach((cardWrapper) => {
+            allCards.push(cardWrapper.card);
+          });
+        });
+      });
+    });
+    return allCards.filter(card => !this.isLegalCard(card));
+  }
+
+  isLegalDeck(): boolean {
+    return this.getIllegalCards().length === 0;
   }
 
   validate(): CreateDeckValidation {

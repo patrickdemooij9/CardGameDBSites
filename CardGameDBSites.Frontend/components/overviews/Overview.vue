@@ -17,6 +17,7 @@ const props = defineProps<{
   hideFilters: boolean;
   filters: OverviewFilterModel[];
   whiteBackground: boolean;
+  enableQueryStringSync: boolean;
 }>();
 
 defineExpose({
@@ -93,7 +94,7 @@ function handleSubmit(event: Event) {
 }
 
 function reloadData() {
-  if (import.meta.client) {
+  if (import.meta.client && props.enableQueryStringSync) {
     const url = new URL(window.location.href.split("?")[0]);
     if (page.value !== 1) {
       url.searchParams.append("page", page.value.toString());

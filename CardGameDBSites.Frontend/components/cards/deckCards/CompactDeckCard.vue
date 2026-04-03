@@ -16,6 +16,7 @@ const props = defineProps<{
   settings: DeckTypeSettingsApiModel;
   member?: MemberApiModel;
   cards?: Record<number, CardDetailApiModel>;
+  progress?: number
 }>();
 
 const deckCards = computed(
@@ -63,19 +64,10 @@ const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
           />
         </div>
         <div class="text-right">
-          <!--
-          @if (memberInfo?.IsLoggedIn is true) {
-          <div>
+          <div v-if="progress">
             Collection:
-            @_collectionService.CalculateDeckCollection(Model).ToString("0.00")%
+            {{ progress.toFixed(2) }}%
           </div>
-          } @if (_settingsService.GetSiteSettings().AllowPricing) {
-          <div class="flex justify-end mt-1">
-            <p class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white">
-              $@_cardPriceService.GetPriceByDeck(Model).ToString("0.00")
-            </p>
-          </div>
-          }-->
           <div class="flex justify-end mt-1" v-if="deck.price">
             <p class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white">
               ${{ deck.price.marketPrice.toFixed(2) }}

@@ -13,6 +13,7 @@ const props = defineProps<{
   filters: OverviewFilterModel[];
   internalFilters?: CardsQueryFilterClauseApiModel[];
   whiteBackground: boolean;
+  enableQueryStringSync: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -89,6 +90,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :hide-filters="false"
     :white-background="whiteBackground"
     :filters="filters"
+    :enable-query-string-sync="enableQueryStringSync"
     @reload="loadData"
     @loadLazyFilter="loadLazyFilter"
     ref="overview"

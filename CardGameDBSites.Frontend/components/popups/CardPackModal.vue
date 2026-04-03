@@ -84,7 +84,7 @@ import PopupBase from "./PopupBase.vue";
 import { PopupSize } from "./PopupTypes";
 import type { SetViewModel, CardVariantTypeApiModel } from "~/api/default";
 import type { PackPostApiModel, PackVerifyCardApiModel } from "~/models/PackApiModel";
-import { useCollectionStore } from "~/stores/CollectionStore";
+import { useCollection } from "~/composables/useCollection";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 
@@ -93,7 +93,7 @@ const emit = defineEmits<{
   (e: "added"): void;
 }>();
 
-const collectionStore = useCollectionStore();
+const collectionStore = useCollection();
 
 const props = defineProps<{
   sets: SetViewModel[];

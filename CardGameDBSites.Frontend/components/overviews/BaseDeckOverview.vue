@@ -14,7 +14,6 @@ const props = defineProps<{
 const deckService = new DeckService();
 
 const pagedDecks = ref<PagedResultDeckApiModel>();
-const gridClass = ref("lg:grid-cols-" + props.decksPerRow);
 const overview = ref<InstanceType<typeof Overview>>();
 
 async function loadData(value: OverviewRefreshModel) {
@@ -37,6 +36,7 @@ async function loadData(value: OverviewRefreshModel) {
     :hide-search="true"
     :hide-filters="true"
     :white-background="false"
+    :enable-query-string-sync="true"
     :filters="[]"
     @reload="loadData"
     ref="overview"

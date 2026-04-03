@@ -1,75 +1,26 @@
 import type { CollectionCardApiModel } from "~/api/default";
-import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
-import type { PackPostApiModel, PackVerifySuccessApiModel, PackVerifyErrorApiModel } from "~/models/PackApiModel";
 
-export const useCollectionStore = defineStore("collectionStore", {
+export const useCollectionStore = defineStore("collection", {
   state: () => ({
-    cards: {} as { [key: number]: CollectionCardApiModel[] },
+    cards: {} as Record<number, CollectionCardApiModel[]>,
   }),
   getters: {
     getCards: (state) => {
-        return (cardId: number) => state.cards[cardId] ?? [];
+      return (cardId: number) => state.cards[cardId] ?? [];
     },
     amount: (state) => {
-        return (cardId: number) => state.cards[cardId]?.reduce((sum, card) => sum + (card.amount || 0), 0) || 0;
+      return (cardId: number) => state.cards[cardId]?.reduce((sum, card) => sum + (card.amount || 0), 0) || 0;
     }
   },
   actions: {
-    async loadCards(cardIds: number[]) {
-      const cards = await DoServerFetch<CollectionCardApiModel[]>(
-        "/api/collection/cards",
-        true,
-        {
-          method: "POST",
-          body: cardIds
-        }
-      );
-
-      const cardsGrouped = Object.groupBy(cards, (card) => card.cardId!);
-      Object.entries(cardsGrouped).forEach((entry) => {
-        this.cards[Number(entry[0])] = entry[1]!;
-      });
-      return cardsGrouped;
-    },
-
-    async save(cardId: number, values: {[key: number]: number}){
-      const cards = await DoServerFetch<CollectionCardApiModel[]>(
-        "/api/collection/addCards",
-        true,
-        {
-          method: "POST",
-          body: values,
-          query: {
-            cardId
-          }
-        }
-      )
+    setCards(cards: CollectionCardApiModel[]) {
       const cardsGrouped = Object.groupBy(cards, (card) => card.cardId!);
       Object.entries(cardsGrouped).forEach((entry) => {
         this.cards[Number(entry[0])] = entry[1]!;
       });
     },
-
-    async verifyPack(postModel: PackPostApiModel): Promise<PackVerifySuccessApiModel | PackVerifyErrorApiModel> {
-      return await DoServerFetch<PackVerifySuccessApiModel | PackVerifyErrorApiModel>(
-        "/api/collection/verifyPack",
-        true,
-        {
-          method: "POST",
-          body: postModel
-        }
-      );
-    },
-
-    async addPack(postModel: PackPostApiModel): Promise<void> {
-      await DoServerFetch(
-        "/api/collection/addPack",
-        true,
-        {
-          method: "POST",
-          body: postModel
-        }
-      );
+    clearCards() {
+      this.cards = {};
     }
   },
 });

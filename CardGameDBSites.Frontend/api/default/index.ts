@@ -40,6 +40,7 @@ export type { DeckCardApiModel } from './models/DeckCardApiModel';
 export type { DeckCardGroupApiModel } from './models/DeckCardGroupApiModel';
 export type { DeckCardImageRuleApiModel } from './models/DeckCardImageRuleApiModel';
 export type { DeckPriceApiModel } from './models/DeckPriceApiModel';
+export type { DeckProgressApiModel } from './models/DeckProgressApiModel';
 export type { DeckQueryPostModel } from './models/DeckQueryPostModel';
 export { DeckStatus } from './models/DeckStatus';
 export type { DeckTypeSettingsApiModel } from './models/DeckTypeSettingsApiModel';

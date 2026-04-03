@@ -162,6 +162,7 @@ async function toggleMarkdownPreview() {
         :filters="getUserFilters()"
         :internal-filters="getInternalFilters()"
         :white-background="false"
+        :enable-query-string-sync="false"
         v-slot="{cards}"
       >
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-5">

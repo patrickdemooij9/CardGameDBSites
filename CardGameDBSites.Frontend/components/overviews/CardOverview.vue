@@ -15,12 +15,13 @@ import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import CollectionCardVariantPopup from "../popups/CollectionCardVariantPopup.vue";
 import { useCards } from "~/composables/useCards";
+import { useCollection } from "~/composables/useCollection";
 import { GetCardValue } from "~/helpers/CardHelper";
 import SetService from "~/services/SetService";
 
 const route = useRoute();
 const accountService = useAccountStore();
-const collectionService = useCollectionStore();
+const collectionService = useCollection();
 const cards = useCards();
 const siteSettings = await useSite().getSettings();
 const sets = ref<SetViewModel[]>([]);
@@ -128,6 +129,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :filters="filters"
     :internal-filters="internalFilters"
     :white-background="true"
+    :enable-query-string-sync="true"
     v-slot="{ cards }"
     @reloaded="loadCollectionCards"
   >
@@ -192,7 +194,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                 </span>
               </p>
             <span class="ml-2"
-              >{{ collectionService.amount(card.baseId!) }}
+              >{{ collectionService.getAmount(card.baseId!) }}
               <span class="md:inline hidden">copies</span></span
             >
             <Button

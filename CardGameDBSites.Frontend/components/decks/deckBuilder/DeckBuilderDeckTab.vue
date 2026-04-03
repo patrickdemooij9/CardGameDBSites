@@ -2,7 +2,7 @@
 import type { CardDetailApiModel } from "~/api/default";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
-import { PhCaretRight, PhGear, PhMinus, PhPlus, PhTrash } from "@phosphor-icons/vue";
+import { PhCaretRight, PhGear, PhMinus, PhPlus, PhTrash, PhWarning } from "@phosphor-icons/vue";
 import DeckBuilderTab from "./DeckBuilderTab";
 import Button from "~/components/shared/Button.vue";
 import CreateDeckGroup from "./models/CreateDeckGroup";
@@ -61,6 +61,10 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
     )?.[1] as T[]) ?? []
   );
 }
+
+function isCardIllegal(card: CardDetailApiModel): boolean {
+  return !props.deck.isLegalCard(card);
+}
 </script>
 
 <template>
@@ -74,7 +78,11 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
         id="squad-panel"
       >
         <div class="flex items-center justify-between">
-          <h1 class="text-base mb-2">Create deck</h1>
+          <div class="flex gap-2 items-center mb-2">
+            <h1 class="text-base">Create deck</h1>
+            <PhCheckCircle class="text-green-600" title="Deck is legal" v-if="deck.isLegalDeck()"/>
+            <PhWarning class="text-yellow-600" title="Deck is NOT legal" v-else/>
+          </div>
           <VDropdown>
             <button class="border px-2 py-1 rounded hover:bg-gray-200">
               <PhGear/>
@@ -111,7 +119,10 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
         <div class="squad-column mt-4" v-for="group in deck.groups">
           <div class="flex items-center justify-between">
             <h3 class="text-base">{{ group.name }}</h3>
-            <p>{{ group.getAmount() }} / {{ group.getMaxAmount() }}</p>
+            <div class="flex items-center gap-2">
+              <span v-if="!deck.isLegalDeck()" class="text-red-600 text-xs">Illegal cards found</span>
+              <p>{{ group.getAmount() }} / {{ group.getMaxAmount() }}</p>
+            </div>
           </div>
           <hr />
           <div class="mt-2" v-for="slot in group.slots" :key="slot.id">
@@ -126,7 +137,7 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
                 >
                   <div
                     class="flex items-center border rounded mb-2 cursor-pointer tooltip-starter"
-                    :class="getDisplayClassesForItem(slot)"
+                    :class="[...getDisplayClassesForItem(slot), isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300']"
                     v-on:click.prevent="emit('selectCard', item.card)"
                   >
                     <img

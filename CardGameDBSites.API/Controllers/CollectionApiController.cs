@@ -1,5 +1,4 @@
 using CardGameDBSites.API.Models.Collection;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +8,6 @@ using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
-using YamlDotNet.Core.Tokens;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -23,16 +21,19 @@ public class CollectionApiController : Controller
         private readonly CardPriceService _cardPriceService;
         private readonly CardService _cardService;
         private readonly SettingsService _settingsService;
+        private readonly DeckService _deckService;
 
         public CollectionApiController(CollectionService collectionService,
             CardPriceService cardPriceService,
             CardService cardService,
-            SettingsService settingsService)
+            SettingsService settingsService,
+            DeckService deckService)
         {
             _collectionService = collectionService;
             _cardPriceService = cardPriceService;
             _cardService = cardService;
             _settingsService = settingsService;
+            _deckService = deckService;
         }
 
         [HttpGet("summary")]
@@ -253,6 +254,23 @@ public class CollectionApiController : Controller
             _collectionService.AddPack(postModel.SetId, items);
 
             return Ok();
+        }
+
+        [HttpPost("decksProgress")]
+        [ProducesResponseType(typeof(DeckProgressApiModel[]), 200)]
+        public IActionResult GetProgressForDecks(int[] deckIds)
+        {
+            var decks = _deckService.Get(deckIds, DeckStatus.Published);
+            var result = new List<DeckProgressApiModel>();
+            foreach (var deck in decks)
+            {
+                result.Add(new DeckProgressApiModel
+                {
+                    DeckId = deck.Id,
+                    Progress = _collectionService.CalculateDeckCollection(deck)
+                });
+            }
+            return Ok(result.ToArray());
         }
     }
 }

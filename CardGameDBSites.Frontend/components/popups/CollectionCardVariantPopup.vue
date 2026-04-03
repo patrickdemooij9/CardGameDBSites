@@ -3,6 +3,7 @@ import type { CardDetailApiModel } from "~/api/default";
 import PopupBase from "~/components/popups/PopupBase.vue";
 import { PopupSize } from "./PopupTypes";
 import { useCards } from "~/composables/useCards";
+import { useCollection } from "~/composables/useCollection";
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -13,12 +14,12 @@ const props = defineProps<{
 }>();
 
 const cards = useCards();
-const collectionStore = useCollectionStore();
-await collectionStore.loadCards([props.card.baseId!]);
+const collectionService = useCollection();
+await collectionService.loadCards([props.card.baseId!]);
 var variantTypes = (await cards.loadVariantTypes());
 
 const variantAmounts = ref<{ [key: number]: number }>({});
-collectionStore.getCards(props.card.baseId!).forEach((card) => {
+collectionService.getCards(props.card.baseId!).forEach((card) => {
   variantAmounts.value[card.variantId!] = card.amount!;
 });
 
@@ -31,7 +32,7 @@ function updateVariantAmount(variantId: number, amount: number) {
 }
 
 async function saveVariants() {
-  await collectionStore.save(props.card.baseId!, variantAmounts.value);
+  await collectionService.saveCards(props.card.baseId!, variantAmounts.value);
   emit("close");
 }
 </script>

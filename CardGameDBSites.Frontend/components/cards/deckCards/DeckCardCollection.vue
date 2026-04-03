@@ -14,11 +14,11 @@ const props = defineProps<{
 const { loadMembersByIds } = useMembers();
 const { loadCardsByIds } = useCards();
 const { getDeckTypeSettings } = useSite();
-const deckService = new DeckService();
 
 const members = ref<Record<number, MemberApiModel>>({});
 const cards = ref<Record<number, CardDetailApiModel>>({});
 const deckSettings = ref<Record<number, DeckTypeSettingsApiModel>>({});
+const deckProgress = ref<Record<number, number>>({});
 
 const uniqueTypeIds = [...new Set(props.decks.map(d => d.typeId).filter(Boolean) as number[])];
 
@@ -50,6 +50,20 @@ if (props.decks.length > 0) {
   }
 }
 
+onMounted(() => {
+  if (useAccountStore().isLoggedIn) {
+    const collectionService = useCollection();
+    const deckIds = props.decks.map(d => d.id!);
+    collectionService.loadDecksProgress(deckIds).then(progress => {
+      progress.forEach(p => {
+        if (p.deckId) {
+          deckProgress.value[p.deckId] = p.progress ?? 0;
+        }
+      });
+    });
+  }
+});
+
 const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);
 </script>
 
@@ -61,6 +75,7 @@ const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);
       :member="members[deck.createdBy ?? 0]" 
       :cards="cards"
       :settings="deckSettings[deck.typeId ?? 0]"
+      :progress="deckProgress[deck.id!]"
     ></DeckCard>
   </div>
 </template>

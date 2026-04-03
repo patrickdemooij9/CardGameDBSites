@@ -14,6 +14,7 @@ import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
 import type { DeckApiModel } from '../models/DeckApiModel';
 import type { DeckBuilderApiModel } from '../models/DeckBuilderApiModel';
+import type { DeckProgressApiModel } from '../models/DeckProgressApiModel';
 import type { DeckQueryPostModel } from '../models/DeckQueryPostModel';
 import type { DeckTypeSettingsApiModel } from '../models/DeckTypeSettingsApiModel';
 import type { ForgotPasswordPostModel } from '../models/ForgotPasswordPostModel';
@@ -269,6 +270,22 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/collection/cards',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns DeckProgressApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCollectionDecksProgress({
+        requestBody,
+    }: {
+        requestBody?: Array<number>,
+    }): CancelablePromise<Array<DeckProgressApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/collection/decksProgress',
             body: requestBody,
             mediaType: 'application/json',
         });

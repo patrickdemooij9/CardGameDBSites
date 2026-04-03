@@ -17,6 +17,7 @@ export type CardDetailApiModel = {
     imageUrl?: ImageCropsApiModel;
     backImageUrl?: ImageCropsApiModel;
     attributes?: Record<string, Array<string>>;
+    nonLegalDeckTypes?: Array<number>;
     price?: CardPriceApiModel;
     variants?: Array<CardVariantReferenceApiModel>;
 };

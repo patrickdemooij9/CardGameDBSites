@@ -12,6 +12,7 @@ import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 import { useCards } from "~/composables/useCards";
+import { useCollection } from "~/composables/useCollection";
 import { useMembers } from "~/composables/useMembers";
 import { useSite } from "~/composables/useSite";
 import { GetCardValue } from "~/helpers/CardHelper";
@@ -34,7 +35,7 @@ if (!deck || deck === null) {
 }
 
 const accountService = useAccountStore();
-const collectionService = useCollectionStore();
+const collectionService = useCollection();
 const deckSettings = await useSite().getDeckTypeSettings(deck.typeId!);
 const comments = ref(await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(

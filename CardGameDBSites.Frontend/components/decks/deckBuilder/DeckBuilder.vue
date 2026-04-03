@@ -8,9 +8,6 @@ import type { CreateDeckModel } from "./models/CreateDeckModel";
 import { useSite } from "~/composables/useSite";
 import DeckService from "~/services/DeckService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
-import { onBeforeRouteLeave } from 'vue-router';
-import type CreateDeckGroup from "./models/CreateDeckGroup";
-import type CreateDeckSlot from "./models/CreateDeckSlot";
 
 const route = useRoute();
 const router = useRouter();

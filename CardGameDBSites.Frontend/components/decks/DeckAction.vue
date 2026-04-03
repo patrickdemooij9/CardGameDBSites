@@ -10,13 +10,16 @@ import PopupBase from "../popups/PopupBase.vue";
 import { PopupSize } from "../popups/PopupTypes";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
+import { useAppToast } from "~/composables/useAppToast";
 
-defineProps<{
+const props = defineProps<{
   deck: DeckApiModel;
   action: DeckActionApiModel;
 }>();
 
 const showModal = ref(false);
+const toast = useAppToast();
+const isLoading = ref(false);
 
 const icons: { [key: string]: Component } = {
   crown: PhCrown,
@@ -24,6 +27,23 @@ const icons: { [key: string]: Component } = {
   image: PhImage,
   "piggy-bank": PhPiggyBank,
 };
+
+async function copyToClipboard(action: DeckActionApiModel) {
+  if (isLoading.value) return;
+  
+  isLoading.value = true;
+  try {
+    const url = `/api/proxy/umbraco/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`;
+    const response = await fetch(url);
+    const text = await response.text();
+    await navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  } catch (error) {
+    toast.error("Failed to copy to clipboard");
+  } finally {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -40,6 +60,16 @@ const icons: { [key: string]: Component } = {
     <button
       class="flex align-center gap-1 no-underline"
       @click="showModal = true"
+    >
+      <component :is="icons[action.icon!]"></component>
+      <p>{{ action.displayName }}</p>
+    </button>
+  </div>
+  <div v-else-if="action.isCopyClipboard">
+    <button
+      class="flex align-center gap-1 no-underline"
+      :disabled="isLoading"
+      @click="copyToClipboard(action)"
     >
       <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
@@ -69,7 +99,21 @@ const icons: { [key: string]: Component } = {
       </h3>
       <div class="mt-2 mb-2">
         <div v-html="subAction.popupDescription"></div>
+        <button
+          v-if="subAction.isCopyClipboard"
+          class="no-underline w-full"
+          @click="copyToClipboard(subAction)"
+        >
+          <Button :button-type="ButtonType.Outline" class="w-full mt-2">
+            <div class="flex gap-2 align-center">
+              <p>
+                {{ subAction.displayName }}
+              </p>
+            </div>
+          </Button>
+        </button>
         <a
+          v-else
           :href="`/api/proxy/umbraco/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"
           class="no-underline"
         >

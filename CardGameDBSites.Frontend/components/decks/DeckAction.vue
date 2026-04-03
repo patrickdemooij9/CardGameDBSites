@@ -41,7 +41,7 @@ const icons: { [key: string]: Component } = {
       class="flex align-center gap-1 no-underline"
       @click="showModal = true"
     >
-      <component :is="icons[action.icon]"></component>
+      <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
     </button>
   </div>
@@ -51,7 +51,7 @@ const icons: { [key: string]: Component } = {
       :href="`/api/proxy/umbraco/api/export/export?deckId=${deck.id}&exportId=${action.id}`"
       target="_blank"
     >
-      <component :is="icons[action.icon]"></component>
+      <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
     </a>
   </div>

@@ -5,7 +5,7 @@
 export type DeckActionApiModel = {
     id: string;
     displayName: string;
-    icon: string;
+    icon?: string;
     type: string;
     popupTitle?: string | null;
     popupDescription?: string | null;

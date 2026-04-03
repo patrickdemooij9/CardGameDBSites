@@ -4,6 +4,8 @@ import SiteService from '~/services/SiteService';
 import CardDetailAbility from '../cards/CardDetailAbility.vue';
 import { GetCrop } from '~/helpers/CropUrlHelper';
 import { useCards } from '~/composables/useCards';
+import type { CommentViewModel } from '~/api/default';
+import CommentSection from '../comments/CommentSection.vue';
 
 const props = defineProps<{
   content: CardDetailContentModel;
@@ -11,6 +13,20 @@ const props = defineProps<{
 
 const card = await useCards().loadCardById(props.content.id!);
 const siteSettings = await new SiteService().getSettings();
+const comments = ref<CommentViewModel[]>(await useComments().loadCommentsByCardId(card.baseId!));
+
+function handleCommentAdded(comment: string) {
+  useComments()
+    .saveCommentByCardId(card.baseId!, comment)
+    .then((loadedComment) => {
+      comments.value.push(loadedComment);
+    });
+}
+
+function handleCommentDeleted(comment: CommentViewModel) {
+  comments.value = comments.value.filter((c) => c.id !== comment.id);
+  useComments().deleteCardComment(comment.id);
+}
 </script>
 
 <template>
@@ -45,12 +61,12 @@ const siteSettings = await new SiteService().getSettings();
                 <a class="btn btn-outline" :href="card.faqLink" target="_blank">Frequently asked questions</a>
               </div>
             </div>-->
-  
-            <!--<div class="bg-white rounded mt-8">
+
+            <div class="bg-white rounded mt-8">
               <div class="p-4">
-                <CommentSection :model="commentModel" />
+                <CommentSection :comments="comments" @add-comment="handleCommentAdded" @delete-comment="handleCommentDeleted" />
               </div>
-            </div>-->
+            </div>
   
             <!--<div v-if="faqItems.length > 0" class="bg-white rounded mt-8">
               <div class="p-4">

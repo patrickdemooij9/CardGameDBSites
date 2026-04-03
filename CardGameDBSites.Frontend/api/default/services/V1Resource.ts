@@ -478,6 +478,22 @@ export class V1Resource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiDecksViewDeck({
+        requestBody,
+    }: {
+        requestBody?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/decks/viewDeck',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * @returns MemberApiModel OK
      * @throws ApiError
      */

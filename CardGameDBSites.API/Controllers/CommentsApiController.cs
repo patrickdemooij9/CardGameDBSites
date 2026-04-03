@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Umbraco.Cms.Core.Security;
+using SkytearHorde.Entities.Models;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -23,16 +24,19 @@ namespace CardGameDBSites.API.Controllers
         private readonly MemberInfoService _memberInfoService;
         private readonly IMemberManager _memberManager;
         private readonly DeckService _deckService;
+        private readonly CardService _cardService;
 
         public CommentsApiController(CommentService commentService,
             MemberInfoService memberInfoService,
             IMemberManager memberManager,
-            DeckService deckService)
+            DeckService deckService,
+            CardService cardService)
         {
             _commentService = commentService;
             _memberInfoService = memberInfoService;
             _memberManager = memberManager;
             _deckService = deckService;
+            _cardService = cardService;
         }
 
         [HttpGet("getByDeck")]
@@ -79,7 +83,63 @@ namespace CardGameDBSites.API.Controllers
             return Ok();
         }
 
+        [HttpGet("getByCard")]
+        [ProducesResponseType(typeof(CommentViewModel[]), 200)]
+        public IActionResult GetByCard(int cardId)
+        {
+            var card = _cardService.Get(cardId);
+            if (card is null) return NotFound();
+
+            var comments = _commentService.GetByCard(cardId);
+            return Ok(comments.Select(MapCardComment).ToArray());
+        }
+
+        [HttpPost("addCardComment")]
+        [Authorize(AuthenticationSchemes = "Jwt")]
+        [ProducesResponseType(typeof(CommentViewModel), 200)]
+        public async Task<IActionResult> AddCardComment(CreateCommentPostModel model)
+        {
+            var card = _cardService.Get(model.CardId);
+            if (card is null) return NotFound();
+
+            var member = await _memberManager.GetCurrentMemberAsync();
+            if (member is null || !int.TryParse(member.Id, out var memberId)) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(model.Comment)) return BadRequest("Comment cannot be empty");
+
+            return Ok(MapCardComment(_commentService.AddNewCardComment(model.CardId, model.Comment, memberId)));
+        }
+
+        [HttpDelete("deleteCardComment")]
+        [Authorize(AuthenticationSchemes = "Jwt")]
+        public async Task<IActionResult> DeleteCardComment(int commentId)
+        {
+            var comment = _commentService.GetCardComment(commentId);
+            if (comment is null) return NotFound();
+
+            var card = _cardService.Get(comment.CardId);
+            if (card is null) return NotFound();
+
+            var member = await _memberManager.GetCurrentMemberAsync();
+            if (member is null || !int.TryParse(member.Id, out var memberId) || comment.CreatedBy != memberId) return Unauthorized();
+
+            _commentService.DeleteCardComment(commentId);
+            return Ok();
+        }
+
         private CommentViewModel Map(DeckComment comment)
+        {
+            return new CommentViewModel
+            {
+                Id = comment.Id,
+                Comment = comment.Comment,
+                CreatedAt = comment.CreatedAt,
+                CreatedById = comment.CreatedBy,
+                CreatedByName = _memberInfoService.Get(comment.CreatedBy)?.DisplayName ?? "Unknown"
+            };
+        }
+
+        private CommentViewModel MapCardComment(CardComment comment)
         {
             return new CommentViewModel
             {

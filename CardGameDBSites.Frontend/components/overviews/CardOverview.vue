@@ -6,6 +6,7 @@ import {
   type CardsQueryFilterClauseApiModel,
   type CardVariantTypeApiModel,
   type PagedResultCardDetailApiModel,
+  type SetViewModel,
 } from "~/api/default";
 import BaseCardOverview from "./BaseCardOverview.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
@@ -13,13 +14,16 @@ import { PhBooks } from "@phosphor-icons/vue";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import CollectionCardVariantPopup from "../popups/CollectionCardVariantPopup.vue";
-import type { Store } from "pinia";
 import { useCards } from "~/composables/useCards";
+import { GetCardValue } from "~/helpers/CardHelper";
+import SetService from "~/services/SetService";
 
 const route = useRoute();
 const accountService = useAccountStore();
 const collectionService = useCollectionStore();
 const cards = useCards();
+const siteSettings = await useSite().getSettings();
+const sets = ref<SetViewModel[]>([]);
 
 const props = defineProps<{
   filters: OverviewFilterModel[];
@@ -64,6 +68,17 @@ onMounted(async () => {
 });
 
 function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
+  sets.value = [];
+
+  //TODO: Rewrite this so we cache the sets instead of loading them every time we load cards, otherwise we end up with a lot of requests when loading multiple pages or changing filters
+  const setIds = new Set(cards.items!.map((card) => card.setId));
+  setIds.forEach((setId) => {
+    new SetService().getById(setId!).then((set) => {
+      if (set) {
+        sets.value.push(set);
+      }
+    });
+  });
   if (!isLoggedIn.value) {
     return;
   }
@@ -84,6 +99,23 @@ function ownsVariant(card: CardDetailApiModel, variantTypeId?: number) {
       .getCards(card.baseId!)
       .find((item) => variant == item.variantId)?.amount ?? 0) > 0
   );
+}
+
+function getCardIdentifier(card: CardDetailApiModel) {
+  let template = siteSettings.cardOverviewIdentifier ?? "";
+  // If the template contains {setCode}, get the set code of the card and replace it in the template
+  if (template.includes("{setCode}")) {
+    const set = sets.value.find((s) => s.id === card.setId);
+    if (set) {
+      template = template.replace("{setCode}", set.code?.toUpperCase() ?? "");
+    }
+  }
+
+  // Use a regex to get everything between { and } and replace it with the corresponding card value
+  return template.replace(/{(.*?)}/g, (_, key) => {
+    const value = GetCardValue(card, key.trim());
+    return value ? value.toString() : "";
+  });
 }
 </script>
 
@@ -111,8 +143,8 @@ function ownsVariant(card: CardDetailApiModel, variantTypeId?: number) {
           <img v-else :src="GetCrop(card.imageUrl, undefined)" />
         </NuxtLink>
         <div class="flex justify-between align-center mt-2">
-          <p v-if="true">
-            <span v-if="false">@card.SetCode.ToUpper() @(card.GetAbilityByType("SWU Id")?.Value)</span>
+          <p>
+            <span v-if="siteSettings.cardOverviewIdentifier">{{ getCardIdentifier(card) }}</span>
           </p>
           <a
             v-if="card.price"

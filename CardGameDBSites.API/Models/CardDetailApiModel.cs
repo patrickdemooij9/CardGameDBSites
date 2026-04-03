@@ -15,6 +15,7 @@ namespace CardGameDBSites.API.Models
         public string DisplayName { get; set; }
         public int SetId { get; set; }
         public string SetName { get; set; }
+        public string SetCode { get; set; }
         public string UrlSegment { get; set; }
         public ImageCropsApiModel? ImageUrl { get; set; }
         public ImageCropsApiModel? BackImageUrl { get; set; }

@@ -65,7 +65,8 @@ namespace CardGameDBSites.API.Controllers
                 {
                     Keyword = it.Keyword,
                     ImageUrl = it.Image ?? "#",
-                })]
+                })],
+                CardOverviewIdentifier = settings.CardOverviewIdentifier
             });
         }
 

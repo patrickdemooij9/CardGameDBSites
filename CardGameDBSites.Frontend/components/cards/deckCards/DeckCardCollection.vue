@@ -2,8 +2,8 @@
 import type { CardDetailApiModel, DeckApiModel, DeckTypeSettingsApiModel, MemberApiModel } from "~/api/default";
 import { useMembers } from "~/composables/useMembers";
 import { useCards } from "~/composables/useCards";
+import { useSite } from "~/composables/useSite";
 import DeckService from "~/services/DeckService";
-import SiteService from "~/services/SiteService";
 import DeckCard from "./DeckCard.vue";
 
 const props = defineProps<{
@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const { loadMembersByIds } = useMembers();
 const { loadCardsByIds } = useCards();
-const siteService = new SiteService();
+const { getDeckTypeSettings } = useSite();
 const deckService = new DeckService();
 
 const members = ref<Record<number, MemberApiModel>>({});
@@ -43,7 +43,7 @@ if (props.decks.length > 0) {
   }
 
   for (const typeId of uniqueTypeIds) {
-    const settings = await siteService.getDeckTypeSettings(typeId);
+    const settings = await getDeckTypeSettings(typeId);
     if (settings) {
       deckSettings.value[typeId] = settings;
     }

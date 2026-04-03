@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { CardDetailContentModel } from '~/api/umbraco';
-import SiteService from '~/services/SiteService';
 import CardDetailAbility from '../cards/CardDetailAbility.vue';
 import { GetCrop } from '~/helpers/CropUrlHelper';
 import { useCards } from '~/composables/useCards';
+import { useSite } from '~/composables/useSite';
 import type { CommentViewModel } from '~/api/default';
 import CommentSection from '../comments/CommentSection.vue';
 
@@ -12,7 +12,7 @@ const props = defineProps<{
 }>();
 
 const card = await useCards().loadCardById(props.content.id!);
-const siteSettings = await new SiteService().getSettings();
+const siteSettings = await useSite().getSettings();
 const comments = ref<CommentViewModel[]>(await useComments().loadCommentsByCardId(card.baseId!));
 
 function handleCommentAdded(comment: string) {

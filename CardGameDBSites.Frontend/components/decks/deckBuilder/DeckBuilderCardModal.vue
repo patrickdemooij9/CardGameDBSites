@@ -3,7 +3,7 @@ import { PhX } from "@phosphor-icons/vue";
 import type { CardDetailApiModel } from "~/api/default";
 import CardDetailAbility from "~/components/cards/CardDetailAbility.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
-import SiteService from "~/services/SiteService";
+import { useSite } from "~/composables/useSite";
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -13,7 +13,7 @@ defineProps<{
   selectedCard: CardDetailApiModel;
 }>();
 
-const siteSettings = await new SiteService().getSettings();
+const siteSettings = await useSite().getSettings();
 </script>
 
 <template>

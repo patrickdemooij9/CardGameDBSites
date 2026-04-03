@@ -350,6 +350,22 @@ export class V1Resource {
      * @returns CommentViewModel OK
      * @throws ApiError
      */
+    public static postApiCommentsAddCardComment({
+        requestBody,
+    }: {
+        requestBody?: CreateCommentPostModel,
+    }): CancelablePromise<CommentViewModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/comments/addCardComment',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns CommentViewModel OK
+     * @throws ApiError
+     */
     public static postApiCommentsAddDeckComment({
         requestBody,
     }: {
@@ -366,6 +382,23 @@ export class V1Resource {
      * @returns any OK
      * @throws ApiError
      */
+    public static deleteApiCommentsDeleteCardComment({
+        commentId,
+    }: {
+        commentId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/comments/deleteCardComment',
+            query: {
+                'commentId': commentId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
     public static deleteApiCommentsDeleteDeckComment({
         commentId,
     }: {
@@ -376,6 +409,23 @@ export class V1Resource {
             url: '/api/comments/deleteDeckComment',
             query: {
                 'commentId': commentId,
+            },
+        });
+    }
+    /**
+     * @returns CommentViewModel OK
+     * @throws ApiError
+     */
+    public static getApiCommentsGetByCard({
+        cardId,
+    }: {
+        cardId?: number,
+    }): CancelablePromise<Array<CommentViewModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/comments/getByCard',
+            query: {
+                'cardId': cardId,
             },
         });
     }
@@ -567,10 +617,16 @@ export class V1Resource {
      * @returns SetViewModel OK
      * @throws ApiError
      */
-    public static getApiSetsGetAll(): CancelablePromise<Array<SetViewModel>> {
+    public static getApiSetsGetAll({
+        requestBody,
+    }: {
+        requestBody?: Array<number>,
+    }): CancelablePromise<Array<SetViewModel>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/sets/getAll',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**

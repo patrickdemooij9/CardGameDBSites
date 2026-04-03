@@ -2,7 +2,6 @@
 import type { DeckDetailContentModel } from "~/api/umbraco";
 import DeckService from "~/services/DeckService";
 import DeckLike from "../decks/DeckLike.vue";
-import SiteService from "~/services/SiteService";
 import type {
   CardDetailApiModel,
   CollectionCardApiModel,
@@ -14,6 +13,7 @@ import DeckAction from "../decks/DeckAction.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 import { useCards } from "~/composables/useCards";
 import { useMembers } from "~/composables/useMembers";
+import { useSite } from "~/composables/useSite";
 import { GetCardValue } from "~/helpers/CardHelper";
 import CommentSection from "../comments/CommentSection.vue";
 
@@ -35,7 +35,7 @@ if (!deck || deck === null) {
 
 const accountService = useAccountStore();
 const collectionService = useCollectionStore();
-const deckSettings = await new SiteService().getDeckTypeSettings(deck.typeId!);
+const deckSettings = await useSite().getDeckTypeSettings(deck.typeId!);
 const comments = ref(await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(
   deck.cards?.sort((a, b) => (a.slotId ?? 0) - (b.slotId ?? 0)).map((card) => card.cardId!) ?? [],

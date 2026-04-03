@@ -4,6 +4,7 @@
 /* eslint-disable */
 export type CreateCommentPostModel = {
     deckId?: number;
+    cardId?: number;
     comment?: string;
 };
 

@@ -52,7 +52,8 @@ namespace SkytearHorde.Business.Services
                     ClientSecret = settings.RedditClientSecret,
                     Subreddit = settings.RedditSubreddit
                 },
-                SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray()
+                SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray(),
+                CardOverviewIdentifier = settings.CardOverviewIdentifier
             };
         }
 

@@ -67,5 +67,20 @@ namespace CardGameDBSites.API.Controllers
                 ExtraInformation = set.ExtraInformation?.ToArray() ?? []
             });
         }
+
+        [HttpGet("getByIds")]
+        [ProducesResponseType(typeof(SetViewModel[]), 200)]
+        public IActionResult GetSetsByIds(int[] ids)
+        {
+            return Ok(_cardService.GetAllSets().Where(it => ids.Contains(it.Id)).Select(it => new SetViewModel
+            {
+                Id = it.Id,
+                DisplayName = it.DisplayName!,
+                UrlSegment = it.UrlSegment()!,
+                ImageUrl = it.DisplayImage?.Url(mode: UrlMode.Absolute),
+                Code = it.SetCode,
+                ExtraInformation = it.ExtraInformation?.ToArray() ?? []
+            }));
+        }
     }
 }

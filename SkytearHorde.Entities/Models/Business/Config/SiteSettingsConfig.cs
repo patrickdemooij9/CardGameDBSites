@@ -20,6 +20,7 @@ namespace SkytearHorde.Entities.Models.Business.Config
         public bool AllowPricing { get; set; }
         public RedditSettingsConfig? RedditSettings { get; set; }
         public SortOption[] SortOptions { get; set; }
+        public string? CardOverviewIdentifier { get; set; }
 
         public SiteSettingsConfig()
         {

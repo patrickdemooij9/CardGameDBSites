@@ -22,5 +22,6 @@ export type SiteSettingsApiModel = {
     footerLinks?: Array<LinkApiModel>;
     cardSections?: Array<CardSectionApiModel>;
     keywordImages?: Array<KeywordImageApiModel>;
+    cardOverviewIdentifier?: string | null;
 };
 

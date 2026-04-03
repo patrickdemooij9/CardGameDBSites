@@ -2,19 +2,25 @@ import type { SetViewModel } from "~/api/default";
 import { DoFetch } from "~/helpers/RequestsHelper";
 
 export default class SetService {
-    async getAllSets() {
-        const result = await DoFetch<SetViewModel[]>(
-          "/api/sets/getAll",
-          {
-            method: "GET",
-          }
-        );
-        return result!;
-    }
+  async getAllSets() {
+    const result = await DoFetch<SetViewModel[]>("/api/sets/getAll", {
+      method: "GET",
+    });
+    return result!;
+  }
 
-    async get(key: string){
-      return await DoFetch<SetViewModel>(`/api/sets/getByKey?key=${encodeURIComponent(key)}`, {
+  async get(key: string) {
+    return await DoFetch<SetViewModel>(
+      `/api/sets/getByKey?key=${encodeURIComponent(key)}`,
+      {
         method: "GET",
-      });
-    }
+      },
+    );
+  }
+
+  async getById(id: number) {
+    return await DoFetch<SetViewModel>(`/api/sets/get?id=${id}`, {
+      method: "GET",
+    });
+  }
 }

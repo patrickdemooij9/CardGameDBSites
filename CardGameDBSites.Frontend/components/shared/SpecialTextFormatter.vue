@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import SiteService from '~/services/SiteService';
+import { useSite } from "~/composables/useSite";
 
 const props = defineProps<{
     content: string
 }>();
 
-const siteSettings = await new SiteService().getSettings();
+const siteSettings = await useSite().getSettings();
 
 const formattedText = computed(() => {
     let text = props.content.replace(/\|(.*?)\|/g, '<b>$1</b>').replace("\\r", "<br/><br/>");

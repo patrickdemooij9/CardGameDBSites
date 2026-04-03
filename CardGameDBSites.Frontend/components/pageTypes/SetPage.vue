@@ -3,14 +3,14 @@ import type { IApiContentModel } from "~/api/umbraco";
 import SetService from "~/services/SetService";
 import CardOverview from "../overviews/CardOverview.vue";
 import { OverviewFilterType, type OverviewFilterModel } from "../overviews/OverviewFilterModel";
-import SiteService from "~/services/SiteService";
+import { useSite } from "~/composables/useSite";
 
 const props = defineProps<{
   content: IApiContentModel;
 }>();
 
 const set = await new SetService().get(props.content.id!);
-const settings = await new SiteService().getSetOverviewSettings();
+const settings = await useSite().getSetOverviewSettings();
 const filters: OverviewFilterModel[] = settings.filters?.map<OverviewFilterModel>((filter) => {
   return {
     Alias: filter.alias,

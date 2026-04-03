@@ -12,6 +12,7 @@ export type CardDetailApiModel = {
     displayName?: string;
     setId?: number;
     setName?: string;
+    setCode?: string;
     urlSegment?: string;
     imageUrl?: ImageCropsApiModel;
     backImageUrl?: ImageCropsApiModel;

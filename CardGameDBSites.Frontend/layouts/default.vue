@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import Navigation from "~/components/navigation/Navigation.vue";
-import SiteService from "~/services/SiteService";
+import { useSite } from "~/composables/useSite";
 
-const siteService = new SiteService();
-const siteSettings = await siteService.getSettings();
-const navigationViewModel = await siteService.getNavigation();
+const { getSettings, getNavigation } = useSite();
+const siteSettings = await getSettings();
+const navigationViewModel = await getNavigation();
 </script>
 
 <template>

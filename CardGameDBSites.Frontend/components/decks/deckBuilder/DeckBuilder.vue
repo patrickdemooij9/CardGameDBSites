@@ -5,7 +5,7 @@ import DeckBuilderCardsTab from "./DeckBuilderCardsTab.vue";
 import DeckBuilderTab from "./DeckBuilderTab";
 import DeckBuilderDeckTab from "./DeckBuilderDeckTab.vue";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
-import SiteService from "~/services/SiteService";
+import { useSite } from "~/composables/useSite";
 import DeckService from "~/services/DeckService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import { onBeforeRouteLeave } from 'vue-router';
@@ -23,7 +23,7 @@ if (route.query["id"]) {
   }
 }
 
-const deckSettings = await new SiteService().getDeckBuilderSettings(1, deckId)!;
+const deckSettings = await useSite().getDeckBuilderSettings(1, deckId)!;
 isLoading.value = false;
 
 const currentTab = ref<DeckBuilderTab>(DeckBuilderTab.Deck);

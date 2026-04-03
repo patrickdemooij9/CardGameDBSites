@@ -18,13 +18,5 @@ export default defineNuxtConfig({
     public: {
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL
     }
-  },
-  devServer: {
-    https: {
-      key: readFileSync(resolve(__dirname, 'AidalonDB+2-key.pem'), 'utf8'),
-      cert: readFileSync(resolve(__dirname, 'AidalonDB+2.pem'), 'utf8')
-    },
-    port: 3000,
-    host: 'aidalon.local'
-  },
+  }
 })

@@ -130,7 +130,7 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
                     v-on:click.prevent="emit('selectCard', item.card)"
                   >
                     <img
-                      :src="GetCrop(item.card.imageUrl, undefined)!"
+                      :src="GetCrop(item.card.imageUrl, 'icon')!"
                       class="rounded-md"
                       :class="
                         slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'

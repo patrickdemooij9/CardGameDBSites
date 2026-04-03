@@ -9,6 +9,7 @@ import { DynamicDeckAmountConfig, FixedDeckAmountConfig } from "~/components/dec
 import { DoFetch } from "~/helpers/RequestsHelper";
 import DeckService from "~/services/DeckService";
 import { useCards } from "~/composables/useCards";
+import type { DisplaySize } from "~/components/decks/deckBuilder/DeckBuilderModels";
 
 export function useSite() {
   const getSettings = async () => {
@@ -88,6 +89,7 @@ export function useSite() {
         deckSlot.minCards = slot.minCards ?? 0;
         deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
         deckSlot.disableRemoval = slot.disableRemoval!;
+        deckSlot.displaySize = slot.displaySize! as DisplaySize;
         deckSlot.numberMode = slot.numberMode!;
         deckSlot.showIfTargetSlotIsFilled = slot.showIfTargetSlotIsFilled!;
         deckSlot.requirements = slot.requirements ?? [];

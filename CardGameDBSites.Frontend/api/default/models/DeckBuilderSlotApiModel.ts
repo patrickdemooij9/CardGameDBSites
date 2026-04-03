@@ -13,6 +13,7 @@ export type DeckBuilderSlotApiModel = {
     cardGroups?: Array<DeckBuilderDeckCardGroupApiModel>;
     minCards?: number;
     maxCardAmount: (DeckBuilderSlotAmountApiModel | DeckBuilderDynamicAmountViewModel | DeckBuilderFixedAmountViewModel);
+    displaySize?: string;
     disableRemoval?: boolean;
     numberMode?: boolean;
     showIfTargetSlotIsFilled?: number | null;

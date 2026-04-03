@@ -185,6 +185,7 @@ namespace CardGameDBSites.API.Controllers
                         CardGroups = GetGroupsForSlot(slot),
                         MinCards = slot.MinCards,
                         MaxCardAmount = GetSlotAmount(slot.MaxCards),
+                        DisplaySize = slot.DisplaySize ?? "Small",
                         DisableRemoval = slot.DisableRemoval,
                         NumberMode = slot.NumberMode,
                         ShowIfTargetSlotIsFilled = slot.ShowIfTargetSlotIsFilled == 0 ? null : slot.ShowIfTargetSlotIsFilled - 1,

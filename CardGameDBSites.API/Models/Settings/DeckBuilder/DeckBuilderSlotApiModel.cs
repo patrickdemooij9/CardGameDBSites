@@ -10,7 +10,7 @@ namespace CardGameDBSites.API.Models.Settings.DeckBuilder
 
         public int MinCards { get; set; }
         public required DeckBuilderSlotAmountApiModel MaxCardAmount {get; set;}
-        //public ... DisplaySize {get; set;}
+        public string DisplaySize { get; set; } = "Small";
         public bool DisableRemoval { get; set; }
         public bool NumberMode { get; set; }
         public int? ShowIfTargetSlotIsFilled { get; set; }

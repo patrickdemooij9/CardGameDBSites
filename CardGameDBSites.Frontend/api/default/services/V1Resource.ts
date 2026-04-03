@@ -617,14 +617,24 @@ export class V1Resource {
      * @returns SetViewModel OK
      * @throws ApiError
      */
-    public static getApiSetsGetAll({
+    public static getApiSetsGetAll(): CancelablePromise<Array<SetViewModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/getAll',
+        });
+    }
+    /**
+     * @returns SetViewModel OK
+     * @throws ApiError
+     */
+    public static getApiSetsGetByIds({
         requestBody,
     }: {
         requestBody?: Array<number>,
     }): CancelablePromise<Array<SetViewModel>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/sets/getAll',
+            url: '/api/sets/getByIds',
             body: requestBody,
             mediaType: 'application/json',
         });

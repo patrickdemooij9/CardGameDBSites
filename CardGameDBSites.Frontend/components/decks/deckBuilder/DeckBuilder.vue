@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CardDetailApiModel } from "~/api/default";
+import type { DeckTypeSettingsApiModel } from "~/api/default";
 import DeckBuilderCardModal from "./DeckBuilderCardModal.vue";
 import DeckBuilderCardsTab from "./DeckBuilderCardsTab.vue";
 import DeckBuilderTab from "./DeckBuilderTab";
@@ -21,6 +22,11 @@ if (route.query["id"]) {
 }
 
 const deckSettings = await useSite().getDeckBuilderSettings(1, deckId)!;
+const deckTypeSettings = ref<DeckTypeSettingsApiModel | undefined>(undefined);
+
+if (deckSettings.typeId) {
+  deckTypeSettings.value = await useSite().getDeckTypeSettings(deckSettings.typeId);
+}
 isLoading.value = false;
 
 const currentTab = ref<DeckBuilderTab>(DeckBuilderTab.Deck);
@@ -147,6 +153,7 @@ onUnmounted(() => {
       <div class="flex">
         <DeckBuilderDeckTab
           :deck="deck"
+          :deck-type-settings="deckTypeSettings"
           :selected-area="selectedArea"
           v-model:name="deck.name"
           :current-tab="currentTab"

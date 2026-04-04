@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CardDetailApiModel } from "~/api/default";
+import type { DeckTypeSettingsApiModel } from "~/api/default";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
 import { PhCaretRight, PhGear, PhMinus, PhPlus, PhTrash, PhWarning } from "@phosphor-icons/vue";
@@ -9,6 +10,7 @@ import CreateDeckGroup from "./models/CreateDeckGroup";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import ButtonType from "~/components/shared/ButtonType";
 import { GetCrop } from "~/helpers/CropUrlHelper";
+import { GetValidCards, IsValid } from "~/services/requirements/RequirementService";
 
 const name = defineModel<string>("name");
 
@@ -21,6 +23,7 @@ const emit = defineEmits<{
 
 const props = defineProps<{
   deck: CreateDeckModel;
+  deckTypeSettings?: DeckTypeSettingsApiModel;
   currentTab: DeckBuilderTab;
   ignorePassiveFilters: boolean;
   selectedArea?: CreateDeckSelectedArea
@@ -28,6 +31,16 @@ const props = defineProps<{
 
 const accountStore = useAccountStore();
 const collectionMode = ref<boolean>(false); //TODO: get from deck
+
+function getImagesForCard(card: CardDetailApiModel): string[] {
+  const images: string[] = [];
+  props.deckTypeSettings?.imageRules?.forEach((rule) => {
+    if (GetValidCards([card], rule.requirements ?? []).includes(card)) {
+      images.push(rule.imageUrl);
+    }
+  });
+  return images;
+}
 
 function getDisplayClassesForItem(slot: CreateDeckSlot) {
   const classes = [];
@@ -140,12 +153,18 @@ function isCardIllegal(card: CardDetailApiModel): boolean {
                     :class="[...getDisplayClassesForItem(slot), isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300']"
                     v-on:click.prevent="emit('selectCard', item.card)"
                   >
+                    <template v-for="imageUrl in getImagesForCard(item.card)">
+                      <img
+                        :src="imageUrl"
+                        class="rounded-md"
+                        :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
+                      />
+                    </template>
                     <img
+                      v-if="getImagesForCard(item.card).length === 0"
                       :src="GetCrop(item.card.imageUrl, 'icon')!"
                       class="rounded-md"
-                      :class="
-                        slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'
-                      "
+                      :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
                     />
                     <!--<img
                       v-for="iconUrl in item.card.iconUrls"

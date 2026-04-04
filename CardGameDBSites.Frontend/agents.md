@@ -70,7 +70,7 @@ Routing is CMS-driven via Umbraco. A catch-all route in `pages/[...slug].vue` ma
 | `cardOverview` | `CardOverviewPage.vue` |
 | `deckDetail` | `DeckDetail.vue` |
 
-Site settings (including `cardSections`, navigation, colors) are loaded from `/api/settings/site` via `SiteService.ts` and cached statically.
+Site settings (including `cardSections`, navigation, colors) are loaded from `/api/settings/site` via the `useSite` composable.
 
 ## API Communication
 

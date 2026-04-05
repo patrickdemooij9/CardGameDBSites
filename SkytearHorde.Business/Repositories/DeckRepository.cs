@@ -268,7 +268,7 @@ namespace SkytearHorde.Business.Repositories
             using var scope = _scopeProvider.CreateScope();
 
             var isPublished = status == DeckStatus.Published;
-            var sql = BaseQuery(scope.SqlContext);
+            var sql = BaseQuery(scope.SqlContext, isPublished);
 
             if (request.Cards.Length > 0)
             {
@@ -298,7 +298,6 @@ namespace SkytearHorde.Business.Repositories
             }
 
             sql = sql.Where<DeckDBModel>(it => !it.IsDeleted, "d")
-                .Where<DeckVersionDBModel>(it => it.Published == isPublished, "dv")
                 .Where<DeckDBModel>(it => it.SiteId == request.SiteId, "d");
 
             if (request.TypeId.HasValue)
@@ -317,7 +316,12 @@ namespace SkytearHorde.Business.Repositories
                 "collection" => sql.OrderBy("MissingCards"),
                 _ => sql.OrderByDescending("d.CreatedDate"),
             };
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var result = scope.Database.Page<DeckFetchModel>(request.Page, request.Take, sql);
+            stopwatch.Stop();
+
             var deckCards = new List<DeckCardDBModel>();
             var deckCardChildren = new List<DeckCardChildDBModel>();
 
@@ -354,9 +358,8 @@ namespace SkytearHorde.Business.Repositories
             using var scope = _scopeProvider.CreateScope();
 
             var isPublished = status == DeckStatus.Published;
-            var sql = BaseQuery(scope.SqlContext)
-                .Where<DeckDBModel>(it => !it.IsDeleted, "d")
-                .Where<DeckVersionDBModel>(it => it.Published == isPublished, "dv");
+            var sql = BaseQuery(scope.SqlContext, isPublished)
+                .Where<DeckDBModel>(it => !it.IsDeleted, "d");
 
             if (ids?.Length > 0)
             {
@@ -365,7 +368,11 @@ namespace SkytearHorde.Business.Repositories
 
             var deckCards = new List<DeckCardDBModel>();
             var deckCardChildren = new List<DeckCardChildDBModel>();
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var decksDb = scope.Database.Fetch<DeckFetchModel>(sql.OrderByDescending("d.CreatedDate"));
+            stopwatch.Stop();
 
             if (ids?.Length > 0)
             {
@@ -498,12 +505,12 @@ namespace SkytearHorde.Business.Repositories
             };
         }
 
-        private Sql<ISqlContext> BaseQuery(ISqlContext sqlContext)
+        private Sql<ISqlContext> BaseQuery(ISqlContext sqlContext, bool isPublished)
         {
             return sqlContext.Sql()
                 .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, (SELECT COUNT(*) FROM DeckLike WHERE DeckId = d.Id) as 'AmountOfLikes'")
                 .From<DeckDBModel>("d")
-                .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
+                .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent && right.Published == isPublished, "d", "dv");
         }
     }
 }

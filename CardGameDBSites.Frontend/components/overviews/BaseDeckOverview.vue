@@ -42,7 +42,9 @@ async function loadData(value: OverviewRefreshModel) {
     ref="overview"
   >
     <div v-if="pagedDecks">
-      <DeckCardCollection :decks="pagedDecks.items ?? []" :decks-per-row="props.decksPerRow"></DeckCardCollection>
+      <slot :decks="pagedDecks">
+        <DeckCardCollection :decks="pagedDecks.items ?? []" :decks-per-row="props.decksPerRow"></DeckCardCollection>
+      </slot>
 
       <div
         class="mt-8 row justify-center"

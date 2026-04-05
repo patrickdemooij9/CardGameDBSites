@@ -126,5 +126,22 @@ namespace CardGameDBSites.API.Controllers
             _deckTrackingProcessor.AddDeckView(deckId);
             return Ok();
         }
+
+        [HttpDelete("deleteDeck")]
+        [Authorize(AuthenticationSchemes = "Jwt")]
+        public async Task<IActionResult> DeleteDeck(int deckId)
+        {
+            var currentUser = await _memberManager.GetCurrentMemberAsync();
+            if (currentUser is null) return Unauthorized();
+
+            var userId = int.Parse(currentUser.Id);
+            var deck = _deckService.Get(deckId);
+            if (deck is null) return NotFound();
+
+            if (deck.CreatedBy != userId) return Unauthorized();
+
+            _deckService.DeleteDeck(deck);
+            return Ok();
+        }
     }
 }

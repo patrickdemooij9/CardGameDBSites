@@ -17,12 +17,16 @@ import { useMembers } from "~/composables/useMembers";
 import { useSite } from "~/composables/useSite";
 import { GetCardValue } from "~/helpers/CardHelper";
 import CommentSection from "../comments/CommentSection.vue";
+import Button from "../shared/Button.vue";
+import ButtonType from "../shared/ButtonType";
+import { PhDotsThree, PhPencil, PhTrash } from "@phosphor-icons/vue";
 
 defineProps<{
   content: DeckDetailContentModel;
 }>();
 
 const route = useRoute();
+const router = useRouter();
 let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]);
 
@@ -54,6 +58,11 @@ if (deck.createdBy) {
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
+const showActionsDropdown = ref(false);
+const isOwner = computed(() => {
+  const member = accountService.member;
+  return member && deck.createdBy && member.id === deck.createdBy;
+});
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
@@ -62,7 +71,20 @@ onMounted(async () => {
   }
 
   new DeckService().viewDeck(deckId);
+  
+  document.addEventListener('click', handleOutsideClick);
 });
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick);
+});
+
+function handleOutsideClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.actions-dropdown')) {
+    showActionsDropdown.value = false;
+  }
+}
 
 function getDeckCard(cardId: number) {
   return deck.cards?.find((card) => card.cardId === cardId);
@@ -111,6 +133,13 @@ function handleCommentDeleted(comment: CommentViewModel) {
   comments.value = comments.value.filter((c) => c.id !== comment.id);
   useComments().deleteDeckComment(comment.id);
 }
+
+async function handleDeleteDeck() {
+  if (!deck.id || !confirm("Are you sure you want to delete this deck?")) return;
+  
+  await new DeckService().deleteDeck(deck.id);
+  router.push("/account/decks");
+}
 </script>
 
 <template>
@@ -130,9 +159,35 @@ function handleCommentDeleted(comment: CommentViewModel) {
           </div>
         </div>
 
-        <div class="shrink-0" v-if="deck.price">
+        <div class="shrink-0 flex gap-2 items-start">
+          <div v-if="isOwner" class="relative actions-dropdown">
+            <button
+              class="border rounded px-2 py-1 hover:bg-gray-100"
+              @click="showActionsDropdown = !showActionsDropdown"
+            >
+              <PhDotsThree :size="20" />
+            </button>
+            <div
+              v-if="showActionsDropdown"
+              class="absolute right-0 mt-1 bg-white border rounded shadow-lg z-10 min-w-32"
+            >
+              <button
+                class="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                @click="router.push(`/create-deck?id=${deck.id}`); showActionsDropdown = false"
+              >
+                Edit
+              </button>
+              <button
+                class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                @click="showActionsDropdown = false; handleDeleteDeck()"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
           <p
-            class="w-fit bg-green-600 px-2.5 py-1.5 rounded-md text-white cursor-pointer"
+            v-if="deck.price"
+            class="bg-green-600 px-2.5 py-1.5 rounded-md text-white cursor-pointer"
             onclick="document.querySelector('#buyCardsForm').submit()"
           >
             ${{ deck.price?.marketPrice.toFixed(2) }}

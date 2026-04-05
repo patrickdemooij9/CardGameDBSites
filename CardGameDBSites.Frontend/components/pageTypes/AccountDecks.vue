@@ -4,6 +4,7 @@ import BaseDeckOverview from '../overviews/BaseDeckOverview.vue';
 import DeckCard from '../cards/deckCards/DeckCard.vue';
 import Button from '../shared/Button.vue';
 import ButtonType from '../shared/ButtonType';
+import DeckService from '~/services/DeckService';
 
 defineProps<{
     content: AccountDecksContentModel
@@ -22,6 +23,14 @@ onMounted(async () => {
     memberId.value = useAccountStore().member?.id;
     isLoading.value = false;
 })
+
+async function deleteDeck(deckId: number) {
+    if (!confirm("Are you sure you want to delete this deck?")) return;
+    
+    await new DeckService().deleteDeck(deckId);
+    // Force refresh by navigating to same page
+    router.go(0);
+}
 </script>
 
 <template>
@@ -33,7 +42,7 @@ onMounted(async () => {
         <BaseDeckOverview
             :decks-per-row="1"
             :user-id="memberId">
-            <template #default="{ decks, members }">
+            <template #default="{ decks }">
                 <div v-if="decks!.items!.length === 0" class="text-center">
                     <p>You have no decks yet. Create one to get started!</p>
                     <router-link to="/create-squad" class="btn btn-primary">Create Deck</router-link>
@@ -49,6 +58,9 @@ onMounted(async () => {
                             </Button>
                             <Button :button-type="ButtonType.Primary" class="border rounded" @click="router.push(`/create-deck?id=${deck.id}`)">
                                 Edit deck
+                            </Button>
+                            <Button :button-type="ButtonType.Danger" class="border rounded" @click="deck.id && deleteDeck(deck.id)">
+                                Delete
                             </Button>
                         </div>
                     </div>

@@ -88,4 +88,14 @@ export default class DeckService {
       },
     );
   }
+
+  async deleteDeck(deckId: number) {
+    await DoServerFetch(
+      `/api/decks/deleteDeck?deckId=${deckId}`,
+      true,
+      {
+        method: "DELETE",
+      }
+    );
+  }
 }

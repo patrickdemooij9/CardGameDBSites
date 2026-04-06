@@ -298,7 +298,8 @@ namespace SkytearHorde.Business.Repositories
             }
 
             sql = sql.Where<DeckDBModel>(it => !it.IsDeleted, "d")
-                .Where<DeckDBModel>(it => it.SiteId == request.SiteId, "d");
+                .Where<DeckDBModel>(it => it.SiteId == request.SiteId, "d")
+                .Where<DeckVersionDBModel>(it => it.Published == isPublished, "dv");
 
             if (request.TypeId.HasValue)
             {
@@ -356,6 +357,7 @@ namespace SkytearHorde.Business.Repositories
 
             var isPublished = status == DeckStatus.Published;
             var sql = BaseQuery(scope.SqlContext, isPublished)
+                .Where<DeckVersionDBModel>(it => it.Published == isPublished, "dv")
                 .Where<DeckDBModel>(it => !it.IsDeleted, "d");
 
             if (ids?.Length > 0)
@@ -504,7 +506,7 @@ namespace SkytearHorde.Business.Repositories
             return sqlContext.Sql()
                 .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, (SELECT COUNT(*) FROM DeckLike WHERE DeckId = d.Id) as 'AmountOfLikes'")
                 .From<DeckDBModel>("d")
-                .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent && right.Published == isPublished, "d", "dv");
+                .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
         }
     }
 }

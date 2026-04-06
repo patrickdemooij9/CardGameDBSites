@@ -317,10 +317,7 @@ namespace SkytearHorde.Business.Repositories
                 _ => sql.OrderByDescending("d.CreatedDate"),
             };
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             var result = scope.Database.Page<DeckFetchModel>(request.Page, request.Take, sql);
-            stopwatch.Stop();
 
             var deckCards = new List<DeckCardDBModel>();
             var deckCardChildren = new List<DeckCardChildDBModel>();
@@ -369,10 +366,7 @@ namespace SkytearHorde.Business.Repositories
             var deckCards = new List<DeckCardDBModel>();
             var deckCardChildren = new List<DeckCardChildDBModel>();
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             var decksDb = scope.Database.Fetch<DeckFetchModel>(sql.OrderByDescending("d.CreatedDate"));
-            stopwatch.Stop();
 
             if (ids?.Length > 0)
             {

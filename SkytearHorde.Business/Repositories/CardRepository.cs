@@ -154,6 +154,33 @@ namespace SkytearHorde.Business.Repositories
             return _siteService.GetRoot().FirstChild<Data>()?.FirstChild<SetContainer>()?.Children<Set>() ?? Enumerable.Empty<Set>();
         }
 
+        public IEnumerable<Card> GetAllBySet(int setId, bool includeVariants = false)
+        {
+            var set = GetAllSets().FirstOrDefault(it => it.Id == setId);
+            if (set is null) return Enumerable.Empty<Card>();
+
+            var data = _siteService.GetRoot().FirstChild<Data>();
+            if (data is null) return Enumerable.Empty<Card>();
+
+            var cardContainer = data.FirstChild<CardContainer>();
+            if (cardContainer != null)
+            {
+                return cardContainer.Children<UmbracoCard>()?
+                    .Where(it => it.Set?.Any(it => it.Id == setId) is true)
+                    .SelectMany(it => MapMultiple(it, includeVariants, setId))
+                    .ToArray() ?? [];
+            }
+
+            return set.Children<UmbracoCard>()?
+                .SelectMany(it => MapMultiple(it, includeVariants))
+                .ToArray() ?? [];
+        }
+
+        public IEnumerable<Card> GetAllBaseBySet(int setId)
+        {
+            return GetAllBySet(setId, true).Where(it => it.VariantTypeId is null && it.VariantId > 0);
+        }
+
         private IEnumerable<Card> MapMultiple(UmbracoCard card, bool withVariants, int? setId = null)
         {
             yield return Map(card);

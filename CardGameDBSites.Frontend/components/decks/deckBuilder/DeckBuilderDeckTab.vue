@@ -3,7 +3,7 @@ import type { CardDetailApiModel } from "~/api/default";
 import type { DeckTypeSettingsApiModel } from "~/api/default";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
-import { PhCaretRight, PhGear, PhMinus, PhPlus, PhTrash, PhWarning } from "@phosphor-icons/vue";
+import { PhCaretRight, PhCheckCircle, PhGear, PhMinus, PhPlus, PhTrash, PhWarning } from "@phosphor-icons/vue";
 import DeckBuilderTab from "./DeckBuilderTab";
 import Button from "~/components/shared/Button.vue";
 import CreateDeckGroup from "./models/CreateDeckGroup";
@@ -11,12 +11,14 @@ import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import ButtonType from "~/components/shared/ButtonType";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 import { GetValidCards, IsValid } from "~/services/requirements/RequirementService";
+import { useCollection } from "~/composables/useCollection";
 
 const name = defineModel<string>("name");
 
 const emit = defineEmits<{
   (e: "submitForm", publish: boolean): void;
   (e: "ignorePassiveFilters", ignore: boolean): void;
+  (e: "collectionOnlyMode", enabled: boolean): void;
   (e: "selectCard", value: CardDetailApiModel): void;
   (e: "selectSlot", value: CreateDeckSelectedArea): void;
 }>();
@@ -26,6 +28,7 @@ const props = defineProps<{
   deckTypeSettings?: DeckTypeSettingsApiModel;
   currentTab: DeckBuilderTab;
   ignorePassiveFilters: boolean;
+  collectionOnlyMode: boolean;
   selectedArea?: CreateDeckSelectedArea
 }>();
 
@@ -78,6 +81,61 @@ function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
 function isCardIllegal(card: CardDetailApiModel): boolean {
   return !props.deck.isLegalCard(card);
 }
+
+const collectionService = useCollection();
+
+function getAllDeckCardIds(): number[] {
+  const cardIds = new Set<number>();
+  props.deck.getCards().forEach((deckCard) => {
+    if (deckCard.card.baseId) {
+      cardIds.add(deckCard.card.baseId);
+    }
+  });
+  return Array.from(cardIds);
+}
+
+function ensureCollectionLoaded() {
+  const cardIds = getAllDeckCardIds();
+  if (cardIds.length > 0) {
+    collectionService.loadCards(cardIds);
+  }
+}
+
+onMounted(() => {
+  if (props.collectionOnlyMode) {
+    ensureCollectionLoaded();
+  }
+});
+
+watch(() => props.collectionOnlyMode, (newValue) => {
+  if (newValue) {
+    ensureCollectionLoaded();
+  }
+});
+
+function getOwnedAmount(cardBaseId: number | undefined): number {
+  if (cardBaseId === undefined) return 0;
+  return collectionService.getAmount(cardBaseId);
+}
+
+function getNeededAmount(card: CardDetailApiModel): number {
+  let totalNeeded = 0;
+  if (!card.baseId) return 0;
+
+  props.deck.getCards().forEach((deckCard) => {
+    if (deckCard.card.baseId === card.baseId) {
+      totalNeeded += deckCard.amount;
+    }
+  });
+  return totalNeeded;
+}
+
+function hasEnoughInCollection(card: CardDetailApiModel): boolean {
+  if (!card.baseId) return false;
+  const owned = getOwnedAmount(card.baseId);
+  const needed = getNeededAmount(card);
+  return owned >= needed;
+}
 </script>
 
 <template>
@@ -107,6 +165,12 @@ function isCardIllegal(card: CardDetailApiModel): boolean {
                   <input type="checkbox" id="filterMode" @click="$emit('ignorePassiveFilters', !ignorePassiveFilters)" v-bind:checked="!ignorePassiveFilters" />
                   <label for="filterMode" class="flex items-center gap-2">
                     Only show cards that fit in the deck.
+                  </label>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <input type="checkbox" id="collectionMode" @click="$emit('collectionOnlyMode', !collectionOnlyMode)" v-bind:checked="collectionOnlyMode" />
+                  <label for="collectionMode" class="flex items-center gap-2">
+                    Only show cards in my collection.
                   </label>
                 </div>
               </div>
@@ -192,20 +256,21 @@ function isCardIllegal(card: CardDetailApiModel): boolean {
                           }})</span>
                         <span
                           class="shrink-0"
-                          v-if="slot.numberMode && !collectionMode"
+                          v-if="slot.numberMode && !collectionOnlyMode"
                           >{{ item.amount }} x</span
                         >
-                        <!--<span
-                          class="shrink-0"
+                        <span
+                          class="shrink-0 font-bold"
                           :class="
-                            !hasEnoughInCollection(item.card.id, item.amount)
-                              ? 'font-bold text-red-500'
-                              : 'font-bold text-green-600'
+                            hasEnoughInCollection(item.card)
+                              ? 'text-green-600'
+                              : 'text-red-500'
                           "
-                          v-if="collectionMode"
-                          >{{ item.amount }} /
-                          {{ getAllowedSizeForSlot(item.card) }}</span
-                        >-->
+                          v-if="collectionOnlyMode && item.card.baseId"
+                          >{{ getOwnedAmount(item.card.baseId) }}/{{
+                            getNeededAmount(item.card)
+                          }}</span
+                        >
                       </div>
                       <a
                         v-if="
@@ -261,6 +326,18 @@ function isCardIllegal(card: CardDetailApiModel): boolean {
                               <span class="name">{{
                                 child.card.displayName
                               }}</span>
+                              <span
+                                class="shrink-0 font-bold"
+                                :class="
+                                  hasEnoughInCollection(child.card)
+                                    ? 'text-green-600'
+                                    : 'text-red-500'
+                                "
+                                v-if="collectionOnlyMode && child.card.baseId"
+                                >{{ getOwnedAmount(child.card.baseId) }}/{{
+                                  getNeededAmount(child.card)
+                                }}</span
+                              >
                             </div>
                             <a
                               v-if="

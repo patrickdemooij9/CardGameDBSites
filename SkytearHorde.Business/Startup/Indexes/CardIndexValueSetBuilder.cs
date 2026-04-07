@@ -29,6 +29,7 @@ namespace SkytearHorde.Business.Startup.Indexes
                     // this is a special field used to display the content name in the Examine dashboard
                     [UmbracoExamineFieldNames.NodeNameFieldName] = [content.DisplayName!],
                     ["name"] = [content.DisplayName!],
+                    ["CustomField.baseId"] = [content.BaseId],
                     ["id"] = [content.VariantId],
                 };
 

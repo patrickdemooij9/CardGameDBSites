@@ -11,6 +11,8 @@
         public List<CardSorting> OrderBy { get; set; }
         public int? VariantTypeId { get; set; }
         public bool IncludeHideFromDeck { get; set; } = true;
+        public bool OnlyOwnedCards { get; set; }
+        public int? MemberId { get; set; }
 
         public CardSearchQuery(int amount, int siteId)
         {

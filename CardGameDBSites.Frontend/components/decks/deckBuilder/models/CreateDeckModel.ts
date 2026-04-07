@@ -4,6 +4,7 @@ import type CreateDeckSlot from "./CreateDeckSlot";
 import { IsValid } from "~/services/requirements/RequirementService";
 import CreateDeckValidation from "./CreateDeckValidation";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
+import type { DeckCard } from "../DeckBuilderModels";
 
 export class CreateDeckModel {
   id?: number;
@@ -46,18 +47,22 @@ export class CreateDeckModel {
     return !nonLegalDeckTypes.includes(this.typeId);
   }
 
-  getIllegalCards(): CardDetailApiModel[] {
-    const allCards: CardDetailApiModel[] = [];
+  getCards(): DeckCard[] {
+    const allCards: DeckCard[] = [];
     this.groups.forEach((group) => {
       group.slots.forEach((slot) => {
         slot.cardGroups.forEach((cardGroup) => {
           cardGroup.cards.forEach((cardWrapper) => {
-            allCards.push(cardWrapper.card);
+            allCards.push(cardWrapper);
           });
         });
       });
     });
-    return allCards.filter(card => !this.isLegalCard(card));
+    return allCards;
+  }
+
+  getIllegalCards(): CardDetailApiModel[] {
+    return this.getCards().map((card) => card.card).filter(card => !this.isLegalCard(card));
   }
 
   isLegalDeck(): boolean {

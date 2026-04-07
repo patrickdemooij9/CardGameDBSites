@@ -17,7 +17,7 @@ namespace SkytearHorde.Business.Services
         private readonly CollectionPackRepository _collectionPackRepository;
         private readonly MemberInfoService _memberInfoService;
         private readonly SettingsService _settingsService;
-        private readonly CardService _cardService;
+        private readonly CardRepository _cardRepository;
         private readonly ISiteService _siteService;
 
         public CollectionService(CollectionSetRepository collectionSetRepository,
@@ -25,7 +25,7 @@ namespace SkytearHorde.Business.Services
             CollectionPackRepository collectionPackRepository,
             MemberInfoService memberInfoService,
             SettingsService settingsService,
-            CardService cardService,
+            CardRepository cardRepository,
             ISiteService siteService)
         {
             _collectionSetRepository = collectionSetRepository;
@@ -33,7 +33,7 @@ namespace SkytearHorde.Business.Services
             _collectionPackRepository = collectionPackRepository;
             _memberInfoService = memberInfoService;
             _settingsService = settingsService;
-            _cardService = cardService;
+            _cardRepository = cardRepository;
             _siteService = siteService;
         }
 
@@ -49,7 +49,7 @@ namespace SkytearHorde.Business.Services
             };
             _collectionSetRepository.Add(item);
 
-            var cards = _cardService.GetAllBaseBySet(setId);
+            var cards = _cardRepository.GetAllBaseBySet(setId);
             var currentCollectionCards = _collectionCardRepository.Get(memberId);
             foreach (var card in cards)
             {
@@ -103,7 +103,7 @@ namespace SkytearHorde.Business.Services
 
         public Card[] ValidateCardsInPack(int setId, PackItemPostModel[] items, out List<PackItemPostModel> invalidItems)
         {
-            var cards = _cardService.GetAllBySet(setId, true).Where(it => it.VariantId > 0).ToArray();
+            var cards = _cardRepository.GetAllBySet(setId, true).Where(it => it.VariantId > 0).ToArray();
             var variants = GetVariantTypes().ToArray();
             var mainIdentifier = _settingsService.GetCollectionSettings().MainIdentifier;
 
@@ -155,10 +155,10 @@ namespace SkytearHorde.Business.Services
         {
             var memberId = AssertLoggedInMember();
 
-            var set = _cardService.GetAllSets().FirstOrDefault(it => it.Id == setId);
+            var set = _cardRepository.GetAllSets().FirstOrDefault(it => it.Id == setId);
             if (set is null) return;
 
-            var allCards = _cardService.GetAllBySet(set.Id).ToArray();
+            var allCards = _cardRepository.GetAllBySet(set.Id).ToArray();
             var variants = GetVariantTypes().ToArray();
             foreach (var item in items)
             {
@@ -217,7 +217,7 @@ namespace SkytearHorde.Business.Services
                 _collectionSetRepository.Remove(item.Id);
             }
 
-            var setCards = _cardService.GetAllBaseBySet(setId);
+            var setCards = _cardRepository.GetAllBaseBySet(setId);
             var collectionCards = _collectionCardRepository.Get(memberId);
             foreach (var card in setCards)
             {
@@ -238,6 +238,11 @@ namespace SkytearHorde.Business.Services
             return _collectionSetRepository.Get(memberId);
         }
 
+        public CollectionCardItem[] GetCardsByUser(int memberId)
+        {
+            return _collectionCardRepository.Get(memberId);
+        }
+
         public CollectionCardItem[] GetCards()
         {
             var memberId = AssertLoggedInMember();
@@ -254,7 +259,7 @@ namespace SkytearHorde.Business.Services
                 //TODO: Introduce function to get all the cards for the listed sets
                 foreach (var set in sets)
                 {
-                    cards.AddRange(_cardService.GetAllBySet(set.SetId, false).Select(it => new CollectionCardItem
+                    cards.AddRange(_cardRepository.GetAllBySet(set.SetId, false).Select(it => new CollectionCardItem
                     {
                         CardId = it.BaseId,
                         VariantId = 0,
@@ -296,14 +301,14 @@ namespace SkytearHorde.Business.Services
 
         public IEnumerable<Card> GetVariants(Card card, int setId)
         {
-            return _cardService.GetVariants(card.BaseId)
+            return _cardRepository.GetVariants(card.BaseId)
                 .Where(it => it.SetId == setId)
                 .OrderBy(it => it.VariantTypeId)
                 .ToArray();
             /*var allVariants = GetVariantTypes().ToArray();
             var requireFetchingPages = allVariants.Any(it => it.RequiresPage);
 
-            var variantPages = requireFetchingPages ? _cardService.GetVariants(card.BaseId)
+            var variantPages = requireFetchingPages ? _cardRepository.GetVariants(card.BaseId)
                 .Where(it => it.SetId == setId)
                 .ToArray() : Array.Empty<Card>();
 
@@ -354,7 +359,7 @@ namespace SkytearHorde.Business.Services
 
         public int CalculateCollectionProgressBySet(int setId, out int totalCards, out int collectionCards)
         {
-            var allCards = _cardService.GetAllBySet(setId).ToArray();
+            var allCards = _cardRepository.GetAllBySet(setId).ToArray();
             var allCardsInCollection = GetCards().Select(it => it.CardId).ToArray();
 
             totalCards = allCards.Length;
@@ -365,7 +370,7 @@ namespace SkytearHorde.Business.Services
 
         private int CalculateProgressBasedOnSets()
         {
-            var allSets = _cardService.GetAllSets().ToArray();
+            var allSets = _cardRepository.GetAllSets().ToArray();
             var allSetsInCollection = GetSets().Select(it => it.SetId).ToArray();
 
             return (int)(allSets.Where(it => allSetsInCollection.Contains(it.Id)).Count() / (double)allSets.Length * 100);
@@ -373,7 +378,7 @@ namespace SkytearHorde.Business.Services
 
         private int CalculateProgressBasedOnCards()
         {
-            var allCards = _cardService.GetAll().ToArray();
+            var allCards = _cardRepository.GetAll().ToArray();
             var allCardsInCollection = GetCards().Select(it => it.CardId).ToArray();
 
             return (int)(allCards.Where(it => allCardsInCollection.Contains(it.BaseId)).Count() / (double)allCards.Length * 100);

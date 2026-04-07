@@ -4,7 +4,7 @@ import type {
   CardsQueryPostApiModel,
   PagedResultCardDetailApiModel,
 } from "~/api/default";
-import { DoFetch } from "~/helpers/RequestsHelper";
+import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
 
 export function useCards() {
   const store = useCardsStore();
@@ -23,7 +23,7 @@ export function useCards() {
     const { data, error } = await useAsyncData(
       `cards-${missingIds.join(",")}`,
       () =>
-        DoFetch<CardDetailApiModel[]>("/api/cards/byIds", {
+        DoServerFetch<CardDetailApiModel[]>("/api/cards/byIds", true, {
           method: "POST",
           body: missingIds,
         }),
@@ -46,7 +46,7 @@ export function useCards() {
     }
 
     const { data, error } = await useAsyncData(`card-${id}`, () =>
-      DoFetch<CardDetailApiModel>(`/api/cards/byId?id=${id}`),
+      DoServerFetch<CardDetailApiModel>(`/api/cards/byId?id=${id}`, true),
     );
 
     if (error.value) throw error.value;
@@ -78,7 +78,7 @@ export function useCards() {
 
   /** Query cards (no store cache – intentional) */
   const queryCards = async (model: CardsQueryPostApiModel) => {
-    return await DoFetch<PagedResultCardDetailApiModel>("/api/cards/query", {
+    return await DoServerFetch<PagedResultCardDetailApiModel>("/api/cards/query", true, {
       method: "POST",
       body: model,
     });

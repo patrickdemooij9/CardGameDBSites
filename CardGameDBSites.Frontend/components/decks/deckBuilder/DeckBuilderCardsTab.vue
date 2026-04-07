@@ -30,11 +30,14 @@ const props = defineProps<{
   deck: CreateDeckModel;
   preselectFirstSlot: boolean;
   ignorePassiveFilters: boolean;
+  collectionOnlyMode: boolean;
 }>();
 
 const description = ref("");
 const markdownPreview = ref(false);
 const markdownPreviewText = ref("");
+
+const collectionService = useCollection();
 
 function getUserFilters() {
   if (!props.currentArea) {
@@ -101,7 +104,10 @@ function getSlotsForCard(card: CardDetailApiModel) {
 
 function addToSquad(slot: CreateDeckSlot, character: CardDetailApiModel) {
   slot.addCard(character);
-  // Logic to add the character to the squad
+
+  if (props.collectionOnlyMode){
+    collectionService.loadCards([character.baseId!]);
+  }
 }
 
 function removeFromSquad(slot: CreateDeckSlot, card: CardDetailApiModel) {
@@ -163,6 +169,7 @@ async function toggleMarkdownPreview() {
         :internal-filters="getInternalFilters()"
         :white-background="false"
         :enable-query-string-sync="false"
+        :collection-only-mode="collectionOnlyMode"
         v-slot="{cards}"
       >
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-5">

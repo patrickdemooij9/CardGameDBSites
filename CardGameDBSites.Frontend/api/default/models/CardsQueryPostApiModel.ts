@@ -10,5 +10,6 @@ export type CardsQueryPostApiModel = {
     setId?: number | null;
     variantTypeId?: number | null;
     filterClauses?: Array<CardsQueryFilterClauseApiModel>;
+    onlyOwnedCards?: boolean;
 };
 

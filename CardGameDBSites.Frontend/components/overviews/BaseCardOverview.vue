@@ -14,6 +14,7 @@ const props = defineProps<{
   internalFilters?: CardsQueryFilterClauseApiModel[];
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
+  collectionOnlyMode?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -33,6 +34,13 @@ watch(
     }
   },
   { deep: true },
+);
+
+watch(
+  () => props.collectionOnlyMode,
+  () => {
+    overview.value?.setPage(1, true);
+  },
 );
 
 async function loadData(value: OverviewRefreshModel) {
@@ -66,6 +74,7 @@ async function loadData(value: OverviewRefreshModel) {
     pageSize: 30,
     filterClauses: filters,
     variantTypeId: 0,
+    onlyOwnedCards: props.collectionOnlyMode,
   });
   if (value.LoadedCallback) {
     value.LoadedCallback();

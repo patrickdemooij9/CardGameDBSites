@@ -1,4 +1,5 @@
-﻿using CardGameDBSites.API.Models;
+﻿using CardGameDBSites.API.Attributes;
+using CardGameDBSites.API.Models;
 using CardGameDBSites.API.Models.Cards;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Search;
 using SkytearHorde.Entities.Models.Business;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
@@ -24,13 +26,15 @@ namespace CardGameDBSites.API.Controllers
         private readonly CardPriceService _cardPriceService;
         private readonly SettingsService _settingsService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
+        private readonly IMemberManager _memberManager;
 
         public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
             CollectionService collectionService,
             CardPriceService cardPriceService,
             SettingsService settingsService,
-            IUmbracoContextFactory umbracoContextFactory)
+            IUmbracoContextFactory umbracoContextFactory,
+            IMemberManager memberManager)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
@@ -38,6 +42,7 @@ namespace CardGameDBSites.API.Controllers
             _cardPriceService = cardPriceService;
             _settingsService = settingsService;
             _umbracoContextFactory = umbracoContextFactory;
+            _memberManager = memberManager;
         }
 
         [HttpGet("all")]
@@ -70,6 +75,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost("query")]
+        [OptionalJwtAuthorization]
         [ProducesResponseType(typeof(PagedResult<CardDetailApiModel>), 200)]
         public IActionResult Query(CardsQueryPostApiModel model)
         {
@@ -78,6 +84,16 @@ namespace CardGameDBSites.API.Controllers
             if (defaultSortOptions.All(it => it.Values?.Any() != true))
             {
                 sorting.AddRange(defaultSortOptions.Select(it => new CardSorting(it.ExamineField.IfNullOrWhiteSpace($"CustomField.{it.Ability?.Name}")) { IsDescending = it.Descending }));
+            }
+
+            int? memberId = null;
+            if (model.OnlyOwnedCards && _memberManager.IsLoggedIn())
+            {
+                var member = _memberManager.GetCurrentMemberAsync().GetAwaiter().GetResult();
+                if (member != null && int.TryParse(member.Id, out var id))
+                {
+                    memberId = id;
+                }
             }
 
             var result = _cardService.Search(new CardSearchQuery(model.PageSize, _siteAccessor.GetSiteId())
@@ -96,7 +112,9 @@ namespace CardGameDBSites.API.Controllers
                     })]
                 })],
                 OrderBy = sorting,
-                VariantTypeId = model.VariantTypeId
+                VariantTypeId = model.VariantTypeId,
+                OnlyOwnedCards = model.OnlyOwnedCards,
+                MemberId = memberId
             }, out var totalItems).Select(MapToApiModel);
             return Ok(new PagedResult<CardDetailApiModel>(totalItems, model.PageNumber, model.PageSize)
             {

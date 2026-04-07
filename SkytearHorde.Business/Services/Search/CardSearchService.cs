@@ -1,5 +1,8 @@
 ﻿using Examine;
 using Examine.Search;
+using Microsoft.Extensions.DependencyInjection;
+using SkytearHorde.Business.Services;
+using SkytearHorde.Entities.Models.Business;
 using Umbraco.Extensions;
 
 namespace SkytearHorde.Business.Services.Search
@@ -8,15 +11,54 @@ namespace SkytearHorde.Business.Services.Search
     {
         private readonly IExamineManager _examineManager;
         private readonly CardSearchFieldsFinder _cardSearchFieldsFinder;
+        private readonly IServiceProvider _serviceProvider;
 
-        public CardSearchService(IExamineManager examineManager, CardSearchFieldsFinder cardSearchFieldsFinder)
+        public CardSearchService(
+            IExamineManager examineManager,
+            CardSearchFieldsFinder cardSearchFieldsFinder,
+            IServiceProvider serviceProvider)
         {
             _examineManager = examineManager;
             _cardSearchFieldsFinder = cardSearchFieldsFinder;
+            _serviceProvider = serviceProvider;
+        }
+
+        public int[] GetCollectionCardIds(int memberId)
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var _collectionService = scope.ServiceProvider.GetService<CollectionService>()!;
+            var collectionCards = _collectionService.GetCardsByUser(memberId);
+            return collectionCards.Select(it => it.CardId).Distinct().ToArray();
         }
 
         public int[] Search(CardSearchQuery query, out int totalItems)
         {
+            if (query.OnlyOwnedCards && query.MemberId.HasValue)
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var _collectionService = scope.ServiceProvider.GetService<CollectionService>()!;
+
+                var collectionCards = _collectionService.GetCardsByUser(query.MemberId.Value);
+                var cardIds = collectionCards.Select(it => it.CardId).Distinct().ToArray();
+                
+                if (cardIds.Length == 0)
+                {
+                    totalItems = 0;
+                    return Array.Empty<int>();
+                }
+
+                query.FilterClauses.Add(new CardSearchFilterClause
+                {
+                    ClauseType = CardSearchFilterClauseType.AND,
+                    Filters = [new CardSearchFilter
+                    {
+                        Alias = "baseId",
+                        Values = cardIds.Select(id => id.ToString()).ToArray(),
+                        Mode = CardSearchFilterMode.Contains
+                    }]
+                });
+            }
+
             if (!_examineManager.TryGetIndex("CardIndex", out var index))
             {
                 totalItems = 0;

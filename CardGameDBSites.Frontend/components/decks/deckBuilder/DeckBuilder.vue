@@ -35,6 +35,7 @@ const selectedArea = ref<CreateDeckSelectedArea>();
 const deck = ref<CreateDeckModel>(deckSettings);
 
 const ignorePassiveFilters = ref(false);
+const collectionOnlyMode = ref(false);
 let isSubmitting = false;
 
 if (true) {
@@ -158,8 +159,10 @@ onUnmounted(() => {
           v-model:name="deck.name"
           :current-tab="currentTab"
           :ignore-passive-filters="ignorePassiveFilters"
+          :collection-only-mode="collectionOnlyMode"
           @submit-form="submitForm"
           @ignore-passive-filters="ignorePassiveFilters = $event"
+          @collection-only-mode="collectionOnlyMode = $event"
           @select-card="selectCard"
           @select-slot="selectSlot"
         />
@@ -170,6 +173,7 @@ onUnmounted(() => {
           @select-card="selectCard"
           :preselect-first-slot="true"
           :ignore-passive-filters="ignorePassiveFilters"
+          :collection-only-mode="collectionOnlyMode"
         />
       </div>
     </div>

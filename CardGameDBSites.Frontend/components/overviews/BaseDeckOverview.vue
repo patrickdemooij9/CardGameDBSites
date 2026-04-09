@@ -38,6 +38,13 @@ const filters: OverviewFilterModel[] = [
     AutoFillValues: false,
   },
   {
+    Alias: "fromDate",
+    DisplayName: "Created start date",
+    Type: OverviewFilterType.DATE,
+    Items: [],
+    AutoFillValues: false,
+  },
+  {
     Alias: "toDate",
     DisplayName: "Created end date",
     Type: OverviewFilterType.DATE,

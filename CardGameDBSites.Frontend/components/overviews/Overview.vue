@@ -302,19 +302,19 @@ init();
           </Dropdown>
           <div
             v-if="filters.some((f) => f.Type === OverviewFilterType.DATE)"
-            class="flex flex-wrap gap-4 pt-2"
+            class="flex flex-wrap gap-4"
           >
             <div
               v-for="filter in filters.filter(
                 (f) => f.Type === OverviewFilterType.DATE,
               )"
               :key="filter.Alias"
+              class="flex gap-2 items-center"
             >
-              <p class="font-bold text-sm mb-1">{{ filter.DisplayName }}</p>
-              <div class="flex items-center gap-2">
-                <input
+              <p class="font-bold text-sm">{{ filter.DisplayName }}</p>
+              <input
                   type="date"
-                  class="border border-gray-300 rounded px-2 py-1 text-sm"
+                  class="border border-gray-300 rounded px-3 py-2 text-sm"
                   :value="getFilterValue(filter.Alias)"
                   @change="
                     ($event) =>
@@ -324,7 +324,6 @@ init();
                       )
                   "
                 />
-              </div>
             </div>
           </div>
           <button

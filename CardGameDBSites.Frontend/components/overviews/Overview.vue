@@ -116,7 +116,7 @@ function reloadData() {
     if (search.value) {
       url.searchParams.append("search", search.value);
     }
-    if (selectedSort.value) {
+    if (selectedSort.value && props.sortings![0].Value !== selectedSort.value) {
       url.searchParams.append("sortBy", selectedSort.value);
     }
     Object.entries(selectedFilters.value).forEach((entry) => {
@@ -158,6 +158,9 @@ watch(
 
 function init() {
   selectedFilters.value = {};
+  if (props.sortings && props.sortings.length > 0){
+    selectedSort.value = props.sortings[0].Value;
+  }
   props.filters.forEach((filter) => {
     if (route.query[filter.Alias]) {
       const values = route.query[filter.Alias];

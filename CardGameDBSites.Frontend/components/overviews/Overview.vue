@@ -11,6 +11,8 @@ import {
 } from "./OverviewFilterModel";
 import Dropdown from "../shared/Dropdown.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
+import CardSearchInput from "~/components/shared/CardSearchInput.vue";
+import type { CardDetailApiModel } from "~/api/default";
 
 const props = defineProps<{
   hideSearch: boolean;
@@ -86,6 +88,14 @@ function isSelectedFilter(alias: string, value: string) {
   return (
     selectedFilters.value[alias] && selectedFilters.value[alias].includes(value)
   );
+}
+
+function onTextInputFilterSelect(alias: string, card: CardDetailApiModel) {
+  if (!selectedFilters.value[alias]) {
+    selectedFilters.value[alias] = [];
+  }
+  selectedFilters.value[alias].push(card.baseId!.toString());
+  reloadData();
 }
 
 function handleSubmit(event: Event) {
@@ -284,6 +294,16 @@ init();
           >
             {{ filter.DisplayName }}
           </button>
+          <div
+            v-for="filter in filters.filter(
+              (filter) => filter.Type === OverviewFilterType.TEXT_INPUT,
+            )"
+            :key="filter.Alias"
+          >
+            <CardSearchInput
+              @select="(card) => onTextInputFilterSelect(filter.Alias, card)"
+            />
+          </div>
         </div>
       </div>
 
@@ -293,7 +313,6 @@ init();
             <div
               v-for="filterItem in filter[1]"
               class="flex gap-2 rounded-md border-2 border-main-color p-1 cursor-pointer"
-              x-on:click="removeFilter(filterItem)"
             >
               <p class="text-xs">
                 <span>{{ filter[0] }}</span>

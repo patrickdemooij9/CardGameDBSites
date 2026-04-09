@@ -4,6 +4,7 @@ import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import Overview from "./Overview.vue";
+import { OverviewFilterType, type OverviewFilterModel } from "./OverviewFilterModel";
 
 const props = defineProps<{
   decksPerRow: number;
@@ -16,13 +17,27 @@ const deckService = new DeckService();
 const pagedDecks = ref<PagedResultDeckApiModel>();
 const overview = ref<InstanceType<typeof Overview>>();
 
+const filters: OverviewFilterModel[] = [
+  {
+    Alias: "card",
+    DisplayName: "Contains card",
+    Type: OverviewFilterType.TEXT_INPUT,
+    Items: [],
+    AutoFillValues: false,
+  },
+];
+
 async function loadData(value: OverviewRefreshModel) {
+  const cardFilter = value.SelectedFilters.get(filters[0]);
+  const cardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : undefined;
+  
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,
     take: 20,
     userId: props.userId,
     typeId: props.typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
+    cards: cardIds,
   });
 
   if (value.LoadedCallback) {
@@ -34,10 +49,10 @@ async function loadData(value: OverviewRefreshModel) {
 <template>
   <Overview
     :hide-search="true"
-    :hide-filters="true"
+    :hide-filters="false"
     :white-background="false"
     :enable-query-string-sync="true"
-    :filters="[]"
+    :filters="filters"
     @reload="loadData"
     ref="overview"
   >

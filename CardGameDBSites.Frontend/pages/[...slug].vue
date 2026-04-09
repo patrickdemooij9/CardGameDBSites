@@ -7,6 +7,7 @@ import CardDetailPage from '~/components/pageTypes/CardDetailPage.vue';
 import CardOverviewPage from '~/components/pageTypes/CardOverviewPage.vue';
 import CollectionPage from '~/components/pageTypes/CollectionPage.vue';
 import ContentPage from '~/components/pageTypes/contentPage.vue';
+import CreateCardPage from '~/components/pageTypes/CreateCardPage.vue';
 import CreateDeck from '~/components/pageTypes/CreateDeck.vue';
 import DeckDetail from '~/components/pageTypes/DeckDetail.vue';
 import DeckOverviewPage from '~/components/pageTypes/DeckOverviewPage.vue';
@@ -63,7 +64,8 @@ const pageComponents: {[key: string]: Component} = {
     'forgotPassword': ForgotPasswordPage,
     'setOverview': SetOverviewPage,
     'set': SetPage,
-    'collectionPage': CollectionPage
+    'collectionPage': CollectionPage,
+    'createCard': CreateCardPage
 }
 const pageComponent = pageComponents[componentName];
 </script>

@@ -316,7 +316,6 @@ async function toggleMarkdownPreview() {
       </BaseCardOverview>
     </div>
     <div :class="currentTab === DeckBuilderTab.Details ? '' : 'hidden'">
-      <DeckCostCurve :deck="deck" />
       <div class="flex flex-col pb-3 mt-4">
         <div class="flex justify-between items-center mb-2">
           <span>Description</span>
@@ -347,6 +346,7 @@ async function toggleMarkdownPreview() {
           v-html="markdownPreviewText"
         ></div>
       </div>
+      <DeckCostCurve :deck="deck" />
     </div>
   </div>
 </template>

@@ -21,7 +21,7 @@ const costCurve = computed(() =>
         :key="entry.label"
         class="flex flex-col items-center flex-1 min-w-0 h-full justify-end"
       >
-        <span class="text-xs text-gray-600 mb-0.5 leading-none">{{ entry.count }}</span>
+        <span class="text-xs text-gray-600 mb-0.5 leading-none">{{ entry.count }} cards</span>
         <div
           class="w-full bg-main-color rounded-t min-h-[2px]"
           :style="{ height: entry.heightPercent + '%' }"
@@ -34,7 +34,7 @@ const costCurve = computed(() =>
           :key="'label-' + entry.label"
           class="flex-1 text-center text-xs text-gray-500 truncate"
         >
-          {{ entry.label }}
+          {{ entry.label }} cost
         </div>
       </div>
     </div>

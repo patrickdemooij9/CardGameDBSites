@@ -14,7 +14,7 @@ const typeId: number | undefined = props.content.properties?.squadSettingsId ?? 
     <div class="row justify-center">
       <div class="section-title">
         <h1>{{ content.properties?.title }}</h1>
-        <p v-html="content.properties?.description?.markup"></p>
+        <div v-if="content.properties?.description" v-html="content.properties?.description?.markup"></div>
       </div>
     </div>
 

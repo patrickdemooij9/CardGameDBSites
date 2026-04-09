@@ -68,6 +68,19 @@ const filters: OverviewFilterModel[] = [
 ];
 
 async function loadData(value: OverviewRefreshModel) {
+  // On the first call, if SSR data already covers this page, skip the re-fetch.
+  // This keeps isLoading = false synchronously during hydration so the client
+  // reactive state matches the server-rendered DOM.
+  if (!initialLoadHandled && value.PageNumber === initialPage && pagedDecks.value) {
+    initialLoadHandled = true;
+    if (value.LoadedCallback) {
+      value.LoadedCallback();
+    }
+    return;
+  }
+
+  initialLoadHandled = true;
+
   let dateFrom: string | undefined;
   let dateTo: string | undefined;
 
@@ -81,7 +94,7 @@ async function loadData(value: OverviewRefreshModel) {
 
   const cardFilter = value.SelectedFilters.get(filters[0]);
   const cardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : undefined;
-  
+
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,
     take: 20,
@@ -94,22 +107,9 @@ async function loadData(value: OverviewRefreshModel) {
     cards: cardIds,
   });
 
-  // On the first call, if we already have SSR data for the same page, skip the
-  // re-fetch. This prevents a hydration mismatch caused by the server having
-  // data while the client starts empty.
-  if (
-    !initialLoadHandled &&
-    value.PageNumber === initialPage &&
-    pagedDecks.value
-  ) {
-    initialLoadHandled = true;
-    if (value.LoadedCallback) {
-      value.LoadedCallback();
-    }
-    return;
+  if (value.LoadedCallback) {
+    value.LoadedCallback();
   }
-
-  initialLoadHandled = true;
 }
 </script>
 

@@ -4,6 +4,10 @@ import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import Overview from "./Overview.vue";
+import {
+  OverviewFilterType,
+  type OverviewFilterModel,
+} from "./OverviewFilterModel";
 
 const props = defineProps<{
   decksPerRow: number;
@@ -16,13 +20,35 @@ const deckService = new DeckService();
 const pagedDecks = ref<PagedResultDeckApiModel>();
 const overview = ref<InstanceType<typeof Overview>>();
 
+const filters: OverviewFilterModel[] = [
+  {
+    Alias: "dateRange",
+    DisplayName: "Created Date",
+    Type: OverviewFilterType.DATE_RANGE,
+    Items: [],
+    AutoFillValues: false,
+  },
+];
+
 async function loadData(value: OverviewRefreshModel) {
+  let dateFrom: string | undefined;
+  let dateTo: string | undefined;
+
+  value.SelectedFilters.forEach((values, filter) => {
+    if (filter.Alias === "dateRange") {
+      if (values[0]) dateFrom = values[0];
+      if (values[1]) dateTo = values[1];
+    }
+  });
+
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,
     take: 20,
     userId: props.userId,
     typeId: props.typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
+    dateFrom: dateFrom || null,
+    dateTo: dateTo || null,
   });
 
   if (value.LoadedCallback) {
@@ -37,7 +63,7 @@ async function loadData(value: OverviewRefreshModel) {
     :hide-filters="true"
     :white-background="false"
     :enable-query-string-sync="true"
-    :filters="[]"
+    :filters="filters"
     @reload="loadData"
     ref="overview"
   >

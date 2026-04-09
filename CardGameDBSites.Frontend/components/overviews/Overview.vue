@@ -88,6 +88,30 @@ function isSelectedFilter(alias: string, value: string) {
   );
 }
 
+function getDateRangeFrom(alias: string): string {
+  return selectedFilters.value[alias]?.[0] ?? "";
+}
+
+function getDateRangeTo(alias: string): string {
+  return selectedFilters.value[alias]?.[1] ?? "";
+}
+
+function setDateRangeFrom(alias: string, date: string) {
+  if (!selectedFilters.value[alias]) {
+    selectedFilters.value[alias] = ["", ""];
+  }
+  selectedFilters.value[alias][0] = date;
+  reloadData();
+}
+
+function setDateRangeTo(alias: string, date: string) {
+  if (!selectedFilters.value[alias]) {
+    selectedFilters.value[alias] = ["", ""];
+  }
+  selectedFilters.value[alias][1] = date;
+  reloadData();
+}
+
 function handleSubmit(event: Event) {
   event.preventDefault();
   reloadData();
@@ -104,7 +128,9 @@ function reloadData() {
     }
     Object.entries(selectedFilters.value).forEach((entry) => {
       entry[1].forEach((value) => {
-        url.searchParams.append(entry[0], value);
+        if (value) {
+          url.searchParams.append(entry[0], value);
+        }
       });
     });
     history.replaceState(history.state, "", url);
@@ -191,6 +217,44 @@ init();
         >
           <PhFaders />
         </button>
+      </div>
+      <div
+        v-if="filters.some((f) => f.Type === OverviewFilterType.DATE_RANGE)"
+        class="flex flex-wrap gap-4 pt-2"
+      >
+        <div
+          v-for="filter in filters.filter(
+            (f) => f.Type === OverviewFilterType.DATE_RANGE,
+          )"
+          :key="filter.Alias"
+        >
+          <p class="font-bold text-sm mb-1">{{ filter.DisplayName }}</p>
+          <div class="flex items-center gap-2">
+            <input
+              type="date"
+              class="border border-gray-300 rounded px-2 py-1 text-sm"
+              :value="getDateRangeFrom(filter.Alias)"
+              @change="
+                setDateRangeFrom(
+                  filter.Alias,
+                  ($event.target as HTMLInputElement).value,
+                )
+              "
+            />
+            <span class="text-sm text-gray-500">to</span>
+            <input
+              type="date"
+              class="border border-gray-300 rounded px-2 py-1 text-sm"
+              :value="getDateRangeTo(filter.Alias)"
+              @change="
+                setDateRangeTo(
+                  filter.Alias,
+                  ($event.target as HTMLInputElement).value,
+                )
+              "
+            />
+          </div>
+        </div>
       </div>
       <div v-if="filtersOpen" class="py-4 border-b-2 border-gray-300">
         <div class="flex gap-4">
@@ -290,23 +354,30 @@ init();
       <div class="flex flex-col-reverse gap-8 justify-between pt-4 md:flex-row">
         <div class="flex flex-wrap items-center gap-2">
           <template v-for="filter in Object.entries(selectedFilters)">
-            <div
-              v-for="filterItem in filter[1]"
-              class="flex gap-2 rounded-md border-2 border-main-color p-1 cursor-pointer"
-              x-on:click="removeFilter(filterItem)"
+            <template
+              v-if="
+                filters.find((f) => f.Alias === filter[0])?.Type !==
+                OverviewFilterType.DATE_RANGE
+              "
             >
-              <p class="text-xs">
-                <span>{{ filter[0] }}</span>
-                :
-                <span>{{ filterItem }}</span>
-              </p>
-              <button
-                type="button"
-                @click="selectFilter(filter[0], filterItem)"
+              <div
+                v-for="filterItem in filter[1]"
+                class="flex gap-2 rounded-md border-2 border-main-color p-1 cursor-pointer"
+                x-on:click="removeFilter(filterItem)"
               >
-                <PhX class="items-center"></PhX>
-              </button>
-            </div>
+                <p class="text-xs">
+                  <span>{{ filter[0] }}</span>
+                  :
+                  <span>{{ filterItem }}</span>
+                </p>
+                <button
+                  type="button"
+                  @click="selectFilter(filter[0], filterItem)"
+                >
+                  <PhX class="items-center"></PhX>
+                </button>
+              </div>
+            </template>
           </template>
         </div>
         <div class="flex self-end gap-4">

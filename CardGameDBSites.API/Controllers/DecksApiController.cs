@@ -95,7 +95,9 @@ namespace CardGameDBSites.API.Controllers
                 Take = query.Take,
                 Page = query.Page,
                 UserId = query.UserId,
-                OrderBy = query.OrderBy
+                OrderBy = query.OrderBy,
+                DateFrom = query.DateFrom,
+                DateTo = query.DateTo
             });
             return Ok(new PagedResult<DeckApiModel>(decks.TotalItems, query.Page, query.Take)
             {

@@ -4,6 +4,7 @@ export default interface OverviewRefreshModel {
     Query: string;
     SelectedFilters: Map<OverviewFilterModel, string[]>;
     PageNumber: number;
+    SortBy?: string;
 
     LoadedCallback?: () => void;
 }

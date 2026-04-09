@@ -85,7 +85,9 @@ namespace SkytearHorde.Business.Startup.Indexes
                         continue;
                     }
 
-                    index.IndexItems(_cardIndexValueSetBuilder.GetValueSets(card));
+                    // Re-index all variants of the same base card so IsMainVariant is computed correctly
+                    var allVariants = _cardService.GetVariants(card.BaseId).ToArray();
+                    index.IndexItems(_cardIndexValueSetBuilder.GetValueSets(allVariants));
                 }
             }
         }

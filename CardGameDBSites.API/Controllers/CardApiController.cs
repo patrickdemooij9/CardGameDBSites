@@ -131,7 +131,8 @@ namespace CardGameDBSites.API.Controllers
                 OrderBy = sorting,
                 VariantTypeId = model.VariantTypeId,
                 OnlyOwnedCards = model.OnlyOwnedCards,
-                MemberId = memberId
+                MemberId = memberId,
+                OnlyMainVariants = model.OnlyMainVariants
             }, out var totalItems).Select(MapToApiModel);
             return Ok(new PagedResult<CardDetailApiModel>(totalItems, model.PageNumber, model.PageSize)
             {

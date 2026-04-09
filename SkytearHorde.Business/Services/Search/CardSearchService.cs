@@ -112,6 +112,10 @@ namespace SkytearHorde.Business.Services.Search
             {
                 searcher.And().Field("DecksOnly", 1.ToString());
             }
+            if (query.OnlyMainVariants)
+            {
+                searcher.And().Field("IsMainVariant", 1.ToString());
+            }
 
             if (!string.IsNullOrWhiteSpace(query.Query))
             {

@@ -17,6 +17,7 @@ const props = defineProps<{
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
   collectionOnlyMode?: boolean;
+  deckBuilderMode?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -78,6 +79,7 @@ async function loadData(value: OverviewRefreshModel) {
     variantTypeId: 0,
     onlyOwnedCards: props.collectionOnlyMode,
     sortBy: value.SortBy,
+    onlyMainVariants: props.deckBuilderMode,
   });
   if (value.LoadedCallback) {
     value.LoadedCallback();

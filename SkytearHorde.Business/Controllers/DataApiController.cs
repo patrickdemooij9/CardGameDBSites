@@ -23,7 +23,8 @@ namespace SkytearHorde.Business.Controllers
             {
                 Query = term,
                 IncludeHideFromDeck = false,
-                VariantTypeId = 0
+                VariantTypeId = 0,
+                OnlyMainVariants = true
             }, out _);
             return Ok(cards.Select(it => new
             {

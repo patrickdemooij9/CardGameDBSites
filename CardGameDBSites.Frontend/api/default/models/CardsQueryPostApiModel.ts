@@ -12,5 +12,6 @@ export type CardsQueryPostApiModel = {
     filterClauses?: Array<CardsQueryFilterClauseApiModel>;
     onlyOwnedCards?: boolean;
     sortBy?: string | null;
+    onlyMainVariants?: boolean;
 };
 

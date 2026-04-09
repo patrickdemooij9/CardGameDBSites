@@ -171,6 +171,7 @@ async function toggleMarkdownPreview() {
         :white-background="false"
         :enable-query-string-sync="false"
         :collection-only-mode="collectionOnlyMode"
+        :deck-builder-mode="true"
         v-slot="{cards}"
       >
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-5">

@@ -22,6 +22,14 @@ namespace SkytearHorde.Business.Startup.Indexes
         public IEnumerable<ValueSet> GetValueSets(params Card[] contents)
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+
+            // Determine the main base variant per card (lowest VariantId among base variants with VariantTypeId == null)
+            var mainVariantIds = contents
+                .Where(it => it.VariantTypeId == null)
+                .GroupBy(it => it.BaseId)
+                .Select(g => g.OrderBy(it => it.VariantId).First().VariantId)
+                .ToHashSet();
+
             foreach (var content in contents)
             {
                 var indexValues = new Dictionary<string, IEnumerable<object>>
@@ -31,6 +39,7 @@ namespace SkytearHorde.Business.Startup.Indexes
                     ["name"] = [content.DisplayName!],
                     ["CustomField.baseId"] = [content.BaseId],
                     ["id"] = [content.VariantId],
+                    ["IsMainVariant"] = [mainVariantIds.Contains(content.VariantId) ? 1 : 0],
                 };
 
                 HandleCardValues(indexValues, content, ctx.UmbracoContext);

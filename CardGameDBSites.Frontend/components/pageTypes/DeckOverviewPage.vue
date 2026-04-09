@@ -6,21 +6,17 @@ const props = defineProps<{
   content: DeckOverviewContentModel;
 }>();
 
-const typeId: number | undefined = props.content.properties?.squadSettingsId ?? undefined;
+const typeId: number | undefined =
+  props.content.properties?.squadSettingsId ?? undefined;
 </script>
 
 <template>
-  <div class="container px-4 py-4 md:px-8 mb-16">
-    <div class="row justify-center">
-      <div class="section-title">
-        <h1>{{ content.properties?.title }}</h1>
-        <p v-html="content.properties?.description?.markup"></p>
-      </div>
-    </div>
-
+  <div class="container px-4 pt-8 md:px-8 mb-6">
+    <h1>{{ content.properties?.title }}</h1>
+    <span v-html="content.properties?.description?.markup"></span>
     <DeckOverview
-      :decks-per-row="content.properties?.decksPerRow ?? 4"
-      :type-id="typeId"
-    ></DeckOverview>
+    :decks-per-row="content.properties?.decksPerRow ?? 4"
+    :type-id="typeId"
+  ></DeckOverview>
   </div>
 </template>

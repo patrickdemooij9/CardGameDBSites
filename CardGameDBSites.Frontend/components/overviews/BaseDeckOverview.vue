@@ -22,12 +22,19 @@ const overview = ref<InstanceType<typeof Overview>>();
 
 const filters: OverviewFilterModel[] = [
   {
-    Alias: "dateRange",
-    DisplayName: "Created Date",
-    Type: OverviewFilterType.DATE_RANGE,
+    Alias: "fromDate",
+    DisplayName: "Created start date",
+    Type: OverviewFilterType.DATE,
     Items: [],
     AutoFillValues: false,
   },
+  {
+    Alias: "toDate",
+    DisplayName: "Created end date",
+    Type: OverviewFilterType.DATE,
+    Items: [],
+    AutoFillValues: false,
+  }
 ];
 
 async function loadData(value: OverviewRefreshModel) {
@@ -35,9 +42,10 @@ async function loadData(value: OverviewRefreshModel) {
   let dateTo: string | undefined;
 
   value.SelectedFilters.forEach((values, filter) => {
-    if (filter.Alias === "dateRange") {
+    if (filter.Alias === "fromDate") {
       if (values[0]) dateFrom = values[0];
-      if (values[1]) dateTo = values[1];
+    } else if (filter.Alias === "toDate") {
+      if (values[0]) dateTo = values[0];
     }
   });
 
@@ -60,7 +68,7 @@ async function loadData(value: OverviewRefreshModel) {
 <template>
   <Overview
     :hide-search="true"
-    :hide-filters="true"
+    :hide-filters="false"
     :white-background="false"
     :enable-query-string-sync="true"
     :filters="filters"

@@ -1,6 +1,7 @@
 import type { CollectionCardApiModel, DeckProgressApiModel } from "~/api/default";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
 import type { PackPostApiModel, PackVerifySuccessApiModel, PackVerifyErrorApiModel } from "~/models/PackApiModel";
+import type { PresetApiModel } from "~/models/PresetApiModel";
 
 export function useCollection() {
   const store = useCollectionStore();
@@ -85,6 +86,21 @@ export function useCollection() {
     );
   };
 
+  const getPresets = async (): Promise<PresetApiModel[]> => {
+    return await DoServerFetch<PresetApiModel[]>("/api/collection/presets");
+  };
+
+  const applyPreset = async (presetId: string): Promise<void> => {
+    await DoServerFetch(
+      "/api/collection/addPreset",
+      true,
+      {
+        method: "POST",
+        query: { presetId }
+      }
+    );
+  };
+
   const getCards = (cardId: number) => store.getCards(cardId);
   const getAmount = (cardId: number) => store.amount(cardId);
 
@@ -94,6 +110,8 @@ export function useCollection() {
     saveCards,
     verifyPack,
     addPack,
+    getPresets,
+    applyPreset,
     getCards,
     getAmount,
   };

@@ -62,6 +62,7 @@ export type { PackVerifyErrorApiModel } from './models/PackVerifyErrorApiModel';
 export type { PackVerifySuccessApiModel } from './models/PackVerifySuccessApiModel';
 export type { PagedResultCardDetailApiModel } from './models/PagedResultCardDetailApiModel';
 export type { PagedResultDeckApiModel } from './models/PagedResultDeckApiModel';
+export type { PresetApiModel } from './models/PresetApiModel';
 export type { RegisterPostModel } from './models/RegisterPostModel';
 export type { RequirementApiModel } from './models/RequirementApiModel';
 export { RestrictionType } from './models/RestrictionType';

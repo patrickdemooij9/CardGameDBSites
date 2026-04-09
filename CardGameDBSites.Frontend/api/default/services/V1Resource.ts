@@ -25,6 +25,7 @@ import type { PackPostApiModel } from '../models/PackPostApiModel';
 import type { PackVerifySuccessApiModel } from '../models/PackVerifySuccessApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
+import type { PresetApiModel } from '../models/PresetApiModel';
 import type { RegisterPostModel } from '../models/RegisterPostModel';
 import type { SetOverviewSettingsApiModel } from '../models/SetOverviewSettingsApiModel';
 import type { SetProgressApiModel } from '../models/SetProgressApiModel';
@@ -259,6 +260,23 @@ export class V1Resource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiCollectionAddPreset({
+        presetId,
+    }: {
+        presetId?: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/addPreset',
+            query: {
+                'presetId': presetId,
+            },
+        });
+    }
+    /**
      * @returns CollectionCardApiModel OK
      * @throws ApiError
      */
@@ -278,13 +296,13 @@ export class V1Resource {
      * @returns DeckProgressApiModel OK
      * @throws ApiError
      */
-    public static getApiCollectionDecksProgress({
+    public static postApiCollectionDecksProgress({
         requestBody,
     }: {
         requestBody?: Array<number>,
     }): CancelablePromise<Array<DeckProgressApiModel>> {
         return __request(OpenAPI, {
-            method: 'GET',
+            method: 'POST',
             url: '/api/collection/decksProgress',
             body: requestBody,
             mediaType: 'application/json',
@@ -322,6 +340,16 @@ export class V1Resource {
             query: {
                 'overwrite': overwrite,
             },
+        });
+    }
+    /**
+     * @returns PresetApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCollectionPresets(): CancelablePromise<Array<PresetApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/collection/presets',
         });
     }
     /**
@@ -493,6 +521,23 @@ export class V1Resource {
             url: '/api/deckbuilder/submitLoggedIn',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static deleteApiDecksDeleteDeck({
+        deckId,
+    }: {
+        deckId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/decks/deleteDeck',
+            query: {
+                'deckId': deckId,
+            },
         });
     }
     /**
@@ -687,6 +732,23 @@ export class V1Resource {
             url: '/api/settings/deckBuilder',
             query: {
                 'typeId': typeId,
+            },
+        });
+    }
+    /**
+     * @returns DeckBuilderApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSettingsDeckBuilderByGuid({
+        typeGuid,
+    }: {
+        typeGuid?: string,
+    }): CancelablePromise<DeckBuilderApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/settings/deckBuilderByGuid',
+            query: {
+                'typeGuid': typeGuid,
             },
         });
     }

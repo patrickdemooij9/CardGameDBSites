@@ -10,6 +10,7 @@ export type SiteSettingsPropertiesModel = {
     siteId?: number | null;
     mainColor?: string | null;
     hoverMainColor?: string | null;
+    cardOverviewIdentifier?: string | null;
     faviconFolder?: Array<IApiMediaWithCropsModel> | null;
     faviconColor?: string | null;
     forgotPasswordEmail?: string | null;

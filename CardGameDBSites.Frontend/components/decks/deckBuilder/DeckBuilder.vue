@@ -10,6 +10,10 @@ import { useSite } from "~/composables/useSite";
 import DeckService from "~/services/DeckService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 
+const props = defineProps<{
+  typeId: string
+}>();
+
 const route = useRoute();
 const router = useRouter();
 const isLoading = ref(true);
@@ -21,7 +25,7 @@ if (route.query["id"]) {
   }
 }
 
-const deckSettings = await useSite().getDeckBuilderSettings(1, deckId)!;
+const deckSettings = await useSite().getDeckBuilderSettings(props.typeId, deckId)!;
 const deckTypeSettings = ref<DeckTypeSettingsApiModel | undefined>(undefined);
 
 if (deckSettings.typeId) {

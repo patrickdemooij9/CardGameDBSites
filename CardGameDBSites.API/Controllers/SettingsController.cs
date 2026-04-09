@@ -13,6 +13,7 @@ using SkytearHorde.Entities.Models.ViewModels.Squad;
 using SkytearHorde.Entities.Models.ViewModels.Squad.Amounts;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
 namespace CardGameDBSites.API.Controllers
@@ -24,11 +25,16 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly SettingsService _settingsService;
         private readonly ISiteService _siteService;
+        private readonly IUmbracoContextFactory _umbracoContextFactory;
 
-        public SettingsController(SettingsService settingsService, ISiteService siteService)
+        public SettingsController(
+            SettingsService settingsService,
+            ISiteService siteService,
+            IUmbracoContextFactory umbracoContextFactory)
         {
             _settingsService = settingsService;
             _siteService = siteService;
+            _umbracoContextFactory = umbracoContextFactory;
         }
 
         [HttpGet("site")]
@@ -174,6 +180,7 @@ namespace CardGameDBSites.API.Controllers
 
             return Ok(new DeckBuilderApiModel
             {
+                Id = deckTypeSettings.TypeID,
                 Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel
                 {
                     Id = it.SquadId,
@@ -193,6 +200,16 @@ namespace CardGameDBSites.API.Controllers
                     })]
                 })]
             });
+        }
+
+        [HttpGet("deckBuilderByGuid")]
+        [ProducesResponseType(typeof(DeckBuilderApiModel), 200)]
+        public IActionResult GetDeckBuilderSettings(Guid typeGuid) //TODO: Eventually clean up this endpoint
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            var content = (ctx.UmbracoContext.Content!.GetById(typeGuid) as SquadSettings).TypeID;
+
+            return GetDeckBuilderSettings(content);
         }
 
         private DeckBuilderDeckCardGroupApiModel[] GetGroupsForSlot(SquadSlotConfig slot)

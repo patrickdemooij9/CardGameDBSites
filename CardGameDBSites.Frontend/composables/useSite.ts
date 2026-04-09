@@ -62,16 +62,16 @@ export function useSite() {
     return data.value!;
   };
 
-  const getDeckBuilderSettings = async (typeId: number, deckId?: number): Promise<CreateDeckModel> => {
+  const getDeckBuilderSettings = async (typeId: string, deckId?: number): Promise<CreateDeckModel> => {
     const { data } = await useAsyncData(`deck-builder-settings-${typeId}`, () =>
-      DoFetch<DeckBuilderApiModel>("/api/settings/deckBuilder", {
-        query: { typeId }
+      DoFetch<DeckBuilderApiModel>("/api/settings/deckBuilderByGuid", {
+        query: { typeGuid: typeId }
       })
     );
 
     const result = data.value;
     const model = new CreateDeckModel();
-    model.typeId = typeId;
+    model.typeId = result?.id;
     model.groups = result?.groups?.map<CreateDeckGroup>((group) => {
       const deckGroup = new CreateDeckGroup();
       deckGroup.id = group.id;

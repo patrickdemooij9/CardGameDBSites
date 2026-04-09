@@ -5,7 +5,7 @@ import CreateDeckSlot from "~/components/decks/deckBuilder/models/CreateDeckSlot
 import CreateDeckCardGroup from "~/components/decks/deckBuilder/models/CreateDeckCardGroup";
 import { FixedDeckAmountConfig } from "~/components/decks/deckBuilder/models/CreateDeckSlotAmount";
 import type { CardDetailApiModel } from "~/api/default";
-import { GetCardValue } from "~/helpers/CardHelper";
+import { computeCostCurve } from "~/helpers/CostCurveHelper";
 
 function makeCard(
   id: number,
@@ -31,40 +31,6 @@ function buildDeck(
   return deck;
 }
 
-/**
- * Replicates the cost curve computation from DeckCostCurve.vue so it can be
- * tested independently.
- */
-function computeCostCurve(
-  deck: CreateDeckModel,
-  costAttr = "Cost",
-): { label: string; count: number; heightPercent: number }[] {
-  const counts: Record<string, number> = {};
-
-  deck.getCards().forEach(({ card, amount }) => {
-    const cost = GetCardValue<string>(card, costAttr);
-    if (cost === null || cost === undefined) return;
-    const key = String(cost);
-    counts[key] = (counts[key] ?? 0) + amount;
-  });
-
-  if (Object.keys(counts).length === 0) return [];
-
-  const sortedKeys = Object.keys(counts).sort((a, b) => {
-    const numA = Number(a);
-    const numB = Number(b);
-    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-    return a.localeCompare(b);
-  });
-
-  const max = Math.max(...Object.values(counts));
-
-  return sortedKeys.map((key) => ({
-    label: key,
-    count: counts[key],
-    heightPercent: max > 0 ? Math.round((counts[key] / max) * 100) : 0,
-  }));
-}
 
 describe("DeckCostCurve", () => {
   describe("computeCostCurve", () => {

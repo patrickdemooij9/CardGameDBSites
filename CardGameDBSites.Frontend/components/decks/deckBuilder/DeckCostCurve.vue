@@ -1,42 +1,15 @@
 <script setup lang="ts">
-import { GetCardValue } from "~/helpers/CardHelper";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
+import { computeCostCurve } from "~/helpers/CostCurveHelper";
 
 const props = defineProps<{
   deck: CreateDeckModel;
   costAttribute?: string;
 }>();
 
-const costAttr = computed(() => props.costAttribute ?? "Cost");
-
-const costCurve = computed(() => {
-  const counts: Record<string, number> = {};
-
-  props.deck.getCards().forEach(({ card, amount }) => {
-    const cost = GetCardValue<string>(card, costAttr.value);
-    if (cost === null || cost === undefined) return;
-    const key = String(cost);
-    counts[key] = (counts[key] ?? 0) + amount;
-  });
-
-  if (Object.keys(counts).length === 0) return [];
-
-  // Sort cost keys numerically if possible, otherwise lexicographically
-  const sortedKeys = Object.keys(counts).sort((a, b) => {
-    const numA = Number(a);
-    const numB = Number(b);
-    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-    return a.localeCompare(b);
-  });
-
-  const max = Math.max(...Object.values(counts));
-
-  return sortedKeys.map((key) => ({
-    label: key,
-    count: counts[key],
-    heightPercent: max > 0 ? Math.round((counts[key] / max) * 100) : 0,
-  }));
-});
+const costCurve = computed(() =>
+  computeCostCurve(props.deck, props.costAttribute ?? "Cost"),
+);
 </script>
 
 <template>

@@ -300,9 +300,9 @@ public class CollectionApiController : Controller
                     variant = card.FirstChild<CardVariant>(it => it.VariantType is null);
                 }
 
-                if (variant is null) continue;
+                if (variant is null || variant.Parent is null) continue;
 
-                _collectionService.AddCard(variant.Parent!.Id, variant.Id, presetItem.Amount);
+                _collectionService.AddCard(variant.Parent.Id, variant.Id, presetItem.Amount);
             }
 
             return Ok();

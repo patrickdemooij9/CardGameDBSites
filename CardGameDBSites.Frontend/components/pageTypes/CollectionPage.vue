@@ -121,7 +121,7 @@ onMounted(async () => {
   isLoading.value = false;
 });
 
-async function handlePackAdded() {
+async function handleCollectionUpdated() {
   summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
     "/api/collection/summary",
   );
@@ -267,13 +267,13 @@ async function handlePackAdded() {
     :sets="sets"
     :variant-types="variantTypes"
     @close="showPackPopup = false"
-    @added="handlePackAdded"
+    @added="handleCollectionUpdated"
   />
 
   <CollectionPresetModal
     v-if="showPresetPopup"
     :presets="presets"
     @close="showPresetPopup = false"
-    @applied="handlePackAdded"
+    @applied="handleCollectionUpdated"
   />
 </template>

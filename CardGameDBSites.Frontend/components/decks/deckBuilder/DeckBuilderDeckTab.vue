@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CardDetailApiModel } from "~/api/default";
 import type { DeckTypeSettingsApiModel } from "~/api/default";
+import { RestrictionType } from "~/api/default";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
 import { PhCaretRight, PhCheckCircle, PhGear, PhMinus, PhPlus, PhTrash, PhWarning } from "@phosphor-icons/vue";
@@ -136,6 +137,17 @@ function hasEnoughInCollection(card: CardDetailApiModel): boolean {
   const needed = getNeededAmount(card);
   return owned >= needed;
 }
+
+const hasPassiveRequirements = computed(() => {
+  return props.deck.groups.some((group) => {
+    if (group.requirements.some((req) => req.restrictionType === RestrictionType.PASSIVE)) {
+      return true;
+    }
+    return group.slots.some((slot) =>
+      slot.requirements.some((req) => req.restrictionType === RestrictionType.PASSIVE)
+    );
+  });
+});
 </script>
 
 <template>
@@ -161,7 +173,7 @@ function hasEnoughInCollection(card: CardDetailApiModel): boolean {
             <template #popper>
               <div class="px-4 py-2">
                 <h3 class="text-base mb-2">Editor configurations</h3>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" v-if="hasPassiveRequirements">
                   <input type="checkbox" id="filterMode" @click="$emit('ignorePassiveFilters', !ignorePassiveFilters)" v-bind:checked="!ignorePassiveFilters" />
                   <label for="filterMode" class="flex items-center gap-2">
                     Only show cards that fit in the deck.

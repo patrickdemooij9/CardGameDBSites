@@ -9,6 +9,7 @@
         public int? VariantTypeId { get; set; }
         public CardsQueryFilterClauseApiModel[] FilterClauses { get; set; }
         public bool OnlyOwnedCards { get; set; }
+        public string? SortBy { get; set; }
 
         public CardsQueryPostApiModel()
         {

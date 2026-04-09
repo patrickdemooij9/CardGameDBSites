@@ -4,9 +4,11 @@ using CardGameDBSites.API.Models.Cards;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using RedditSharp;
+using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Search;
+using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Models.Business;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Security;
@@ -25,6 +27,7 @@ namespace CardGameDBSites.API.Controllers
         private readonly CollectionService _collectionService;
         private readonly CardPriceService _cardPriceService;
         private readonly SettingsService _settingsService;
+        private readonly ISiteService _siteService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IMemberManager _memberManager;
 
@@ -33,6 +36,7 @@ namespace CardGameDBSites.API.Controllers
             CollectionService collectionService,
             CardPriceService cardPriceService,
             SettingsService settingsService,
+            ISiteService siteService,
             IUmbracoContextFactory umbracoContextFactory,
             IMemberManager memberManager)
         {
@@ -41,6 +45,7 @@ namespace CardGameDBSites.API.Controllers
             _collectionService = collectionService;
             _cardPriceService = cardPriceService;
             _settingsService = settingsService;
+            _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
             _memberManager = memberManager;
         }
@@ -80,10 +85,22 @@ namespace CardGameDBSites.API.Controllers
         public IActionResult Query(CardsQueryPostApiModel model)
         {
             var sorting = new List<CardSorting>();
-            var defaultSortOptions = _settingsService.GetSiteSettings().SortOptions;
-            if (defaultSortOptions.All(it => it.Values?.Any() != true))
+            if (!string.IsNullOrWhiteSpace(model.SortBy))
             {
-                sorting.AddRange(defaultSortOptions.Select(it => new CardSorting(it.ExamineField.IfNullOrWhiteSpace($"CustomField.{it.Ability?.Name}")) { IsDescending = it.Descending }));
+                var cardOverview = _siteService.GetCardOverview();
+                var selectedSorting = cardOverview.Sortings.ToItems<SkytearHorde.Entities.Generated.SortingItem>().FirstOrDefault(it => it.Value == model.SortBy);
+                if (selectedSorting != null && !string.IsNullOrWhiteSpace(selectedSorting.ExamineField))
+                {
+                    sorting.Add(new CardSorting(selectedSorting.ExamineField) { IsDescending = selectedSorting.Descending });
+                }
+            }
+            else
+            {
+                var defaultSortOptions = _settingsService.GetSiteSettings().SortOptions;
+                if (defaultSortOptions.All(it => it.Values?.Any() != true))
+                {
+                    sorting.AddRange(defaultSortOptions.Select(it => new CardSorting(it.ExamineField.IfNullOrWhiteSpace($"CustomField.{it.Ability?.Name}")) { IsDescending = it.Descending }));
+                }
             }
 
             int? memberId = null;

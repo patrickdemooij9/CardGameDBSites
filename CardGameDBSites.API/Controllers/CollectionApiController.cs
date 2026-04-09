@@ -3,11 +3,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Exports.Collection;
+using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
+using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
+using Umbraco.Extensions;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -22,18 +26,21 @@ public class CollectionApiController : Controller
         private readonly CardService _cardService;
         private readonly SettingsService _settingsService;
         private readonly DeckService _deckService;
+        private readonly ISiteService _siteService;
 
         public CollectionApiController(CollectionService collectionService,
             CardPriceService cardPriceService,
             CardService cardService,
             SettingsService settingsService,
-            DeckService deckService)
+            DeckService deckService,
+            ISiteService siteService)
         {
             _collectionService = collectionService;
             _cardPriceService = cardPriceService;
             _cardService = cardService;
             _settingsService = settingsService;
             _deckService = deckService;
+            _siteService = siteService;
         }
 
         [HttpGet("summary")]
@@ -252,6 +259,51 @@ public class CollectionApiController : Controller
             }).ToArray();
 
             _collectionService.AddPack(postModel.SetId, items);
+
+            return Ok();
+        }
+
+        [HttpGet("presets")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(PresetApiModel[]), 200)]
+        public IActionResult GetPresets()
+        {
+            var collectionPage = _siteService.GetCollectionPage();
+            if (collectionPage is null) return Ok(Array.Empty<PresetApiModel>());
+
+            var presets = collectionPage.Presets.ToItems<CardsPreset>().Select(it => new PresetApiModel
+            {
+                Id = it.Key,
+                Name = it.DisplayName ?? "",
+                // TODO: Add image once backend support is available
+                CardCount = it.Items.ToItems<CardsPresetItem>().Sum(item => item.Amount)
+            }).ToArray();
+
+            return Ok(presets);
+        }
+
+        [HttpPost("addPreset")]
+        [ProducesResponseType(200)]
+        public IActionResult AddPreset(Guid presetId)
+        {
+            var collectionPage = _siteService.GetCollectionPage();
+            if (collectionPage is null) return NotFound();
+
+            var preset = collectionPage.Presets.ToItems<CardsPreset>().FirstOrDefault(it => it.Key == presetId);
+            if (preset is null) return NotFound();
+
+            foreach (var presetItem in preset.Items.ToItems<CardsPresetItem>())
+            {
+                var variant = presetItem.Card as CardVariant;
+                if (presetItem.Card is SkytearHorde.Entities.Generated.Card card)
+                {
+                    variant = card.FirstChild<CardVariant>(it => it.VariantType is null);
+                }
+
+                if (variant is null || variant.Parent is null) continue;
+
+                _collectionService.AddCard(variant.Parent.Id, variant.Id, presetItem.Amount);
+            }
 
             return Ok();
         }

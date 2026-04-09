@@ -10,19 +10,24 @@ import SetOverview from "../overviews/SetOverview.vue";
 import ProgressBar from "../shared/ProgressBar.vue";
 import PopupBase from "../popups/PopupBase.vue";
 import CardPackModal from "../popups/CardPackModal.vue";
+import CollectionPresetModal from "../popups/CollectionPresetModal.vue";
 import { PopupSize } from "../popups/PopupTypes";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
+import type { PresetApiModel } from "~/models/PresetApiModel";
+import { useCollection } from "~/composables/useCollection";
 
 const accountStore = useAccountStore();
 const isLoggedIn = await useAccountStore().checkLogin();
 const appToast = useAppToast();
+const collectionComposable = useCollection();
 const showProgressBar = true;
 const progressPercent = 44.5;
 const isLoading = ref(true);
 const showExportPopup = ref(false);
 const showImportPopup = ref(false);
 const showPackPopup = ref(false);
+const showPresetPopup = ref(false);
 const isImporting = ref(false);
 const importError = ref("");
 const selectedFile = ref<File | null>(null);
@@ -30,6 +35,7 @@ const overwriteCollection = ref(false);
 
 const sets = ref<SetViewModel[]>([]);
 const variantTypes = ref<CardVariantTypeApiModel[]>([]);
+const presets = ref<PresetApiModel[]>([]);
 
 const summaryData = ref<CollectionSummaryApiModel>({
   uniqueCards: 0,
@@ -111,10 +117,11 @@ onMounted(async () => {
   variantTypes.value = await DoServerFetch<CardVariantTypeApiModel[]>(
     "/api/cards/variantTypes",
   );
+  presets.value = await collectionComposable.getPresets();
   isLoading.value = false;
 });
 
-async function handlePackAdded() {
+async function handleCollectionUpdated() {
   summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
     "/api/collection/summary",
   );
@@ -135,6 +142,7 @@ async function handlePackAdded() {
           <small>Your progress towards a full collection.</small>
         </div>
         <div class="flex gap-4" v-if="accountStore.isLoggedIn">
+          <button v-if="presets.length > 0" class="btn" @click="showPresetPopup = true">Add preset</button>
           <button class="btn" @click="showPackPopup = true">Add pack</button>
           <button class="btn" @click="showExportPopup = true">Export</button>
           <button class="btn" @click="showImportPopup = true">Import</button>
@@ -259,6 +267,13 @@ async function handlePackAdded() {
     :sets="sets"
     :variant-types="variantTypes"
     @close="showPackPopup = false"
-    @added="handlePackAdded"
+    @added="handleCollectionUpdated"
+  />
+
+  <CollectionPresetModal
+    v-if="showPresetPopup"
+    :presets="presets"
+    @close="showPresetPopup = false"
+    @applied="handleCollectionUpdated"
   />
 </template>

@@ -139,14 +139,12 @@ function hasEnoughInCollection(card: CardDetailApiModel): boolean {
 }
 
 const hasPassiveRequirements = computed(() => {
-  return props.deck.groups.some((group) => {
-    if (group.requirements.some((req) => req.restrictionType === RestrictionType.PASSIVE)) {
-      return true;
-    }
-    return group.slots.some((slot) =>
+  return props.deck.groups.some((group) =>
+    group.requirements.some((req) => req.restrictionType === RestrictionType.PASSIVE) ||
+    group.slots.some((slot) =>
       slot.requirements.some((req) => req.restrictionType === RestrictionType.PASSIVE)
-    );
-  });
+    )
+  );
 });
 </script>
 

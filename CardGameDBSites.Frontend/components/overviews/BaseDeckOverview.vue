@@ -3,18 +3,27 @@ import { DeckStatus, type PagedResultDeckApiModel } from "~/api/default";
 import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
+import type { OverviewSortModel } from "./OverviewSortModel";
 import Overview from "./Overview.vue";
 
 const props = defineProps<{
   decksPerRow: number;
   typeId?: number;
   userId?: number;
+  sortings?: OverviewSortModel[];
 }>();
 
 const deckService = new DeckService();
 
 const pagedDecks = ref<PagedResultDeckApiModel>();
 const overview = ref<InstanceType<typeof Overview>>();
+
+const defaultSortings: OverviewSortModel[] = [
+  { Name: "Popular", Value: "popular" },
+  { Name: "Newest", Value: "newest" },
+];
+
+const effectiveSortings = computed(() => props.sortings ?? defaultSortings);
 
 async function loadData(value: OverviewRefreshModel) {
   pagedDecks.value = await deckService.query({
@@ -23,6 +32,7 @@ async function loadData(value: OverviewRefreshModel) {
     userId: props.userId,
     typeId: props.typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
+    orderBy: value.SortBy,
   });
 
   if (value.LoadedCallback) {
@@ -38,6 +48,7 @@ async function loadData(value: OverviewRefreshModel) {
     :white-background="false"
     :enable-query-string-sync="true"
     :filters="[]"
+    :sortings="effectiveSortings"
     @reload="loadData"
     ref="overview"
   >

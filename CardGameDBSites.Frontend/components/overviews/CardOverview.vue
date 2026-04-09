@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { OverviewFilterModel } from "./OverviewFilterModel";
+import type { OverviewSortModel } from "./OverviewSortModel";
 import {
   CardSearchFilterClauseType,
   type CardDetailApiModel,
@@ -28,6 +29,7 @@ const sets = ref<SetViewModel[]>([]);
 
 const props = defineProps<{
   filters: OverviewFilterModel[];
+  sortings?: OverviewSortModel[];
   setId?: number;
 }>();
 
@@ -127,6 +129,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
   <BaseCardOverview
     v-else
     :filters="filters"
+    :sortings="sortings"
     :internal-filters="internalFilters"
     :white-background="true"
     :enable-query-string-sync="true"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Overview from "./Overview.vue";
 import type { OverviewFilterModel } from "./OverviewFilterModel";
+import type { OverviewSortModel } from "./OverviewSortModel";
 import {
   CardSearchFilterClauseType,
   type CardsQueryFilterApiModel,
@@ -11,6 +12,7 @@ import type OverviewRefreshModel from "./OverviewRefreshModel";
 
 const props = defineProps<{
   filters: OverviewFilterModel[];
+  sortings?: OverviewSortModel[];
   internalFilters?: CardsQueryFilterClauseApiModel[];
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
@@ -75,6 +77,7 @@ async function loadData(value: OverviewRefreshModel) {
     filterClauses: filters,
     variantTypeId: 0,
     onlyOwnedCards: props.collectionOnlyMode,
+    sortBy: value.SortBy,
   });
   if (value.LoadedCallback) {
     value.LoadedCallback();
@@ -99,6 +102,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :hide-filters="false"
     :white-background="whiteBackground"
     :filters="filters"
+    :sortings="sortings"
     :enable-query-string-sync="enableQueryStringSync"
     @reload="loadData"
     @loadLazyFilter="loadLazyFilter"

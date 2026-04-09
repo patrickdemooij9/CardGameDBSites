@@ -3,16 +3,22 @@ import { DeckStatus, type PagedResultDeckApiModel } from "~/api/default";
 import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
+import type { OverviewSortModel } from "./OverviewSortModel";
 import Overview from "./Overview.vue";
+<<<<<<< copilot/add-date-range-filter-decks
 import {
   OverviewFilterType,
   type OverviewFilterModel,
 } from "./OverviewFilterModel";
+=======
+import { OverviewFilterType, type OverviewFilterModel } from "./OverviewFilterModel";
+>>>>>>> main
 
 const props = defineProps<{
   decksPerRow: number;
   typeId?: number;
   userId?: number;
+  sortings?: OverviewSortModel[];
 }>();
 
 const deckService = new DeckService();
@@ -20,17 +26,33 @@ const deckService = new DeckService();
 const pagedDecks = ref<PagedResultDeckApiModel>();
 const overview = ref<InstanceType<typeof Overview>>();
 
+<<<<<<< copilot/add-date-range-filter-decks
 const filters: OverviewFilterModel[] = [
   {
     Alias: "dateRange",
     DisplayName: "Created Date",
     Type: OverviewFilterType.DATE_RANGE,
+=======
+const defaultSortings: OverviewSortModel[] = [
+  { Name: "Popular", Value: "popular" },
+  { Name: "Newest", Value: "newest" },
+];
+
+const effectiveSortings = computed(() => props.sortings ?? defaultSortings);
+
+const filters: OverviewFilterModel[] = [
+  {
+    Alias: "card",
+    DisplayName: "Contains card",
+    Type: OverviewFilterType.TEXT_INPUT,
+>>>>>>> main
     Items: [],
     AutoFillValues: false,
   },
 ];
 
 async function loadData(value: OverviewRefreshModel) {
+<<<<<<< copilot/add-date-range-filter-decks
   let dateFrom: string | undefined;
   let dateTo: string | undefined;
 
@@ -41,14 +63,24 @@ async function loadData(value: OverviewRefreshModel) {
     }
   });
 
+=======
+  const cardFilter = value.SelectedFilters.get(filters[0]);
+  const cardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : undefined;
+  
+>>>>>>> main
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,
     take: 20,
     userId: props.userId,
     typeId: props.typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
+<<<<<<< copilot/add-date-range-filter-decks
     dateFrom: dateFrom || null,
     dateTo: dateTo || null,
+=======
+    orderBy: value.SortBy,
+    cards: cardIds,
+>>>>>>> main
   });
 
   if (value.LoadedCallback) {
@@ -60,9 +92,13 @@ async function loadData(value: OverviewRefreshModel) {
 <template>
   <Overview
     :hide-search="true"
-    :hide-filters="true"
+    :hide-filters="false"
     :white-background="false"
     :enable-query-string-sync="true"
+<<<<<<< copilot/add-date-range-filter-decks
+=======
+    :sortings="effectiveSortings"
+>>>>>>> main
     :filters="filters"
     @reload="loadData"
     ref="overview"

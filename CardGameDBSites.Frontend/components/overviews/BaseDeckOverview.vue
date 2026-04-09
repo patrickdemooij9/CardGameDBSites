@@ -12,11 +12,49 @@ const props = defineProps<{
 }>();
 
 const deckService = new DeckService();
+const route = useRoute();
 
-const pagedDecks = ref<PagedResultDeckApiModel>();
+const initialPage = route.query["page"]
+  ? Number.parseInt(route.query["page"] as string)
+  : 1;
+
+const { data: ssrData } = await useAsyncData(
+  `deck-overview-${props.typeId ?? 0}-${props.userId ?? 0}-${initialPage}`,
+  () =>
+    deckService.query({
+      page: initialPage,
+      take: 20,
+      userId: props.userId,
+      typeId: props.typeId,
+      status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
+    })
+);
+
+const pagedDecks = ref<PagedResultDeckApiModel | undefined>(
+  ssrData.value ?? undefined
+);
 const overview = ref<InstanceType<typeof Overview>>();
 
+let initialLoadHandled = false;
+
 async function loadData(value: OverviewRefreshModel) {
+  // On the first call, if we already have SSR data for the same page, skip the
+  // re-fetch. This prevents a hydration mismatch caused by the server having
+  // data while the client starts empty.
+  if (
+    !initialLoadHandled &&
+    value.PageNumber === initialPage &&
+    pagedDecks.value
+  ) {
+    initialLoadHandled = true;
+    if (value.LoadedCallback) {
+      value.LoadedCallback();
+    }
+    return;
+  }
+
+  initialLoadHandled = true;
+
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,
     take: 20,

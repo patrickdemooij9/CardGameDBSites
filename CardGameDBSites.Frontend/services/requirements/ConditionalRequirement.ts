@@ -8,12 +8,14 @@ import RequirementType from "./RequirementType";
 import EqualValueRequirement from "./EqualValueRequirement";
 import NotEqualValueRequirement from "./NotEqualValueRequirement";
 import ResourceRequirement from "./ResourceRequirement";
+import SameValueRequirement from "./SameValueRequirement";
 
 //TODO: Move to better location
 const requirementHandlers: IRequirement[] = [
   new EqualValueRequirement(),
   new NotEqualValueRequirement(),
   new ResourceRequirement(),
+  new SameValueRequirement(),
 ];
 
 interface IConditionalRequirementConfig {

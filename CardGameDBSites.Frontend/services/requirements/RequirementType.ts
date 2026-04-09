@@ -3,6 +3,7 @@ enum RequirementType {
     NotEqualValue = "NotEqualValue",
     Resource = "Resource",
     Conditional = "Conditional",
+    SameValue = "SameValue",
 }
 
 export default RequirementType;

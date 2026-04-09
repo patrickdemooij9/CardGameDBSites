@@ -18,6 +18,9 @@ namespace SkytearHorde.Entities.Models.Business.Repository
         public int? UseUserCollectionId { get; set; }
         //public CollectionCardItem[] CollectionItems { get; set; }
 
+        public DateTime? DateFrom { get; set; }
+        public DateTime? DateTo { get; set; }
+
         public DeckPagedRequest(int? typeId = null)
         {
             TypeId = typeId;
@@ -34,7 +37,7 @@ namespace SkytearHorde.Entities.Models.Business.Repository
 
         public string ToCacheKey()
         {
-            return $"{SiteId}-{TypeId}-{Status}-{Take}-{Page}-{OrderBy}-{UserId}";
+            return $"{SiteId}-{TypeId}-{Status}-{Take}-{Page}-{OrderBy}-{UserId}-{DateFrom}-{DateTo}";
         }
     }
 }

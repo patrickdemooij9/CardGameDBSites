@@ -18,6 +18,7 @@ import {
   OverviewFilterType,
   type OverviewFilterModel,
 } from "~/components/overviews/OverviewFilterModel";
+import DeckCostCurve from "./DeckCostCurve.vue";
 
 const emit = defineEmits<{
   (e: "update:currentTab", value: DeckBuilderTab): void;
@@ -128,27 +129,27 @@ async function toggleMarkdownPreview() {
     class="md:block px-4 md:px-8 py-4 grow bg-gray-100"
     :class="currentTab === DeckBuilderTab.Deck ? 'hidden' : ''"
   >
-    <div class="gap-4 text-lg hidden md:flex">
+    <div class="gap-2 hidden md:flex">
       <button
-        class="hover:border-b-2 hover:border-main-color"
+        class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border"
         type="button"
         :class="
           currentTab === DeckBuilderTab.Cards ||
           currentTab === DeckBuilderTab.Deck
-            ? 'border-b-2 border-main-color'
-            : ''
+            ? 'bg-main-color text-white border-main-color'
+            : 'bg-white text-gray-600 border-gray-300 hover:border-main-color hover:text-gray-900'
         "
         v-on:click="emit('update:currentTab', DeckBuilderTab.Cards)"
       >
         Cards
       </button>
       <button
-        class="hover:border-b-2 hover:border-main-color"
+        class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors border"
         type="button"
         :class="
           currentTab === DeckBuilderTab.Details
-            ? 'border-b-2 border-main-color'
-            : ''
+            ? 'bg-main-color text-white border-main-color'
+            : 'bg-white text-gray-600 border-gray-300 hover:border-main-color hover:text-gray-900'
         "
         v-on:click="emit('update:currentTab', DeckBuilderTab.Details)"
       >
@@ -315,7 +316,7 @@ async function toggleMarkdownPreview() {
       </BaseCardOverview>
     </div>
     <div :class="currentTab === DeckBuilderTab.Details ? '' : 'hidden'">
-      <div class="flex flex-col pb-3">
+      <div class="flex flex-col pb-3 mt-4">
         <div class="flex justify-between items-center mb-2">
           <span>Description</span>
           <Button
@@ -345,6 +346,7 @@ async function toggleMarkdownPreview() {
           v-html="markdownPreviewText"
         ></div>
       </div>
+      <DeckCostCurve :deck="deck" />
     </div>
   </div>
 </template>

@@ -9,13 +9,17 @@ import {
   OverviewFilterType,
   type OverviewFilterModel,
 } from "./OverviewFilterModel";
+import type { OverviewSortModel } from "./OverviewSortModel";
 import Dropdown from "../shared/Dropdown.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
+import CardSearchInput from "~/components/shared/CardSearchInput.vue";
+import type { CardDetailApiModel } from "~/api/default";
 
 const props = defineProps<{
   hideSearch: boolean;
   hideFilters: boolean;
   filters: OverviewFilterModel[];
+  sortings?: OverviewSortModel[];
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
 }>();
@@ -42,6 +46,8 @@ if (pageNumberString) {
   page.value = Number.parseInt(pageNumberString as string);
 }
 
+const selectedSort = ref(route.query.sortBy?.toString() ?? "");
+
 const filtersOpen = ref(false);
 
 function clickFilters() {
@@ -67,6 +73,11 @@ function loadLazyDropdownItemsIfNeeded(filter: OverviewFilterModel) {
   emit("loadLazyFilter", filter);
 }
 
+function setFilter(alias: string, value: string) {
+  selectedFilters.value[alias] = [value];
+  reloadData();
+}
+
 function selectFilter(alias: string, value: string) {
   if (selectedFilters.value[alias]) {
     const items = selectedFilters.value[alias];
@@ -88,6 +99,18 @@ function isSelectedFilter(alias: string, value: string) {
   );
 }
 
+function getFilterValue(alias: string): string | undefined {
+  return selectedFilters.value[alias]?.[0];
+}
+
+function onTextInputFilterSelect(alias: string, card: CardDetailApiModel) {
+  if (!selectedFilters.value[alias]) {
+    selectedFilters.value[alias] = [];
+  }
+  selectedFilters.value[alias].push(card.baseId!.toString());
+  reloadData();
+}
+
 function handleSubmit(event: Event) {
   event.preventDefault();
   reloadData();
@@ -102,9 +125,14 @@ function reloadData() {
     if (search.value) {
       url.searchParams.append("search", search.value);
     }
+    if (selectedSort.value && props.sortings![0].Value !== selectedSort.value) {
+      url.searchParams.append("sortBy", selectedSort.value);
+    }
     Object.entries(selectedFilters.value).forEach((entry) => {
       entry[1].forEach((value) => {
-        url.searchParams.append(entry[0], value);
+        if (value) {
+          url.searchParams.append(entry[0], value);
+        }
       });
     });
     history.replaceState(history.state, "", url);
@@ -121,6 +149,7 @@ function reloadData() {
     Query: search.value,
     SelectedFilters: filters,
     PageNumber: page.value,
+    SortBy: selectedSort.value || undefined,
     LoadedCallback: () => {
       isLoading.value = false;
     },
@@ -140,6 +169,9 @@ watch(
 
 function init() {
   selectedFilters.value = {};
+  if (props.sortings && props.sortings.length > 0){
+    selectedSort.value = props.sortings[0].Value;
+  }
   props.filters.forEach((filter) => {
     if (route.query[filter.Alias]) {
       const values = route.query[filter.Alias];
@@ -268,6 +300,33 @@ init();
               </label>
             </template>
           </Dropdown>
+          <div
+            v-if="filters.some((f) => f.Type === OverviewFilterType.DATE)"
+            class="flex flex-wrap gap-4 pt-2"
+          >
+            <div
+              v-for="filter in filters.filter(
+                (f) => f.Type === OverviewFilterType.DATE,
+              )"
+              :key="filter.Alias"
+            >
+              <p class="font-bold text-sm mb-1">{{ filter.DisplayName }}</p>
+              <div class="flex items-center gap-2">
+                <input
+                  type="date"
+                  class="border border-gray-300 rounded px-2 py-1 text-sm"
+                  :value="getFilterValue(filter.Alias)"
+                  @change="
+                    ($event) =>
+                      setFilter(
+                        filter.Alias,
+                        ($event.target as HTMLInputElement).value,
+                      )
+                  "
+                />
+              </div>
+            </div>
+          </div>
           <button
             v-for="filter in filters.filter(
               (filter) => filter.Type === OverviewFilterType.CHECKBOX,
@@ -284,6 +343,16 @@ init();
           >
             {{ filter.DisplayName }}
           </button>
+          <div
+            v-for="filter in filters.filter(
+              (filter) => filter.Type === OverviewFilterType.TEXT_INPUT,
+            )"
+            :key="filter.Alias"
+          >
+            <CardSearchInput
+              @select="(card) => onTextInputFilterSelect(filter.Alias, card)"
+            />
+          </div>
         </div>
       </div>
 
@@ -310,18 +379,18 @@ init();
           </template>
         </div>
         <div class="flex self-end gap-4">
-          <!--@if (Model.Config.Sortings.Length > 0)
-            {
-                <div class="flex items-center gap-2">
-                    <p>Sort by:</p>
-                    <select name="sortBy" class="h-8 p-2 bg-main-color text-white rounded hover:bg-main-color-hover" x-on:change="updateOverview()">
-                        @foreach (var sort in Model.Config.Sortings)
-                        {
-                            <!option value="@sort.Value" @(sort.Value.Equals(Model.SortBy) ? "selected" : "")>@sort.Name</!option>
-                        }
-                    </select>
-                </div>
-            }-->
+          <div v-if="sortings && sortings.length > 0" class="flex items-center gap-2">
+            <p>Sort by:</p>
+            <select
+              v-model="selectedSort"
+              class="h-8 p-2 bg-main-color text-white rounded hover:bg-main-color-hover"
+              @change="reloadData"
+            >
+              <option v-for="sort in sortings" :key="sort.Value" :value="sort.Value">
+                {{ sort.Name }}
+              </option>
+            </select>
+          </div>
           <!--@if (Model.Config.AvailableViews.Length > 1)
             {
                 <div class="flex items-center gap-2">

@@ -10,10 +10,7 @@ export default defineConfig({
     tsconfigRaw: {
       compilerOptions: {
         target: "ESNext",
-        module: "ESNext",
-        moduleResolution: "Bundler",
         strict: true,
-        skipLibCheck: true,
       },
     },
   },

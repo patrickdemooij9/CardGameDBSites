@@ -5,6 +5,8 @@ export enum OverviewFilterType {
 
     CHECKBOX = "CHECKBOX",
     DROPDOWN = "DROPDOWN",
+    DATE = "DATE",
+    TEXT_INPUT = "TEXT_INPUT",
 }
 
 export interface OverviewFilterModel {

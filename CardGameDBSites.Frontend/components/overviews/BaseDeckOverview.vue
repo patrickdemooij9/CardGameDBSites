@@ -3,12 +3,18 @@ import { DeckStatus, type PagedResultDeckApiModel } from "~/api/default";
 import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
+import type { OverviewSortModel } from "./OverviewSortModel";
 import Overview from "./Overview.vue";
+import {
+  OverviewFilterType,
+  type OverviewFilterModel,
+} from "./OverviewFilterModel";
 
 const props = defineProps<{
   decksPerRow: number;
   typeId?: number;
   userId?: number;
+  sortings?: OverviewSortModel[];
 }>();
 
 const deckService = new DeckService();
@@ -37,7 +43,57 @@ const overview = ref<InstanceType<typeof Overview>>();
 
 let initialLoadHandled = false;
 
+const defaultSortings: OverviewSortModel[] = [
+  { Name: "Popular", Value: "popular" },
+  { Name: "Newest", Value: "newest" },
+];
+
+const effectiveSortings = computed(() => props.sortings ?? defaultSortings);
+
+const filters: OverviewFilterModel[] = [
+  {
+    Alias: "card",
+    DisplayName: "Contains card",
+    Type: OverviewFilterType.TEXT_INPUT,
+    Items: [],
+    AutoFillValues: false,
+  },
+  {
+    Alias: "toDate",
+    DisplayName: "Created end date",
+    Type: OverviewFilterType.DATE,
+    Items: [],
+    AutoFillValues: false,
+  }
+];
+
 async function loadData(value: OverviewRefreshModel) {
+  let dateFrom: string | undefined;
+  let dateTo: string | undefined;
+
+  value.SelectedFilters.forEach((values, filter) => {
+    if (filter.Alias === "fromDate") {
+      if (values[0]) dateFrom = values[0];
+    } else if (filter.Alias === "toDate") {
+      if (values[0]) dateTo = values[0];
+    }
+  });
+
+  const cardFilter = value.SelectedFilters.get(filters[0]);
+  const cardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : undefined;
+  
+  pagedDecks.value = await deckService.query({
+    page: value.PageNumber,
+    take: 20,
+    userId: props.userId,
+    typeId: props.typeId,
+    status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
+    dateFrom: dateFrom || null,
+    dateTo: dateTo || null,
+    orderBy: value.SortBy,
+    cards: cardIds,
+  });
+
   // On the first call, if we already have SSR data for the same page, skip the
   // re-fetch. This prevents a hydration mismatch caused by the server having
   // data while the client starts empty.
@@ -54,28 +110,17 @@ async function loadData(value: OverviewRefreshModel) {
   }
 
   initialLoadHandled = true;
-
-  pagedDecks.value = await deckService.query({
-    page: value.PageNumber,
-    take: 20,
-    userId: props.userId,
-    typeId: props.typeId,
-    status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
-  });
-
-  if (value.LoadedCallback) {
-    value.LoadedCallback();
-  }
 }
 </script>
 
 <template>
   <Overview
     :hide-search="true"
-    :hide-filters="true"
+    :hide-filters="false"
     :white-background="false"
     :enable-query-string-sync="true"
-    :filters="[]"
+    :sortings="effectiveSortings"
+    :filters="filters"
     @reload="loadData"
     ref="overview"
   >

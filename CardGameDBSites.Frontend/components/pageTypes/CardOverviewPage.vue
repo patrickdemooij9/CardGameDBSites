@@ -4,6 +4,7 @@ import type {
   IApiContentModel,
   OverviewFilterElementModel,
   OverviewFilterItemPropertiesModel,
+  SortingItemElementModel,
 } from "~/api/umbraco";
 import CardOverview from "../overviews/CardOverview.vue";
 import {
@@ -11,6 +12,7 @@ import {
   type OverviewFilterItemModel,
   type OverviewFilterModel,
 } from "../overviews/OverviewFilterModel";
+import type { OverviewSortModel } from "../overviews/OverviewSortModel";
 import { GetAbsoluteUrl } from "~/helpers/CropUrlHelper";
 
 const props = defineProps<{
@@ -41,6 +43,15 @@ const filters =
         }) ?? [],
     };
   }) ?? [];
+
+const sortings =
+  props.content.properties?.sortings?.items?.map<OverviewSortModel>((item) => {
+    const castedItem = (item.content as SortingItemElementModel).properties;
+    return {
+      Name: castedItem?.displayName ?? "",
+      Value: castedItem?.value ?? "",
+    };
+  }) ?? [];
 </script>
 
 <template>
@@ -51,5 +62,5 @@ const filters =
       v-html="content.properties?.description.markup"
     ></span>
   </div>
-  <CardOverview :filters="filters"></CardOverview>
+  <CardOverview :filters="filters" :sortings="sortings"></CardOverview>
 </template>

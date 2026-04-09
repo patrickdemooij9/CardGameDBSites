@@ -5,7 +5,10 @@ import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import Overview from "./Overview.vue";
-import { OverviewFilterType, type OverviewFilterModel } from "./OverviewFilterModel";
+import {
+  OverviewFilterType,
+  type OverviewFilterModel,
+} from "./OverviewFilterModel";
 
 const props = defineProps<{
   decksPerRow: number;
@@ -34,9 +37,27 @@ const filters: OverviewFilterModel[] = [
     Items: [],
     AutoFillValues: false,
   },
+  {
+    Alias: "toDate",
+    DisplayName: "Created end date",
+    Type: OverviewFilterType.DATE,
+    Items: [],
+    AutoFillValues: false,
+  }
 ];
 
 async function loadData(value: OverviewRefreshModel) {
+  let dateFrom: string | undefined;
+  let dateTo: string | undefined;
+
+  value.SelectedFilters.forEach((values, filter) => {
+    if (filter.Alias === "fromDate") {
+      if (values[0]) dateFrom = values[0];
+    } else if (filter.Alias === "toDate") {
+      if (values[0]) dateTo = values[0];
+    }
+  });
+
   const cardFilter = value.SelectedFilters.get(filters[0]);
   const cardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : undefined;
   
@@ -46,6 +67,8 @@ async function loadData(value: OverviewRefreshModel) {
     userId: props.userId,
     typeId: props.typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
+    dateFrom: dateFrom || null,
+    dateTo: dateTo || null,
     orderBy: value.SortBy,
     cards: cardIds,
   });

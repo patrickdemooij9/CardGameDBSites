@@ -26,6 +26,12 @@ namespace SkytearHorde.Entities.Models.PostModels
         [JsonPropertyName("orderBy")]
         public string? OrderBy { get; set; }
 
+        [JsonPropertyName("dateFrom")]
+        public DateTime? DateFrom { get; set; }
+
+        [JsonPropertyName("dateTo")]
+        public DateTime? DateTo { get; set; }
+
         public DeckQueryPostModel()
         {
             Cards = Array.Empty<int>();

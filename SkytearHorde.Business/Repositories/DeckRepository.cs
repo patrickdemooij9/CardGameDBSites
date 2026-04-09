@@ -311,6 +311,18 @@ namespace SkytearHorde.Business.Repositories
                 sql = sql.Where<DeckDBModel>(it => it.CreatedBy == request.UserId, "d");
             }
 
+            if (request.DateFrom.HasValue)
+            {
+                sql = sql.Where<DeckDBModel>(it => it.CreatedDate >= request.DateFrom.Value, "d");
+            }
+
+            if (request.DateTo.HasValue)
+            {
+                // Use the start of the day after DateTo to include the entire DateTo day
+                var dateTo = request.DateTo.Value.Date.AddDays(1);
+                sql = sql.Where<DeckDBModel>(it => it.CreatedDate < dateTo, "d");
+            }
+
             sql = request.OrderBy switch
             {
                 "popular" => sql.OrderByDescending("Score"),

@@ -11,5 +11,7 @@ export type DeckQueryPostModel = {
     page?: number;
     userId?: number | null;
     orderBy?: string | null;
+    dateFrom?: string | null;
+    dateTo?: string | null;
 };
 

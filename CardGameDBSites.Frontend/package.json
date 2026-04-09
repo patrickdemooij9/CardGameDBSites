@@ -8,6 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "generateUmbracoApi": "openapi --input http://localhost:58529/umbraco/swagger/delivery/swagger.json --output api/umbraco --postfixServices Resource --useOptions",
     "generateDefaultApi": "openapi --input http://localhost:58529/umbraco/swagger/default/swagger.json --output api/default --postfixServices Resource --useOptions"
   },
@@ -31,6 +33,7 @@
     "eslint-plugin-vue": "^10.0.0",
     "openapi-typescript-codegen": "^0.29.0",
     "typescript": "^5.8.2",
+    "vitest": "^4.1.4",
     "vue-tsc": "^2.2.8"
   }
 }

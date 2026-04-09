@@ -2,6 +2,7 @@
 .output
 .data
 .nuxt
+!.nuxt/tsconfig.json
 .nitro
 .cache
 dist

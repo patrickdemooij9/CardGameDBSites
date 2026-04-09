@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "paths": {
+      "~/*": ["../*"]
+    }
+  },
+  "include": ["./**/*.ts", "../helpers/**/*.ts", "../services/**/*.ts", "../components/**/*.ts", "../api/**/*.ts"]
+}

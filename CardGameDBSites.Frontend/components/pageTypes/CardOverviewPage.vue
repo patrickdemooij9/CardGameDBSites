@@ -46,7 +46,7 @@ const filters =
 
 const sortings =
   props.content.properties?.sortings?.items?.map<OverviewSortModel>((item) => {
-    const castedItem = (item.content as SortingItemElementModel).properties!;
+    const castedItem = (item.content as SortingItemElementModel).properties;
     return {
       Name: castedItem?.displayName ?? "",
       Value: castedItem?.value ?? "",

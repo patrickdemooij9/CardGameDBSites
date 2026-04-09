@@ -89,9 +89,9 @@ namespace CardGameDBSites.API.Controllers
             {
                 var cardOverview = _siteService.GetCardOverview();
                 var selectedSorting = cardOverview.Sortings.ToItems<SkytearHorde.Entities.Generated.SortingItem>().FirstOrDefault(it => it.Value == model.SortBy);
-                if (selectedSorting != null)
+                if (selectedSorting != null && !string.IsNullOrWhiteSpace(selectedSorting.ExamineField))
                 {
-                    sorting.Add(new CardSorting(selectedSorting.ExamineField!) { IsDescending = selectedSorting.Descending });
+                    sorting.Add(new CardSorting(selectedSorting.ExamineField) { IsDescending = selectedSorting.Descending });
                 }
             }
             else

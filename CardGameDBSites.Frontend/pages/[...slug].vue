@@ -3,6 +3,8 @@ import { onMounted, type Component } from 'vue';
 import { useRoute } from 'vue-router';
 import type { IApiContentModelBase } from '~/api/umbraco';
 import AccountDecks from '~/components/pageTypes/AccountDecks.vue';
+import BlogDetailPage from '~/components/pageTypes/BlogDetailPage.vue';
+import BlogOverviewPage from '~/components/pageTypes/BlogOverviewPage.vue';
 import CardDetailPage from '~/components/pageTypes/CardDetailPage.vue';
 import CardOverviewPage from '~/components/pageTypes/CardOverviewPage.vue';
 import CollectionPage from '~/components/pageTypes/CollectionPage.vue';
@@ -63,7 +65,9 @@ const pageComponents: {[key: string]: Component} = {
     'forgotPassword': ForgotPasswordPage,
     'setOverview': SetOverviewPage,
     'set': SetPage,
-    'collectionPage': CollectionPage
+    'collectionPage': CollectionPage,
+    'blogOverview': BlogOverviewPage,
+    'blogDetail': BlogDetailPage
 }
 const pageComponent = pageComponents[componentName];
 </script>

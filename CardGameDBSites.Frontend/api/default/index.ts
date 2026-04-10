@@ -18,6 +18,8 @@ export type { CardsQueryPostApiModel } from './models/CardsQueryPostApiModel';
 export type { CardVariantReferenceApiModel } from './models/CardVariantReferenceApiModel';
 export type { CardVariantTypeApiModel } from './models/CardVariantTypeApiModel';
 export type { CollectionCardApiModel } from './models/CollectionCardApiModel';
+export type { CommunityBlogPostApiModel } from './models/CommunityBlogPostApiModel';
+export type { PagedCommunityBlogPostsApiModel } from './models/PagedCommunityBlogPostsApiModel';
 export { CollectionExportType } from './models/CollectionExportType';
 export type { CollectionSummaryApiModel } from './models/CollectionSummaryApiModel';
 export type { CommentViewModel } from './models/CommentViewModel';

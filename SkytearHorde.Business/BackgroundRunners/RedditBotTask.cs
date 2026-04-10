@@ -108,7 +108,7 @@ namespace SkytearHorde.Business.BackgroundRunners
                     if (!string.IsNullOrEmpty(setCode))
                     {
                         var set = _cardService.GetAllSets().FirstOrDefault(it =>
-                            it.SetCode?.Equals(setCode, StringComparison.InvariantCultureIgnoreCase) is true);
+                            it.SetCode?.Equals(setCode, StringComparison.OrdinalIgnoreCase) is true);
                         setId = set?.Id;
                     }
 

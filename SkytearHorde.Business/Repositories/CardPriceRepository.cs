@@ -114,6 +114,9 @@ namespace SkytearHorde.Business.Repositories
 
         public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
         {
+            if (count <= 0 || count > 100)
+                throw new ArgumentOutOfRangeException(nameof(count), "count must be between 1 and 100.");
+
             using var scope = _scopeProvider.CreateScope();
             var cutoff = DateTime.UtcNow.AddHours(-24);
             var orderDirection = descending ? "DESC" : "ASC";

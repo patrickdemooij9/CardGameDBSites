@@ -3,7 +3,7 @@ import { DoServerFetch } from '~/helpers/RequestsHelper';
 
 export type CardPriceChangeApiModel = {
     cardId: number;
-    variantId: number;
+    variantId: number | null;
     cardName: string;
     urlSegment: string;
     currentPrice: number;

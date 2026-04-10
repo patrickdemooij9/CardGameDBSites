@@ -186,7 +186,7 @@ namespace CardGameDBSites.API.Controllers
                     return new CardPriceChangeApiModel
                     {
                         CardId = c.CardId,
-                        VariantId = c.VariantId ?? 0,
+                        VariantId = c.VariantId,
                         CardName = card.DisplayName ?? string.Empty,
                         UrlSegment = card.UrlSegment ?? string.Empty,
                         CurrentPrice = c.CurrentPrice,

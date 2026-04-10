@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useNuxtApp } from '#app';
 import { DoServerFetch } from '~/helpers/RequestsHelper';
 
 export type CardPriceChangeApiModel = {
@@ -17,14 +18,43 @@ const props = defineProps<{
 }>();
 
 const count = props.count ?? 3;
+const oneHourMs = 60 * 60 * 1000;
 
 const { data: increased } = await useAsyncData('price-changes-increased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true`, true)
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true`, true),
+    {
+        getCachedData(key) {
+            const nuxtApp = useNuxtApp();
+            const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+            if (!cached) return undefined;
+            const fetchedAt: number = nuxtApp.payload.data[`${key}_fetchedAt`] ?? 0;
+            if (Date.now() - fetchedAt > oneHourMs) return undefined;
+            return cached;
+        }
+    }
 );
 
 const { data: decreased } = await useAsyncData('price-changes-decreased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false`, true)
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false`, true),
+    {
+        getCachedData(key) {
+            const nuxtApp = useNuxtApp();
+            const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
+            if (!cached) return undefined;
+            const fetchedAt: number = nuxtApp.payload.data[`${key}_fetchedAt`] ?? 0;
+            if (Date.now() - fetchedAt > oneHourMs) return undefined;
+            return cached;
+        }
+    }
 );
+
+// Store fetch timestamps in payload so getCachedData can check age
+if (import.meta.client) {
+    const nuxtApp = useNuxtApp();
+    const now = Date.now();
+    if (increased.value) nuxtApp.payload.data['price-changes-increased_fetchedAt'] = now;
+    if (decreased.value) nuxtApp.payload.data['price-changes-decreased_fetchedAt'] = now;
+}
 
 const formatPrice = (price: number) => `$${price.toFixed(2)}`;
 const formatChange = (change: number) => {

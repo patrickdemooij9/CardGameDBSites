@@ -10,12 +10,14 @@ namespace SkytearHorde.Business.Repositories
     public class CardPriceRepository
     {
         private readonly IScopeProvider _scopeProvider;
+        private readonly IAppPolicyCache _cache;
 
         private readonly Cache.IRepositoryCachePolicy<CardPriceGroup, int> _repositoryCachePolicy;
 
         public CardPriceRepository(IScopeProvider scopeProvider, IAppPolicyCache cache)
         {
             _scopeProvider = scopeProvider;
+            _cache = cache;
             _repositoryCachePolicy = new Cache.DefaultRepositoryCachePolicy<CardPriceGroup, int>(cache, new Cache.RepositoryCachePolicyOptions
             {
                 PerformCount = PerformCount
@@ -117,6 +119,11 @@ namespace SkytearHorde.Business.Repositories
             if (count <= 0 || count > 100)
                 throw new ArgumentOutOfRangeException(nameof(count), "count must be between 1 and 100.");
 
+            var cacheKey = $"uRepo_TopPriceChanges_{count}_{descending}";
+            var cached = _cache.GetCacheItem<List<CardPriceChangeResult>>(cacheKey);
+            if (cached != null)
+                return cached;
+
             using var scope = _scopeProvider.CreateScope();
             var cutoff = DateTime.UtcNow.AddHours(-24);
             var orderDirection = descending ? "DESC" : "ASC";
@@ -132,7 +139,9 @@ namespace SkytearHorde.Business.Repositories
                 INNER JOIN CardPriceRecord prev ON prev.CardId = prevMeta.CardId AND prev.VariantId = prevMeta.VariantId AND prev.DateUtc = prevMeta.MaxDate
                 WHERE latest.IsLatest = 1 AND prev.MainPrice > 0
                 ORDER BY (latest.MainPrice - prev.MainPrice) {orderDirection}";
-            return scope.Database.Fetch<CardPriceChangeResult>(sql, cutoff);
+            var result = scope.Database.Fetch<CardPriceChangeResult>(sql, cutoff);
+            _cache.Insert(cacheKey, () => result, TimeSpan.FromHours(1));
+            return result;
         }
 
         private int PerformCount()

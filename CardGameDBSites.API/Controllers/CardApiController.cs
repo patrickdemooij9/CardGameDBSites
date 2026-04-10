@@ -160,6 +160,46 @@ namespace CardGameDBSites.API.Controllers
             }));
         }
 
+        [HttpGet("topPriceChanges")]
+        [ProducesResponseType(typeof(CardPriceChangeApiModel[]), 200)]
+        public IActionResult GetTopPriceChanges(int count, bool descending)
+        {
+            if (!_settingsService.GetSiteSettings().AllowPricing)
+                return Ok(Array.Empty<CardPriceChangeApiModel>());
+
+            if (count <= 0 || count > 100)
+                return BadRequest("count must be between 1 and 100.");
+
+            var changes = _cardPriceService.GetTopPriceChanges(count, descending);
+            var cardIds = changes.Select(c => c.CardId).Distinct().ToArray();
+            var cards = _cardService.Get(cardIds).ToDictionary(c => c.BaseId);
+
+            var result = changes
+                .Where(c => cards.ContainsKey(c.CardId))
+                .Select(c =>
+                {
+                    var card = cards[c.CardId];
+                    var priceChange = c.CurrentPrice - c.PreviousPrice;
+                    var priceChangePercent = c.PreviousPrice > 0
+                        ? (priceChange / c.PreviousPrice) * 100.0
+                        : 0.0;
+                    return new CardPriceChangeApiModel
+                    {
+                        CardId = c.CardId,
+                        VariantId = c.VariantId ?? 0,
+                        CardName = card.DisplayName ?? string.Empty,
+                        UrlSegment = card.UrlSegment ?? string.Empty,
+                        CurrentPrice = c.CurrentPrice,
+                        PreviousPrice = c.PreviousPrice,
+                        PriceChange = Math.Round(priceChange, 2),
+                        PriceChangePercent = Math.Round(priceChangePercent, 2)
+                    };
+                })
+                .ToArray();
+
+            return Ok(result);
+        }
+
         private CardDetailApiModel MapToApiModel(Card card)
         {
             var detail = new CardDetailApiModel(card);

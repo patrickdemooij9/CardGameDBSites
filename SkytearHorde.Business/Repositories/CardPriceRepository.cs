@@ -112,6 +112,26 @@ namespace SkytearHorde.Business.Repositories
             }
         }
 
+        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            var cutoff = DateTime.UtcNow.AddHours(-24);
+            var orderDirection = descending ? "DESC" : "ASC";
+            var sql = $@"
+                SELECT TOP {count} latest.CardId, latest.VariantId, latest.MainPrice AS CurrentPrice, prev.MainPrice AS PreviousPrice
+                FROM CardPriceRecord latest
+                INNER JOIN (
+                    SELECT CardId, VariantId, MAX(DateUtc) AS MaxDate
+                    FROM CardPriceRecord
+                    WHERE DateUtc <= @0 AND IsLatest = 0
+                    GROUP BY CardId, VariantId
+                ) prevMeta ON prevMeta.CardId = latest.CardId AND prevMeta.VariantId = latest.VariantId
+                INNER JOIN CardPriceRecord prev ON prev.CardId = prevMeta.CardId AND prev.VariantId = prevMeta.VariantId AND prev.DateUtc = prevMeta.MaxDate
+                WHERE latest.IsLatest = 1 AND prev.MainPrice > 0
+                ORDER BY (latest.MainPrice - prev.MainPrice) {orderDirection}";
+            return scope.Database.Fetch<CardPriceChangeResult>(sql, cutoff);
+        }
+
         private int PerformCount()
         {
             using var scope = _scopeProvider.CreateScope();

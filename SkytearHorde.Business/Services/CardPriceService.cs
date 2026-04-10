@@ -65,6 +65,11 @@ namespace SkytearHorde.Business.Services
             return deck.Cards.Sum(it => !cardPrices.TryGetValue(it.CardId, out CardPriceGroup? value) ? 0 : value.GetLowest() * it.Amount);
         }
 
+        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
+        {
+            return _cardPriceRepository.GetTopPriceChanges(count, descending);
+        }
+
         public string GetUrl(CardPrice cardPrice, Card card)
         {
             //TODO: This should take source id into account.

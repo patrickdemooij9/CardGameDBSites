@@ -94,12 +94,13 @@ namespace SkytearHorde.Business.BackgroundRunners
             stringBuilder.AppendLine();
             stringBuilder.AppendLine("^(This bot is maintained by [Patrick](https://www.reddit.com/user/Patrickdemooij9).)");
 
-            var redditClient = new RedditApiClient(_httpClientFactory.CreateClient());
-            await redditClient.SubmitPostAsync(
+            var redditClient = new RedditApiClient(
+                _httpClientFactory.CreateClient(),
                 settings.RedditSettings.Username,
                 settings.RedditSettings.Password,
                 settings.RedditSettings.ClientId,
-                settings.RedditSettings.ClientSecret,
+                settings.RedditSettings.ClientSecret);
+            await redditClient.SubmitPostAsync(
                 settings.RedditSettings.Subreddit,
                 $"[COTD] {selectedCard.DisplayName}",
                 stringBuilder.ToString(),

@@ -11,23 +11,31 @@ namespace SkytearHorde.Business.Helpers
         private const string UserAgent = "CardGameDBSites/1.0 (by /u/Patrickdemooij9)";
 
         private readonly HttpClient _httpClient;
+        private readonly string _username;
+        private readonly string _password;
+        private readonly string _clientId;
+        private readonly string _clientSecret;
 
-        public RedditApiClient(HttpClient httpClient)
+        public RedditApiClient(HttpClient httpClient, string username, string password, string clientId, string clientSecret)
         {
             _httpClient = httpClient;
+            _username = username;
+            _password = password;
+            _clientId = clientId;
+            _clientSecret = clientSecret;
         }
 
-        private async Task<string> GetAccessTokenAsync(string username, string password, string clientId, string clientSecret)
+        private async Task<string> GetAccessTokenAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, TokenUrl);
-            var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
+            var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_clientId}:{_clientSecret}"));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
             request.Headers.UserAgent.ParseAdd(UserAgent);
             request.Content = new FormUrlEncodedContent(new[]
             {
                 new KeyValuePair<string, string>("grant_type", "password"),
-                new KeyValuePair<string, string>("username", username),
-                new KeyValuePair<string, string>("password", password),
+                new KeyValuePair<string, string>("username", _username),
+                new KeyValuePair<string, string>("password", _password),
             });
 
             var response = await _httpClient.SendAsync(request);
@@ -43,10 +51,9 @@ namespace SkytearHorde.Business.Helpers
                 ?? throw new InvalidOperationException("No access_token in Reddit OAuth response.");
         }
 
-        public async Task SubmitPostAsync(string username, string password, string clientId, string clientSecret,
-            string subreddit, string title, string text, string flairId)
+        public async Task SubmitPostAsync(string subreddit, string title, string text, string flairId)
         {
-            var token = await GetAccessTokenAsync(username, password, clientId, clientSecret);
+            var token = await GetAccessTokenAsync();
 
             var request = new HttpRequestMessage(HttpMethod.Post, SubmitUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

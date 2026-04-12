@@ -112,7 +112,7 @@ export default class SiteService {
             }
 
             if (deckCard.slotId === 99 && model.sideboardSlot) {
-              for (var i = 0; i < deckCard.amount!; i++){
+              for (let i = 0; i < deckCard.amount!; i++){
                 model.sideboardSlot.addCard(card);
               }
               return;
@@ -121,7 +121,7 @@ export default class SiteService {
             const group = model.groups.find((group) => group.id === deckCard.groupId);
             const slot = group?.slots.find((slot) => slot.id === deckCard.slotId);
 
-            for (var i = 0; i < deckCard.amount!; i++){
+            for (let i = 0; i < deckCard.amount!; i++){
               slot?.addCard(card);
             }
           });
@@ -135,12 +135,11 @@ export default class SiteService {
       sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(model.sideboardMaxCards);
       sideboardSlot.numberMode = true;
       sideboardSlot.disableRemoval = false;
-      const sideboardCardGroup = new CreateDeckCardGroup(undefined!);
+      const sideboardCardGroup = new CreateDeckCardGroup("");
       sideboardSlot.cardGroups.push(sideboardCardGroup);
       model.sideboardSlot = sideboardSlot;
 
       const sideboardGroup = new CreateDeckGroup();
-      sideboardGroup.id = undefined;
       sideboardGroup.name = "Sideboard";
       sideboardGroup.slots = [sideboardSlot];
       model.sideboardGroup = sideboardGroup;

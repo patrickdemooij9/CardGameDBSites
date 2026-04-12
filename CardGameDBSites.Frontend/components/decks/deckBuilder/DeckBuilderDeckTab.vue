@@ -423,7 +423,7 @@ const hasPassiveRequirements = computed(() => {
           </div>
           <hr />
           <div class="mt-2">
-            <div v-for="cardGroup in deck.sideboardSlot.cardGroups">
+            <div v-for="(cardGroup, cardGroupIndex) in deck.sideboardSlot.cardGroups" :key="cardGroupIndex">
               <div v-if="cardGroup.cards.length > 0">
                 <div
                   v-for="item in cardGroup.getOrderedCards()"

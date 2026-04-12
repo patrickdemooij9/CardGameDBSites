@@ -1,3 +1,4 @@
+using Examine;
 using Microsoft.Extensions.Logging;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
@@ -73,8 +74,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             var settings = _settingsService.GetSiteSettings();
             if (settings.RedditSettings is null || !settings.RedditSettings.Enabled) return;
 
-            var discordSettings = _settingsService.GetDiscordSettings();
-            var baseUrl = discordSettings?.BaseUrl?.TrimEnd('/') ?? string.Empty;
+            var baseUrl = "https://sw-unlimited-db.com"; //TODO: Fix correctly
 
             var redditClient = new RedditApiClient(
                 _httpClientFactory.CreateClient(),
@@ -88,16 +88,17 @@ namespace SkytearHorde.Business.BackgroundRunners
 
             DateTime? latestCommentDate = null;
 
-            foreach (var comment in comments)
+            foreach (var comment in comments.OrderBy(it => it.CreatedAt))
             {
                 if (lastProcessedDate.HasValue && comment.CreatedAt <= lastProcessedDate.Value) continue;
 
                 if (latestCommentDate == null || comment.CreatedAt > latestCommentDate.Value)
                     latestCommentDate = comment.CreatedAt;
 
-                if (string.IsNullOrWhiteSpace(comment.Body)) continue;
+                var commentBody = Regex.Unescape(comment.Body);
+                if (string.IsNullOrWhiteSpace(commentBody)) continue;
 
-                var matches = CardSyntaxPattern.Matches(comment.Body);
+                var matches = CardSyntaxPattern.Matches(commentBody);
                 if (matches.Count == 0) continue;
 
                 var cards = new List<Card>();

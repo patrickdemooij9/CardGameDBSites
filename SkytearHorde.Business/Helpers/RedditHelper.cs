@@ -104,9 +104,16 @@ namespace SkytearHorde.Business.Helpers
                 var fullName = data.GetProperty("name").GetString();
                 var body = data.GetProperty("body").GetString();
                 var author = data.GetProperty("author").GetString();
+                var createdUtc = data.GetProperty("created_utc").GetDouble();
                 if (fullName != null && body != null)
                 {
-                    comments.Add(new RedditComment { FullName = fullName, Body = body, Author = author ?? string.Empty });
+                    comments.Add(new RedditComment
+                    {
+                        FullName = fullName,
+                        Body = body,
+                        Author = author ?? string.Empty,
+                        CreatedAt = DateTimeOffset.FromUnixTimeSeconds((long)createdUtc).UtcDateTime
+                    });
                 }
             }
 
@@ -141,5 +148,6 @@ namespace SkytearHorde.Business.Helpers
         public string FullName { get; set; } = string.Empty;
         public string Body { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
     }
 }

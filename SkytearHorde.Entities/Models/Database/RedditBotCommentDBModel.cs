@@ -11,13 +11,10 @@ namespace SkytearHorde.Entities.Models.Database
         [Column("Id")]
         public int Id { get; set; }
 
-        [Column("CommentFullName")]
-        public string CommentFullName { get; set; }
-
         [Column("SiteId")]
         public int SiteId { get; set; }
 
-        [Column("ProcessedAt")]
-        public DateTime ProcessedAt { get; set; }
+        [Column("LastProcessedAt")]
+        public DateTime LastProcessedAt { get; set; }
     }
 }

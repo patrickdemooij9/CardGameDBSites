@@ -83,13 +83,17 @@ namespace SkytearHorde.Business.BackgroundRunners
                 settings.RedditSettings.ClientId,
                 settings.RedditSettings.ClientSecret);
 
+            var lastProcessedDate = _redditBotCommentRepository.GetLastProcessedDate();
             var comments = await redditClient.GetNewCommentsAsync(settings.RedditSettings.Subreddit, 25);
+
+            DateTime? latestCommentDate = null;
 
             foreach (var comment in comments)
             {
-                if (_redditBotCommentRepository.HasProcessedComment(comment.FullName)) continue;
+                if (lastProcessedDate.HasValue && comment.CreatedAt <= lastProcessedDate.Value) continue;
 
-                _redditBotCommentRepository.AddProcessedComment(comment.FullName);
+                if (latestCommentDate == null || comment.CreatedAt > latestCommentDate.Value)
+                    latestCommentDate = comment.CreatedAt;
 
                 if (string.IsNullOrWhiteSpace(comment.Body)) continue;
 
@@ -129,6 +133,11 @@ namespace SkytearHorde.Business.BackgroundRunners
 
                 var replyText = BuildReplyText(cards, baseUrl);
                 await redditClient.ReplyToCommentAsync(comment.FullName, replyText);
+            }
+
+            if (latestCommentDate.HasValue)
+            {
+                _redditBotCommentRepository.UpdateLastProcessedDate(latestCommentDate.Value);
             }
         }
 

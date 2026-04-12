@@ -16,7 +16,7 @@ namespace SkytearHorde.Business.Repositories
             _siteAccessor = siteAccessor;
         }
 
-        public bool HasProcessedComment(string commentFullName)
+        public DateTime? GetLastProcessedDate()
         {
             using var scope = _scopeProvider.CreateScope();
             var siteId = _siteAccessor.GetSiteId();
@@ -24,21 +24,34 @@ namespace SkytearHorde.Business.Repositories
                 scope.SqlContext.Sql()
                     .SelectAll()
                     .From<RedditBotCommentDBModel>()
-                    .Where<RedditBotCommentDBModel>(it => it.CommentFullName == commentFullName && it.SiteId == siteId));
-            return entity != null;
+                    .Where<RedditBotCommentDBModel>(it => it.SiteId == siteId));
+            return entity?.LastProcessedAt;
         }
 
-        public void AddProcessedComment(string commentFullName)
+        public void UpdateLastProcessedDate(DateTime lastProcessedAt)
         {
             using var scope = _scopeProvider.CreateScope();
+            var siteId = _siteAccessor.GetSiteId();
 
-            var entity = new RedditBotCommentDBModel
+            var existing = scope.Database.FirstOrDefault<RedditBotCommentDBModel>(
+                scope.SqlContext.Sql()
+                    .SelectAll()
+                    .From<RedditBotCommentDBModel>()
+                    .Where<RedditBotCommentDBModel>(it => it.SiteId == siteId));
+
+            if (existing != null)
             {
-                CommentFullName = commentFullName,
-                SiteId = _siteAccessor.GetSiteId(),
-                ProcessedAt = DateTime.UtcNow
-            };
-            scope.Database.Insert(entity);
+                existing.LastProcessedAt = lastProcessedAt;
+                scope.Database.Update(existing);
+            }
+            else
+            {
+                scope.Database.Insert(new RedditBotCommentDBModel
+                {
+                    SiteId = siteId,
+                    LastProcessedAt = lastProcessedAt
+                });
+            }
 
             scope.Complete();
         }

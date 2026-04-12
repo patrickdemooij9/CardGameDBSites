@@ -111,6 +111,13 @@ export default class SiteService {
               return;
             }
 
+            if (deckCard.slotId === 99 && model.sideboardSlot) {
+              for (var i = 0; i < deckCard.amount!; i++){
+                model.sideboardSlot.addCard(card);
+              }
+              return;
+            }
+
             const group = model.groups.find((group) => group.id === deckCard.groupId);
             const slot = group?.slots.find((slot) => slot.id === deckCard.slotId);
 
@@ -120,6 +127,24 @@ export default class SiteService {
           });
         }
       }
+
+      // Hardcoded sideboard settings (eventually from backend)
+      model.hasSideboard = true;
+      model.sideboardMaxCards = 15;
+      const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
+      sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(model.sideboardMaxCards);
+      sideboardSlot.numberMode = true;
+      sideboardSlot.disableRemoval = false;
+      const sideboardCardGroup = new CreateDeckCardGroup(undefined!);
+      sideboardSlot.cardGroups.push(sideboardCardGroup);
+      model.sideboardSlot = sideboardSlot;
+
+      const sideboardGroup = new CreateDeckGroup();
+      sideboardGroup.id = undefined;
+      sideboardGroup.name = "Sideboard";
+      sideboardGroup.slots = [sideboardSlot];
+      model.sideboardGroup = sideboardGroup;
+
     return model;
   }
 

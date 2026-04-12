@@ -13,6 +13,11 @@ export class CreateDeckModel {
   typeId?: number;
   groups: CreateDeckGroup[] = [];
 
+  hasSideboard: boolean = false;
+  sideboardMaxCards: number = 15;
+  sideboardSlot: CreateDeckSlot | undefined;
+  sideboardGroup: CreateDeckGroup | undefined;
+
   getSlotsForCard(card: CardDetailApiModel) {
     const slots: CreateDeckSlot[] = [];
     this.groups.forEach((group) => {
@@ -22,7 +27,33 @@ export class CreateDeckModel {
         }
       });
     });
-    return slots; //TODO: Check requirements
+    if (this.hasSideboard && this.sideboardSlot) {
+      if (IsValid([card], this.sideboardSlot.requirements, true)) {
+        slots.push(this.sideboardSlot);
+      }
+    }
+    return slots;
+  }
+
+  getTotalCardAmount(card: CardDetailApiModel): number {
+    let total = 0;
+    this.groups.forEach((group) => {
+      group.slots.forEach((slot) => {
+        total += slot.getCardAmount(card);
+      });
+    });
+    if (this.sideboardSlot) {
+      total += this.sideboardSlot.getCardAmount(card);
+    }
+    return total;
+  }
+
+  getCardAmountInOtherSlots(excludeSlot: CreateDeckSlot, card: CardDetailApiModel): number {
+    return this.getTotalCardAmount(card) - excludeSlot.getCardAmount(card);
+  }
+
+  getSideboardAmount(): number {
+    return this.sideboardSlot?.getAmount() ?? 0;
   }
 
   getDeckAmount(){
@@ -58,6 +89,13 @@ export class CreateDeckModel {
         });
       });
     });
+    if (this.sideboardSlot) {
+      this.sideboardSlot.cardGroups.forEach((cardGroup) => {
+        cardGroup.cards.forEach((cardWrapper) => {
+          allCards.push(cardWrapper);
+        });
+      });
+    }
     return allCards;
   }
 

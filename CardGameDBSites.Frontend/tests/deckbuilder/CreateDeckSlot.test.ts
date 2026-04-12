@@ -128,6 +128,35 @@ describe("CreateDeckSlot", () => {
       const card = makeCard(1, { Amount: ["3"] });
       expect(slot.canAddCard(card)).toBe(true);
     });
+
+    it("returns false when card in other slots already reached max amount", () => {
+      const { slot } = makeSlotWithGroup(4);
+      const card = makeCard(1, { Amount: ["2"] });
+      // 2 copies in other slots + 0 in this slot = 2 >= max(2)
+      expect(slot.canAddCard(card, 2)).toBe(false);
+    });
+
+    it("returns false when combined count across slots reaches max amount", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1, { Amount: ["3"] });
+      // 1 copy already in this slot + 2 in other slots = 3 >= max(3)
+      group.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
+      expect(slot.canAddCard(card, 2)).toBe(false);
+    });
+
+    it("returns true when combined count is still below max amount", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1, { Amount: ["3"] });
+      // 1 copy in this slot + 1 in other slots = 2 < max(3)
+      group.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
+      expect(slot.canAddCard(card, 1)).toBe(true);
+    });
+
+    it("defaults existingAmountInOtherSlots to 0 for backward compatibility", () => {
+      const { slot } = makeSlotWithGroup(4);
+      const card = makeCard(1, { Amount: ["3"] });
+      expect(slot.canAddCard(card)).toBe(true);
+    });
   });
 
   describe("isInsideSlot", () => {

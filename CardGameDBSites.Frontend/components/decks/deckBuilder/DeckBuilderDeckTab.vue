@@ -83,6 +83,19 @@ function isCardIllegal(card: CardDetailApiModel): boolean {
   return !props.deck.isLegalCard(card);
 }
 
+function canAddCardToSlot(slot: CreateDeckSlot, card: CardDetailApiModel): boolean {
+  const existingInOtherSlots = props.deck.getCardAmountInOtherSlots(slot, card);
+  return slot.canAddCard(card, existingInOtherSlots);
+}
+
+function clickSideboardSlot() {
+  if (!props.deck.sideboardSlot || !props.deck.sideboardGroup) return;
+  emit("selectSlot", {
+    slot: props.deck.sideboardSlot,
+    group: props.deck.sideboardGroup,
+  });
+}
+
 const collectionService = useCollection();
 
 function getAllDeckCardIds(): number[] {
@@ -311,7 +324,7 @@ const hasPassiveRequirements = computed(() => {
                         </button>
                         <button
                           class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          :disabled="!slot.canAddCard(item.card)"
+                          :disabled="!canAddCardToSlot(slot, item.card)"
                           v-on:click.prevent.stop="slot.addCard(item.card)"
                         >
                           <PhPlus />
@@ -401,6 +414,87 @@ const hasPassiveRequirements = computed(() => {
             </p>
           </div>-->
         </div>
+
+        <!-- Sideboard section -->
+        <div class="squad-column mt-4" v-if="deck.hasSideboard && deck.sideboardSlot">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base">Sideboard</h3>
+            <p>{{ deck.getSideboardAmount() }} / {{ deck.sideboardMaxCards }}</p>
+          </div>
+          <hr />
+          <div class="mt-2">
+            <div v-for="cardGroup in deck.sideboardSlot.cardGroups">
+              <div v-if="cardGroup.cards.length > 0">
+                <div
+                  v-for="item in cardGroup.getOrderedCards()"
+                  :key="item.card.baseId"
+                >
+                  <div
+                    class="flex items-center border rounded mb-2 cursor-pointer tooltip-starter"
+                    :class="[getDisplayClassesForItem(deck.sideboardSlot), isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300']"
+                    v-on:click.prevent="emit('selectCard', item.card)"
+                  >
+                    <img
+                      :src="GetCrop(item.card.imageUrl, 'icon')!"
+                      class="rounded-md"
+                      :class="deck.sideboardSlot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
+                    />
+                    <div class="flex grow justify-between px-4">
+                      <div
+                        class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
+                        v-cursor-image="item.card.imageUrl?.url"
+                      >
+                        <span class="name">{{ item.card.displayName }}</span>
+                        <span
+                          class="shrink-0 font-bold"
+                          :class="
+                            hasEnoughInCollection(item.card)
+                              ? 'text-green-600'
+                              : 'text-red-500'
+                          "
+                          v-if="collectionOnlyMode && item.card.baseId"
+                          >{{ getOwnedAmount(item.card.baseId) }}/{{
+                            getNeededAmount(item.card)
+                          }}</span
+                        >
+                      </div>
+                      <div
+                        class="flex items-center gap-2"
+                      >
+                        <button
+                          class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline"
+                          v-on:click.prevent.stop="deck.sideboardSlot!.removeCard(item.card)"
+                        >
+                          <PhMinus />
+                        </button>
+                        <span class="text-sm">{{ item.amount }}</span>
+                        <button
+                          class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline disabled:bg-gray-300 disabled:cursor-not-allowed"
+                          :disabled="!canAddCardToSlot(deck.sideboardSlot, item.card)"
+                          v-on:click.prevent.stop="deck.sideboardSlot!.addCard(item.card)"
+                        >
+                          <PhPlus />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex items-center justify-center w-full h-12 border bg-gray-100 hover:bg-gray-300 cursor-pointer px-4 py-2 rounded"
+              :class="[
+                selectedArea?.slot === deck.sideboardSlot
+                  ? 'bg-gray-200 border-gray-500'
+                  : 'border-dashed border-gray-300',
+              ]"
+              v-on:click="clickSideboardSlot()"
+            >
+              <span>Add to Sideboard</span>
+            </div>
+          </div>
+        </div>
+
         <div class="flex justify-between mt-4">
           <div class="flex gap-2">
             <Button

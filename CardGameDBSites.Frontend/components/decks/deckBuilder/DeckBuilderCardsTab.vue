@@ -103,6 +103,11 @@ function getSlotsForCard(card: CardDetailApiModel) {
     );
 }
 
+function canAddCardToSlot(slot: CreateDeckSlot, card: CardDetailApiModel): boolean {
+  const existingInOtherSlots = props.deck.getCardAmountInOtherSlots(slot, card);
+  return slot.canAddCard(card, existingInOtherSlots);
+}
+
 function addToSquad(slot: CreateDeckSlot, character: CardDetailApiModel) {
   slot.addCard(character);
 
@@ -241,7 +246,7 @@ async function toggleMarkdownPreview() {
                         </button>
                       </div>
                     </div>
-                    <div v-if="location.canAddCard(character)">
+                    <div v-if="canAddCardToSlot(location, character)">
                       <div>
                         <button
                           v-if="!location.numberMode"
@@ -302,7 +307,7 @@ async function toggleMarkdownPreview() {
                   <Button
                     v-on:click.prevent.stop="addToSquad(location, character)"
                     type="button"
-                    :disabled="!location.canAddCard(character)"
+                    :disabled="!canAddCardToSlot(location, character)"
                     class="rounded-lg"
                   >
                     <span v-if="!location.numberMode">Add</span>

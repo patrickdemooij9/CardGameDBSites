@@ -4,6 +4,7 @@ import type {
   OneColumnLayoutElementModel,
 } from "~/api/umbraco";
 import Cards from "./Cards.vue";
+import PriceChanges from "./PriceChanges.vue";
 
 defineProps<{
   content: OneColumnLayoutElementModel;
@@ -12,6 +13,7 @@ defineProps<{
 
 const componentMap: { [key: string]: Component } = {
   cards: Cards,
+  'priceChanges': PriceChanges
 };
 </script>
 

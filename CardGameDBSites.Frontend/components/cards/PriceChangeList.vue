@@ -18,43 +18,14 @@ const props = defineProps<{
 }>();
 
 const count = props.count ?? 3;
-const oneHourMs = 60 * 60 * 1000;
 
 const { data: increased } = await useAsyncData('price-changes-increased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true`, true),
-    {
-        getCachedData(key) {
-            const nuxtApp = useNuxtApp();
-            const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-            if (!cached) return undefined;
-            const fetchedAt: number = nuxtApp.payload.data[`${key}_fetchedAt`] ?? 0;
-            if (Date.now() - fetchedAt > oneHourMs) return undefined;
-            return cached;
-        }
-    }
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true`, true)
 );
 
 const { data: decreased } = await useAsyncData('price-changes-decreased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false`, true),
-    {
-        getCachedData(key) {
-            const nuxtApp = useNuxtApp();
-            const cached = nuxtApp.payload.data[key] ?? nuxtApp.static.data[key];
-            if (!cached) return undefined;
-            const fetchedAt: number = nuxtApp.payload.data[`${key}_fetchedAt`] ?? 0;
-            if (Date.now() - fetchedAt > oneHourMs) return undefined;
-            return cached;
-        }
-    }
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false`, true)
 );
-
-// Store fetch timestamps in payload so getCachedData can check age
-if (import.meta.client) {
-    const nuxtApp = useNuxtApp();
-    const now = Date.now();
-    if (increased.value) nuxtApp.payload.data['price-changes-increased_fetchedAt'] = now;
-    if (decreased.value) nuxtApp.payload.data['price-changes-decreased_fetchedAt'] = now;
-}
 
 const formatPrice = (price: number) => `$${price.toFixed(2)}`;
 const formatChange = (change: number) => {
@@ -68,8 +39,7 @@ const formatPercent = (percent: number) => {
 </script>
 
 <template>
-    <div v-if="(increased && increased.length > 0) || (decreased && decreased.length > 0)"
-        class="container px-4 md:px-8 py-6">
+    <div v-if="(increased && increased.length > 0) || (decreased && decreased.length > 0)" class="bg-white rounded p-6">
         <h2 class="text-xl font-bold mb-4">Price Changes (Last 24 Hours)</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div v-if="increased && increased.length > 0">
@@ -86,7 +56,7 @@ const formatPercent = (percent: number) => {
                         <tr v-for="card in increased" :key="`inc-${card.cardId}-${card.variantId}`"
                             class="border-b last:border-0">
                             <td class="py-2 pr-4">
-                                <a :href="`/${card.urlSegment}`" class="hover:underline">{{ card.cardName }}</a>
+                                <a :href="`${card.urlSegment}`" class="hover:underline">{{ card.cardName }}</a>
                             </td>
                             <td class="text-right py-2 pr-4">{{ formatPrice(card.currentPrice) }}</td>
                             <td class="text-right py-2 text-green-600">
@@ -111,7 +81,7 @@ const formatPercent = (percent: number) => {
                         <tr v-for="card in decreased" :key="`dec-${card.cardId}-${card.variantId}`"
                             class="border-b last:border-0">
                             <td class="py-2 pr-4">
-                                <a :href="`/${card.urlSegment}`" class="hover:underline">{{ card.cardName }}</a>
+                                <a :href="`${card.urlSegment}`" class="hover:underline">{{ card.cardName }}</a>
                             </td>
                             <td class="text-right py-2 pr-4">{{ formatPrice(card.currentPrice) }}</td>
                             <td class="text-right py-2 text-red-600">

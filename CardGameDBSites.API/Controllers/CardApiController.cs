@@ -30,6 +30,7 @@ namespace CardGameDBSites.API.Controllers
         private readonly ISiteService _siteService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IMemberManager _memberManager;
+        private readonly CardPageService _cardPageService;
 
         public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
@@ -38,7 +39,8 @@ namespace CardGameDBSites.API.Controllers
             SettingsService settingsService,
             ISiteService siteService,
             IUmbracoContextFactory umbracoContextFactory,
-            IMemberManager memberManager)
+            IMemberManager memberManager,
+            CardPageService cardPageService)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
@@ -48,6 +50,7 @@ namespace CardGameDBSites.API.Controllers
             _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
             _memberManager = memberManager;
+            _cardPageService = cardPageService;
         }
 
         [HttpGet("all")]
@@ -188,7 +191,7 @@ namespace CardGameDBSites.API.Controllers
                         CardId = c.CardId,
                         VariantId = c.VariantId,
                         CardName = card.DisplayName ?? string.Empty,
-                        UrlSegment = card.UrlSegment ?? string.Empty,
+                        UrlSegment = _cardPageService.GetUrl(card),
                         CurrentPrice = c.CurrentPrice,
                         PreviousPrice = c.PreviousPrice,
                         PriceChange = Math.Round(priceChange, 2),

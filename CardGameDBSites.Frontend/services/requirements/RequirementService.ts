@@ -5,12 +5,14 @@ import NotEqualValueRequirement from "./NotEqualValueRequirement";
 import ResourceRequirement from "./ResourceRequirement";
 import type { IRequirement } from "./IRequirement";
 import ConditionalRequirement from "./ConditionalRequirement";
+import SameValueRequirement from "./SameValueRequirement";
 
 const requirementHandlers: IRequirement[] = [
     new EqualValueRequirement(),
     new NotEqualValueRequirement(),
     new ResourceRequirement(),
-    new ConditionalRequirement()
+    new ConditionalRequirement(),
+    new SameValueRequirement(),
 ]
 
 export function GetValidCards(cards: CardDetailApiModel[], requirements: RequirementApiModel[])

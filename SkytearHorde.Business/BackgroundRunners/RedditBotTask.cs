@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using RedditSharp;
+using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
@@ -24,6 +24,7 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly ISiteAccessor _siteAccessor;
         private readonly RedditBotCommentRepository _redditBotCommentRepository;
         private readonly ILogger<RedditBotTask> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         private static readonly Regex CardSyntaxPattern = new(@"\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]", RegexOptions.Compiled);
 
@@ -35,7 +36,8 @@ namespace SkytearHorde.Business.BackgroundRunners
             ISiteService siteService,
             ISiteAccessor siteAccessor,
             RedditBotCommentRepository redditBotCommentRepository,
-            ILogger<RedditBotTask> logger)
+            ILogger<RedditBotTask> logger,
+            IHttpClientFactory httpClientFactory)
             : base(logger, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(1))
         {
             _settingsService = settingsService;
@@ -46,6 +48,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             _siteAccessor = siteAccessor;
             _redditBotCommentRepository = redditBotCommentRepository;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         public override async Task PerformExecuteAsync(object? state)
@@ -73,27 +76,24 @@ namespace SkytearHorde.Business.BackgroundRunners
             var discordSettings = _settingsService.GetDiscordSettings();
             var baseUrl = discordSettings?.BaseUrl?.TrimEnd('/') ?? string.Empty;
 
-            var agent = new BotWebAgent(
+            var redditClient = new RedditApiClient(
+                _httpClientFactory.CreateClient(),
                 settings.RedditSettings.Username,
                 settings.RedditSettings.Password,
                 settings.RedditSettings.ClientId,
-                settings.RedditSettings.ClientSecret,
-                string.Empty);
-            var redditService = new Reddit(agent, true);
+                settings.RedditSettings.ClientSecret);
 
-            var subreddit = await redditService.GetSubredditAsync(settings.RedditSettings.Subreddit);
-            if (subreddit is null) return;
+            var comments = await redditClient.GetNewCommentsAsync(settings.RedditSettings.Subreddit, 25);
 
-            await foreach (var comment in subreddit.GetComments(25, 25))
+            foreach (var comment in comments)
             {
                 if (_redditBotCommentRepository.HasProcessedComment(comment.FullName)) continue;
 
                 _redditBotCommentRepository.AddProcessedComment(comment.FullName);
 
-                var body = comment.Body;
-                if (string.IsNullOrWhiteSpace(body)) continue;
+                if (string.IsNullOrWhiteSpace(comment.Body)) continue;
 
-                var matches = CardSyntaxPattern.Matches(body);
+                var matches = CardSyntaxPattern.Matches(comment.Body);
                 if (matches.Count == 0) continue;
 
                 var cards = new List<Card>();
@@ -128,7 +128,7 @@ namespace SkytearHorde.Business.BackgroundRunners
                 if (cards.Count == 0) continue;
 
                 var replyText = BuildReplyText(cards, baseUrl);
-                await comment.ReplyAsync(replyText);
+                await redditClient.ReplyToCommentAsync(comment.FullName, replyText);
             }
         }
 

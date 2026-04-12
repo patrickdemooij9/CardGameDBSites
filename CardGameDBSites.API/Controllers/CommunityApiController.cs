@@ -35,7 +35,7 @@ namespace CardGameDBSites.API.Controllers
             var blogPosts = allBlogPosts.Skip(skip).Take(pageSize).ToArray();
 
             var creators = _contentCreatorService.GetAll()?.ToDictionary(it => it.Id, it => it)
-                           ?? new Dictionary<int, SkytearHorde.Entities.Generated.ContentCreatorItem>();
+                           ?? new Dictionary<int, ContentCreatorItem>();
 
             var siteSettings = _siteService.GetSettings().FirstChild<SiteSettings>();
             var defaultAuthor = siteSettings?.DefaultCreatorName ?? "Author";

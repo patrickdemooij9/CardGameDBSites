@@ -8,6 +8,7 @@ namespace SkytearHorde.Business.Helpers
     {
         private const string TokenUrl = "https://www.reddit.com/api/v1/access_token";
         private const string SubmitUrl = "https://oauth.reddit.com/api/submit";
+        private const string CommentUrl = "https://oauth.reddit.com/api/comment";
         private const string UserAgent = "CardGameDBSites/1.0 (by /u/Patrickdemooij9)";
 
         private readonly HttpClient _httpClient;
@@ -76,5 +77,77 @@ namespace SkytearHorde.Business.Helpers
                 throw new HttpRequestException($"Reddit submit request failed with status {response.StatusCode}: {body}");
             }
         }
+
+        public async Task<List<RedditComment>> GetNewCommentsAsync(string subreddit, int limit = 25)
+        {
+            var token = await GetAccessTokenAsync();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://oauth.reddit.com/r/{subreddit}/comments.json?limit={limit}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.UserAgent.ParseAdd(UserAgent);
+
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Reddit get comments request failed with status {response.StatusCode}: {body}");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+            var comments = new List<RedditComment>();
+
+            var children = doc.RootElement.GetProperty("data").GetProperty("children");
+            foreach (var child in children.EnumerateArray())
+            {
+                var data = child.GetProperty("data");
+                var fullName = data.GetProperty("name").GetString();
+                var body = data.GetProperty("body").GetString();
+                var author = data.GetProperty("author").GetString();
+                var createdUtc = data.GetProperty("created_utc").GetDouble();
+                if (fullName != null && body != null)
+                {
+                    comments.Add(new RedditComment
+                    {
+                        FullName = fullName,
+                        Body = body,
+                        Author = author ?? string.Empty,
+                        CreatedAt = DateTimeOffset.FromUnixTimeSeconds((long)createdUtc).UtcDateTime
+                    });
+                }
+            }
+
+            return comments;
+        }
+
+        public async Task ReplyToCommentAsync(string commentFullName, string text)
+        {
+            var token = await GetAccessTokenAsync();
+
+            var request = new HttpRequestMessage(HttpMethod.Post, CommentUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.UserAgent.ParseAdd(UserAgent);
+            request.Content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("api_type", "json"),
+                new KeyValuePair<string, string>("parent", commentFullName),
+                new KeyValuePair<string, string>("text", text),
+            });
+
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Reddit reply request failed with status {response.StatusCode}: {body}");
+            }
+        }
+    }
+
+    public class RedditComment
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
     }
 }

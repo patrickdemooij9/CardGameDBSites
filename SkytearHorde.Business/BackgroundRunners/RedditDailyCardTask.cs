@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using RedditSharp;
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
@@ -26,9 +25,10 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly ISiteAccessor _siteAccessor;
         private readonly RedditDailyCardRepository _redditDailyCardRepository;
         private readonly ILogger<RedditDailyCardTask> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly Random _random;
 
-        public RedditDailyCardTask(CardService cardService, CardPageService cardPageService, SettingsService settingsService, IAbilityFormatter abilityFormatter, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService, ISiteAccessor siteAccessor, RedditDailyCardRepository redditDailyCardRepository, ILogger<RedditDailyCardTask> logger) : base(logger, TimeSpan.FromDays(1), DateHelper.GetToNextTime(11))
+        public RedditDailyCardTask(CardService cardService, CardPageService cardPageService, SettingsService settingsService, IAbilityFormatter abilityFormatter, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService, ISiteAccessor siteAccessor, RedditDailyCardRepository redditDailyCardRepository, ILogger<RedditDailyCardTask> logger, IHttpClientFactory httpClientFactory) : base(logger, TimeSpan.FromDays(1), DateHelper.GetToNextTime(11))
         {
             _cardService = cardService;
             _cardPageService = cardPageService;
@@ -39,6 +39,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             _siteAccessor = siteAccessor;
             _redditDailyCardRepository = redditDailyCardRepository;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
             _random = new Random();
         }
 
@@ -64,12 +65,6 @@ namespace SkytearHorde.Business.BackgroundRunners
         {
             var settings = _settingsService.GetSiteSettings();
             if (settings.RedditSettings is null || !settings.RedditSettings.Enabled) return;
-
-            var agent = new BotWebAgent(settings.RedditSettings.Username, settings.RedditSettings.Password, settings.RedditSettings.ClientId, settings.RedditSettings.ClientSecret, string.Empty);
-            var redditService = new Reddit(agent, true);
-
-            var subreddit = await redditService.GetSubredditAsync(settings.RedditSettings.Subreddit);
-            if (subreddit is null) return;
 
             var cardsAlreadyChosen = _redditDailyCardRepository.GetCards();
 
@@ -99,15 +94,17 @@ namespace SkytearHorde.Business.BackgroundRunners
             stringBuilder.AppendLine();
             stringBuilder.AppendLine("^(This bot is maintained by [Patrick](https://www.reddit.com/user/Patrickdemooij9).)");
 
-            await subreddit.WebAgent.Post("/api/submit", new SubmitData
-            {
-                sr = subreddit.Name,
-                title = $"[COTD] {selectedCard.DisplayName}",
-                text = stringBuilder.ToString(),
-                flair_id = "533a38e2-ee74-11ed-b8df-469bc4a5ba72",
-                iden = "",
-                captcha = ""
-            });
+            var redditClient = new RedditApiClient(
+                _httpClientFactory.CreateClient(),
+                settings.RedditSettings.Username,
+                settings.RedditSettings.Password,
+                settings.RedditSettings.ClientId,
+                settings.RedditSettings.ClientSecret);
+            await redditClient.SubmitPostAsync(
+                settings.RedditSettings.Subreddit,
+                $"[COTD] {selectedCard.DisplayName}",
+                stringBuilder.ToString(),
+                "533a38e2-ee74-11ed-b8df-469bc4a5ba72");
 
             _redditDailyCardRepository.AddCard(selectedCard.BaseId);
         }

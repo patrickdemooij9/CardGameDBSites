@@ -205,7 +205,7 @@ namespace CardGameDBSites.API.Controllers
 
         private CardDetailApiModel MapToApiModel(Card card)
         {
-            var detail = new CardDetailApiModel(card);
+            var detail = new CardDetailApiModel(card, _cardService.GetNonLegalDeckTypesForCard(card));
             if (_settingsService.GetSiteSettings().AllowPricing)
             {
                 var prices = _cardPriceService.GetPrices(card);

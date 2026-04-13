@@ -18,5 +18,8 @@ export default defineNuxtConfig({
     public: {
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL
     }
-  }
+  },
+  routeRules: {
+    "/": { swr: true },
+  },
 })

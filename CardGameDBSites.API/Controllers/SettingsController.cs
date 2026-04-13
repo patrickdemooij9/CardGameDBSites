@@ -97,7 +97,15 @@ namespace CardGameDBSites.API.Controllers
             foreach (var action in deckDetail.ExportTypes.ToItems<IDeckExportType>())
             {
                 var deckAction = new DeckActionApiModel { Id = action.Key, DisplayName = action.DisplayName, Icon = action.IconName, Type = action.GetType().Name };
-                if (action is DeckExportGroup group)
+                if (action is DeckMissingCardsExport missingCardsExport)
+                {
+                    var url = missingCardsExport.GetUrl();
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        deckAction.Url = url;
+                    }
+                }
+                else if (action is DeckExportGroup group)
                 {
                     deckAction.PopupTitle = group.Title;
                     deckAction.PopupDescription = group.Description?.ToString();

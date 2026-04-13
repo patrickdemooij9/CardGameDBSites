@@ -121,6 +121,22 @@ function getCollectionCount(cardId: number) {
   );
 }
 
+const missingCardsString = computed(() => {
+  const parts: string[] = [];
+  deck.cards?.forEach((deckCard) => {
+    const card = cards.find((c) => c.baseId === deckCard.cardId);
+    if (!card) return;
+    const needed = deckCard.amount ?? 0;
+    const owned = isLoggedIn.value ? getCollectionCount(deckCard.cardId!) : 0;
+    const missing = needed - owned;
+    if (missing > 0) {
+      parts.push(`${missing} ${card.displayName} [${card.setCode}]`);
+    }
+  });
+  // TcgPlayer massentry API requires cards separated by "||" in the format "{amount} {name} [{setCode}]"
+  return parts.join("||");
+});
+
 function handleCommentAdded(comment: string) {
   useComments()
     .saveCommentByDeckId(deckId, comment)
@@ -230,6 +246,7 @@ async function handleDeleteDeck() {
               v-for="action in deckSettings?.actions"
               :deck="deck"
               :action="action"
+              :missing-cards-string="action.type === 'DeckMissingCardsExport' ? missingCardsString : undefined"
             ></DeckAction>
           </div>
           <template v-for="group in deckSettings?.groupings">

@@ -15,6 +15,7 @@ import { useAppToast } from "~/composables/useAppToast";
 const props = defineProps<{
   deck: DeckApiModel;
   action: DeckActionApiModel;
+  missingCardsString?: string;
 }>();
 
 const showModal = ref(false);
@@ -55,6 +56,16 @@ async function copyToClipboard(action: DeckActionApiModel) {
       <component :is="icons['crown']"></component>
       <p>{{ action.displayName }}</p>
     </a>
+  </div>
+  <div v-else-if="action.type === 'DeckMissingCardsExport' && action.url">
+    <form id="buyCardsForm" method="post" :action="action.url">
+      <input type="hidden" name="c" :value="missingCardsString" />
+      <input type="hidden" name="affiliateurl" value="https://tcgplayer.pxf.io/c/4924415/1780961/21018" />
+      <button type="submit" class="flex align-center gap-1">
+        <component :is="icons[action.icon!]"></component>
+        <p>{{ action.displayName }}</p>
+      </button>
+    </form>
   </div>
   <div v-else-if="action.type === 'DeckExportGroup'">
     <button

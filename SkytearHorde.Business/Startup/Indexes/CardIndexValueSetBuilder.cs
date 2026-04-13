@@ -76,6 +76,7 @@ namespace SkytearHorde.Business.Startup.Indexes
             }
 
             updatedValues["DecksOnly"] = [card.HideFromDecks ? 0 : 1];
+            updatedValues["NonLegalDeckTypes"] = card.NonLegalDeckTypes.Select(it => (object)it).ToList();
 
             var prices = _cardPriceService.GetPrices(card.BaseId);
             var price = prices.FirstOrDefault()?.Prices.FirstOrDefault(it => it.VariantId == card.VariantId);

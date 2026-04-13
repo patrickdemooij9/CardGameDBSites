@@ -204,7 +204,7 @@ namespace SkytearHorde.ViewComponents
                     AllowedChildren = character.AllowedChildren,
                     MaxChildren = character.MaxChildren,
                     Mutations = character.Mutations,
-                    NonLegalDeckTypes = _cardService.GetNonLegalDeckTypesForCard(character)
+                    NonLegalDeckTypes = character.NonLegalDeckTypes
                 });
             }
             teamModel.AllCharacters = allCharacters.ToArray();

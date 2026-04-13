@@ -112,6 +112,10 @@ namespace SkytearHorde.Business.Services.Search
             {
                 searcher.And().Field("DecksOnly", 1.ToString());
             }
+            if (!query.IncludeReprintedCards)
+            {
+                searcher.And().Field("IsReprint", 0.ToString());
+            }
 
             if (!string.IsNullOrWhiteSpace(query.Query))
             {

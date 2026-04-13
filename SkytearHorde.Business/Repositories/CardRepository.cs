@@ -236,7 +236,8 @@ namespace SkytearHorde.Business.Repositories
                 VariantReferences = card.Children<CardVariant>()?
                     .Select(it => new CardVariantReference((it.VariantType as Variant)?.InternalID, it.Id, it.Set!.Id))
                     .ToArray() ?? [],
-                NonLegalDeckTypes = card.NonLegalDeckTypes?.OfType<SquadSettings>().Select(it => it.TypeID).ToArray() ?? []
+                NonLegalDeckTypes = card.NonLegalDeckTypes?.OfType<SquadSettings>().Select(it => it.TypeID).ToArray() ?? [],
+                IsReprint = false
             };
         }
 
@@ -257,11 +258,12 @@ namespace SkytearHorde.Business.Repositories
             }
 
             Card card;
+            var siblings = variant.Siblings<CardVariant>()?.ToArray() ?? [];
             var variantType = variant.VariantType as Variant;
             if (variantType?.ChildOf is Variant || variantType?.ChildOfBase is true)
             {
                 var childOfVariant = variantType?.ChildOf as Variant;
-                var childOfCard = variant.Siblings<CardVariant>()?.FirstOrDefault(it =>
+                var childOfCard = siblings.FirstOrDefault(it =>
                 {
                     if (variantType?.ChildOfBase is true)
                     {
@@ -334,7 +336,8 @@ namespace SkytearHorde.Business.Repositories
                 MaxChildren = card.MaxChildren,
                 Mutations = card.Mutations,
                 VariantReferences = card.VariantReferences,
-                NonLegalDeckTypes = card.NonLegalDeckTypes
+                NonLegalDeckTypes = card.NonLegalDeckTypes,
+                IsReprint = siblings.Where(it => it.VariantType is null).Any(it => it.CreateDate < variant.CreateDate)
             };
         }
     }

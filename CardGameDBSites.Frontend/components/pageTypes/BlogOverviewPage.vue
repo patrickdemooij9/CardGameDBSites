@@ -20,7 +20,7 @@ async function loadPosts() {
   try {
     const result = await new CommunityService().getPosts(page.value, pageSize);
     posts.value = result.items;
-    totalItems.value = result.totalItems;
+    totalItems.value = result.totalItems ?? 0;
   } finally {
     isLoading.value = false;
   }
@@ -78,7 +78,7 @@ await loadPosts();
           <h2 class="text-lg font-semibold mt-2">{{ post.title }}</h2>
           <p class="text-sm text-gray-600 mt-1">
             {{ post.author }} &mdash;
-            {{ ParseToHumanReadableText(post.publishedDate) }}
+            {{ ParseToHumanReadableText(post.publishedDate!) }}
           </p>
         </div>
       </a>

@@ -63,6 +63,7 @@ namespace SkytearHorde.Business.Startup.Indexes
             updatedValues["CustomField.SetId"] = [card.SetId];
             updatedValues["Name"] = [card.DisplayName];
             updatedValues["VariantType"] = [card.VariantTypeId ?? 0];
+            updatedValues["IsReprint"] = [card.IsReprint ? 1 : 0];
 
             var set = ctx.Content?.GetById(card.SetId) as Set;
             if (set != null)

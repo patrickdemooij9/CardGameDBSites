@@ -13,6 +13,7 @@
         public bool IncludeHideFromDeck { get; set; } = true;
         public bool OnlyOwnedCards { get; set; }
         public int? MemberId { get; set; }
+        public bool IncludeReprintedCards { get; set; } = true;
 
         public CardSearchQuery(int amount, int siteId)
         {

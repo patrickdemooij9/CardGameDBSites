@@ -36,6 +36,8 @@ namespace SkytearHorde.Entities.Models.Business
         public DeckMutation[] Mutations { get; set; }
         public int[] NonLegalDeckTypes { get; set; }
 
+        public bool IsReprint { get; set; }
+
         public Card(int id)
         {
             BaseId = id;

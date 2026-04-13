@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CardDetailApiModel } from '../models/CardDetailApiModel';
+import type { CardPriceChangeApiModel } from '../models/CardPriceChangeApiModel';
 import type { CardsQueryPostApiModel } from '../models/CardsQueryPostApiModel';
 import type { CardVariantTypeApiModel } from '../models/CardVariantTypeApiModel';
 import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
@@ -23,6 +24,7 @@ import type { LoginPostModel } from '../models/LoginPostModel';
 import type { MemberApiModel } from '../models/MemberApiModel';
 import type { PackPostApiModel } from '../models/PackPostApiModel';
 import type { PackVerifySuccessApiModel } from '../models/PackVerifySuccessApiModel';
+import type { PagedCommunityBlogPostsApiModel } from '../models/PagedCommunityBlogPostsApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
 import type { PresetApiModel } from '../models/PresetApiModel';
@@ -210,6 +212,26 @@ export class V1Resource {
             url: '/api/cards/query',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns CardPriceChangeApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCardsTopPriceChanges({
+        count,
+        descending,
+    }: {
+        count?: number,
+        descending?: boolean,
+    }): CancelablePromise<Array<CardPriceChangeApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/cards/topPriceChanges',
+            query: {
+                'count': count,
+                'descending': descending,
+            },
         });
     }
     /**
@@ -488,6 +510,26 @@ export class V1Resource {
             url: '/api/comments/getByDeck',
             query: {
                 'deckId': deckId,
+            },
+        });
+    }
+    /**
+     * @returns PagedCommunityBlogPostsApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCommunityPosts({
+        page = 1,
+        pageSize = 30,
+    }: {
+        page?: number,
+        pageSize?: number,
+    }): CancelablePromise<PagedCommunityBlogPostsApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/community/posts',
+            query: {
+                'page': page,
+                'pageSize': pageSize,
             },
         });
     }

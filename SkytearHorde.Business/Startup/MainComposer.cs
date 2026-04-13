@@ -73,6 +73,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<CardRepository>();
             builder.Services.AddSingleton<CollectionPackRepository>();
             builder.Services.AddSingleton<RedditDailyCardRepository>();
+            builder.Services.AddSingleton<RedditBotCommentRepository>();
 
             builder.Services.AddSingleton<IAdRepository, AdRepository>();
             builder.Services.AddSingleton<IMetricRawDataRepository, MetricRawDataRepository>();
@@ -114,6 +115,7 @@ namespace SkytearHorde.Business.Startup
             //builder.Services.AddHostedService<AdReportTask>();
             builder.Services.AddHostedService<CardPriceSyncTask>();
             builder.Services.AddHostedService<RedditDailyCardTask>();
+            builder.Services.AddHostedService<RedditBotTask>();
             builder.Services.AddHostedService<DeckViewCleanupTask>();
 
             builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();

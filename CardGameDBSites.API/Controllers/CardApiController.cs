@@ -3,7 +3,6 @@ using CardGameDBSites.API.Models;
 using CardGameDBSites.API.Models.Cards;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using RedditSharp;
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;

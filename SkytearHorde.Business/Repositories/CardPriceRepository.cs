@@ -10,12 +10,14 @@ namespace SkytearHorde.Business.Repositories
     public class CardPriceRepository
     {
         private readonly IScopeProvider _scopeProvider;
+        private readonly IAppPolicyCache _cache;
 
         private readonly Cache.IRepositoryCachePolicy<CardPriceGroup, int> _repositoryCachePolicy;
 
         public CardPriceRepository(IScopeProvider scopeProvider, IAppPolicyCache cache)
         {
             _scopeProvider = scopeProvider;
+            _cache = cache;
             _repositoryCachePolicy = new Cache.DefaultRepositoryCachePolicy<CardPriceGroup, int>(cache, new Cache.RepositoryCachePolicyOptions
             {
                 PerformCount = PerformCount
@@ -110,6 +112,36 @@ namespace SkytearHorde.Business.Repositories
                     _repositoryCachePolicy.ClearCache(record.CardId);
                 }
             }
+        }
+
+        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
+        {
+            if (count <= 0 || count > 100)
+                throw new ArgumentOutOfRangeException(nameof(count), "count must be between 1 and 100.");
+
+            var cacheKey = $"uRepo_TopPriceChanges_{count}_{descending}";
+            var cached = _cache.GetCacheItem<List<CardPriceChangeResult>>(cacheKey);
+            if (cached != null)
+                return cached;
+
+            using var scope = _scopeProvider.CreateScope();
+            var cutoff = DateTime.UtcNow.AddHours(-24);
+            var orderDirection = descending ? "DESC" : "ASC";
+            var sql = $@"
+                SELECT TOP {count} latest.CardId, latest.VariantId, latest.MainPrice AS CurrentPrice, prev.MainPrice AS PreviousPrice
+                FROM CardPriceRecord latest
+                INNER JOIN (
+                    SELECT CardId, VariantId, MAX(DateUtc) AS MaxDate
+                    FROM CardPriceRecord
+                    WHERE DateUtc <= @0 AND IsLatest = 0
+                    GROUP BY CardId, VariantId
+                ) prevMeta ON prevMeta.CardId = latest.CardId AND prevMeta.VariantId = latest.VariantId
+                INNER JOIN CardPriceRecord prev ON prev.CardId = prevMeta.CardId AND prev.VariantId = prevMeta.VariantId AND prev.DateUtc = prevMeta.MaxDate
+                WHERE latest.IsLatest = 1 AND prev.MainPrice > 0
+                ORDER BY (latest.MainPrice - prev.MainPrice) {orderDirection}";
+            var result = scope.Database.Fetch<CardPriceChangeResult>(sql, cutoff);
+            _cache.Insert(cacheKey, () => result, TimeSpan.FromHours(1));
+            return result;
         }
 
         private int PerformCount()

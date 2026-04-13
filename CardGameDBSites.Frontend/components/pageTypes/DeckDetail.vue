@@ -4,7 +4,6 @@ import DeckService from "~/services/DeckService";
 import DeckLike from "../decks/DeckLike.vue";
 import type {
   CardDetailApiModel,
-  CollectionCardApiModel,
   CommentViewModel,
   DeckCardGroupApiModel,
 } from "~/api/default";
@@ -17,9 +16,9 @@ import { useMembers } from "~/composables/useMembers";
 import { useSite } from "~/composables/useSite";
 import { GetCardValue } from "~/helpers/CardHelper";
 import CommentSection from "../comments/CommentSection.vue";
-import Button from "../shared/Button.vue";
-import ButtonType from "../shared/ButtonType";
-import { PhDotsThree, PhPencil, PhTrash } from "@phosphor-icons/vue";
+import { PhDotsThree } from "@phosphor-icons/vue";
+
+console.time('page-render')
 
 defineProps<{
   content: DeckDetailContentModel;
@@ -30,7 +29,9 @@ const router = useRouter();
 let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]);
 
+console.time('fetch-deck');
 const deck = await new DeckService().get(deckId);
+console.timeEnd('fetch-deck');
 if (!deck || deck === null) {
   throw createError({
     statusCode: 404,
@@ -38,6 +39,7 @@ if (!deck || deck === null) {
   });
 }
 
+console.time('fetch-related-data');
 const accountService = useAccountStore();
 const collectionService = useCollection();
 const deckSettings = await useSite().getDeckTypeSettings(deck.typeId!);
@@ -50,11 +52,15 @@ const mainCards = GetValidCards(
   deckSettings!.mainCardRequirements ?? [],
 );
 
+console.timeEnd('fetch-related-data');
+
+console.time("member");
 let createdBy = "Anonymous";
 if (deck.createdBy) {
   createdBy = (await useMembers().loadMembersByIds([deck.createdBy]))[0]
     .displayName;
 }
+console.timeEnd("member");
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
@@ -140,6 +146,8 @@ async function handleDeleteDeck() {
   await new DeckService().deleteDeck(deck.id);
   router.push("/account/decks");
 }
+
+console.timeEnd('page-render');
 </script>
 
 <template>

@@ -57,8 +57,8 @@ async function copyToClipboard(action: DeckActionApiModel) {
       <p>{{ action.displayName }}</p>
     </a>
   </div>
-  <div v-else-if="action.type === 'DeckMissingCardsExport' && action.url">
-    <form id="buyCardsForm" method="post" :action="action.url">
+  <div v-else-if="action.type === 'DeckMissingCardsExport'">
+    <form id="buyCardsForm" method="post" action="https://api.tcgplayer.com/massentry?productline=Star Wars Unlimited">
       <input type="hidden" name="c" :value="missingCardsString" />
       <input type="hidden" name="affiliateurl" value="https://tcgplayer.pxf.io/c/4924415/1780961/21018" />
       <button type="submit" class="flex align-center gap-1">

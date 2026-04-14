@@ -1,6 +1,5 @@
 ﻿using SkytearHorde.Business.Exports;
 using SkytearHorde.Entities.Models.Business;
-using Umbraco.Extensions;
 
 namespace SkytearHorde.Entities.Generated
 {
@@ -27,7 +26,7 @@ namespace SkytearHorde.Entities.Generated
 
         public string GetUrl()
         {
-            return this.Value<string>(_publishedValueFallback, "tcgPlayerUrl") ?? string.Empty;
+            throw new NotImplementedException();
         }
     }
 }

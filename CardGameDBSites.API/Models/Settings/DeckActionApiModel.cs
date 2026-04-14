@@ -7,7 +7,6 @@
         public string Icon { get; set; }
         public required string Type { get; set; }
 
-        public string? Url { get; set; }
         public string? PopupTitle { get; set; }
         public string? PopupDescription { get; set; }
         public bool IsCopyClipboard { get; set; }

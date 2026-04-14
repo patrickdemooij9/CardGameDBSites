@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { DeckDetailContentModel } from "~/api/umbraco";
 import DeckService from "~/services/DeckService";
+import SetService from "~/services/SetService";
 import DeckLike from "../decks/DeckLike.vue";
 import type {
   CardDetailApiModel,
   CollectionCardApiModel,
   CommentViewModel,
   DeckCardGroupApiModel,
+  SetViewModel,
 } from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
@@ -48,6 +50,17 @@ const cards = await useCards().loadCardsByIds(
 const mainCards = GetValidCards(
   cards,
   deckSettings!.mainCardRequirements ?? [],
+);
+
+const sets = ref<SetViewModel[]>([]);
+const setService = new SetService();
+const uniqueSetIds = [...new Set(cards.map((c) => c.setId).filter((id): id is number => id != null))];
+await Promise.all(
+  uniqueSetIds.map((setId) =>
+    setService.getById(setId).then((set) => {
+      if (set) sets.value.push(set);
+    }),
+  ),
 );
 
 let createdBy = "Anonymous";
@@ -130,10 +143,11 @@ const missingCardsString = computed(() => {
     const owned = isLoggedIn.value ? getCollectionCount(deckCard.cardId!) : 0;
     const missing = needed - owned;
     if (missing > 0) {
-      parts.push(`${missing} ${card.displayName} [${card.setCode}]`);
+      const set = sets.value.find((s) => s.id === card.setId);
+      const setCode = set?.code ?? "";
+      parts.push(`${missing} ${card.displayName} [${setCode}]`);
     }
   });
-  // TcgPlayer massentry API requires cards separated by "||" in the format "{amount} {name} [{setCode}]"
   return parts.join("||");
 });
 

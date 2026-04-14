@@ -7,7 +7,6 @@ export type DeckActionApiModel = {
     displayName: string;
     icon?: string;
     type: string;
-    url?: string | null;
     popupTitle?: string | null;
     popupDescription?: string | null;
     isCopyClipboard?: boolean;

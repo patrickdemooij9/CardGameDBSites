@@ -134,7 +134,8 @@ namespace CardGameDBSites.API.Controllers
                 VariantTypeId = model.VariantTypeId,
                 OnlyOwnedCards = model.OnlyOwnedCards,
                 MemberId = memberId,
-                IncludeReprintedCards = model.IncludeReprintedCards
+                IncludeReprintedCards = model.IncludeReprintedCards,
+                LegalForDeckTypeId = model.LegalForDeckTypeId
             }, out var totalItems).Select(MapToApiModel);
             return Ok(new PagedResult<CardDetailApiModel>(totalItems, model.PageNumber, model.PageSize)
             {
@@ -205,7 +206,7 @@ namespace CardGameDBSites.API.Controllers
 
         private CardDetailApiModel MapToApiModel(Card card)
         {
-            var detail = new CardDetailApiModel(card, _cardService.GetNonLegalDeckTypesForCard(card));
+            var detail = new CardDetailApiModel(card, card.NonLegalDeckTypes);
             if (_settingsService.GetSiteSettings().AllowPricing)
             {
                 var prices = _cardPriceService.GetPrices(card);

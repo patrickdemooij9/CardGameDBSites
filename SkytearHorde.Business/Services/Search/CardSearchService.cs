@@ -116,6 +116,10 @@ namespace SkytearHorde.Business.Services.Search
             {
                 searcher.And().Field("IsReprint", 0.ToString());
             }
+            if (query.LegalForDeckTypeId.HasValue)
+            {
+                searcher.Not().Field("NonLegalDeckTypes", query.LegalForDeckTypeId.Value.ToString());
+            }
 
             if (!string.IsNullOrWhiteSpace(query.Query))
             {

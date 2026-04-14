@@ -246,8 +246,7 @@ namespace SkytearHorde.Business.Repositories
             var baseVariants = parentCard.Children<CardVariant>()?.Where(it => it.VariantType is null).ToArray() ?? [];
             var actualCardSets = baseVariants
                 .Select(it => it.Set as Set)
-                .Where(it => it != null)
-                .Select(it => it!)
+                .WhereNotNull()
                 .DistinctBy(it => it.Id)
                 .ToArray();
 

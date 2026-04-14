@@ -2,6 +2,7 @@
 using SkytearHorde.Entities.Models.Business;
 using System.Diagnostics;
 using System.Text.Encodings.Web;
+using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Extensions;
 
@@ -11,12 +12,17 @@ namespace SkytearHorde.Business.Services
     {
         private readonly CardRepository _cardRepository;
         private readonly CardPriceRepository _cardPriceRepository;
+        private readonly IAppPolicyCache _appPolicyCache;
         private readonly IProfiler _profiler;
 
-        public CardPriceService(CardRepository cardRepository, CardPriceRepository cardPriceRepository, IProfiler profiler)
+        public CardPriceService(CardRepository cardRepository,
+            CardPriceRepository cardPriceRepository,
+            AppCaches appCaches,
+            IProfiler profiler)
         {
             _cardRepository = cardRepository;
             _cardPriceRepository = cardPriceRepository;
+            _appPolicyCache = appCaches.RuntimeCache;
             _profiler = profiler;
         }
 
@@ -60,9 +66,12 @@ namespace SkytearHorde.Business.Services
 
         public double GetPriceByDeck(Deck deck)
         {
-            using var _ = _profiler.Step("GetPriceByDeck");
-            var cardPrices = GetBaseCardPrices(deck.Cards.Select(it => it.CardId).ToArray());
-            return deck.Cards.Sum(it => !cardPrices.TryGetValue(it.CardId, out CardPriceGroup? value) ? 0 : value.GetLowest() * it.Amount);
+            return _appPolicyCache.GetCacheItem($"CardPriceService_PriceByDeck_{deck.Id}", () =>
+            {
+                using var _ = _profiler.Step("GetPriceByDeck");
+                var cardPrices = GetBaseCardPrices([.. deck.Cards.Select(it => it.CardId)]);
+                return deck.Cards.Sum(it => !cardPrices.TryGetValue(it.CardId, out CardPriceGroup? value) ? 0 : value.GetLowest() * it.Amount);
+            }, TimeSpan.FromMinutes(5));
         }
 
         public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)

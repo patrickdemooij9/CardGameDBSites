@@ -27,11 +27,25 @@ const cards = useCards();
 const siteSettings = await useSite().getSettings();
 const sets = ref<SetViewModel[]>([]);
 
+export type CardOverviewTableColumn = {
+  alias: string;
+  displayName: string;
+};
+
 const props = defineProps<{
   filters: OverviewFilterModel[];
   sortings?: OverviewSortModel[];
   setId?: number;
+  tableColumns?: CardOverviewTableColumn[];
 }>();
+
+const availableViews = computed(() =>
+  props.tableColumns && props.tableColumns.length > 0
+    ? ["images", "rows"]
+    : ["images"],
+);
+
+const viewMode = ref("images");
 
 const pageNumber = ref(1);
 const pageNumberString = route.query["page"];
@@ -133,10 +147,14 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :internal-filters="internalFilters"
     :white-background="true"
     :enable-query-string-sync="true"
+    :available-views="availableViews"
     v-slot="{ cards }"
     @reloaded="loadCollectionCards"
+    @viewChanged="(mode) => (viewMode = mode)"
   >
+    <!-- Image grid view -->
     <div
+      v-if="viewMode === 'images'"
       class="container px-4 md:px-8 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6"
     >
       <div class="relative" v-for="card in cards.items">
@@ -209,45 +227,64 @@ function getCardIdentifier(card: CardDetailApiModel) {
             </Button>
           </div>
         </div>
-        <!--@if (Model.ShowCollection && card.Collection != null)
-    {
-        var cardVariants = Model.VariantTypes.Where(it => it.HasPage && card.Collection.HasVariant(it.Id)).ToArray();
-        <hr class="mt-2" />
-        <div class="flex mt-2 gap-2 align-center justify-between">
-            @if (cardVariants.Length > 0)
-            {
-                var baseVariant = card.GetMainVariant().Id;
-                var ownsNormalCard = card.Collection.GetAmount(baseVariant) > 0;
-                <div class="relative h-6 w-8">
-                    <span class="absolute top-0 flex align-center justify-center border border-white rounded h-6 w-4 @(ownsNormalCard ? "bg-red-600" : "bg-[#cfcfcf]")" style="z-index: @(Model.VariantTypes.Length + 1)">
-                        <span class="bg-white rounded-full w-2 h-2"></span>
-                    </span>
-                    @for (var i = 0; i < cardVariants.Length; i++)
-                    {
-                        var variant = cardVariants[i];
-                        if (!card.Collection.HasVariant(variant.Id)) continue;
-
-                        var bgColor = card.Collection.GetAmount(variant.Id) > 0 ? variant.Color : "#cfcfcf";
-                        <span class="absolute top-0 flex align-center justify-center border border-white rounded h-6 w-4" style="background-color:@bgColor; left: @(10 + i * 10)px; z-index: @(Model.VariantTypes.Length - i)">
-                            @if (!string.IsNullOrWhiteSpace(variant.Initial))
-                            {
-                                <span class="text-white text-xs font-bold text-center">@variant.Initial</span>
-                            }
-                            else
-                            {
-                                <span class="bg-white rounded-full w-2 h-2"></span>
-                            }
-                        </span>
-                    }
-                </div>
-            }
-            <p><span id="total-count-@card.BaseId">@card.Collection.GetTotalAmount()</span> <span class="md:inline hidden">copies</span></p>
-            <button class="btn btn-outline flex justify-center" hx-get="/umbraco/api/collection/rendermanagemodal?cardId=@(card.BaseId)&setId=@(card.SetId)" hx-target="#collection-modal">
-                <i class="ph ph-books"></i>
-            </button>
-        </div>
-    }-->
       </div>
+    </div>
+
+    <!-- Table / rows view -->
+    <div
+      v-else-if="viewMode === 'rows' && tableColumns && tableColumns.length > 0"
+      class="container px-4 md:px-8 overflow-x-auto"
+    >
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b-2 border-gray-300">
+            <th class="py-2 pr-4 font-semibold">Name</th>
+            <th
+              v-for="col in tableColumns"
+              :key="col.alias"
+              class="py-2 pr-4 font-semibold"
+            >
+              {{ col.displayName }}
+            </th>
+            <th v-if="showCollection" class="py-2 pr-4 font-semibold">Collection</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="card in cards.items"
+            :key="card.baseId"
+            class="border-b border-gray-200 hover:bg-gray-50"
+          >
+            <td class="py-2 pr-4">
+              <NuxtLink :href="card.urlSegment" class="no-underline font-medium hover:underline">
+                {{ card.displayName }}
+              </NuxtLink>
+            </td>
+            <td
+              v-for="col in tableColumns"
+              :key="col.alias"
+              class="py-2 pr-4 text-sm text-gray-700"
+            >
+              {{ card.attributes?.[col.alias]?.join(", ") ?? "-" }}
+            </td>
+            <td v-if="showCollection" class="py-2 pr-4">
+              <div class="flex items-center gap-2">
+                <span :aria-label="`${collectionService.getAmount(card.baseId!)} copies`">
+                  {{ collectionService.getAmount(card.baseId!) }}
+                  <span class="md:inline hidden" aria-hidden="true">copies</span>
+                </span>
+                <Button
+                  :button-type="ButtonType.Outline"
+                  class="flex justify-center"
+                  @click="collectionSelectedCard = card"
+                >
+                  <PhBooks />
+                </Button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </BaseCardOverview>
   <CollectionCardVariantPopup

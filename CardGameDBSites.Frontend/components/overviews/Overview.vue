@@ -2,7 +2,9 @@
 import {
   PhCaretDown,
   PhFaders,
+  PhList,
   PhMagnifyingGlass,
+  PhSquaresFour,
   PhX,
 } from "@phosphor-icons/vue";
 import {
@@ -22,19 +24,37 @@ const props = defineProps<{
   sortings?: OverviewSortModel[];
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
+  availableViews?: string[];
 }>();
 
 defineExpose({
   setPage,
   getPage,
+  getViewMode,
 });
 
 const emit = defineEmits<{
   (e: "reload", value: OverviewRefreshModel): void;
   (e: "loadLazyFilter", filter: OverviewFilterModel): void;
+  (e: "viewChanged", viewMode: string): void;
 }>();
 
 const route = useRoute();
+
+const viewMode = ref<string>(
+  props.availableViews && props.availableViews.length > 0
+    ? props.availableViews[0]
+    : "images",
+);
+
+function getViewMode(): string {
+  return viewMode.value;
+}
+
+function setViewMode(mode: string) {
+  viewMode.value = mode;
+  emit("viewChanged", mode);
+}
 
 const search = ref(route.query.search?.toString() ?? "");
 
@@ -411,6 +431,36 @@ init();
                     }
                 </div>
             }-->
+          <div
+            v-if="availableViews && availableViews.length > 1"
+            class="flex items-center gap-2"
+            role="group"
+            aria-label="Layout"
+          >
+            <p aria-hidden="true">Layout:</p>
+            <button
+              v-if="availableViews.includes('rows')"
+              type="button"
+              class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
+              :class="viewMode === 'rows' ? 'bg-main-color text-white' : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'"
+              aria-label="Table view"
+              :aria-pressed="viewMode === 'rows'"
+              @click="setViewMode('rows')"
+            >
+              <PhList aria-hidden="true" />
+            </button>
+            <button
+              v-if="availableViews.includes('images')"
+              type="button"
+              class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
+              :class="viewMode === 'images' ? 'bg-main-color text-white' : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'"
+              aria-label="Image view"
+              :aria-pressed="viewMode === 'images'"
+              @click="setViewMode('images')"
+            >
+              <PhSquaresFour aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
     </form>

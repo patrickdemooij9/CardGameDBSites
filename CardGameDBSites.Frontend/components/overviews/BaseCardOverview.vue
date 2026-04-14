@@ -19,10 +19,12 @@ const props = defineProps<{
   collectionOnlyMode?: boolean;
   hideReprintedCards?: boolean;
   legalForDeckTypeId?: number;
+  availableViews?: string[];
 }>();
 
 const emit = defineEmits<{
   (e: "reloaded", value: PagedResultCardDetailApiModel): void;
+  (e: "viewChanged", viewMode: string): void;
 }>();
 
 const pagedCards = ref<PagedResultCardDetailApiModel>();
@@ -108,8 +110,10 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :filters="filters"
     :sortings="sortings"
     :enable-query-string-sync="enableQueryStringSync"
+    :available-views="availableViews"
     @reload="loadData"
     @loadLazyFilter="loadLazyFilter"
+    @viewChanged="(mode) => emit('viewChanged', mode)"
     ref="overview"
   >
     <div v-if="pagedCards">

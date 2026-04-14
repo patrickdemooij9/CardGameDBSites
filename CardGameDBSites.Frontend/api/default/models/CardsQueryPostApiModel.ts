@@ -13,5 +13,6 @@ export type CardsQueryPostApiModel = {
     onlyOwnedCards?: boolean;
     sortBy?: string | null;
     includeReprintedCards?: boolean;
+    legalForDeckTypeId?: number | null;
 };
 

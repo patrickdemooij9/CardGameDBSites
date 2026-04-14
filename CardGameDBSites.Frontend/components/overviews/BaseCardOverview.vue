@@ -17,7 +17,8 @@ const props = defineProps<{
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
   collectionOnlyMode?: boolean;
-  hideReprintedCards?: boolean
+  hideReprintedCards?: boolean;
+  legalForDeckTypeId?: number;
 }>();
 
 const emit = defineEmits<{
@@ -80,6 +81,7 @@ async function loadData(value: OverviewRefreshModel) {
     onlyOwnedCards: props.collectionOnlyMode,
     sortBy: value.SortBy,
     includeReprintedCards: props.hideReprintedCards ? false : undefined,
+    legalForDeckTypeId: props.legalForDeckTypeId,
   });
   if (value.LoadedCallback) {
     value.LoadedCallback();

@@ -5,7 +5,7 @@ import CreateDeckSlot from "~/components/decks/deckBuilder/models/CreateDeckSlot
 import CreateDeckCardGroup from "~/components/decks/deckBuilder/models/CreateDeckCardGroup";
 import { FixedDeckAmountConfig } from "~/components/decks/deckBuilder/models/CreateDeckSlotAmount";
 import type { CardDetailApiModel } from "~/api/default";
-import { computeCostCurve } from "~/helpers/CostCurveHelper";
+import { computeCostCurve, computeCostCurveChart } from "~/helpers/CostCurveHelper";
 
 function makeCard(
   id: number,
@@ -106,5 +106,68 @@ describe("DeckCostCurve", () => {
       expect(result).toHaveLength(1);
       expect(result[0].count).toBe(2);
     });
+  });
+});
+
+describe("computeCostCurveChart", () => {
+  it("returns empty labels and datasets when deck has no cards", () => {
+    const deck = new CreateDeckModel();
+    const result = computeCostCurveChart(deck);
+    expect(result.labels).toEqual([]);
+    expect(result.datasets).toEqual([]);
+  });
+
+  it("returns a single dataset labeled 'Cards' when no typeAttr is given", () => {
+    const deck = buildDeck([{ card: makeCard(1, { Cost: ["2"] }), amount: 3 }]);
+    const result = computeCostCurveChart(deck, "Cost");
+    expect(result.datasets).toHaveLength(1);
+    expect(result.datasets[0].label).toBe("Cards");
+    expect(result.datasets[0].data).toEqual([3]);
+  });
+
+  it("groups counts by card type when typeAttr is provided", () => {
+    const deck = buildDeck([
+      { card: makeCard(1, { Cost: ["2"], Type: ["Unit"] }), amount: 2 },
+      { card: makeCard(2, { Cost: ["2"], Type: ["Spell"] }), amount: 1 },
+    ]);
+    const result = computeCostCurveChart(deck, "Cost", "Type");
+    expect(result.labels).toEqual(["2"]);
+    const unitDs = result.datasets.find((d) => d.label === "Unit")!;
+    const spellDs = result.datasets.find((d) => d.label === "Spell")!;
+    expect(unitDs.data).toEqual([2]);
+    expect(spellDs.data).toEqual([1]);
+  });
+
+  it("fills zero for cost buckets a type does not have", () => {
+    const deck = buildDeck([
+      { card: makeCard(1, { Cost: ["1"], Type: ["Unit"] }), amount: 1 },
+      { card: makeCard(2, { Cost: ["3"], Type: ["Spell"] }), amount: 1 },
+    ]);
+    const result = computeCostCurveChart(deck, "Cost", "Type");
+    expect(result.labels).toEqual(["1", "3"]);
+    const unitDs = result.datasets.find((d) => d.label === "Unit")!;
+    const spellDs = result.datasets.find((d) => d.label === "Spell")!;
+    expect(unitDs.data).toEqual([1, 0]);
+    expect(spellDs.data).toEqual([0, 1]);
+  });
+
+  it("buckets costs >= 9 into '9+'", () => {
+    const deck = buildDeck([
+      { card: makeCard(1, { Cost: ["9"] }), amount: 1 },
+      { card: makeCard(2, { Cost: ["10"] }), amount: 2 },
+    ]);
+    const result = computeCostCurveChart(deck, "Cost");
+    expect(result.labels).toEqual(["9+"]);
+    expect(result.datasets[0].data).toEqual([3]);
+  });
+
+  it("sorts cost labels numerically with 9+ last", () => {
+    const deck = buildDeck([
+      { card: makeCard(1, { Cost: ["3"] }), amount: 1 },
+      { card: makeCard(2, { Cost: ["1"] }), amount: 1 },
+      { card: makeCard(3, { Cost: ["9"] }), amount: 1 },
+    ]);
+    const result = computeCostCurveChart(deck, "Cost");
+    expect(result.labels).toEqual(["1", "3", "9+"]);
   });
 });

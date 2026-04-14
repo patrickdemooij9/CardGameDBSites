@@ -33,5 +33,8 @@ namespace SkytearHorde.Entities.Models.Database
 
         [Column("IsLatest")]
         public bool IsLatest { get; set; }
+
+        [Column("Delta")]
+        public double Delta { get; set; }
     }
 }

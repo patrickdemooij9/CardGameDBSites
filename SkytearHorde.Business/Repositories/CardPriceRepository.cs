@@ -1,4 +1,5 @@
-﻿using SkytearHorde.Entities.Models.Business;
+﻿using SkytearHorde.Business.Helpers;
+using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Database;
 using System.Security.Cryptography;
 using Umbraco.Cms.Core.Cache;
@@ -80,6 +81,7 @@ namespace SkytearHorde.Business.Repositories
                             existingRecord.MainPrice = price.MainPrice;
                             existingRecord.LowestPrice = price.LowestPrice;
                             existingRecord.HighestPrice = price.HighestPrice;
+                            existingRecord.Delta = CardPriceDeltaCalculator.RecalculateDelta(price.MainPrice, existingRecord);
                             scope.Database.Update(existingRecord);
                             continue;
                         }
@@ -99,7 +101,8 @@ namespace SkytearHorde.Business.Repositories
                         LowestPrice = price.LowestPrice,
                         MainPrice = price.MainPrice,
                         DateUtc = price.DateUtc,
-                        IsLatest = true
+                        IsLatest = true,
+                        Delta = CardPriceDeltaCalculator.CalculateDelta(price.MainPrice, existingRecord)
                     };
                     scope.Database.Insert(newRecord);
 
@@ -125,21 +128,14 @@ namespace SkytearHorde.Business.Repositories
                 return cached;
 
             using var scope = _scopeProvider.CreateScope();
-            var cutoff = DateTime.UtcNow.AddHours(-24);
             var orderDirection = descending ? "DESC" : "ASC";
+            var cutoffDate = DateTime.UtcNow.Date.AddDays(-1);
             var sql = $@"
-                SELECT TOP {count} latest.CardId, latest.VariantId, latest.MainPrice AS CurrentPrice, prev.MainPrice AS PreviousPrice
-                FROM CardPriceRecord latest
-                INNER JOIN (
-                    SELECT CardId, VariantId, MAX(DateUtc) AS MaxDate
-                    FROM CardPriceRecord
-                    WHERE DateUtc <= @0 AND IsLatest = 0
-                    GROUP BY CardId, VariantId
-                ) prevMeta ON prevMeta.CardId = latest.CardId AND prevMeta.VariantId = latest.VariantId
-                INNER JOIN CardPriceRecord prev ON prev.CardId = prevMeta.CardId AND prev.VariantId = prevMeta.VariantId AND prev.DateUtc = prevMeta.MaxDate
-                WHERE latest.IsLatest = 1 AND prev.MainPrice > 0
-                ORDER BY (latest.MainPrice - prev.MainPrice) {orderDirection}";
-            var result = scope.Database.Fetch<CardPriceChangeResult>(sql, cutoff);
+                SELECT TOP {count} CardId, VariantId, MainPrice AS CurrentPrice, (MainPrice - Delta) AS PreviousPrice
+                FROM CardPriceRecord
+                WHERE IsLatest = 1 AND Delta <> 0 AND (MainPrice - Delta) > 0 AND DateUtc >= @0
+                ORDER BY Delta {orderDirection}";
+            var result = scope.Database.Fetch<CardPriceChangeResult>(sql, cutoffDate);
             _cache.Insert(cacheKey, () => result, TimeSpan.FromHours(1));
             return result;
         }

@@ -348,7 +348,7 @@ async function toggleMarkdownPreview() {
           v-html="markdownPreviewText"
         ></div>
       </div>
-      <DeckCostCurve :deck="deck" />
+      <DeckCostCurve :deck="deck" type-attribute="Card Type" />
     </div>
   </div>
 </template>

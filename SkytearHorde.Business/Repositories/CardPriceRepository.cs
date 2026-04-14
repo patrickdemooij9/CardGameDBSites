@@ -1,4 +1,5 @@
-﻿using SkytearHorde.Entities.Models.Business;
+﻿using SkytearHorde.Business.Helpers;
+using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Database;
 using System.Security.Cryptography;
 using Umbraco.Cms.Core.Cache;
@@ -80,6 +81,7 @@ namespace SkytearHorde.Business.Repositories
                             existingRecord.MainPrice = price.MainPrice;
                             existingRecord.LowestPrice = price.LowestPrice;
                             existingRecord.HighestPrice = price.HighestPrice;
+                            existingRecord.Delta = CardPriceDeltaCalculator.RecalculateDelta(price.MainPrice, existingRecord);
                             scope.Database.Update(existingRecord);
                             continue;
                         }
@@ -100,7 +102,7 @@ namespace SkytearHorde.Business.Repositories
                         MainPrice = price.MainPrice,
                         DateUtc = price.DateUtc,
                         IsLatest = true,
-                        Delta = existingRecord != null ? price.MainPrice - existingRecord.MainPrice : 0.0
+                        Delta = CardPriceDeltaCalculator.CalculateDelta(price.MainPrice, existingRecord)
                     };
                     scope.Database.Insert(newRecord);
 

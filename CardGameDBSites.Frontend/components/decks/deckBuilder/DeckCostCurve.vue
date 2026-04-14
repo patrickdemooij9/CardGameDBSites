@@ -56,36 +56,32 @@ const chartOptions = {
     title: {
       display: true,
       text: "Cost curve",
-      color: "#ffffff",
+      color: "#111827",
       font: { size: 14, weight: "bold" as const },
     },
     legend: {
       display: true,
-      labels: { color: "#ffffff" },
+      labels: { color: "#374151" },
     },
   },
   scales: {
     x: {
       stacked: true,
-      grid: { color: "rgba(255,255,255,0.15)" },
-      ticks: { color: "#ffffff" },
+      grid: { color: "rgba(0,0,0,0.08)" },
+      ticks: { color: "#374151" },
     },
     y: {
       stacked: true,
       beginAtZero: true,
-      grid: { color: "rgba(255,255,255,0.15)" },
-      ticks: { color: "#ffffff", stepSize: 1 },
+      grid: { color: "rgba(0,0,0,0.08)" },
+      ticks: { color: "#374151", stepSize: 1 },
     },
   },
 };
-
-const hasData = computed(() =>
-  chartData.value.datasets.some((ds) => ds.data.some((v) => v > 0)),
-);
 </script>
 
 <template>
-  <div v-if="hasData" class="mt-4 rounded p-2" style="background-color: #000; height: 240px;">
+  <div class="mt-4 rounded border border-gray-200 bg-white p-2" style="height: 240px;">
     <ClientOnly>
       <Bar :data="chartData" :options="chartOptions" />
     </ClientOnly>

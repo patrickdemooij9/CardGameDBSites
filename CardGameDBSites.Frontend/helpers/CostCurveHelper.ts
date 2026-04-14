@@ -68,12 +68,15 @@ export function computeCostCurve(
   }));
 }
 
+const DEFAULT_COST_LABELS: string[] = [
+  "0", "1", "2", "3", "4", "5", "6", "7", "8", COST_OVERFLOW_LABEL,
+];
+
 export function computeCostCurveChart(
   deck: CreateDeckModel,
   costAttr = "Cost",
   typeAttr?: string,
 ): CostCurveChartData {
-  const costLabelSet = new Set<string>();
   const typeLabelSet = new Set<string>();
   const counts: Record<string, Record<string, number>> = {};
 
@@ -85,15 +88,14 @@ export function computeCostCurveChart(
     const typeLabel =
       typeAttr ? (GetCardValue<string>(card, typeAttr) ?? "Unknown") : "Cards";
 
-    costLabelSet.add(costLabel);
     typeLabelSet.add(typeLabel);
 
     if (!counts[typeLabel]) counts[typeLabel] = {};
     counts[typeLabel][costLabel] = (counts[typeLabel][costLabel] ?? 0) + amount;
   });
 
-  const labels = sortCostLabels(Array.from(costLabelSet));
-  const types = Array.from(typeLabelSet).sort();
+  const labels = DEFAULT_COST_LABELS;
+  const types = typeLabelSet.size > 0 ? Array.from(typeLabelSet).sort() : ["Cards"];
 
   const datasets: CostCurveTypeDataset[] = types.map((type) => ({
     label: type,

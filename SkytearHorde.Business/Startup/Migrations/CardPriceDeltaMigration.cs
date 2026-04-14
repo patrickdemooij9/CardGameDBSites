@@ -36,7 +36,7 @@ namespace SkytearHorde.Business.Startup.Migrations
                     }
                 }
 
-                Alter.Table("CardPriceRecord").AlterColumn("Delta").AsDouble().NotNullable().WithDefaultValue(0).Do();
+                Alter.Table("CardPriceRecord").AlterColumn("Delta").AsDouble().NotNullable().Do();
             }
         }
     }

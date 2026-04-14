@@ -129,12 +129,13 @@ namespace SkytearHorde.Business.Repositories
 
             using var scope = _scopeProvider.CreateScope();
             var orderDirection = descending ? "DESC" : "ASC";
+            var cutoffDate = DateTime.UtcNow.Date.AddDays(-1);
             var sql = $@"
                 SELECT TOP {count} CardId, VariantId, MainPrice AS CurrentPrice, (MainPrice - Delta) AS PreviousPrice
                 FROM CardPriceRecord
-                WHERE IsLatest = 1 AND Delta <> 0 AND (MainPrice - Delta) > 0
+                WHERE IsLatest = 1 AND Delta <> 0 AND (MainPrice - Delta) > 0 AND DateUtc >= @0
                 ORDER BY Delta {orderDirection}";
-            var result = scope.Database.Fetch<CardPriceChangeResult>(sql);
+            var result = scope.Database.Fetch<CardPriceChangeResult>(sql, cutoffDate);
             _cache.Insert(cacheKey, () => result, TimeSpan.FromHours(1));
             return result;
         }

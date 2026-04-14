@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { DeckDetailContentModel } from "~/api/umbraco";
 import DeckService from "~/services/DeckService";
+import SetService from "~/services/SetService";
 import DeckLike from "../decks/DeckLike.vue";
 import type {
   CardDetailApiModel,
   CommentViewModel,
   DeckCardGroupApiModel,
+  SetViewModel,
 } from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
@@ -50,6 +52,17 @@ const cards = await useCards().loadCardsByIds(
 const mainCards = GetValidCards(
   cards,
   deckSettings!.mainCardRequirements ?? [],
+);
+
+const sets = ref<SetViewModel[]>([]);
+const setService = new SetService();
+const uniqueSetIds = [...new Set(cards.map((c) => c.setId).filter((id): id is number => id != null))];
+await Promise.all(
+  uniqueSetIds.map((setId) =>
+    setService.getById(setId).then((set) => {
+      if (set) sets.value.push(set);
+    }),
+  ),
 );
 
 console.timeEnd('fetch-related-data');
@@ -126,6 +139,23 @@ function getCollectionCount(cardId: number) {
       ?.reduce((sum, card) => sum + (card.amount ?? 0), 0) ?? 0
   );
 }
+
+const missingCardsString = computed(() => {
+  const parts: string[] = [];
+  deck.cards?.forEach((deckCard) => {
+    const card = cards.find((c) => c.baseId === deckCard.cardId);
+    if (!card) return;
+    const needed = deckCard.amount ?? 0;
+    const owned = isLoggedIn.value ? getCollectionCount(deckCard.cardId!) : 0;
+    const missing = needed - owned;
+    if (missing > 0) {
+      const set = sets.value.find((s) => s.id === card.setId);
+      const setCode = set?.code ?? "";
+      parts.push(`${missing} ${card.displayName} [${setCode}]`);
+    }
+  });
+  return parts.join("||");
+});
 
 function handleCommentAdded(comment: string) {
   useComments()
@@ -238,6 +268,7 @@ console.timeEnd('page-render');
               v-for="action in deckSettings?.actions"
               :deck="deck"
               :action="action"
+              :missing-cards-string="action.type === 'DeckMissingCardsExport' ? missingCardsString : undefined"
             ></DeckAction>
           </div>
           <template v-for="group in deckSettings?.groupings">

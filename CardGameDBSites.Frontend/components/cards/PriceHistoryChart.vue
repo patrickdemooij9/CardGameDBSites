@@ -45,7 +45,8 @@ function expandPriceHistory(records: CardPriceHistoryItemApiModel[]) {
     if (!records.length) return { labels: [] as string[], data: [] as number[] };
 
     const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
-    const start = new Date(sorted[0].date + 'T00:00:00Z');
+    const [sy, sm, sd] = sorted[0].date.split('-').map(Number);
+    const start = new Date(Date.UTC(sy, sm - 1, sd));
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 

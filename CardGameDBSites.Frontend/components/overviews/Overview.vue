@@ -29,14 +29,12 @@ const props = defineProps<{
 
 defineExpose({
   setPage,
-  getPage,
-  getViewMode,
+  getPage
 });
 
 const emit = defineEmits<{
   (e: "reload", value: OverviewRefreshModel): void;
   (e: "loadLazyFilter", filter: OverviewFilterModel): void;
-  (e: "viewChanged", viewMode: string): void;
 }>();
 
 const route = useRoute();
@@ -50,13 +48,8 @@ const viewMode = ref<string>(
   route.query.view?.toString() ?? defaultView,
 );
 
-function getViewMode(): string {
-  return viewMode.value;
-}
-
 function setViewMode(mode: string) {
   viewMode.value = mode;
-  emit("viewChanged", mode);
   reloadData();
 }
 
@@ -473,7 +466,7 @@ init();
     </form>
     <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative">
       <div id="card-overview" v-show="!isLoading">
-        <slot></slot>
+        <slot :viewMode="viewMode"></slot>
       </div>
       <div class="h-20" v-show="isLoading">
         <div

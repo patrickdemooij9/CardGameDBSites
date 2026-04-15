@@ -4,7 +4,6 @@ import type { OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import {
   CardSearchFilterClauseType,
-  type CardsQueryFilterApiModel,
   type CardsQueryFilterClauseApiModel,
   type PagedResultCardDetailApiModel,
 } from "~/api/default";
@@ -24,7 +23,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "reloaded", value: PagedResultCardDetailApiModel): void;
-  (e: "viewChanged", viewMode: string): void;
 }>();
 
 const pagedCards = ref<PagedResultCardDetailApiModel>();
@@ -113,11 +111,11 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :available-views="availableViews"
     @reload="loadData"
     @loadLazyFilter="loadLazyFilter"
-    @viewChanged="(mode) => emit('viewChanged', mode)"
     ref="overview"
+    v-slot="{viewMode}"
   >
     <div v-if="pagedCards">
-      <slot :cards="pagedCards"> </slot>
+      <slot :cards="pagedCards" :viewMode="viewMode"> </slot>
       <div
         class="mt-8 row justify-center"
         v-if="(pagedCards.totalPages ?? 0) > 1"

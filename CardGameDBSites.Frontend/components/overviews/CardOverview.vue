@@ -148,9 +148,8 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :white-background="true"
     :enable-query-string-sync="true"
     :available-views="availableViews"
-    v-slot="{ cards }"
+    v-slot="{ cards, viewMode }"
     @reloaded="loadCollectionCards"
-    @viewChanged="(mode) => (viewMode = mode)"
   >
     <!-- Image grid view -->
     <div

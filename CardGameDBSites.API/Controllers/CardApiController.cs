@@ -204,6 +204,23 @@ namespace CardGameDBSites.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("priceHistory")]
+        [ProducesResponseType(typeof(CardPriceHistoryItemApiModel[]), 200)]
+        public IActionResult GetPriceHistory(int cardId, int? variantId)
+        {
+            if (!_settingsService.GetSiteSettings().AllowPricing)
+                return Ok(Array.Empty<CardPriceHistoryItemApiModel>());
+
+            var history = _cardPriceService.GetPriceHistory(cardId, variantId);
+            var result = history.Select(h => new CardPriceHistoryItemApiModel
+            {
+                Date = h.DateUtc.ToString("yyyy-MM-dd"),
+                Price = h.MainPrice
+            }).ToArray();
+
+            return Ok(result);
+        }
+
         private CardDetailApiModel MapToApiModel(Card card)
         {
             var detail = new CardDetailApiModel(card, card.NonLegalDeckTypes);

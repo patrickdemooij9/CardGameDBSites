@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type {
+  CardAttributeContentModel,
   CardOverviewContentModel,
   IApiContentModel,
   OverviewFilterElementModel,
   OverviewFilterItemPropertiesModel,
   SortingItemElementModel,
 } from "~/api/umbraco";
-import CardOverview from "../overviews/CardOverview.vue";
+import CardOverview, { type CardOverviewTableColumn } from "../overviews/CardOverview.vue";
 import {
   OverviewFilterType,
   type OverviewFilterItemModel,
@@ -52,6 +53,17 @@ const sortings =
       Value: castedItem?.value ?? "",
     };
   }) ?? [];
+
+const tableColumns: CardOverviewTableColumn[] =
+  props.content.properties?.attributesToShow
+    ?.map<CardOverviewTableColumn>((item) => {
+      const castedItem = item as CardAttributeContentModel;
+      return {
+        alias: castedItem.name ?? "",
+        displayName: castedItem.properties?.displayName ?? castedItem.name ?? "",
+      };
+    })
+    .filter((col) => col.alias !== "") ?? [];
 </script>
 
 <template>
@@ -62,5 +74,5 @@ const sortings =
       v-html="content.properties?.description.markup"
     ></span>
   </div>
-  <CardOverview :filters="filters" :sortings="sortings"></CardOverview>
+  <CardOverview :filters="filters" :sortings="sortings" :table-columns="tableColumns"></CardOverview>
 </template>

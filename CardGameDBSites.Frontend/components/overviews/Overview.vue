@@ -2,7 +2,9 @@
 import {
   PhCaretDown,
   PhFaders,
+  PhList,
   PhMagnifyingGlass,
+  PhSquaresFour,
   PhX,
 } from "@phosphor-icons/vue";
 import {
@@ -22,11 +24,12 @@ const props = defineProps<{
   sortings?: OverviewSortModel[];
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
+  availableViews?: string[];
 }>();
 
 defineExpose({
   setPage,
-  getPage,
+  getPage
 });
 
 const emit = defineEmits<{
@@ -35,6 +38,20 @@ const emit = defineEmits<{
 }>();
 
 const route = useRoute();
+
+const defaultView =
+  props.availableViews && props.availableViews.length > 0
+    ? props.availableViews[0]
+    : "images";
+
+const viewMode = ref<string>(
+  route.query.view?.toString() ?? defaultView,
+);
+
+function setViewMode(mode: string) {
+  viewMode.value = mode;
+  reloadData();
+}
 
 const search = ref(route.query.search?.toString() ?? "");
 
@@ -127,6 +144,9 @@ function reloadData() {
     }
     if (selectedSort.value && props.sortings![0].Value !== selectedSort.value) {
       url.searchParams.append("sortBy", selectedSort.value);
+    }
+    if (viewMode.value !== defaultView) {
+      url.searchParams.append("view", viewMode.value);
     }
     Object.entries(selectedFilters.value).forEach((entry) => {
       entry[1].forEach((value) => {
@@ -411,12 +431,42 @@ init();
                     }
                 </div>
             }-->
+          <div
+            v-if="availableViews && availableViews.length > 1"
+            class="flex items-center gap-2"
+            role="group"
+            aria-label="Layout"
+          >
+            <p aria-hidden="true">Layout:</p>
+            <button
+              v-if="availableViews.includes('rows')"
+              type="button"
+              class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
+              :class="viewMode === 'rows' ? 'bg-main-color text-white' : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'"
+              aria-label="Table view"
+              :aria-pressed="viewMode === 'rows'"
+              @click="setViewMode('rows')"
+            >
+              <PhList aria-hidden="true" />
+            </button>
+            <button
+              v-if="availableViews.includes('images')"
+              type="button"
+              class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
+              :class="viewMode === 'images' ? 'bg-main-color text-white' : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'"
+              aria-label="Image view"
+              :aria-pressed="viewMode === 'images'"
+              @click="setViewMode('images')"
+            >
+              <PhSquaresFour aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
     </form>
     <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative">
       <div id="card-overview" v-show="!isLoading">
-        <slot></slot>
+        <slot :viewMode="viewMode"></slot>
       </div>
       <div class="h-20" v-show="isLoading">
         <div

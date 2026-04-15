@@ -41,10 +41,13 @@ const emit = defineEmits<{
 
 const route = useRoute();
 
-const viewMode = ref<string>(
+const defaultView =
   props.availableViews && props.availableViews.length > 0
     ? props.availableViews[0]
-    : "images",
+    : "images";
+
+const viewMode = ref<string>(
+  route.query.view?.toString() ?? defaultView,
 );
 
 function getViewMode(): string {
@@ -54,6 +57,7 @@ function getViewMode(): string {
 function setViewMode(mode: string) {
   viewMode.value = mode;
   emit("viewChanged", mode);
+  reloadData();
 }
 
 const search = ref(route.query.search?.toString() ?? "");
@@ -147,6 +151,9 @@ function reloadData() {
     }
     if (selectedSort.value && props.sortings![0].Value !== selectedSort.value) {
       url.searchParams.append("sortBy", selectedSort.value);
+    }
+    if (viewMode.value !== defaultView) {
+      url.searchParams.append("view", viewMode.value);
     }
     Object.entries(selectedFilters.value).forEach((entry) => {
       entry[1].forEach((value) => {

@@ -31,13 +31,13 @@ const navigationViewModel = await getNavigation();
       <div class="py-4 md:w-2/3 text-sm">
         <p>{{ siteSettings.footerText }}</p>
       </div>
-      <div class="pl-4 py-4">
+      <nav class="pl-4 py-4" aria-label="Other sites">
         <p class="font-bold">Other sites</p>
         <ul>
           <li v-for="link in siteSettings.footerLinks ?? []" :key="`${link.name}-${link.url}`">
             <a
               :href="link.url"
-              :target="link.target || undefined"
+              :target="link.target ?? undefined"
               :rel="link.target === '_blank' ? 'noopener noreferrer' : undefined"
               class="no-underline"
             >
@@ -45,7 +45,7 @@ const navigationViewModel = await getNavigation();
             </a>
           </li>
         </ul>
-      </div>
+      </nav>
     </footer>
   </div>
 </template>

@@ -46,22 +46,19 @@ function getImagesForCard(card: CardDetailApiModel): string[] {
   return images;
 }
 
-function getDisplayClassesForItem(slot: CreateDeckSlot, item: { card: CardDetailApiModel }) {
+function getDisplayClassesForItem(slot: CreateDeckSlot, _item: { card: CardDetailApiModel }) {
   const classes: string[] = [];
   if (slot.displaySize === "Small") {
     classes.push("py-1");
   }
-  if (props.collectionOnlyMode) {
-    if (!hasEnoughInCollection(item.card)) {
-      classes.push("border-red-300");
-    } else {
-      classes.push("border-gray-300");
-    }
-  }
   return classes;
 }
 
-function clickSlot(
+function getBorderClass(slot: CreateDeckSlot, item: { card: CardDetailApiModel }): string {
+  if (isCardIllegal(item.card)) return 'border-red-500';
+  if (props.collectionOnlyMode && !hasEnoughInCollection(item.card)) return 'border-red-300';
+  return 'border-gray-300';
+}
   group: CreateDeckGroup,
   slot: CreateDeckSlot,
   isChild: boolean
@@ -225,7 +222,7 @@ const hasPassiveRequirements = computed(() => {
                 >
                   <div
                     class="flex items-center border rounded mb-2 cursor-pointer tooltip-starter"
-                    :class="[...getDisplayClassesForItem(slot, item), !collectionOnlyMode ? (isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300') : (isCardIllegal(item.card) ? 'border-red-500' : '')]"
+                    :class="[...getDisplayClassesForItem(slot, item), getBorderClass(slot, item)]"
                     v-on:click.prevent="emit('selectCard', item.card)"
                   >
                     <template v-for="imageUrl in getImagesForCard(item.card)">

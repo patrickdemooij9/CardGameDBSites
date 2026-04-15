@@ -5,5 +5,5 @@
 export type LinkApiModel = {
     name: string;
     url: string;
+    target?: string | null;
 };
-

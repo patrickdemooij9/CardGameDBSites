@@ -46,17 +46,18 @@ function getImagesForCard(card: CardDetailApiModel): string[] {
   return images;
 }
 
-function getDisplayClassesForItem(slot: CreateDeckSlot) {
-  const classes = [];
+function getDisplayClassesForItem(slot: CreateDeckSlot, item: { card: CardDetailApiModel }) {
+  const classes: string[] = [];
   if (slot.displaySize === "Small") {
     classes.push("py-1");
   }
-
-  /*if (item && !this.hasEnoughInCollection(item.card.id, item.amount)) {
-        classes.push('border-red-300')
-      } else {
-        classes.push('border-gray-300')
-      }*/
+  if (props.collectionOnlyMode) {
+    if (!hasEnoughInCollection(item.card)) {
+      classes.push("border-red-300");
+    } else {
+      classes.push("border-gray-300");
+    }
+  }
   return classes;
 }
 
@@ -203,7 +204,7 @@ const hasPassiveRequirements = computed(() => {
                                 <label for="collectionMode">Match with collection</label>
                             </div>
                         </template>-->
-        <div class="squad-column mt-4" v-for="group in deck.groups">
+        <div class="squad-column mt-4" v-for="group in deck.getAvailableGroups()">
           <div class="flex items-center justify-between">
             <h3 class="text-base">{{ group.name }}</h3>
             <div class="flex items-center gap-2">
@@ -212,7 +213,7 @@ const hasPassiveRequirements = computed(() => {
             </div>
           </div>
           <hr />
-          <div class="mt-2" v-for="slot in group.slots" :key="slot.id">
+          <div class="mt-2" v-for="slot in group.getAvailableSlots()" :key="slot.id">
             <div v-for="cardGroup in slot.cardGroups">
               <div v-if="cardGroup.cards.length > 0">
                 <h2 class="text-sm mb-1" v-if="cardGroup.displayName">
@@ -224,7 +225,7 @@ const hasPassiveRequirements = computed(() => {
                 >
                   <div
                     class="flex items-center border rounded mb-2 cursor-pointer tooltip-starter"
-                    :class="[...getDisplayClassesForItem(slot), isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300']"
+                    :class="[...getDisplayClassesForItem(slot, item), !collectionOnlyMode ? (isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300') : (isCardIllegal(item.card) ? 'border-red-500' : '')]"
                     v-on:click.prevent="emit('selectCard', item.card)"
                   >
                     <template v-for="imageUrl in getImagesForCard(item.card)">
@@ -290,7 +291,7 @@ const hasPassiveRequirements = computed(() => {
                         "
                         href="#"
                         class="flex items-center justify-center ml-2 no-underline"
-                        v-on:click.prevent.stop="slot.removeCard(item.card)"
+                        v-on:click.prevent.stop="deck.removeCard(group, slot, item.card)"
                       >
                         <PhTrash />
                       </a>
@@ -305,14 +306,14 @@ const hasPassiveRequirements = computed(() => {
                         <button
                           href="#"
                           class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline"
-                          v-on:click.prevent.stop="slot.removeCard(item.card)"
+                          v-on:click.prevent.stop="deck.removeCard(group, slot, item.card)"
                         >
                           <PhMinus />
                         </button>
                         <button
                           class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          :disabled="!slot.canAddCard(item.card)"
-                          v-on:click.prevent.stop="slot.addCard(item.card)"
+                          :disabled="!slot.canAddCard(item.card) || (collectionOnlyMode && getNeededAmount(item.card) >= getOwnedAmount(item.card.baseId))"
+                          v-on:click.prevent.stop="deck.addCard(group, slot, item.card)"
                         >
                           <PhPlus />
                         </button>
@@ -325,7 +326,7 @@ const hasPassiveRequirements = computed(() => {
                       <div v-for="child in childGroup.getOrderedCards()">
                         <div
                           class="flex items-center border rounded ml-4 mb-2 cursor-pointer tooltip-starter"
-                          :class="getDisplayClassesForItem(slot)"
+                          :class="getDisplayClassesForItem(slot, child)"
                           v-on:click.prevent="emit('selectCard', child.card)"
                         >
                           <div class="flex grow justify-between px-4">
@@ -358,7 +359,7 @@ const hasPassiveRequirements = computed(() => {
                               href="#"
                               class="flex items-center justify-center ml-2 no-underline"
                               v-on:click.prevent.stop="
-                                slot.removeCard(item.card)
+                                deck.removeCard(group, slot, item.card)
                               "
                             >
                               <PhTrash />
@@ -391,15 +392,12 @@ const hasPassiveRequirements = computed(() => {
               <span>{{ slot.label }}</span>
             </div>
           </div>
-          <!--<div class="deck-rules">
-            <p v-if="!hasEnoughPoints(squad)" class="invalid">
-              <i class="ph ph-warning"></i>
-              <span
-                >Your squad has {{ Math.abs(pointsLeft(squad)) }} points too
-                many.</span
-              >
+          <div class="deck-rules" v-if="!group.hasEnoughPoints()">
+            <p class="text-red-600 text-sm mt-1">
+              <PhWarning class="inline" />
+              Your squad has {{ Math.abs(group.getPointsTotal()) }} points too many.
             </p>
-          </div>-->
+          </div>
         </div>
         <div class="flex justify-between mt-4">
           <div class="flex gap-2">

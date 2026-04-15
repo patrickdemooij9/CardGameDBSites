@@ -6,5 +6,7 @@ import type { DeckBuilderGroupApiModel } from './DeckBuilderGroupApiModel';
 export type DeckBuilderApiModel = {
     id: number;
     groups?: Array<DeckBuilderGroupApiModel>;
+    maxDynamicSlots?: number;
+    preselectFirstSlot?: boolean;
 };
 

@@ -53,19 +53,19 @@ export default class CreateDeckSlot {
     return GetCardValue<number>(card, "Amount") ?? 0;
   }
 
-  getMaxAmount() {
-    return this.maxCardAmount.GetAmount();
+  getMaxAmount(deckCards?: CardDetailApiModel[]) {
+    return this.maxCardAmount.GetAmount(deckCards);
   }
 
-  isFull() {
-    const maxAmount = this.getMaxAmount();
+  isFull(deckCards?: CardDetailApiModel[]) {
+    const maxAmount = this.getMaxAmount(deckCards);
     if (maxAmount === undefined) { // Unlimited amount
       return false;
     }
     return this.getAmount() >= maxAmount;
   }
 
-  validate(): CreateDeckValidationItem[] | undefined {
+  validate(deckCards?: CardDetailApiModel[]): CreateDeckValidationItem[] | undefined {
     const invalidRequirements = GetInvalidRequirements(this.getCards(), this.requirements, false);
     if (invalidRequirements.length > 0){
       return invalidRequirements.map((requirement) => ({
@@ -73,9 +73,9 @@ export default class CreateDeckSlot {
         showMessage: true
       }))
     }
-    
+
     const amount = this.getAmount();
-    const maxAmount = this.getMaxAmount();
+    const maxAmount = this.getMaxAmount(deckCards);
     return amount >= this.minCards && (maxAmount === undefined || amount <= maxAmount) ? undefined : [{
       errorMessage: "Not valid amount",
       showMessage: false,
@@ -102,8 +102,8 @@ export default class CreateDeckSlot {
     return deckCard.allowRemoval;
   }
 
-  canAddCard(card: CardDetailApiModel) {
-    if (this.isFull()){
+  canAddCard(card: CardDetailApiModel, deckCards?: CardDetailApiModel[]) {
+    if (this.isFull(deckCards)){
       return false;
     }
 

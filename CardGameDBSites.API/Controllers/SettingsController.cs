@@ -181,6 +181,8 @@ namespace CardGameDBSites.API.Controllers
             return Ok(new DeckBuilderApiModel
             {
                 Id = deckTypeSettings.TypeID,
+                MaxDynamicSlots = deckTypeSettings.MaxDynamicSlots,
+                PreselectFirstSlot = deckTypeSettings.SlotOnlyMode,
                 Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel
                 {
                     Id = it.SquadId,

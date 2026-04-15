@@ -8,6 +8,8 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { CardDetailApiModel } from './models/CardDetailApiModel';
+export type { CardDeckMutationApiModel } from './models/CardDeckMutationApiModel';
+export type { CardSlotTargetRequirementApiModel } from './models/CardSlotTargetRequirementApiModel';
 export type { CardPriceApiModel } from './models/CardPriceApiModel';
 export type { CardPriceChangeApiModel } from './models/CardPriceChangeApiModel';
 export { CardSearchFilterClauseType } from './models/CardSearchFilterClauseType';

@@ -81,6 +81,16 @@ namespace CardGameDBSites.API.Controllers
             return Ok(MapToApiModel(_cardService.Get(umbracoCard.Id)));
         }
 
+        [HttpGet("byUrlSegment")]
+        [ProducesResponseType(typeof(CardDetailApiModel), 200)]
+        public IActionResult ByUrlSegment(string urlSegment)
+        {
+            var card = _cardService.GetByUrlSegment(urlSegment);
+            if (card is null) return NotFound();
+
+            return Ok(MapToApiModel(card));
+        }
+
         [HttpPost("query")]
         [OptionalJwtAuthorization]
         [ProducesResponseType(typeof(PagedResult<CardDetailApiModel>), 200)]

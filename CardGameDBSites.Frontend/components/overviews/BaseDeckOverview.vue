@@ -15,6 +15,7 @@ const props = defineProps<{
   typeId?: number;
   userId?: number;
   sortings?: OverviewSortModel[];
+  leaderCardId?: number;
 }>();
 
 const deckService = new DeckService();
@@ -66,7 +67,13 @@ async function loadData(value: OverviewRefreshModel) {
   });
 
   const cardFilter = value.SelectedFilters.get(filters[0]);
-  const cardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : undefined;
+  const userCardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : [];
+  let cardIds: number[] | undefined;
+  if (props.leaderCardId !== undefined) {
+    cardIds = [props.leaderCardId, ...userCardIds];
+  } else if (userCardIds.length > 0) {
+    cardIds = userCardIds;
+  }
   
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,

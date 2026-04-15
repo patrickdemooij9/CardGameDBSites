@@ -98,6 +98,11 @@ namespace SkytearHorde.Business.Services
             })!.ToArray();
         }
 
+        public Card? GetByUrlSegment(string urlSegment)
+        {
+            return GetAll().FirstOrDefault(it => string.Equals(it.UrlSegment, urlSegment, StringComparison.OrdinalIgnoreCase));
+        }
+
         public Card[] Search(CardSearchQuery query, out int totalItems)
         {
             var ids = _cardSearchService.Search(query, out totalItems);

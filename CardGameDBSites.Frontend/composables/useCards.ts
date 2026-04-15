@@ -58,6 +58,21 @@ export function useCards() {
     return data.value!;
   };
 
+  /** Load a single card by URL segment */
+  const loadCardByUrlSegment = async (urlSegment: string) => {
+    const { data, error } = await useAsyncData(`card-slug-${urlSegment}`, () =>
+      DoServerFetch<CardDetailApiModel>(`/api/cards/byUrlSegment?urlSegment=${encodeURIComponent(urlSegment)}`, true),
+    );
+
+    if (error.value) throw error.value;
+
+    if (data.value) {
+      store.setCards([data.value]);
+    }
+
+    return data.value ?? null;
+  };
+
   /** Variant types (cached globally) */
   const loadVariantTypes = async () => {
     if (store.hasVariantTypes && !store.areVariantTypesExpired) {
@@ -99,6 +114,7 @@ export function useCards() {
   return {
     loadCardsByIds,
     loadCardById,
+    loadCardByUrlSegment,
     loadVariantTypes,
     queryCards,
     getAbilityValues,

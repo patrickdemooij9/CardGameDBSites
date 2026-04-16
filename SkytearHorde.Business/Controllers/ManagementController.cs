@@ -1,6 +1,7 @@
 ﻿using Discord.Rest;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using NPoco;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
@@ -11,6 +12,7 @@ using System.Text.Json;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Cms.Web.BackOffice.Controllers;
 using Umbraco.Cms.Web.Common.Attributes;
 using Umbraco.Extensions;
@@ -25,13 +27,15 @@ namespace SkytearHorde.Business.Controllers
         private readonly IContentService _contentService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly ISiteService _siteService;
+        private readonly IScopeProvider _scopeProvider;
 
-        public ManagementController(CardService cardService, IContentService contentService, ISiteAccessor siteAccessor, ISiteService siteService)
+        public ManagementController(CardService cardService, IContentService contentService, ISiteAccessor siteAccessor, ISiteService siteService, IScopeProvider scopeProvider)
         {
             _cardService = cardService;
             _contentService = contentService;
             _siteAccessor = siteAccessor;
             _siteService = siteService;
+            _scopeProvider = scopeProvider;
         }
 
         [HttpPost]
@@ -145,6 +149,36 @@ namespace SkytearHorde.Business.Controllers
                 updatedCards++;
             }
             return Ok($"Updated {updatedCards} varians");
+        }
+
+        [HttpPost]
+        public ActionResult MigrateDeltaPrices()
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            var allRecords = scope.Database.Query<CardPriceRecordDBModel>(
+                    scope.SqlContext.Sql()
+                    .SelectAll()
+                    .From<CardPriceRecordDBModel>())
+                    .ToList();
+
+            foreach (var cardGroup in allRecords.GroupBy(it => it.CardId))
+            {
+                foreach (var variantGroup in cardGroup.GroupBy(it => it.VariantId))
+                {
+                    var ordered = variantGroup.OrderBy(it => it.DateUtc).ToList();
+                    for (var i = 0; i < ordered.Count; i++)
+                    {
+                        var record = ordered[i];
+                        if (record.Delta > 0) continue;
+
+                        record.Delta = i == 0 ? 0.0 : record.MainPrice - ordered[i - 1].MainPrice;
+                        scope.Database.Update(record);
+                    }
+                }
+            }
+            scope.Complete();
+            return Ok();
         }
     }
 }

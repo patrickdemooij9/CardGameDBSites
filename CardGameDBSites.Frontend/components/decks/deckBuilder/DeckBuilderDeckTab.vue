@@ -59,6 +59,8 @@ function getBorderClass(slot: CreateDeckSlot, item: { card: CardDetailApiModel }
   if (props.collectionOnlyMode && !hasEnoughInCollection(item.card)) return 'border-red-300';
   return 'border-gray-300';
 }
+
+function clickSlot(
   group: CreateDeckGroup,
   slot: CreateDeckSlot,
   isChild: boolean

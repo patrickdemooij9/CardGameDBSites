@@ -36,7 +36,7 @@ isLoading.value = false;
 const currentTab = ref<DeckBuilderTab>(DeckBuilderTab.Deck);
 const selectedCard = ref<CardDetailApiModel>();
 const selectedArea = ref<CreateDeckSelectedArea>();
-const deck = ref<CreateDeckModel>(deckSettings);
+const deck = shallowRef<CreateDeckModel>(deckSettings);
 
 const ignorePassiveFilters = ref(false);
 const collectionOnlyMode = ref(false);

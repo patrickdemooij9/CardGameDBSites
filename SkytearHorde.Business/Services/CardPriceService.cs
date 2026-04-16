@@ -79,6 +79,20 @@ namespace SkytearHorde.Business.Services
             return _cardPriceRepository.GetTopPriceChanges(count, descending);
         }
 
+        public List<CardPrice> GetPriceHistory(int cardId, int? variantId)
+        {
+            return _cardPriceRepository.GetPriceHistory(cardId, variantId)
+                .Select(r => new CardPrice
+                {
+                    VariantId = r.VariantId,
+                    MainPrice = r.MainPrice,
+                    LowestPrice = r.LowestPrice,
+                    HighestPrice = r.HighestPrice,
+                    DateUtc = r.DateUtc,
+                })
+                .ToList();
+        }
+
         public string GetUrl(CardPrice cardPrice, Card card)
         {
             //TODO: This should take source id into account.

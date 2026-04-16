@@ -11,22 +11,22 @@ let slug = route.params.slug;
 if (Array.isArray(slug)){
     slug = slug.join('/');
 }
-const data = await DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug);
-const seo = await DoFetch<PageSeoModel>("/api/seo?contentGuid=" + data.id);
+const { data } = await useAsyncData('mainContentFetch', () => DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug));
+const { data: seo } = await useAsyncData('seoFetch', () => DoFetch<PageSeoModel>("/api/seo?contentGuid=" + data.value!.id));
 const config = useRuntimeConfig();
 
 useHead({
-    title: seo.metaFields.title,
+    title: seo.value!.metaFields.title,
     meta: [
-        { name: 'description', content: seo.metaFields.metaDescription },
-        { property: 'og:title', content: seo.metaFields.openGraphTitle || seo.metaFields.title },
-        { property: 'og:description', content: seo.metaFields.metaDescription },
-        { property: 'og:image', content: seo.metaFields.openGraphImage },
-        { property: 'og:url', content: seo.metaFields.canonicalUrl }
+        { name: 'description', content: seo.value!.metaFields.metaDescription },
+        { property: 'og:title', content: seo.value!.metaFields.openGraphTitle || seo.value!.metaFields.title },
+        { property: 'og:description', content: seo.value!.metaFields.metaDescription },
+        { property: 'og:image', content: seo.value!.metaFields.openGraphImage },
+        { property: 'og:url', content: seo.value!.metaFields.canonicalUrl }
     ],
     link: [
         { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` },
-        { rel: 'canonical', href: seo.metaFields.canonicalUrl }
+        { rel: 'canonical', href: seo.value!.metaFields.canonicalUrl }
     ]
 });
 
@@ -34,7 +34,7 @@ onMounted(() => {
     useAccountStore().checkLogin();
 });
 
-const componentName = data.contentType;
+const componentName = data.value!.contentType;
 const pageComponents: {[key: string]: Component} = {
     'cardOverview': defineAsyncComponent(() => import('~/components/pageTypes/CardOverviewPage.vue')),
     'contentPage': defineAsyncComponent(() => import('~/components/pageTypes/contentPage.vue')),
@@ -57,5 +57,5 @@ const pageComponent = pageComponents[componentName];
 </script>
 
 <template>
-    <component :is="pageComponent" :content="data" hydrate-on-visible></component>
+    <component :is="pageComponent" :content="data"></component>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CardDetailContentModel } from '~/api/umbraco';
 import CardDetailAbility from '../cards/CardDetailAbility.vue';
+import PriceHistoryChart from '../cards/PriceHistoryChart.vue';
 import { GetCrop } from '~/helpers/CropUrlHelper';
 import { useCards } from '~/composables/useCards';
 import { useSite } from '~/composables/useSite';
@@ -67,6 +68,8 @@ function handleCommentDeleted(comment: CommentViewModel) {
                 <CommentSection :comments="comments" @add-comment="handleCommentAdded" @delete-comment="handleCommentDeleted" />
               </div>
             </div>
+
+            <PriceHistoryChart v-if="siteSettings.showPrices && card.baseId" :card-id="card.baseId" :variant-id="card.variantId" />
   
             <!--<div v-if="faqItems.length > 0" class="bg-white rounded mt-8">
               <div class="p-4">

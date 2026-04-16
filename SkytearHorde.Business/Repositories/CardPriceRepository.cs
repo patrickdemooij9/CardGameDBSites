@@ -140,6 +140,21 @@ namespace SkytearHorde.Business.Repositories
             return result;
         }
 
+        public List<CardPriceRecordDBModel> GetPriceHistory(int cardId, int? variantId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            const string columns = "Id, CardId, VariantId, MainPrice, LowestPrice, HighestPrice, DateUtc, IsLatest, Delta";
+            if (variantId.HasValue)
+            {
+                return scope.Database.Fetch<CardPriceRecordDBModel>(
+                    $"SELECT {columns} FROM CardPriceRecord WHERE CardId = @0 AND VariantId = @1 ORDER BY DateUtc ASC, Id ASC",
+                    cardId, variantId.Value);
+            }
+            return scope.Database.Fetch<CardPriceRecordDBModel>(
+                $"SELECT {columns} FROM CardPriceRecord WHERE CardId = @0 ORDER BY DateUtc ASC, Id ASC",
+                cardId);
+        }
+
         private int PerformCount()
         {
             using var scope = _scopeProvider.CreateScope();

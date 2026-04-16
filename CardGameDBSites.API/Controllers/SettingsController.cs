@@ -64,7 +64,8 @@ namespace CardGameDBSites.API.Controllers
                 FooterLinks = [.. settings.FooterLinks.Select(it => new LinkApiModel
                 {
                     Name = it.Name!,
-                    Url = it.Url!
+                    Url = it.Url!,
+                    Target = it.Target
                 })],
                 CardSections = [.. cardSettings.Display.ToItems<IPublishedElement>().Select(it => new CardSectionApiModel(it))],
                 KeywordImages = [.. settings.Keywords.Select(it => new KeywordImageApiModel

@@ -93,8 +93,10 @@ const toRemove = router.beforeEach((to, from, next) => {
   }
 });
 
-function beforeUnload(e: Event) {
+function beforeUnload(e: BeforeUnloadEvent) {
+  if (isSubmitting) return;
   e.preventDefault();
+  e.returnValue = "";
 }
 
 onMounted(() => {

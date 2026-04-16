@@ -34,6 +34,21 @@ function makeGroupWithSlot(
 }
 
 describe("CreateDeckModel", () => {
+  describe("pickDefaultName", () => {
+    it("sets a default name when no name exists", () => {
+      const deck = new CreateDeckModel();
+      deck.pickDefaultName(["Alpha", "Beta"], () => 0.6);
+      expect(deck.name).toBe("Beta");
+    });
+
+    it("does not overwrite an existing name", () => {
+      const deck = new CreateDeckModel();
+      deck.name = "Existing";
+      deck.pickDefaultName(["Alpha"], () => 0);
+      expect(deck.name).toBe("Existing");
+    });
+  });
+
   describe("getDeckAmount", () => {
     it("returns 0 for an empty deck", () => {
       const deck = new CreateDeckModel();

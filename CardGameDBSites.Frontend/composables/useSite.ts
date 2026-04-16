@@ -72,6 +72,7 @@ export function useSite() {
     const result = data.value;
     const model = new CreateDeckModel();
     model.typeId = result?.id;
+    model.pickDefaultName(result?.defaultNames);
     model.groups = result?.groups?.map<CreateDeckGroup>((group) => {
       const deckGroup = new CreateDeckGroup();
       deckGroup.id = group.id;
@@ -105,6 +106,7 @@ export function useSite() {
         model.id = deckId;
         model.name = deck.name;
         model.description = deck.description ?? "";
+        model.pickDefaultName(result?.defaultNames);
         deck.cards?.forEach(async (deckCard) => {
           const card = cards.find((cardId) => cardId.baseId === deckCard.cardId);
           if (!card) {

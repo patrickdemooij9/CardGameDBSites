@@ -5,6 +5,6 @@
 import type { DeckBuilderGroupApiModel } from './DeckBuilderGroupApiModel';
 export type DeckBuilderApiModel = {
     id: number;
+    defaultNames?: Array<string>;
     groups?: Array<DeckBuilderGroupApiModel>;
 };
-

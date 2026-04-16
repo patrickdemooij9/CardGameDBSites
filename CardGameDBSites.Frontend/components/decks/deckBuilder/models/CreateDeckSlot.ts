@@ -102,7 +102,7 @@ export default class CreateDeckSlot {
     return deckCard.allowRemoval;
   }
 
-  canAddCard(card: CardDetailApiModel) {
+  canAddCard(card: CardDetailApiModel, existingAmountInOtherSlots: number = 0) {
     if (this.isFull()){
       return false;
     }
@@ -111,7 +111,9 @@ export default class CreateDeckSlot {
       .flatMap((group) => group.cards)
       .find((c) => c.card.baseId === card.baseId);
 
-    if (currentSize && currentSize.amount >= this.getCardMaxAmount(card)) {
+    const amountInThisSlot = currentSize?.amount ?? 0;
+    if ((currentSize !== undefined || existingAmountInOtherSlots > 0) &&
+        amountInThisSlot + existingAmountInOtherSlots >= this.getCardMaxAmount(card)) {
       return false;
     }
 

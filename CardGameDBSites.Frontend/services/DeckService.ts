@@ -38,22 +38,35 @@ export default class DeckService {
       description: model.description,
       typeId: model.typeId,
       publish: publish,
-      squads: model.groups.map((group) => ({
+      squads: model.groups.map((group, index) => ({
         id: group.id,
-        slots: group.slots.map((slot) => ({
-          id: slot.id,
-          cards: slot.cardGroups
-            .flatMap((card) => card.cards)
-            .map((key) => ({
-              cardId: key.card.baseId!,
-              amount: key.amount,
-              children: key.children.flatMap((childSlot) =>
-                childSlot.cardGroups
-                  .flatMap((card) => card.cards)
-                  .map((key) => key.card.baseId!)
-              ),
-            })),
-        })),
+        slots: [
+          ...group.slots.map((slot) => ({
+            id: slot.id,
+            cards: slot.cardGroups
+              .flatMap((card) => card.cards)
+              .map((key) => ({
+                cardId: key.card.baseId!,
+                amount: key.amount,
+                children: key.children.flatMap((childSlot) =>
+                  childSlot.cardGroups
+                    .flatMap((card) => card.cards)
+                    .map((key) => key.card.baseId!)
+                ),
+              })),
+          })),
+          // Include sideboard cards in the first group with slotId 99
+          ...(index === 0 && model.sideboardSlot && model.hasSideboard ? [{
+            id: 99,
+            cards: model.sideboardSlot.cardGroups
+              .flatMap((cg) => cg.cards)
+              .map((key) => ({
+                cardId: key.card.baseId!,
+                amount: key.amount,
+                children: [],
+              })),
+          }] : []),
+        ],
       })),
     };
     const result = DoOptionalServerFetch<number>(

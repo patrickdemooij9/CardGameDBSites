@@ -120,6 +120,25 @@ export function useSite() {
         });
       }
     }
+
+    // Hardcoded sideboard settings (eventually from backend)
+    /*model.hasSideboard = true;
+    model.sideboardMaxCards = 15;
+    const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
+    sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(
+      model.sideboardMaxCards,
+    );
+    sideboardSlot.numberMode = true;
+    sideboardSlot.disableRemoval = false;
+    const sideboardCardGroup = new CreateDeckCardGroup("");
+    sideboardSlot.cardGroups.push(sideboardCardGroup);
+    model.sideboardSlot = sideboardSlot;
+
+    const sideboardGroup = new CreateDeckGroup();
+    sideboardGroup.name = "Sideboard";
+    sideboardGroup.slots = [sideboardSlot];
+    model.sideboardGroup = sideboardGroup;*/
+
     return model;
   };
 

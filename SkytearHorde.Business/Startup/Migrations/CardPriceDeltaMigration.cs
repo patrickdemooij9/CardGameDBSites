@@ -16,7 +16,7 @@ namespace SkytearHorde.Business.Startup.Migrations
             {
                 Create.Column("Delta").OnTable("CardPriceRecord").AsDouble().Nullable().Do();
 
-                var allRecords = Database.Query<CardPriceRecordDBModel>(
+                /*var allRecords = Database.Query<CardPriceRecordDBModel>(
                     Sql()
                     .SelectAll()
                     .From<CardPriceRecordDBModel>())
@@ -36,7 +36,7 @@ namespace SkytearHorde.Business.Startup.Migrations
                     }
                 }
 
-                Alter.Table("CardPriceRecord").AlterColumn("Delta").AsDouble().NotNullable().Do();
+                Alter.Table("CardPriceRecord").AlterColumn("Delta").AsDouble().NotNullable().Do();*/
             }
         }
     }

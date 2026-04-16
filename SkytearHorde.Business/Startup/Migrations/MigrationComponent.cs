@@ -70,7 +70,7 @@ namespace SkytearHorde.Business.Startup.Migrations
                 .To<CollectionCardIndexesMigration>("v31")
                 .To<CardPriceIndexMigration>("v32")
                 .To<DeckViewIndexAndTotalViewsMigration>("v33")
-                .To< DeckVersionIndexUpdateMigration>("v34")
+                .To<DeckVersionIndexUpdateMigration>("v34")
                 .To<RedditBotCommentMigration>("v35")
                 .To<CardPriceDeltaMigration>("v36");
 

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { DeckDetailContentModel } from "~/api/umbraco";
 import DeckService from "~/services/DeckService";
+import SetService from "~/services/SetService";
 import DeckLike from "../decks/DeckLike.vue";
 import type {
   CardDetailApiModel,
-  CollectionCardApiModel,
   CommentViewModel,
   DeckCardGroupApiModel,
+  SetViewModel,
 } from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
@@ -17,9 +18,9 @@ import { useMembers } from "~/composables/useMembers";
 import { useSite } from "~/composables/useSite";
 import { GetCardValue } from "~/helpers/CardHelper";
 import CommentSection from "../comments/CommentSection.vue";
-import Button from "../shared/Button.vue";
-import ButtonType from "../shared/ButtonType";
-import { PhDotsThree, PhPencil, PhTrash } from "@phosphor-icons/vue";
+import { PhDotsThree } from "@phosphor-icons/vue";
+
+console.time('page-render')
 
 defineProps<{
   content: DeckDetailContentModel;
@@ -30,7 +31,9 @@ const router = useRouter();
 let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]);
 
+console.time('fetch-deck');
 const deck = await new DeckService().get(deckId);
+console.timeEnd('fetch-deck');
 if (!deck || deck === null) {
   throw createError({
     statusCode: 404,
@@ -38,6 +41,7 @@ if (!deck || deck === null) {
   });
 }
 
+console.time('fetch-related-data');
 const accountService = useAccountStore();
 const collectionService = useCollection();
 const deckSettings = await useSite().getDeckTypeSettings(deck.typeId!);
@@ -50,11 +54,26 @@ const mainCards = GetValidCards(
   deckSettings!.mainCardRequirements ?? [],
 );
 
+const sets = ref<SetViewModel[]>([]);
+const setService = new SetService();
+const uniqueSetIds = [...new Set(cards.map((c) => c.setId).filter((id): id is number => id != null))];
+await Promise.all(
+  uniqueSetIds.map((setId) =>
+    setService.getById(setId).then((set) => {
+      if (set) sets.value.push(set);
+    }),
+  ),
+);
+
+console.timeEnd('fetch-related-data');
+
+console.time("member");
 let createdBy = "Anonymous";
 if (deck.createdBy) {
   createdBy = (await useMembers().loadMembersByIds([deck.createdBy]))[0]
     .displayName;
 }
+console.timeEnd("member");
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
@@ -121,6 +140,23 @@ function getCollectionCount(cardId: number) {
   );
 }
 
+const missingCardsString = computed(() => {
+  const parts: string[] = [];
+  deck.cards?.forEach((deckCard) => {
+    const card = cards.find((c) => c.baseId === deckCard.cardId);
+    if (!card) return;
+    const needed = deckCard.amount ?? 0;
+    const owned = isLoggedIn.value ? getCollectionCount(deckCard.cardId!) : 0;
+    const missing = needed - owned;
+    if (missing > 0) {
+      const set = sets.value.find((s) => s.id === card.setId);
+      const setCode = set?.code ?? "";
+      parts.push(`${missing} ${card.displayName} [${setCode}]`);
+    }
+  });
+  return parts.join("||");
+});
+
 function handleCommentAdded(comment: string) {
   useComments()
     .saveCommentByDeckId(deckId, comment)
@@ -140,6 +176,8 @@ async function handleDeleteDeck() {
   await new DeckService().deleteDeck(deck.id);
   router.push("/account/decks");
 }
+
+console.timeEnd('page-render');
 </script>
 
 <template>
@@ -230,6 +268,7 @@ async function handleDeleteDeck() {
               v-for="action in deckSettings?.actions"
               :deck="deck"
               :action="action"
+              :missing-cards-string="action.type === 'DeckMissingCardsExport' ? missingCardsString : undefined"
             ></DeckAction>
           </div>
           <template v-for="group in deckSettings?.groupings">

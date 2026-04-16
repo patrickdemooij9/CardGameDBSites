@@ -228,6 +228,8 @@ export type { OverviewFilterItemPropertiesModel } from './models/OverviewFilterI
 export type { OverviewFilterPropertiesModel } from './models/OverviewFilterPropertiesModel';
 export type { PagedIApiContentResponseModel } from './models/PagedIApiContentResponseModel';
 export type { PagedIApiMediaWithCropsResponseModel } from './models/PagedIApiMediaWithCropsResponseModel';
+export type { PriceChangesElementModel } from './models/PriceChangesElementModel';
+export type { PriceChangesPropertiesModel } from './models/PriceChangesPropertiesModel';
 export type { ProblemDetails } from './models/ProblemDetails';
 export type { RandomizerElementModel } from './models/RandomizerElementModel';
 export type { RandomizerPropertiesModel } from './models/RandomizerPropertiesModel';

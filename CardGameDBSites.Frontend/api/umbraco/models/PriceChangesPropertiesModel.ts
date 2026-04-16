@@ -2,8 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type LinkApiModel = {
-    name: string;
-    url: string;
-    target?: string | null;
+export type PriceChangesPropertiesModel = {
+    maxItems?: number | null;
 };
+

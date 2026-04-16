@@ -72,7 +72,6 @@ namespace CardGameDBSites.API.Controllers
             {
                 priceModel = new DeckPriceApiModel { MarketPrice = _cardPriceService.GetPriceByDeck(deck) };
             }
-            var price = _cardPriceService.GetPriceByDeck(deck);
             return Ok(new DeckApiModel(deck, priceModel));
         }
 

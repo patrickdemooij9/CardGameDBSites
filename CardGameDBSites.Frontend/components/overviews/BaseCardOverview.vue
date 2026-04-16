@@ -4,7 +4,6 @@ import type { OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import {
   CardSearchFilterClauseType,
-  type CardsQueryFilterApiModel,
   type CardsQueryFilterClauseApiModel,
   type PagedResultCardDetailApiModel,
 } from "~/api/default";
@@ -17,6 +16,9 @@ const props = defineProps<{
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
   collectionOnlyMode?: boolean;
+  hideReprintedCards?: boolean;
+  legalForDeckTypeId?: number;
+  availableViews?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -78,6 +80,8 @@ async function loadData(value: OverviewRefreshModel) {
     variantTypeId: 0,
     onlyOwnedCards: props.collectionOnlyMode,
     sortBy: value.SortBy,
+    includeReprintedCards: props.hideReprintedCards ? false : undefined,
+    legalForDeckTypeId: props.legalForDeckTypeId,
   });
   if (value.LoadedCallback) {
     value.LoadedCallback();
@@ -104,12 +108,14 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :filters="filters"
     :sortings="sortings"
     :enable-query-string-sync="enableQueryStringSync"
+    :available-views="availableViews"
     @reload="loadData"
     @loadLazyFilter="loadLazyFilter"
     ref="overview"
+    v-slot="{viewMode}"
   >
     <div v-if="pagedCards">
-      <slot :cards="pagedCards"> </slot>
+      <slot :cards="pagedCards" :viewMode="viewMode"> </slot>
       <div
         class="mt-8 row justify-center"
         v-if="(pagedCards.totalPages ?? 0) > 1"

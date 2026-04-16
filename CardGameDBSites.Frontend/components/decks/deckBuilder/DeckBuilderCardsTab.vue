@@ -176,6 +176,8 @@ async function toggleMarkdownPreview() {
         :white-background="false"
         :enable-query-string-sync="false"
         :collection-only-mode="collectionOnlyMode"
+        :hide-reprinted-cards="true"
+        :legal-for-deck-type-id="deck.typeId"
         v-slot="{cards}"
       >
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-5">
@@ -351,7 +353,7 @@ async function toggleMarkdownPreview() {
           v-html="markdownPreviewText"
         ></div>
       </div>
-      <DeckCostCurve :deck="deck" />
+      <DeckCostCurve :deck="deck" type-attribute="Card Type" />
     </div>
   </div>
 </template>

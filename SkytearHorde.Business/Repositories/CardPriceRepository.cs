@@ -1,4 +1,5 @@
-﻿using SkytearHorde.Entities.Models.Business;
+﻿using SkytearHorde.Business.Helpers;
+using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Database;
 using System.Security.Cryptography;
 using Umbraco.Cms.Core.Cache;
@@ -10,12 +11,14 @@ namespace SkytearHorde.Business.Repositories
     public class CardPriceRepository
     {
         private readonly IScopeProvider _scopeProvider;
+        private readonly IAppPolicyCache _cache;
 
         private readonly Cache.IRepositoryCachePolicy<CardPriceGroup, int> _repositoryCachePolicy;
 
         public CardPriceRepository(IScopeProvider scopeProvider, IAppPolicyCache cache)
         {
             _scopeProvider = scopeProvider;
+            _cache = cache;
             _repositoryCachePolicy = new Cache.DefaultRepositoryCachePolicy<CardPriceGroup, int>(cache, new Cache.RepositoryCachePolicyOptions
             {
                 PerformCount = PerformCount
@@ -78,6 +81,7 @@ namespace SkytearHorde.Business.Repositories
                             existingRecord.MainPrice = price.MainPrice;
                             existingRecord.LowestPrice = price.LowestPrice;
                             existingRecord.HighestPrice = price.HighestPrice;
+                            existingRecord.Delta = CardPriceDeltaCalculator.RecalculateDelta(price.MainPrice, existingRecord);
                             scope.Database.Update(existingRecord);
                             continue;
                         }
@@ -97,7 +101,8 @@ namespace SkytearHorde.Business.Repositories
                         LowestPrice = price.LowestPrice,
                         MainPrice = price.MainPrice,
                         DateUtc = price.DateUtc,
-                        IsLatest = true
+                        IsLatest = true,
+                        Delta = CardPriceDeltaCalculator.CalculateDelta(price.MainPrice, existingRecord)
                     };
                     scope.Database.Insert(newRecord);
 
@@ -110,6 +115,44 @@ namespace SkytearHorde.Business.Repositories
                     _repositoryCachePolicy.ClearCache(record.CardId);
                 }
             }
+        }
+
+        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
+        {
+            if (count <= 0 || count > 100)
+                throw new ArgumentOutOfRangeException(nameof(count), "count must be between 1 and 100.");
+
+            var cacheKey = $"uRepo_TopPriceChanges_{count}_{descending}";
+            var cached = _cache.GetCacheItem<List<CardPriceChangeResult>>(cacheKey);
+            if (cached != null)
+                return cached;
+
+            using var scope = _scopeProvider.CreateScope();
+            var orderDirection = descending ? "DESC" : "ASC";
+            var cutoffDate = DateTime.UtcNow.Date.AddDays(-1);
+            var sql = $@"
+                SELECT TOP {count} CardId, VariantId, MainPrice AS CurrentPrice, (MainPrice - Delta) AS PreviousPrice
+                FROM CardPriceRecord
+                WHERE IsLatest = 1 AND Delta <> 0 AND (MainPrice - Delta) > 0 AND DateUtc >= @0
+                ORDER BY Delta {orderDirection}";
+            var result = scope.Database.Fetch<CardPriceChangeResult>(sql, cutoffDate);
+            _cache.Insert(cacheKey, () => result, TimeSpan.FromHours(1));
+            return result;
+        }
+
+        public List<CardPriceRecordDBModel> GetPriceHistory(int cardId, int? variantId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            const string columns = "Id, CardId, VariantId, MainPrice, LowestPrice, HighestPrice, DateUtc, IsLatest, Delta";
+            if (variantId.HasValue)
+            {
+                return scope.Database.Fetch<CardPriceRecordDBModel>(
+                    $"SELECT {columns} FROM CardPriceRecord WHERE CardId = @0 AND VariantId = @1 ORDER BY DateUtc ASC, Id ASC",
+                    cardId, variantId.Value);
+            }
+            return scope.Database.Fetch<CardPriceRecordDBModel>(
+                $"SELECT {columns} FROM CardPriceRecord WHERE CardId = @0 ORDER BY DateUtc ASC, Id ASC",
+                cardId);
         }
 
         private int PerformCount()

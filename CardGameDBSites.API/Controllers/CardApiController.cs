@@ -29,6 +29,7 @@ namespace CardGameDBSites.API.Controllers
         private readonly ISiteService _siteService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IMemberManager _memberManager;
+        private readonly CardPageService _cardPageService;
 
         public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
@@ -37,7 +38,8 @@ namespace CardGameDBSites.API.Controllers
             SettingsService settingsService,
             ISiteService siteService,
             IUmbracoContextFactory umbracoContextFactory,
-            IMemberManager memberManager)
+            IMemberManager memberManager,
+            CardPageService cardPageService)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
@@ -47,6 +49,7 @@ namespace CardGameDBSites.API.Controllers
             _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
             _memberManager = memberManager;
+            _cardPageService = cardPageService;
         }
 
         [HttpGet("all")]
@@ -69,13 +72,16 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("byId")]
         [ProducesResponseType(typeof(CardDetailApiModel), 200)]
-        public IActionResult ById(Guid id)
+        public IActionResult ById(Guid id, int? setId = null)
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             var umbracoCard = ctx.UmbracoContext.Content.GetById(id);
             if (umbracoCard is null) return NotFound();
 
-            return Ok(MapToApiModel(_cardService.Get(umbracoCard.Id)));
+            var baseVariant = _cardService.GetBaseVariants(umbracoCard.Id).FirstOrDefault(it => setId is null || it.SetId == setId);
+            if (baseVariant is null) return NotFound();
+
+            return Ok(MapToApiModel(baseVariant));
         }
 
         [HttpPost("query")]
@@ -130,7 +136,9 @@ namespace CardGameDBSites.API.Controllers
                 OrderBy = sorting,
                 VariantTypeId = model.VariantTypeId,
                 OnlyOwnedCards = model.OnlyOwnedCards,
-                MemberId = memberId
+                MemberId = memberId,
+                IncludeReprintedCards = model.IncludeReprintedCards,
+                LegalForDeckTypeId = model.LegalForDeckTypeId
             }, out var totalItems).Select(MapToApiModel);
             return Ok(new PagedResult<CardDetailApiModel>(totalItems, model.PageNumber, model.PageSize)
             {
@@ -159,9 +167,66 @@ namespace CardGameDBSites.API.Controllers
             }));
         }
 
+        [HttpGet("topPriceChanges")]
+        [ProducesResponseType(typeof(CardPriceChangeApiModel[]), 200)]
+        public IActionResult GetTopPriceChanges(int count, bool descending)
+        {
+            if (!_settingsService.GetSiteSettings().AllowPricing)
+                return Ok(Array.Empty<CardPriceChangeApiModel>());
+
+            if (count <= 0 || count > 100)
+                return BadRequest("count must be between 1 and 100.");
+
+            var changes = _cardPriceService.GetTopPriceChanges(count, descending);
+            var cardIds = changes.Select(c => c.CardId).Distinct().ToArray();
+            var cards = _cardService.Get(cardIds).ToDictionary(c => c.BaseId);
+
+            var result = changes
+                .Where(c => cards.ContainsKey(c.CardId))
+                .Select(c =>
+                {
+                    var card = cards[c.CardId];
+                    var priceChange = c.CurrentPrice - c.PreviousPrice;
+                    var priceChangePercent = c.PreviousPrice > 0
+                        ? (priceChange / c.PreviousPrice) * 100.0
+                        : 0.0;
+                    return new CardPriceChangeApiModel
+                    {
+                        CardId = c.CardId,
+                        VariantId = c.VariantId,
+                        CardName = card.DisplayName ?? string.Empty,
+                        UrlSegment = _cardPageService.GetUrl(card),
+                        CurrentPrice = c.CurrentPrice,
+                        PreviousPrice = c.PreviousPrice,
+                        PriceChange = Math.Round(priceChange, 2),
+                        PriceChangePercent = Math.Round(priceChangePercent, 2)
+                    };
+                })
+                .ToArray();
+
+            return Ok(result);
+        }
+
+        [HttpGet("priceHistory")]
+        [ProducesResponseType(typeof(CardPriceHistoryItemApiModel[]), 200)]
+        public IActionResult GetPriceHistory(int cardId, int? variantId)
+        {
+            if (!_settingsService.GetSiteSettings().AllowPricing)
+                return Ok(Array.Empty<CardPriceHistoryItemApiModel>());
+
+            var history = _cardPriceService.GetPriceHistory(cardId, variantId);
+            var result = history.Select(h => new CardPriceHistoryItemApiModel
+            {
+                Date = h.DateUtc.ToString("yyyy-MM-dd"),
+                Price = h.MainPrice
+            }).ToArray();
+
+            return Ok(result);
+        }
+
         private CardDetailApiModel MapToApiModel(Card card)
         {
-            var detail = new CardDetailApiModel(card);
+            var detail = new CardDetailApiModel(card, card.NonLegalDeckTypes, _cardPageService.GetUrl(card));
             if (_settingsService.GetSiteSettings().AllowPricing)
             {
                 var prices = _cardPriceService.GetPrices(card);

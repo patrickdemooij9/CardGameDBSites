@@ -10,6 +10,8 @@
         public CardsQueryFilterClauseApiModel[] FilterClauses { get; set; }
         public bool OnlyOwnedCards { get; set; }
         public string? SortBy { get; set; }
+        public bool IncludeReprintedCards { get; set; } = true;
+        public int? LegalForDeckTypeId { get; set; }
 
         public CardsQueryPostApiModel()
         {

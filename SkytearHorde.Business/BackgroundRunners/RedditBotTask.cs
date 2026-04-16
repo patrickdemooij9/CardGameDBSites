@@ -95,7 +95,7 @@ namespace SkytearHorde.Business.BackgroundRunners
                 if (latestCommentDate == null || comment.CreatedAt > latestCommentDate.Value)
                     latestCommentDate = comment.CreatedAt;
 
-                var commentBody = Regex.Unescape(comment.Body);
+                var commentBody = comment.Body?.Replace("\\[", "[").Replace("\\]", "]");
                 if (string.IsNullOrWhiteSpace(commentBody)) continue;
 
                 var matches = CardSyntaxPattern.Matches(commentBody);

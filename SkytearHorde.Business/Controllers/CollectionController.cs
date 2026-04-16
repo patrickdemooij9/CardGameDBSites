@@ -10,6 +10,7 @@ using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
+using System.Diagnostics;
 using System.IO;
 using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Web.Common.Controllers;
@@ -276,6 +277,8 @@ namespace SkytearHorde.Business.Controllers
             var collection = _collectionService.GetCards();
             var variantTypes = _collectionService.GetVariantTypes().Select(it => new VariantTypeViewModel(it)).ToArray();
 
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             byte[] data;
             if (exportType == CollectionExportType.Grouped)
             {
@@ -285,6 +288,8 @@ namespace SkytearHorde.Business.Controllers
             {
                 data = await new DetailedCollectionImport(variantTypes, _cardService, _settingsService.GetCollectionSettings().ImportMappings).Export(collection);
             }
+            stopwatch.Stop();
+            _logger.LogInformation("Export for " + (await _memberManager.GetCurrentMemberAsync()).Id + $" took {stopwatch.ElapsedMilliseconds} ms");
 
             return File(data, "application/octet-stream", "CollectionExport.xlsx");
         }

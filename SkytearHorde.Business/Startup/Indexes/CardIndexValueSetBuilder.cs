@@ -63,6 +63,7 @@ namespace SkytearHorde.Business.Startup.Indexes
             updatedValues["CustomField.SetId"] = [card.SetId];
             updatedValues["Name"] = [card.DisplayName];
             updatedValues["VariantType"] = [card.VariantTypeId ?? 0];
+            updatedValues["IsReprint"] = [card.IsReprint ? 1 : 0];
 
             var set = ctx.Content?.GetById(card.SetId) as Set;
             if (set != null)
@@ -75,6 +76,7 @@ namespace SkytearHorde.Business.Startup.Indexes
             }
 
             updatedValues["DecksOnly"] = [card.HideFromDecks ? 0 : 1];
+            updatedValues["NonLegalDeckTypes"] = card.NonLegalDeckTypes.Select(it => (object)it).ToList();
 
             var prices = _cardPriceService.GetPrices(card.BaseId);
             var price = prices.FirstOrDefault()?.Prices.FirstOrDefault(it => it.VariantId == card.VariantId);

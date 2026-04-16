@@ -1,8 +1,9 @@
-﻿namespace CardGameDBSites.API.Models
+namespace CardGameDBSites.API.Models
 {
     public class LinkApiModel
     {
         public required string Name { get; set; }
         public required string Url { get; set; }
+        public string? Target { get; set; }
     }
 }

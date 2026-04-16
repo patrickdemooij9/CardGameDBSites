@@ -27,7 +27,7 @@ jobs:
         run: dotnet build SkytearHorde.sln --configuration Release --no-restore
 
       - name: Run backend tests
-        run: dotnet test SkytearHorde.Tests/SkytearHorde.Tests.csproj --configuration Release
+        run: dotnet test SkytearHorde.Tests/SkytearHorde.Tests.csproj --configuration Release --no-build
 
   frontend:
     name: Frontend Build and Test

@@ -11,8 +11,8 @@ let slug = route.params.slug;
 if (Array.isArray(slug)){
     slug = slug.join('/');
 }
-const { data } = await useAsyncData('mainContentFetch', () => DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug));
-const { data: seo } = await useAsyncData('seoFetch', () => DoFetch<PageSeoModel>("/api/seo?contentGuid=" + data.value!.id));
+const { data } = await useAsyncData('mainContentFetch-' + slug, () => DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug));
+const { data: seo } = await useAsyncData('seoFetch-' + slug, () => DoFetch<PageSeoModel>("/api/seo?contentGuid=" + data.value!.id));
 const config = useRuntimeConfig();
 
 useHead({

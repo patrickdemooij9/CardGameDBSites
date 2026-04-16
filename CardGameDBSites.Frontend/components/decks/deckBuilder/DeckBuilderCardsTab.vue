@@ -34,7 +34,7 @@ const props = defineProps<{
   collectionOnlyMode: boolean;
 }>();
 
-const description = ref("");
+const description = defineModel<string>("description");
 const markdownPreview = ref(false);
 const markdownPreviewText = ref("");
 
@@ -103,8 +103,26 @@ function getSlotsForCard(card: CardDetailApiModel) {
     );
 }
 
+function canAddCardToLocation(slot: CreateDeckSlot, card: CardDetailApiModel): boolean {
+  if (!slot.canAddCard(card)) return false;
+  if (props.collectionOnlyMode && card.baseId !== undefined) {
+    const owned = collectionService.getAmount(card.baseId);
+    const inDeck = props.deck.getCards()
+      .filter((dc) => dc.card.baseId === card.baseId)
+      .reduce((sum, dc) => sum + dc.amount, 0);
+    return inDeck < owned;
+  }
+  return true;
+}
+
 function addToSquad(slot: CreateDeckSlot, character: CardDetailApiModel) {
-  slot.addCard(character);
+  if (!canAddCardToLocation(slot, character)) return;
+  const group = props.deck.getGroupForSlot(slot);
+  if (group) {
+    props.deck.addCard(group, slot, character);
+  } else {
+    slot.addCard(character);
+  }
 
   if (props.collectionOnlyMode){
     collectionService.loadCards([character.baseId!]);
@@ -112,11 +130,16 @@ function addToSquad(slot: CreateDeckSlot, character: CardDetailApiModel) {
 }
 
 function removeFromSquad(slot: CreateDeckSlot, card: CardDetailApiModel) {
-  slot.removeCard(card);
+  const group = props.deck.getGroupForSlot(slot);
+  if (group) {
+    props.deck.removeCard(group, slot, card);
+  } else {
+    slot.removeCard(card);
+  }
 }
 
 async function toggleMarkdownPreview() {
-  if (markdownPreview) {
+  if (!markdownPreview.value && description.value) {
     markdownPreviewText.value = await GetMarkdown(description.value);
   }
 
@@ -304,7 +327,7 @@ async function toggleMarkdownPreview() {
                   <Button
                     v-on:click.prevent.stop="addToSquad(location, character)"
                     type="button"
-                    :disabled="!location.canAddCard(character)"
+                    :disabled="!canAddCardToLocation(location, character)"
                     class="rounded-lg"
                   >
                     <span v-if="!location.numberMode">Add</span>

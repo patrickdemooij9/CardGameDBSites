@@ -6,6 +6,7 @@ import {
   IsValid,
 } from "~/services/requirements/RequirementService";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
+import { GetCardValue } from "~/helpers/CardHelper";
 
 export default class CreateDeckGroup {
   id?: number;
@@ -47,11 +48,43 @@ export default class CreateDeckGroup {
     return cards;
   }
 
+  getAvailableSlots() {
+    const filledSlotIds = this.slots
+      .filter((slot) => slot.isFull())
+      .map((slot) => slot.id);
+
+    return this.slots.filter((slot) => {
+      return (
+        slot.showIfTargetSlotIsFilled == null ||
+        filledSlotIds.includes(slot.showIfTargetSlotIsFilled)
+      );
+    });
+  }
+
+  getPointsTotal(): number {
+    let points = 0;
+    this.slots.forEach((slot) => {
+      slot.cardGroups.forEach((cardGroup) => {
+        cardGroup.cards.forEach((deckCard) => {
+          const pointValue = GetCardValue<number>(deckCard.card, "Points");
+          if (pointValue !== null && pointValue !== undefined) {
+            points += pointValue;
+          }
+        });
+      });
+    });
+    return points;
+  }
+
+  hasEnoughPoints(): boolean {
+    return this.getPointsTotal() >= 0;
+  }
+
   validateGroup(): CreateDeckValidation {
     const errors: CreateDeckValidationItem[] = [];
 
     const cards: CardDetailApiModel[] = [];
-    this.slots.forEach((slot) => {
+    this.getAvailableSlots().forEach((slot) => {
       const slotErrors = slot.validate();
       if ((slotErrors?.length ?? 0) > 0) {
         errors.push(...slotErrors!);
@@ -69,10 +102,17 @@ export default class CreateDeckGroup {
         showMessage: true,
       });
     });
-    return new CreateDeckValidation(errors);
-  }
 
-  getAvailableSlots() {
-    return this.slots; //TODO: This should work with dynamic slots
+    // Points validation: only check if any card has a Points attribute
+    if (cards.some((card) => GetCardValue<number>(card, "Points") !== null)) {
+      if (!this.hasEnoughPoints()) {
+        errors.push({
+          errorMessage: `Squad has ${Math.abs(this.getPointsTotal())} points too many`,
+          showMessage: true,
+        });
+      }
+    }
+
+    return new CreateDeckValidation(errors);
   }
 }

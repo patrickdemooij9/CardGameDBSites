@@ -36,18 +36,33 @@ isLoading.value = false;
 const currentTab = ref<DeckBuilderTab>(DeckBuilderTab.Deck);
 const selectedCard = ref<CardDetailApiModel>();
 const selectedArea = ref<CreateDeckSelectedArea>();
-const deck = ref<CreateDeckModel>(deckSettings);
+const deck = shallowRef<CreateDeckModel>(deckSettings);
 
 const ignorePassiveFilters = ref(false);
 const collectionOnlyMode = ref(false);
 let isSubmitting = false;
 
-if (true) {
-  //TODO: Depending on SelectFirstSlot
-  selectedArea.value = {
-    group: deckSettings.groups[0],
-    slot: deckSettings.groups[0].slots[0],
-  };
+if (deckSettings.preselectFirstSlot) {
+  // Find the first group with a non-full slot
+  let found = false;
+  for (const group of deckSettings.groups) {
+    if (found) break;
+    const availableSlots = group.getAvailableSlots();
+    const emptySlot = availableSlots.find((s) => !s.isFull());
+    if (emptySlot) {
+      selectedArea.value = { group, slot: emptySlot };
+      found = true;
+    }
+  }
+  if (!found) {
+    // All slots filled – fall back to the last available slot
+    const lastGroup = deckSettings.groups[deckSettings.groups.length - 1];
+    const lastAvailable = lastGroup.getAvailableSlots();
+    const fallbackSlot = lastAvailable.length > 0
+      ? lastAvailable[lastAvailable.length - 1]
+      : lastGroup.slots[lastGroup.slots.length - 1];
+    selectedArea.value = { group: lastGroup, slot: fallbackSlot };
+  }
 }
 
 function clickTab(tab: DeckBuilderTab) {
@@ -172,6 +187,7 @@ onUnmounted(() => {
         />
         <DeckBuilderCardsTab
           v-model:current-tab="currentTab"
+          v-model:description="deck.description"
           :current-area="selectedArea"
           :deck="deck"
           @select-card="selectCard"

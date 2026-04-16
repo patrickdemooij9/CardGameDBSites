@@ -4,6 +4,7 @@ enum RequirementType {
     Resource = "Resource",
     Conditional = "Conditional",
     SameValue = "SameValue",
+    ChildOf = "ChildOf",
 }
 
 export default RequirementType;

@@ -106,7 +106,6 @@ export function useSite() {
         model.id = deckId;
         model.name = deck.name;
         model.description = deck.description ?? "";
-        model.pickDefaultName(result?.defaultNames);
         deck.cards?.forEach(async (deckCard) => {
           const card = cards.find((cardId) => cardId.baseId === deckCard.cardId);
           if (!card) {

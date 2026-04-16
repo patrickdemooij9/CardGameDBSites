@@ -27,7 +27,7 @@ namespace CardGameDBSites.API.Models
         public CardPriceApiModel? Price { get; set; }
         public CardVariantReferenceApiModel[] Variants { get; set; }
 
-        public CardDetailApiModel(Card card, int[] nonLegalDeckTypes)
+        public CardDetailApiModel(Card card, int[] nonLegalDeckTypes, string urlSegment)
         {
             BaseId = card.BaseId;
             VariantId = card.VariantId;
@@ -35,7 +35,7 @@ namespace CardGameDBSites.API.Models
             DisplayName = card.DisplayName;
             SetId = card.SetId;
             SetName = card.SetName;
-            UrlSegment = card.UrlSegment;
+            UrlSegment = urlSegment;
             ImageUrl = card.Image is null ? null : ImageCropHelper.ToApiModels(card.Image, "icon");
             BackImageUrl = card.BackImage is null ? null : ImageCropHelper.ToApiModels(card.BackImage, "icon");
             Attributes = card.Attributes.ToDictionary(it => it.Key, it => it.Value.GetValues());

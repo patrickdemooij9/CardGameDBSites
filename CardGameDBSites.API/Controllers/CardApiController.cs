@@ -72,13 +72,16 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("byId")]
         [ProducesResponseType(typeof(CardDetailApiModel), 200)]
-        public IActionResult ById(Guid id)
+        public IActionResult ById(Guid id, int? setId = null)
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             var umbracoCard = ctx.UmbracoContext.Content.GetById(id);
             if (umbracoCard is null) return NotFound();
 
-            return Ok(MapToApiModel(_cardService.Get(umbracoCard.Id)));
+            var baseVariant = _cardService.GetBaseVariants(umbracoCard.Id).FirstOrDefault(it => setId is null || it.SetId == setId);
+            if (baseVariant is null) return NotFound();
+
+            return Ok(MapToApiModel(baseVariant));
         }
 
         [HttpPost("query")]
@@ -223,7 +226,7 @@ namespace CardGameDBSites.API.Controllers
 
         private CardDetailApiModel MapToApiModel(Card card)
         {
-            var detail = new CardDetailApiModel(card, card.NonLegalDeckTypes);
+            var detail = new CardDetailApiModel(card, card.NonLegalDeckTypes, _cardPageService.GetUrl(card));
             if (_settingsService.GetSiteSettings().AllowPricing)
             {
                 var prices = _cardPriceService.GetPrices(card);

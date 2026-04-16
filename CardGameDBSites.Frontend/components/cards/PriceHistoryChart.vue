@@ -24,7 +24,7 @@ const props = defineProps<{
 
 // Hardcoded waypoints - to be connected to set release dates later
 const waypoints: { date: string; label: string }[] = [
-    // Example: { date: '2025-06-01', label: 'Set X' }
+    //{ date: '2025-06-01', label: 'Set X' }
 ];
 
 const history = ref<CardPriceHistoryItemApiModel[]>([]);
@@ -122,7 +122,7 @@ const waypointPlugin = {
             ctx.font = 'bold 11px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(wp.label, x, chartArea.top - 2);
+            ctx.fillText(wp.label, x, chartArea.top + 12);
             ctx.restore();
         }
     },

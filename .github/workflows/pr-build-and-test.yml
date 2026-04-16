@@ -3,6 +3,9 @@ name: PR Build and Test
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   backend:
     name: Backend Build and Test
@@ -24,7 +27,7 @@ jobs:
         run: dotnet build SkytearHorde.sln --configuration Release --no-restore
 
       - name: Run backend tests
-        run: dotnet test SkytearHorde.Tests/SkytearHorde.Tests.csproj --configuration Release --no-build
+        run: dotnet test SkytearHorde.Tests/SkytearHorde.Tests.csproj --configuration Release
 
   frontend:
     name: Frontend Build and Test

@@ -8,6 +8,6 @@ export type SetViewModel = {
     urlSegment: string;
     imageUrl?: string | null;
     code?: string | null;
+    category?: string | null;
     extraInformation?: Array<string>;
 };
-

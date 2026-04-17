@@ -1,7 +1,8 @@
-﻿using CardGameDBSites.API.Models.Sets;
+using CardGameDBSites.API.Models.Sets;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Services;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
 
@@ -23,15 +24,7 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(SetViewModel[]), 200)]
         public IActionResult GetSets()
         {
-            return Ok(_cardService.GetAllSets().Select(it => new SetViewModel
-            {
-                Id = it.Id,
-                DisplayName = it.DisplayName!,
-                UrlSegment = it.UrlSegment()!,
-                ImageUrl = it.DisplayImage?.Url(mode: UrlMode.Absolute),
-                Code = it.SetCode,
-                ExtraInformation = it.ExtraInformation?.ToArray() ?? []
-            }));
+            return Ok(_cardService.GetAllSets().Select(CreateSetViewModel));
         }
 
         [HttpGet("get")]
@@ -40,15 +33,7 @@ namespace CardGameDBSites.API.Controllers
         {
             var set = _cardService.GetAllSets().FirstOrDefault(it => it.Id == id);
             if (set is null) return NotFound();
-            return Ok(new SetViewModel
-            {
-                Id = id,
-                DisplayName = set.DisplayName!,
-                UrlSegment = set.UrlSegment()!,
-                ImageUrl = set.DisplayImage?.Url(mode: UrlMode.Absolute),
-                Code = set.SetCode,
-                ExtraInformation = set.ExtraInformation?.ToArray() ?? []
-            });
+            return Ok(CreateSetViewModel(set));
         }
 
         [HttpGet("getByKey")]
@@ -57,30 +42,35 @@ namespace CardGameDBSites.API.Controllers
         {
             var set = _cardService.GetAllSets().FirstOrDefault(it => it.Key == key);
             if (set is null) return NotFound();
-            return Ok(new SetViewModel
-            {
-                Id = set.Id,
-                DisplayName = set.DisplayName!,
-                UrlSegment = set.UrlSegment()!,
-                ImageUrl = set.DisplayImage?.Url(mode: UrlMode.Absolute),
-                Code = set.SetCode,
-                ExtraInformation = set.ExtraInformation?.ToArray() ?? []
-            });
+            return Ok(CreateSetViewModel(set));
         }
 
         [HttpGet("getByIds")]
         [ProducesResponseType(typeof(SetViewModel[]), 200)]
         public IActionResult GetSetsByIds(int[] ids)
         {
-            return Ok(_cardService.GetAllSets().Where(it => ids.Contains(it.Id)).Select(it => new SetViewModel
+            return Ok(_cardService.GetAllSets().Where(it => ids.Contains(it.Id)).Select(CreateSetViewModel));
+        }
+
+        private static SetViewModel CreateSetViewModel(IPublishedContent set)
+        {
+            // TODO: After adding the category property in Umbraco models, switch this to the strongly typed Set.Category property.
+            var category = set.Value<string>("category");
+            if (string.IsNullOrWhiteSpace(category))
             {
-                Id = it.Id,
-                DisplayName = it.DisplayName!,
-                UrlSegment = it.UrlSegment()!,
-                ImageUrl = it.DisplayImage?.Url(mode: UrlMode.Absolute),
-                Code = it.SetCode,
-                ExtraInformation = it.ExtraInformation?.ToArray() ?? []
-            }));
+                category = null;
+            }
+
+            return new SetViewModel
+            {
+                Id = set.Id,
+                DisplayName = set.Value<string>("displayName") ?? set.Name,
+                UrlSegment = set.UrlSegment()!,
+                ImageUrl = set.Value<MediaWithCrops>("displayImage")?.Url(mode: UrlMode.Absolute),
+                Code = set.Value<string>("setCode"),
+                Category = category,
+                ExtraInformation = set.Value<IEnumerable<string>>("extraInformation")?.ToArray() ?? []
+            };
         }
     }
 }

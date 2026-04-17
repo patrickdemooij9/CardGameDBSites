@@ -7,6 +7,7 @@
         public required string UrlSegment { get; set; }
         public string? ImageUrl { get; set; }
         public string? Code { get; set; }
+        public string? Category { get; set; }
         public string[] ExtraInformation { get; set; }
 
         public SetViewModel()

@@ -40,6 +40,10 @@ function calculateProgressFilled(setId: number): number {
   return (progress.ownedCards! / progress.totalCards!) * 100;
 }
 
+function getCategoryId(category: string): string {
+  return `set-category-${category.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+}
+
 onMounted(async () => {
   if (isLoggedIn) {
     setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
@@ -56,7 +60,7 @@ onMounted(async () => {
   </div>
   <div v-else class="flex flex-col gap-8">
     <div v-for="group in groupedSets" :key="group.category" class="flex flex-col gap-4">
-      <h2 class="text-lg font-bold">{{ group.category }}</h2>
+      <h3 :id="getCategoryId(group.category)" class="text-lg font-bold">{{ group.category }}</h3>
       <div class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
         <div
           v-for="set in group.sets"

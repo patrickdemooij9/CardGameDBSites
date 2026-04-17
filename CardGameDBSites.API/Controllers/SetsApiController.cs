@@ -2,7 +2,7 @@ using CardGameDBSites.API.Models.Sets;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Services;
-using Umbraco.Cms.Core.Models;
+using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
 
@@ -52,7 +52,7 @@ namespace CardGameDBSites.API.Controllers
             return Ok(_cardService.GetAllSets().Where(it => ids.Contains(it.Id)).Select(CreateSetViewModel));
         }
 
-        private static SetViewModel CreateSetViewModel(IPublishedContent set)
+        private static SetViewModel CreateSetViewModel(Set set)
         {
             // TODO: After adding the category property in Umbraco models, switch this to the strongly typed Set.Category property.
             var category = set.Value<string>("category");
@@ -64,12 +64,12 @@ namespace CardGameDBSites.API.Controllers
             return new SetViewModel
             {
                 Id = set.Id,
-                DisplayName = set.Value<string>("displayName") ?? set.Name,
+                DisplayName = set.DisplayName!,
                 UrlSegment = set.UrlSegment()!,
-                ImageUrl = set.Value<MediaWithCrops>("displayImage")?.Url(mode: UrlMode.Absolute),
-                Code = set.Value<string>("setCode"),
+                ImageUrl = set.DisplayImage?.Url(mode: UrlMode.Absolute),
+                Code = set.SetCode,
                 Category = category,
-                ExtraInformation = set.Value<IEnumerable<string>>("extraInformation")?.ToArray() ?? []
+                ExtraInformation = set.ExtraInformation?.ToArray() ?? []
             };
         }
     }

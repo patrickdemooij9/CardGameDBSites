@@ -12,5 +12,8 @@ namespace SkytearHorde.Business.Integrations.TcgPlayer
 
         [JsonPropertyName("groupId")]
         public int GroupId { get; set; }
+
+        [JsonPropertyName("imageUrl")]
+        public string ImageUrl { get; set; }
     }
 }

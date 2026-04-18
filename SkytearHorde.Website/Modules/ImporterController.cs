@@ -232,7 +232,7 @@ namespace SkytearHorde.Modules
 
                 foreach (var variant in variants.Take(amount))
                 {
-                    var cleanedDisplayName = variant.DisplayName.Replace(",", "").Replace("'", "").Replace("-", " ").Replace("Î", "I").Replace("é", "e").Replace(":", "").Replace("!", "");
+                    var cleanedDisplayName = variant.DisplayName.Replace(",", "").Replace("'", "").Replace("-", " ").Replace("Î", "I").Replace("é", "e").Replace(":", "").Replace("!", "").Replace("\"", "").Replace("?", "");
                     var namesToSearch = new List<string>() { cleanedDisplayName };
                     /*var subNames = variant.GetMultipleCardAttributeValue("Subname");
                     if (subNames?.Any() is true && !string.IsNullOrWhiteSpace(subNames[0]))

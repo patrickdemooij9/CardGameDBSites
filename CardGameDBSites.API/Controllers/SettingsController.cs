@@ -182,6 +182,7 @@ namespace CardGameDBSites.API.Controllers
             return Ok(new DeckBuilderApiModel
             {
                 Id = deckTypeSettings.TypeID,
+                DefaultNames = [.. deckTypeSettings.DefaultNames ?? []],
                 Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel
                 {
                     Id = it.SquadId,

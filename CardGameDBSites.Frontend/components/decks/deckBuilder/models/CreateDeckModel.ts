@@ -18,6 +18,14 @@ export class CreateDeckModel {
   sideboardSlot: CreateDeckSlot | undefined;
   sideboardGroup: CreateDeckGroup | undefined;
 
+  pickDefaultName(defaultNames: string[] | undefined, random: () => number = Math.random) {
+    if (this.name || !defaultNames || defaultNames.length === 0) {
+      return;
+    }
+    const index = Math.floor(random() * defaultNames.length);
+    this.name = defaultNames[index];
+  }
+
   getSlotsForCard(card: CardDetailApiModel) {
     const slots: CreateDeckSlot[] = [];
     this.groups.forEach((group) => {

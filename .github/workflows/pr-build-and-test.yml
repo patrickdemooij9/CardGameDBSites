@@ -1,0 +1,60 @@
+name: PR Build and Test
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore backend dependencies
+        run: dotnet restore SkytearHorde.sln
+
+      - name: Build backend
+        run: dotnet build SkytearHorde.sln --configuration Release --no-restore
+
+      - name: Build backend tests
+        run: dotnet build SkytearHorde.Tests/SkytearHorde.Tests.csproj --configuration Release --no-restore
+
+      - name: Run backend tests
+        run: dotnet test SkytearHorde.Tests/SkytearHorde.Tests.csproj --configuration Release --no-build
+
+  frontend:
+    name: Frontend Build and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: CardGameDBSites.Frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: CardGameDBSites.Frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Run frontend tests
+        run: npm run test

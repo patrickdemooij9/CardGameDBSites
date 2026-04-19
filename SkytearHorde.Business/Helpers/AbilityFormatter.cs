@@ -1,4 +1,5 @@
 ﻿using SkytearHorde.Business.Services;
+using System.Text.RegularExpressions;
 using Umbraco.Cms.Core.Strings;
 using Umbraco.Extensions;
 
@@ -16,7 +17,7 @@ namespace SkytearHorde.Business.Helpers
         public IHtmlEncodedString TranslateSpecialChars(string value)
         {
             var text = value.Replace("\\r", "</p><p>");
-            foreach(var keyword in _settingsService.GetSiteSettings().Keywords)
+            foreach (var keyword in _settingsService.GetSiteSettings().Keywords)
             {
                 text = text.Replace($"[{keyword.Keyword}]", $"<img src=\"{keyword.Image}\" class=\"keyword-icon\"/>");
             }
@@ -48,6 +49,9 @@ namespace SkytearHorde.Business.Helpers
             var text = value;
 
             text = text.Replace("\\r", "\n").Replace("|", "**");
+
+            //Ad a space after every , if there is non behind it
+            text = Regex.Replace(text, ",(\\S)", ", $1");
 
             return new HtmlEncodedString(text);
         }

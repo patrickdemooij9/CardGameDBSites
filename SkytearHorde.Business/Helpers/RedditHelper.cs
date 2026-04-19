@@ -120,6 +120,50 @@ namespace SkytearHorde.Business.Helpers
             return comments;
         }
 
+        public async Task<List<RedditPost>> GetNewPostsAsync(string subreddit, int limit = 25)
+        {
+            var token = await GetAccessTokenAsync();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://oauth.reddit.com/r/{subreddit}/new.json?limit={limit}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.UserAgent.ParseAdd(UserAgent);
+
+            var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Reddit get posts request failed with status {response.StatusCode}: {body}");
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(json);
+            var posts = new List<RedditPost>();
+
+            var children = doc.RootElement.GetProperty("data").GetProperty("children");
+            foreach (var child in children.EnumerateArray())
+            {
+                var data = child.GetProperty("data");
+                var fullName = data.GetProperty("name").GetString();
+                var title = data.GetProperty("title").GetString();
+                var selfText = data.GetProperty("selftext").GetString();
+                var author = data.GetProperty("author").GetString();
+                var createdUtc = data.GetProperty("created_utc").GetDouble();
+                if (fullName != null)
+                {
+                    posts.Add(new RedditPost
+                    {
+                        FullName = fullName,
+                        Title = title ?? string.Empty,
+                        SelfText = selfText ?? string.Empty,
+                        Author = author ?? string.Empty,
+                        CreatedAt = DateTimeOffset.FromUnixTimeSeconds((long)createdUtc).UtcDateTime
+                    });
+                }
+            }
+
+            return posts;
+        }
+
         public async Task ReplyToCommentAsync(string commentFullName, string text)
         {
             var token = await GetAccessTokenAsync();
@@ -147,6 +191,15 @@ namespace SkytearHorde.Business.Helpers
     {
         public string FullName { get; set; } = string.Empty;
         public string Body { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class RedditPost
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string SelfText { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }

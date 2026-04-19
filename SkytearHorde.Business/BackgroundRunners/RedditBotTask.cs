@@ -85,61 +85,79 @@ namespace SkytearHorde.Business.BackgroundRunners
 
             var lastProcessedDate = _redditBotCommentRepository.GetLastProcessedDate();
             var comments = await redditClient.GetNewCommentsAsync(settings.RedditSettings.Subreddit, 25);
+            var posts = await redditClient.GetNewPostsAsync(settings.RedditSettings.Subreddit, 25);
 
-            DateTime? latestCommentDate = null;
+            DateTime? latestProcessedDate = null;
 
             foreach (var comment in comments.OrderBy(it => it.CreatedAt))
             {
                 if (lastProcessedDate.HasValue && comment.CreatedAt <= lastProcessedDate.Value) continue;
 
-                if (latestCommentDate == null || comment.CreatedAt > latestCommentDate.Value)
-                    latestCommentDate = comment.CreatedAt;
+                if (latestProcessedDate == null || comment.CreatedAt > latestProcessedDate.Value)
+                    latestProcessedDate = comment.CreatedAt;
 
-                var commentBody = comment.Body?.Replace("\\[", "[").Replace("\\]", "]");
-                if (string.IsNullOrWhiteSpace(commentBody)) continue;
+                await TryReplyWithCardsAsync(redditClient, comment.FullName, comment.Body, baseUrl);
+            }
 
-                var matches = CardSyntaxPattern.Matches(commentBody);
-                if (matches.Count == 0) continue;
+            foreach (var post in posts.OrderBy(it => it.CreatedAt))
+            {
+                if (lastProcessedDate.HasValue && post.CreatedAt <= lastProcessedDate.Value) continue;
 
-                var cards = new List<Card>();
-                foreach (Match match in matches)
+                if (latestProcessedDate == null || post.CreatedAt > latestProcessedDate.Value)
+                    latestProcessedDate = post.CreatedAt;
+
+                if (!post.IsSelf) continue;
+
+                await TryReplyWithCardsAsync(redditClient, post.FullName, post.SelfText, baseUrl);
+            }
+
+            if (latestProcessedDate.HasValue)
+            {
+                _redditBotCommentRepository.UpdateLastProcessedDate(latestProcessedDate.Value);
+            }
+        }
+
+        private async Task TryReplyWithCardsAsync(RedditApiClient redditClient, string parentFullName, string? rawText, string baseUrl)
+        {
+            var body = rawText?.Replace("\\[", "[").Replace("\\]", "]");
+            if (string.IsNullOrWhiteSpace(body)) return;
+
+            var matches = CardSyntaxPattern.Matches(body);
+            if (matches.Count == 0) return;
+
+            var cards = new List<Card>();
+            foreach (Match match in matches)
+            {
+                if (cards.Count >= 5) break;
+
+                var cardName = match.Groups[1].Value.Trim();
+                var setCode = match.Groups[2].Success ? match.Groups[2].Value.Trim() : null;
+
+                int? setId = null;
+                if (!string.IsNullOrEmpty(setCode))
                 {
-                    if (cards.Count >= 5) break;
-
-                    var cardName = match.Groups[1].Value.Trim();
-                    var setCode = match.Groups[2].Success ? match.Groups[2].Value.Trim() : null;
-
-                    int? setId = null;
-                    if (!string.IsNullOrEmpty(setCode))
-                    {
-                        var set = _cardService.GetAllSets().FirstOrDefault(it =>
-                            it.SetCode?.Equals(setCode, StringComparison.OrdinalIgnoreCase) is true);
-                        setId = set?.Id;
-                    }
-
-                    var searchResults = _cardService.Search(new CardSearchQuery(1, _siteAccessor.GetSiteId())
-                    {
-                        Query = cardName,
-                        SetId = setId
-                    }, out _);
-
-                    var card = searchResults.FirstOrDefault();
-                    if (card != null)
-                    {
-                        cards.Add(card);
-                    }
+                    var set = _cardService.GetAllSets().FirstOrDefault(it =>
+                        it.SetCode?.Equals(setCode, StringComparison.OrdinalIgnoreCase) is true);
+                    setId = set?.Id;
                 }
 
-                if (cards.Count == 0) continue;
+                var searchResults = _cardService.Search(new CardSearchQuery(1, _siteAccessor.GetSiteId())
+                {
+                    Query = cardName,
+                    SetId = setId
+                }, out _);
 
-                var replyText = BuildReplyText(cards, baseUrl);
-                await redditClient.ReplyToCommentAsync(comment.FullName, replyText);
+                var card = searchResults.FirstOrDefault();
+                if (card != null)
+                {
+                    cards.Add(card);
+                }
             }
 
-            if (latestCommentDate.HasValue)
-            {
-                _redditBotCommentRepository.UpdateLastProcessedDate(latestCommentDate.Value);
-            }
+            if (cards.Count == 0) return;
+
+            var replyText = BuildReplyText(cards, baseUrl);
+            await redditClient.ReplyToCommentAsync(parentFullName, replyText);
         }
 
         private string BuildReplyText(List<Card> cards, string baseUrl)

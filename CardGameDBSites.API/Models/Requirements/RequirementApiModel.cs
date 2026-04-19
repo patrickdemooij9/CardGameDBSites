@@ -8,6 +8,7 @@ namespace CardGameDBSites.API.Models.Requirements
         public string Alias { get; set; }
         public RestrictionType RestrictionType { get; set; }
         public string? ErrorMessage { get; set; }
+        public string? FilterDisplayName { get; set; }
         public Dictionary<string, object> Config { get; set; }
 
         public RequirementApiModel(ISquadRequirementConfig requirementConfig)
@@ -16,6 +17,7 @@ namespace CardGameDBSites.API.Models.Requirements
             RestrictionType = (RestrictionType)Enum.Parse(typeof(RestrictionType), requirementConfig.RestrictionType.IfNullOrWhiteSpace("Hard"));
             Config = requirementConfig.GetConfig();
             ErrorMessage = requirementConfig.ErrorMessage;
+            FilterDisplayName = requirementConfig.FilterDisplayName;
         }
     }
 }

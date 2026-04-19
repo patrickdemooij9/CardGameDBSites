@@ -7,3 +7,4 @@ export type LinkApiModel = {
     url: string;
     target?: string | null;
 };
+

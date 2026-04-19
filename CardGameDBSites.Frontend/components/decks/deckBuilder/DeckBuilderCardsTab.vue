@@ -55,7 +55,7 @@ function getUserFilters() {
     .map<OverviewFilterModel>((req) => {
       return {
         Alias: req.config?.ability ?? req.alias ?? "Filter",
-        DisplayName: req.config?.displayName ?? req.alias ?? "Filter",
+        DisplayName: req.filterDisplayName ?? req.alias ?? "Filter",
         Type: OverviewFilterType.CHECKBOX,
         Items: [],
         AutoFillValues: false,

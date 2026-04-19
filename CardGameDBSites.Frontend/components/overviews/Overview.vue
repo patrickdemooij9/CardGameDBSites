@@ -29,7 +29,7 @@ const props = defineProps<{
 
 defineExpose({
   setPage,
-  getPage
+  getPage,
 });
 
 const emit = defineEmits<{
@@ -44,9 +44,7 @@ const defaultView =
     ? props.availableViews[0]
     : "images";
 
-const viewMode = ref<string>(
-  route.query.view?.toString() ?? defaultView,
-);
+const viewMode = ref<string>(route.query.view?.toString() ?? defaultView);
 
 function setViewMode(mode: string) {
   viewMode.value = mode;
@@ -55,7 +53,7 @@ function setViewMode(mode: string) {
 
 const search = ref(route.query.search?.toString() ?? "");
 
-const selectedFilters = ref<Record<string, string[]>>({});
+const selectedFilters = ref<Map<OverviewFilterModel, string[]>>(new Map());
 const isLoading = ref(false);
 const page = ref(1);
 const pageNumberString = route.query["page"];
@@ -90,41 +88,41 @@ function loadLazyDropdownItemsIfNeeded(filter: OverviewFilterModel) {
   emit("loadLazyFilter", filter);
 }
 
-function setFilter(alias: string, value: string) {
-  selectedFilters.value[alias] = [value];
+function setFilter(filter: OverviewFilterModel, value: string) {
+  selectedFilters.value.set(filter, [value]);
   reloadData();
 }
 
-function selectFilter(alias: string, value: string) {
-  if (selectedFilters.value[alias]) {
-    const items = selectedFilters.value[alias];
-    if (items.includes(value)) {
-      const index = items.indexOf(value);
-      items.splice(index, 1);
-    } else {
-      items.push(value);
-    }
+function selectFilter(filter: OverviewFilterModel, value: string) {
+  const items = selectedFilters.value.get(filter) || [];
+  if (items.includes(value)) {
+    const index = items.indexOf(value);
+    items.splice(index, 1);
   } else {
-    selectedFilters.value[alias] = [value];
+    items.push(value);
   }
+  selectedFilters.value.set(filter, items);
   reloadData();
 }
 
-function isSelectedFilter(alias: string, value: string) {
-  return (
-    selectedFilters.value[alias] && selectedFilters.value[alias].includes(value)
-  );
+function isSelectedFilter(filter: OverviewFilterModel, value: string) {
+  const items = selectedFilters.value.get(filter) || [];
+  return items.includes(value);
 }
 
-function getFilterValue(alias: string): string | undefined {
-  return selectedFilters.value[alias]?.[0];
+function getFilterValue(filter: OverviewFilterModel): string | undefined {
+  const items = selectedFilters.value.get(filter) || [];
+  return items[0];
 }
 
-function onTextInputFilterSelect(alias: string, card: CardDetailApiModel) {
-  if (!selectedFilters.value[alias]) {
-    selectedFilters.value[alias] = [];
+function onTextInputFilterSelect(
+  filter: OverviewFilterModel,
+  card: CardDetailApiModel,
+) {
+  if (!selectedFilters.value.get(filter)) {
+    selectedFilters.value.set(filter, []);
   }
-  selectedFilters.value[alias].push(card.baseId!.toString());
+  selectedFilters.value.get(filter)!.push(card.baseId!.toString());
   reloadData();
 }
 
@@ -148,10 +146,10 @@ function reloadData() {
     if (viewMode.value !== defaultView) {
       url.searchParams.append("view", viewMode.value);
     }
-    Object.entries(selectedFilters.value).forEach((entry) => {
-      entry[1].forEach((value) => {
+    selectedFilters.value.forEach((values, filter) => {
+      values.forEach((value) => {
         if (value) {
-          url.searchParams.append(entry[0], value);
+          url.searchParams.append(filter.Alias, value);
         }
       });
     });
@@ -162,8 +160,8 @@ function reloadData() {
 
   const filters = new Map<OverviewFilterModel, string[]>();
   selectedFilters.value &&
-    Object.entries(selectedFilters.value).forEach(([key, values]) => {
-      filters.set(props.filters.find((f) => f.Alias === key)!, values);
+    selectedFilters.value.forEach((values, filter) => {
+      filters.set(props.filters.find((f) => f.Alias === filter.Alias)!, values);
     });
   emit("reload", {
     Query: search.value,
@@ -188,20 +186,23 @@ watch(
 );
 
 function init() {
-  selectedFilters.value = {};
-  if (props.sortings && props.sortings.length > 0){
+  selectedFilters.value = new Map();
+  if (props.sortings && props.sortings.length > 0) {
     selectedSort.value = props.sortings[0].Value;
   }
   props.filters.forEach((filter) => {
     if (route.query[filter.Alias]) {
       const values = route.query[filter.Alias];
       if (Array.isArray(values)) {
-        selectedFilters.value[filter.Alias] = values.map((v) => v!.toString());
+        selectedFilters.value.set(
+          filter,
+          values.map((v) => v!.toString()),
+        );
       } else {
-        selectedFilters.value[filter.Alias] = [values!.toString()];
+        selectedFilters.value.set(filter, [values!.toString()]);
       }
     } else if (filter.DefaultEnabled) {
-      selectedFilters.value[filter.Alias] = ["true"];
+      selectedFilters.value.set(filter, ["true"]);
     }
   });
 
@@ -261,8 +262,8 @@ init();
                   class="peer invisible w-0 h-0"
                   :id="`${filter.Alias}-${item.Value}`"
                   :value="item.Value"
-                  :checked="isSelectedFilter(filter.Alias, item.Value)"
-                  @change="() => selectFilter(filter.Alias, item.Value)"
+                  :checked="isSelectedFilter(filter, item.Value)"
+                  @change="() => selectFilter(filter, item.Value)"
                 />
                 <label
                   :for="`${filter.Alias}-${item.Value}`"
@@ -276,15 +277,6 @@ init();
         </div>
 
         <div class="flex gap-4 mt-4">
-          <!--<div class="rounded border-b border-main-color" x-data="{results: null, term: null, open: false}" x-on:click.outside="open = false">
-                        <input type="text" class="py-2 px-4" placeholder="Deck includes cards..." x-model="term" x-on:click="open = !open" x-on:input.debounce="results = await $fetch('/umbraco/api/dataapi/searchcards?term=' + term)" />
-
-                        <div class="absolute text-white mt-2 z-10 max-h-72 bg-main-color rounded overflow-auto scrollbar:!w-1.5 scrollbar-thumb:!rounded scrollbar-thumb:!bg-slate-300 md:shadow-xl" :class="open ? '' : 'invisible'">
-                            <template x-for="item in JSON.parse(results)">
-                                <option class="px-3 py-2 cursor-pointer" :value="item.value" x-text="item.label" x-on:click="addFilterValue('@filter.Alias', item.value, item.label)"></option>
-                            </template>
-                        </div>
-                    </div>-->
           <Dropdown
             v-for="filter in filters.filter(
               (filter) => filter.Type === OverviewFilterType.DROPDOWN,
@@ -306,8 +298,8 @@ init();
                   class="h-4 w-4 bg-white rounded appearance-none checked:bg-checked checked:bg-black"
                   :id="`${filter.Alias}-${item.Value}`"
                   :value="item.Value"
-                  :checked="isSelectedFilter(filter.Alias, item.Value)"
-                  @change="() => selectFilter(filter.Alias, item.Value)"
+                  :checked="isSelectedFilter(filter, item.Value)"
+                  @change="() => selectFilter(filter, item.Value)"
                 />
                 <p>
                   {{ item.DisplayName }}
@@ -333,17 +325,17 @@ init();
             >
               <p class="font-bold text-sm">{{ filter.DisplayName }}</p>
               <input
-                  type="date"
-                  class="border border-gray-300 rounded px-3 py-2 text-sm"
-                  :value="getFilterValue(filter.Alias)"
-                  @change="
-                    ($event) =>
-                      setFilter(
-                        filter.Alias,
-                        ($event.target as HTMLInputElement).value,
-                      )
-                  "
-                />
+                type="date"
+                class="border border-gray-300 rounded px-3 py-2 text-sm"
+                :value="getFilterValue(filter)"
+                @change="
+                  ($event) =>
+                    setFilter(
+                      filter,
+                      ($event.target as HTMLInputElement).value,
+                    )
+                "
+              />
             </div>
           </div>
           <button
@@ -354,11 +346,11 @@ init();
             type="button"
             class="px-3 py-1 rounded border text-sm"
             :class="
-              isSelectedFilter(filter.Alias, 'true')
+              isSelectedFilter(filter, 'true')
                 ? 'bg-main-color text-white border-main-color'
                 : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
             "
-            @click="() => selectFilter(filter.Alias, 'true')"
+            @click="() => selectFilter(filter, 'true')"
           >
             {{ filter.DisplayName }}
           </button>
@@ -369,7 +361,7 @@ init();
             :key="filter.Alias"
           >
             <CardSearchInput
-              @select="(card) => onTextInputFilterSelect(filter.Alias, card)"
+              @select="(card) => onTextInputFilterSelect(filter, card)"
             />
           </div>
         </div>
@@ -377,14 +369,14 @@ init();
 
       <div class="flex flex-col-reverse gap-8 justify-between pt-4 md:flex-row">
         <div class="flex flex-wrap items-center gap-2">
-          <template v-for="filter in Object.entries(selectedFilters)">
+          <template v-for="filter in selectedFilters">
             <div
               v-for="filterItem in filter[1]"
               class="flex gap-2 rounded-md border-2 border-main-color p-1 cursor-pointer"
               x-on:click="removeFilter(filterItem)"
             >
               <p class="text-xs">
-                <span>{{ filter[0] }}</span>
+                <span>{{ filter[0].DisplayName }}</span>
                 :
                 <span>{{ filterItem }}</span>
               </p>
@@ -398,14 +390,21 @@ init();
           </template>
         </div>
         <div class="flex self-end gap-4">
-          <div v-if="sortings && sortings.length > 0" class="flex items-center gap-2">
+          <div
+            v-if="sortings && sortings.length > 0"
+            class="flex items-center gap-2"
+          >
             <p>Sort by:</p>
             <select
               v-model="selectedSort"
               class="h-8 p-2 bg-main-color text-white rounded hover:bg-main-color-hover"
               @change="reloadData"
             >
-              <option v-for="sort in sortings" :key="sort.Value" :value="sort.Value">
+              <option
+                v-for="sort in sortings"
+                :key="sort.Value"
+                :value="sort.Value"
+              >
                 {{ sort.Name }}
               </option>
             </select>
@@ -442,7 +441,11 @@ init();
               v-if="availableViews.includes('rows')"
               type="button"
               class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
-              :class="viewMode === 'rows' ? 'bg-main-color text-white' : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'"
+              :class="
+                viewMode === 'rows'
+                  ? 'bg-main-color text-white'
+                  : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'
+              "
               aria-label="Table view"
               :aria-pressed="viewMode === 'rows'"
               @click="setViewMode('rows')"
@@ -453,7 +456,11 @@ init();
               v-if="availableViews.includes('images')"
               type="button"
               class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
-              :class="viewMode === 'images' ? 'bg-main-color text-white' : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'"
+              :class="
+                viewMode === 'images'
+                  ? 'bg-main-color text-white'
+                  : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'
+              "
               aria-label="Image view"
               :aria-pressed="viewMode === 'images'"
               @click="setViewMode('images')"

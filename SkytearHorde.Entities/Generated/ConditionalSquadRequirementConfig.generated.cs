@@ -74,6 +74,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual string ErrorMessage => global::SkytearHorde.Entities.Generated.SquadRequirementConfig.GetErrorMessage(this, _publishedValueFallback);
 
 		///<summary>
+		/// Filter display name: If restriction type is filter, this will be the display name
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("filterDisplayName")]
+		public virtual string FilterDisplayName => global::SkytearHorde.Entities.Generated.SquadRequirementConfig.GetFilterDisplayName(this, _publishedValueFallback);
+
+		///<summary>
 		/// Restriction Type
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]

@@ -7,6 +7,7 @@ export type RequirementApiModel = {
     alias?: string;
     restrictionType?: RestrictionType;
     errorMessage?: string | null;
+    filterDisplayName?: string | null;
     config?: Record<string, any>;
 };
 

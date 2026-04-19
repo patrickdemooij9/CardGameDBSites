@@ -8,3 +8,4 @@ export type DeckBuilderApiModel = {
     defaultNames?: Array<string>;
     groups?: Array<DeckBuilderGroupApiModel>;
 };
+

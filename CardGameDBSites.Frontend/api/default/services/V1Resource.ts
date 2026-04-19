@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { CardDetailApiModel } from '../models/CardDetailApiModel';
 import type { CardPriceChangeApiModel } from '../models/CardPriceChangeApiModel';
+import type { CardPriceHistoryItemApiModel } from '../models/CardPriceHistoryItemApiModel';
 import type { CardsQueryPostApiModel } from '../models/CardsQueryPostApiModel';
 import type { CardVariantTypeApiModel } from '../models/CardVariantTypeApiModel';
 import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
@@ -154,14 +155,17 @@ export class V1Resource {
      */
     public static getApiCardsById({
         id,
+        setId,
     }: {
         id?: string,
+        setId?: number,
     }): CancelablePromise<CardDetailApiModel> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/cards/byId',
             query: {
                 'id': id,
+                'setId': setId,
             },
         });
     }
@@ -195,6 +199,26 @@ export class V1Resource {
             url: '/api/cards/getAllValues',
             query: {
                 'abilityName': abilityName,
+            },
+        });
+    }
+    /**
+     * @returns CardPriceHistoryItemApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCardsPriceHistory({
+        cardId,
+        variantId,
+    }: {
+        cardId?: number,
+        variantId?: number,
+    }): CancelablePromise<Array<CardPriceHistoryItemApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/cards/priceHistory',
+            query: {
+                'cardId': cardId,
+                'variantId': variantId,
             },
         });
     }

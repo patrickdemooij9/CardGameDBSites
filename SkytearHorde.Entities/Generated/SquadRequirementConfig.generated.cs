@@ -27,6 +27,11 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		string ErrorMessage { get; }
 
+		/// <summary>Filter display name</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		string FilterDisplayName { get; }
+
 		/// <summary>Restriction Type</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
@@ -76,6 +81,19 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
 		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		public static string GetErrorMessage(ISquadRequirementConfig that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "errorMessage");
+
+		///<summary>
+		/// Filter display name: If restriction type is filter, this will be the display name
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("filterDisplayName")]
+		public virtual string FilterDisplayName => GetFilterDisplayName(this, _publishedValueFallback);
+
+		/// <summary>Static getter for Filter display name</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.3.0+a325ba3")]
+		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		public static string GetFilterDisplayName(ISquadRequirementConfig that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "filterDisplayName");
 
 		///<summary>
 		/// Restriction Type

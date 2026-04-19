@@ -146,6 +146,7 @@ namespace SkytearHorde.Business.Helpers
                 var fullName = data.GetProperty("name").GetString();
                 var title = data.GetProperty("title").GetString();
                 var selfText = data.GetProperty("selftext").GetString();
+                var isSelf = data.GetProperty("is_self").GetBoolean();
                 var author = data.GetProperty("author").GetString();
                 var createdUtc = data.GetProperty("created_utc").GetDouble();
                 if (fullName != null)
@@ -155,6 +156,7 @@ namespace SkytearHorde.Business.Helpers
                         FullName = fullName,
                         Title = title ?? string.Empty,
                         SelfText = selfText ?? string.Empty,
+                        IsSelf = isSelf,
                         Author = author ?? string.Empty,
                         CreatedAt = DateTimeOffset.FromUnixTimeSeconds((long)createdUtc).UtcDateTime
                     });
@@ -200,6 +202,7 @@ namespace SkytearHorde.Business.Helpers
         public string FullName { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string SelfText { get; set; } = string.Empty;
+        public bool IsSelf { get; set; }
         public string Author { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }

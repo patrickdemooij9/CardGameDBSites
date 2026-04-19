@@ -106,11 +106,9 @@ namespace SkytearHorde.Business.BackgroundRunners
                 if (latestProcessedDate == null || post.CreatedAt > latestProcessedDate.Value)
                     latestProcessedDate = post.CreatedAt;
 
-                var postBody = string.IsNullOrWhiteSpace(post.SelfText)
-                    ? post.Title
-                    : $"{post.Title}\n{post.SelfText}";
+                if (!post.IsSelf) continue;
 
-                await TryReplyWithCardsAsync(redditClient, post.FullName, postBody, baseUrl);
+                await TryReplyWithCardsAsync(redditClient, post.FullName, post.SelfText, baseUrl);
             }
 
             if (latestProcessedDate.HasValue)

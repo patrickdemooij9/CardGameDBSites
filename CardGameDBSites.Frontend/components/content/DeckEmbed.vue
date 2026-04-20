@@ -163,7 +163,7 @@ function getImagesForCard(card: CardDetailApiModel) {
                 v-for="card in getCardsInGroup(group)"
                 :key="card.baseId"
                 class="flex items-center justify-between gap-3 rounded border border-gray-200 px-2 py-1 text-sm"
-                v-cursor-image="card.imageUrl?.url"
+                v-cursor-image="card.imageUrl?.url ?? ''"
               >
                 <div class="flex min-w-0 items-center gap-2">
                   <span class="shrink-0 font-semibold">{{ getDeckCard(card.baseId!)?.amount }}x</span>

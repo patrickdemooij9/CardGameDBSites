@@ -83,7 +83,13 @@ namespace SkytearHorde.Business.Services
 
             var allChanges = _cardPriceRepository.GetPriceChanges(descending);
             var variantType = variantTypeId.Value;
-            var variantTypesByCard = new Dictionary<int, Dictionary<int, int?>>();
+            var cardIds = allChanges.Select(it => it.CardId).Distinct().ToArray();
+            var variantTypesByCard = _cardRepository.Get(cardIds)
+                .ToDictionary(
+                    it => it.BaseId,
+                    it => it.VariantReferences
+                        .GroupBy(v => v.CardVariantId)
+                        .ToDictionary(v => v.Key, v => v.First().VariantTypeId));
 
             return allChanges
                 .Where(change => MatchesVariantType(change, variantType, variantTypesByCard))
@@ -99,13 +105,7 @@ namespace SkytearHorde.Business.Services
             }
 
             if (!variantTypesByCard.TryGetValue(change.CardId, out var variantTypes))
-            {
-                variantTypes = _cardRepository.GetVariants(change.CardId)
-                    .Where(it => it.VariantId > 0)
-                    .GroupBy(it => it.VariantId)
-                    .ToDictionary(it => it.Key, it => it.First().VariantTypeId);
-                variantTypesByCard[change.CardId] = variantTypes;
-            }
+                return false;
 
             if (!variantTypes.TryGetValue(change.VariantId.Value, out var changeVariantTypeId))
             {

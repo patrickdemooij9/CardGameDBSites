@@ -78,11 +78,13 @@ function getCardsInGroup(group: DeckCardGroupApiModel) {
     return groupCards.sort((a, b) => {
       const aValue = GetCardValue<string>(a, group.sorting![0]);
       const bValue = GetCardValue<string>(b, group.sorting![0]);
+      const aNumber = Number(aValue);
+      const bNumber = Number(bValue);
 
-      if (Number.isNaN(aValue) || Number.isNaN(bValue)) {
+      if (!Number.isFinite(aNumber) || !Number.isFinite(bNumber)) {
         return (aValue as string).localeCompare(bValue as string);
       }
-      return Number.parseInt(aValue!) - Number.parseInt(bValue!);
+      return aNumber - bNumber;
     });
   }
   return groupCards;

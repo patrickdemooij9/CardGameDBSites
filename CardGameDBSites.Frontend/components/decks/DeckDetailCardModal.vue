@@ -5,7 +5,7 @@ import CardDetailAbility from "~/components/cards/CardDetailAbility.vue";
 import { useSite } from "~/composables/useSite";
 import { GetCrop } from "~/helpers/CropUrlHelper";
 
-defineProps<{
+const props = defineProps<{
   selectedCard: CardDetailApiModel;
   previousCardName?: string;
   nextCardName?: string;
@@ -18,18 +18,24 @@ const emit = defineEmits<{
 }>();
 
 const siteSettings = await useSite().getSettings();
+const selectedCardImage = computed(() =>
+  GetCrop(props.selectedCard.imageUrl, undefined),
+);
 </script>
 
 <template>
   <Teleport to="#root">
     <div
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
+      role="dialog"
+      aria-modal="true"
     >
       <div
         class="relative bg-white rounded-lg shadow-lg md:w-[70vw] w-screen mx-4 max-h-screen overflow-auto"
       >
         <button
           class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors"
+          aria-label="Close modal"
           @click.prevent="emit('close')"
         >
           <PhX class="h-6 w-6" />
@@ -39,7 +45,12 @@ const siteSettings = await useSite().getSettings();
           <div
             class="md:w-72 mb-4 flex items-center justify-center bg-gray-100 rounded shadow-inner"
           >
-            <img :src="GetCrop(selectedCard.imageUrl, undefined)!" />
+            <img
+              v-if="selectedCardImage"
+              :src="selectedCardImage"
+              :alt="selectedCard.displayName ?? 'Card image'"
+            />
+            <div v-else class="text-sm text-gray-600">No image available</div>
           </div>
 
           <div>

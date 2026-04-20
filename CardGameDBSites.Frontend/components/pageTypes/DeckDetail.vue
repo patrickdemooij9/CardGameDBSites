@@ -92,25 +92,26 @@ const selectedCard = computed(() =>
     ? undefined
     : groupedDeckCards.value[selectedCardIndex.value],
 );
+function canNavigatePrevious() {
+  return selectedCardIndex.value !== undefined && selectedCardIndex.value > 0;
+}
+function canNavigateNext() {
+  return selectedCardIndex.value !== undefined
+    && selectedCardIndex.value < groupedDeckCards.value.length - 1;
+}
 const previousCardName = computed(() => {
-  if (
-    selectedCardIndex.value === undefined
-    || selectedCardIndex.value <= 0
-  ) {
+  if (!canNavigatePrevious()) {
     return undefined;
   }
 
-  return groupedDeckCards.value[selectedCardIndex.value - 1]?.displayName;
+  return groupedDeckCards.value[selectedCardIndex.value! - 1]?.displayName;
 });
 const nextCardName = computed(() => {
-  if (
-    selectedCardIndex.value === undefined
-    || selectedCardIndex.value >= groupedDeckCards.value.length - 1
-  ) {
+  if (!canNavigateNext()) {
     return undefined;
   }
 
-  return groupedDeckCards.value[selectedCardIndex.value + 1]?.displayName;
+  return groupedDeckCards.value[selectedCardIndex.value! + 1]?.displayName;
 });
 
 onMounted(async () => {
@@ -209,9 +210,11 @@ async function handleDeleteDeck() {
 
 function openCardPopup(card: CardDetailApiModel) {
   const cardIndex = groupedDeckCards.value.findIndex((item) => item.baseId === card.baseId);
-  if (cardIndex >= 0) {
-    selectedCardIndex.value = cardIndex;
+  if (cardIndex < 0) {
+    console.warn(`Could not find card with base id ${card.baseId} in grouped deck cards.`);
+    return;
   }
+  selectedCardIndex.value = cardIndex;
 }
 
 function closeCardPopup() {
@@ -219,16 +222,13 @@ function closeCardPopup() {
 }
 
 function goToPreviousCard() {
-  if (selectedCardIndex.value === undefined || selectedCardIndex.value <= 0) return;
-  selectedCardIndex.value -= 1;
+  if (!canNavigatePrevious()) return;
+  selectedCardIndex.value = selectedCardIndex.value! - 1;
 }
 
 function goToNextCard() {
-  if (
-    selectedCardIndex.value === undefined
-    || selectedCardIndex.value >= groupedDeckCards.value.length - 1
-  ) return;
-  selectedCardIndex.value += 1;
+  if (!canNavigateNext()) return;
+  selectedCardIndex.value = selectedCardIndex.value! + 1;
 }
 
 console.timeEnd('page-render');
@@ -338,7 +338,7 @@ console.timeEnd('page-render');
               >
                 <div
                   v-for="card in getCardsInGroup(group)"
-                  class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source cursor-pointer"
+                  class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source"
                   v-cursor-image="card.imageUrl?.url"
                   @click="openCardPopup(card)"
                 >

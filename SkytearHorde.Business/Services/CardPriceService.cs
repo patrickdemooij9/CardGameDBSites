@@ -74,9 +74,47 @@ namespace SkytearHorde.Business.Services
             }, TimeSpan.FromMinutes(5));
         }
 
-        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
+        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending, int? variantTypeId = null)
         {
-            return _cardPriceRepository.GetTopPriceChanges(count, descending);
+            if (!variantTypeId.HasValue)
+            {
+                return _cardPriceRepository.GetTopPriceChanges(count, descending);
+            }
+
+            var allChanges = _cardPriceRepository.GetPriceChanges(descending);
+            var variantType = variantTypeId.Value;
+            var variantTypesByCard = new Dictionary<int, Dictionary<int, int?>>();
+
+            return allChanges
+                .Where(change => MatchesVariantType(change, variantType, variantTypesByCard))
+                .Take(count)
+                .ToList();
+        }
+
+        private bool MatchesVariantType(CardPriceChangeResult change, int variantTypeId, Dictionary<int, Dictionary<int, int?>> variantTypesByCard)
+        {
+            if (!change.VariantId.HasValue)
+            {
+                return variantTypeId == 0;
+            }
+
+            if (!variantTypesByCard.TryGetValue(change.CardId, out var variantTypes))
+            {
+                variantTypes = _cardRepository.GetVariants(change.CardId)
+                    .Where(it => it.VariantId > 0)
+                    .GroupBy(it => it.VariantId)
+                    .ToDictionary(it => it.Key, it => it.First().VariantTypeId);
+                variantTypesByCard[change.CardId] = variantTypes;
+            }
+
+            if (!variantTypes.TryGetValue(change.VariantId.Value, out var changeVariantTypeId))
+            {
+                return false;
+            }
+
+            return variantTypeId == 0
+                ? !changeVariantTypeId.HasValue
+                : changeVariantTypeId == variantTypeId;
         }
 
         public List<CardPrice> GetPriceHistory(int cardId, int? variantId)

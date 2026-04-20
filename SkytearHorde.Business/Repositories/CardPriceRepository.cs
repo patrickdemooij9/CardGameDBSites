@@ -140,6 +140,26 @@ namespace SkytearHorde.Business.Repositories
             return result;
         }
 
+        public List<CardPriceChangeResult> GetPriceChanges(bool descending)
+        {
+            var cacheKey = $"uRepo_PriceChanges_{descending}";
+            var cached = _cache.GetCacheItem<List<CardPriceChangeResult>>(cacheKey);
+            if (cached != null)
+                return cached;
+
+            using var scope = _scopeProvider.CreateScope();
+            var orderDirection = descending ? "DESC" : "ASC";
+            var cutoffDate = DateTime.UtcNow.Date.AddDays(-1);
+            var sql = $@"
+                SELECT CardId, VariantId, MainPrice AS CurrentPrice, (MainPrice - Delta) AS PreviousPrice
+                FROM CardPriceRecord
+                WHERE IsLatest = 1 AND Delta <> 0 AND (MainPrice - Delta) > 0 AND DateUtc >= @0
+                ORDER BY Delta {orderDirection}";
+            var result = scope.Database.Fetch<CardPriceChangeResult>(sql, cutoffDate);
+            _cache.Insert(cacheKey, () => result, TimeSpan.FromHours(1));
+            return result;
+        }
+
         public List<CardPriceRecordDBModel> GetPriceHistory(int cardId, int? variantId)
         {
             using var scope = _scopeProvider.CreateScope();

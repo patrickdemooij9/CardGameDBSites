@@ -169,7 +169,7 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("topPriceChanges")]
         [ProducesResponseType(typeof(CardPriceChangeApiModel[]), 200)]
-        public IActionResult GetTopPriceChanges(int count, bool descending)
+        public IActionResult GetTopPriceChanges(int count, bool descending, int? variantTypeId = null)
         {
             if (!_settingsService.GetSiteSettings().AllowPricing)
                 return Ok(Array.Empty<CardPriceChangeApiModel>());
@@ -177,7 +177,7 @@ namespace CardGameDBSites.API.Controllers
             if (count <= 0 || count > 100)
                 return BadRequest("count must be between 1 and 100.");
 
-            var changes = _cardPriceService.GetTopPriceChanges(count, descending);
+            var changes = _cardPriceService.GetTopPriceChanges(count, descending, variantTypeId);
             var cardIds = changes.Select(c => c.CardId).Distinct().ToArray();
             var cards = _cardService.Get(cardIds).ToDictionary(c => c.BaseId);
 

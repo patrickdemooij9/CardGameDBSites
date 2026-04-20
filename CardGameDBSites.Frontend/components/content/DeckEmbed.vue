@@ -21,8 +21,8 @@ const props = defineProps<{
   content: DeckEmbedContent;
 }>();
 
-const resolvedDeckId = Number(props.content.deckId ?? props.content.id);
-const hasDeckId = Number.isInteger(resolvedDeckId) && resolvedDeckId > 0;
+const deckId = Number(props.content.deckId ?? props.content.id);
+const hasDeckId = Number.isInteger(deckId) && deckId > 0;
 
 const deck = ref<DeckApiModel | null>(null);
 const deckSettings = ref<DeckTypeSettingsApiModel | null>(null);
@@ -30,7 +30,7 @@ const cards = ref<CardDetailApiModel[]>([]);
 const createdBy = ref("Anonymous");
 
 if (hasDeckId) {
-  deck.value = await new DeckService().get(resolvedDeckId);
+  deck.value = await new DeckService().get(deckId);
 
   if (deck.value?.typeId) {
     deckSettings.value = await useSite().getDeckTypeSettings(deck.value.typeId);

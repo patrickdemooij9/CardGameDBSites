@@ -54,13 +54,6 @@ namespace CardGameDBSites.API.Controllers
 
         private static SetViewModel CreateSetViewModel(Set set)
         {
-            // TODO: After adding the category property in Umbraco models, switch this to the strongly typed Set.Category property.
-            var category = set.Value<string>("category");
-            if (string.IsNullOrWhiteSpace(category))
-            {
-                category = null;
-            }
-
             return new SetViewModel
             {
                 Id = set.Id,
@@ -68,7 +61,7 @@ namespace CardGameDBSites.API.Controllers
                 UrlSegment = set.UrlSegment()!,
                 ImageUrl = set.DisplayImage?.Url(mode: UrlMode.Absolute),
                 Code = set.SetCode,
-                Category = category,
+                Category = set.CategoryName,
                 ExtraInformation = set.ExtraInformation?.ToArray() ?? []
             };
         }

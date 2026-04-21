@@ -11,3 +11,4 @@ export type SetViewModel = {
     category?: string | null;
     extraInformation?: Array<string>;
 };
+

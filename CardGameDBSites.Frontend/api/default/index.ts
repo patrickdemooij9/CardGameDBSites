@@ -10,6 +10,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 export type { CardDetailApiModel } from './models/CardDetailApiModel';
 export type { CardPriceApiModel } from './models/CardPriceApiModel';
 export type { CardPriceChangeApiModel } from './models/CardPriceChangeApiModel';
+export type { CardPriceHistoryItemApiModel } from './models/CardPriceHistoryItemApiModel';
 export { CardSearchFilterClauseType } from './models/CardSearchFilterClauseType';
 export { CardSearchFilterMode } from './models/CardSearchFilterMode';
 export type { CardSectionApiModel } from './models/CardSectionApiModel';

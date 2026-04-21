@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { PhChartBar } from "@phosphor-icons/vue";
 import type { SetOverviewContentModel } from "~/api/umbraco";
-import SetService from "~/services/SetService";
 import SetOverview from "../overviews/SetOverview.vue";
 
 defineProps<{

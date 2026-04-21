@@ -11,7 +11,7 @@ const isLoading = ref(true);
 
 const accountStore = useAccountStore();
 const isLoggedIn = await useAccountStore().checkLogin();
-const uncategorizedLabel = "Other";
+const uncategorizedLabel = "";
 
 const groupedSets = computed(() => {
   const groups = new Map<string, typeof sets>();
@@ -40,10 +40,6 @@ function calculateProgressFilled(setId: number): number {
   return (progress.ownedCards! / progress.totalCards!) * 100;
 }
 
-function getCategoryId(category: string): string {
-  return `set-category-${category.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
-}
-
 onMounted(async () => {
   if (isLoggedIn) {
     setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
@@ -60,7 +56,7 @@ onMounted(async () => {
   </div>
   <div v-else class="flex flex-col gap-8">
     <div v-for="group in groupedSets" :key="group.category" class="flex flex-col gap-4">
-      <h3 :id="getCategoryId(group.category)" class="text-lg font-bold">{{ group.category }}</h3>
+      <h3 class="text-lg font-bold">{{ group.category }}</h3>
       <div class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
         <div
           v-for="set in group.sets"

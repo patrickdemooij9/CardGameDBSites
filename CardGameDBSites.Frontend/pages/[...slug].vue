@@ -42,6 +42,7 @@ const pageComponents: {[key: string]: Component} = {
     'deckOverview': defineAsyncComponent(() => import('~/components/pageTypes/DeckOverviewPage.vue')),
     'homepage': defineAsyncComponent(() => import('~/components/pageTypes/homepage.vue')),
     'card': defineAsyncComponent(() => import('~/components/pageTypes/CardDetailPage.vue')),
+    'cardVariant': defineAsyncComponent(() => import('~/components/pageTypes/CardDetailPage.vue')),
     'createSquad': defineAsyncComponent(() => import('~/components/pageTypes/CreateDeck.vue')),
     'login': defineAsyncComponent(() => import('~/components/pageTypes/LoginPage.vue')),
     'accountDecks': defineAsyncComponent(() => import('~/components/pageTypes/AccountDecks.vue')),

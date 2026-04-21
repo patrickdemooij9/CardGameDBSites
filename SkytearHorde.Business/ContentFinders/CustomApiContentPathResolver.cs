@@ -67,7 +67,7 @@ namespace SkytearHorde.Business.ContentFinders
             if (card is null)
                 return null;
 
-            return context.UmbracoContext.Content.GetById(card.BaseId);
+            return context.UmbracoContext.Content.GetById(card.VariantId);
         }
 
         private Entities.Models.Business.Card? FindCard(string[] segments, out bool redirectCard)

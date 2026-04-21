@@ -72,13 +72,13 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("byId")]
         [ProducesResponseType(typeof(CardDetailApiModel), 200)]
-        public IActionResult ById(Guid id, int? setId = null)
+        public IActionResult ById(Guid id)
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             var umbracoCard = ctx.UmbracoContext.Content.GetById(id);
             if (umbracoCard is null) return NotFound();
 
-            var baseVariant = _cardService.GetBaseVariants(umbracoCard.Id).FirstOrDefault(it => setId is null || it.SetId == setId);
+            var baseVariant = _cardService.Get(umbracoCard.Id);
             if (baseVariant is null) return NotFound();
 
             return Ok(MapToApiModel(baseVariant));

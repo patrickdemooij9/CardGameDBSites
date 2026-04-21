@@ -37,7 +37,7 @@ namespace SkytearHorde.Business.Services
         public Card? GetByUrl(string urlSegment, string? setCode = null)
         {
             var allCards = string.IsNullOrWhiteSpace(setCode) ? _cardService.GetAll(true) : _cardService.GetAllBySetCode(setCode, true);
-            return allCards.FirstOrDefault(it => it.UrlSegment.Equals(urlSegment, StringComparison.InvariantCultureIgnoreCase));
+            return allCards.FirstOrDefault(it => it.VariantId > 0 && it.UrlSegment.Equals(urlSegment, StringComparison.InvariantCultureIgnoreCase));
         }
 
         private CardOverview GetOverview()

@@ -38,7 +38,7 @@ export function useCards() {
       .filter(Boolean) as CardDetailApiModel[];
   };
 
-  /** Load a single card */
+  /** Load a single card. TODO: I should get rid of this and always use the number id everywhere */
   const loadCardById = async (id: string) => {
     const cached = store.cards[id];
     if (cached && !store.isCardExpired(cached)) {

@@ -27,6 +27,8 @@ namespace SkytearHorde.Business.Exports
         private readonly ISiteService _siteService;
         private readonly ImageExportConfig _config;
         private readonly Color[] _deckColors;
+        private readonly FontFamily _regularFontFamily;
+        private readonly FontFamily _boldFontFamily;
 
         public ImageExport(IWebHostEnvironment webHostEnvironment,
             CardService cardService,
@@ -39,6 +41,12 @@ namespace SkytearHorde.Business.Exports
             _siteService = siteService;
             _config = config;
             _deckColors = deckColors;
+
+            var regularCollection = new FontCollection();
+            _regularFontFamily = regularCollection.Add(Path.Combine(webHostEnvironment.WebRootPath, "fonts", "OpenSans-Regular.ttf"));
+
+            var boldCollection = new FontCollection();
+            _boldFontFamily = boldCollection.Add(Path.Combine(webHostEnvironment.WebRootPath, "fonts", "OpenSans-Bold.ttf"));
         }
 
         public async Task<byte[]> ExportDeck(Deck deck)
@@ -259,16 +267,12 @@ namespace SkytearHorde.Business.Exports
 
         private Font GetFont(float size)
         {
-            var fontCollection = new FontCollection();
-            var family = fontCollection.Add(Path.Combine($"{_webHostEnvironment.WebRootPath}\\/fonts/OpenSans-Regular.ttf"));
-            return family.CreateFont(size, FontStyle.Bold);
+            return _regularFontFamily.CreateFont(size, FontStyle.Bold);
         }
 
         private Font GetBoldFont(float size)
         {
-            var fontCollection = new FontCollection();
-            var family = fontCollection.Add(Path.Combine($"{_webHostEnvironment.WebRootPath}\\/fonts/OpenSans-Bold.ttf"));
-            return family.CreateFont(size, FontStyle.Bold);
+            return _boldFontFamily.CreateFont(size, FontStyle.Bold);
         }
     }
 }

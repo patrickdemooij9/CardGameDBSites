@@ -27,6 +27,7 @@ namespace SkytearHorde.Business.Exports
         private PdfDocument _document;
         private XGraphics _gfx;
         private PdfPage _page;
+        private readonly List<MemoryStream> _imageStreams = new();
 
         public PdfDeckExport(IWebHostEnvironment webHostEnvironment, PageSize pageSize, CardService cardService)
         {
@@ -85,11 +86,21 @@ namespace SkytearHorde.Business.Exports
                 image?.Dispose();
             }
 
-            using (var stream = new MemoryStream())
+            try
             {
-                _document.Save(stream, false);
-                return Task.FromResult(stream.ToArray());
-            }            
+                using (var stream = new MemoryStream())
+                {
+                    _document.Save(stream, false);
+                    return Task.FromResult(stream.ToArray());
+                }
+            }
+            finally
+            {
+                foreach (var imageStream in _imageStreams)
+                {
+                    imageStream.Dispose();
+                }
+            }
         }
 
         private void AddImage(XImage? image, double x, double y, double width, double height)
@@ -129,6 +140,7 @@ namespace SkytearHorde.Business.Exports
                 }
 
                 var memoryStream = new MemoryStream();
+                _imageStreams.Add(memoryStream);
                 tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
                 memoryStream.Position = 0;
 

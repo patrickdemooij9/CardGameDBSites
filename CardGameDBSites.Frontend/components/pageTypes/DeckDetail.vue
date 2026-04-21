@@ -19,6 +19,7 @@ import { useSite } from "~/composables/useSite";
 import { GetCardValue } from "~/helpers/CardHelper";
 import CommentSection from "../comments/CommentSection.vue";
 import { PhDotsThree } from "@phosphor-icons/vue";
+import DeckDetailCardModal from "../decks/DeckDetailCardModal.vue";
 
 console.time('page-render')
 
@@ -78,9 +79,39 @@ console.timeEnd("member");
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
 const showActionsDropdown = ref(false);
+const selectedCardIndex = ref<number | undefined>(undefined);
 const isOwner = computed(() => {
   const member = accountService.member;
   return member && deck.createdBy && member.id === deck.createdBy;
+});
+const groupedDeckCards = computed(() =>
+  (deckSettings?.groupings ?? []).flatMap((group) => getCardsInGroup(group)),
+);
+const selectedCard = computed(() =>
+  selectedCardIndex.value === undefined
+    ? undefined
+    : groupedDeckCards.value[selectedCardIndex.value],
+);
+function canNavigatePrevious() {
+  return selectedCardIndex.value !== undefined && selectedCardIndex.value > 0;
+}
+function canNavigateNext() {
+  return selectedCardIndex.value !== undefined
+    && selectedCardIndex.value < groupedDeckCards.value.length - 1;
+}
+const previousCardName = computed(() => {
+  if (!canNavigatePrevious()) {
+    return undefined;
+  }
+
+  return groupedDeckCards.value[selectedCardIndex.value! - 1]?.displayName;
+});
+const nextCardName = computed(() => {
+  if (!canNavigateNext()) {
+    return undefined;
+  }
+
+  return groupedDeckCards.value[selectedCardIndex.value! + 1]?.displayName;
 });
 
 onMounted(async () => {
@@ -175,6 +206,29 @@ async function handleDeleteDeck() {
   
   await new DeckService().deleteDeck(deck.id);
   router.push("/account/decks");
+}
+
+function openCardPopup(card: CardDetailApiModel) {
+  const cardIndex = groupedDeckCards.value.findIndex((item) => item.baseId === card.baseId);
+  if (cardIndex < 0) {
+    console.warn(`Could not find card with base id ${card.baseId} in grouped deck cards.`);
+    return;
+  }
+  selectedCardIndex.value = cardIndex;
+}
+
+function closeCardPopup() {
+  selectedCardIndex.value = undefined;
+}
+
+function goToPreviousCard() {
+  if (!canNavigatePrevious()) return;
+  selectedCardIndex.value = selectedCardIndex.value! - 1;
+}
+
+function goToNextCard() {
+  if (!canNavigateNext()) return;
+  selectedCardIndex.value = selectedCardIndex.value! + 1;
 }
 
 console.timeEnd('page-render');
@@ -284,8 +338,9 @@ console.timeEnd('page-render');
               >
                 <div
                   v-for="card in getCardsInGroup(group)"
-                  class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source"
+                  class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source cursor-pointer"
                   v-cursor-image="card.imageUrl?.url"
+                  @click="openCardPopup(card)"
                 >
                   <div class="flex gap-2">
                     <span
@@ -361,5 +416,14 @@ console.timeEnd('page-render');
       class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"
       style="display: none"
     ></div>
+    <DeckDetailCardModal
+      v-if="selectedCard"
+      :selected-card="selectedCard"
+      :previous-card-name="previousCardName"
+      :next-card-name="nextCardName"
+      @close="closeCardPopup"
+      @previous="goToPreviousCard"
+      @next="goToNextCard"
+    />
   </div>
 </template>

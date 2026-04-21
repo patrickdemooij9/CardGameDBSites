@@ -11,6 +11,22 @@ const isLoading = ref(true);
 
 const accountStore = useAccountStore();
 const isLoggedIn = await useAccountStore().checkLogin();
+const uncategorizedLabel = "";
+
+const groupedSets = computed(() => {
+  const groups = new Map<string, typeof sets>();
+  sets.forEach((set) => {
+    const category = set.category?.trim() || uncategorizedLabel;
+    const current = groups.get(category) ?? [];
+    current.push(set);
+    groups.set(category, current);
+  });
+
+  return [...groups.entries()].map(([category, sets]) => ({
+    category,
+    sets,
+  }));
+});
 
 function getProgress(setId: number): SetProgressApiModel | undefined {
   return setsProgress.value.find((sp) => sp.setId === setId);
@@ -38,61 +54,67 @@ onMounted(async () => {
   <div v-if="isLoading" class="flex justify-center items-center py-12">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
   </div>
-  <div v-else class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
-    <div
-      v-for="set in sets"
-      class="flex flex-col gap-2 rounded-md border-2 border-gray-300 bg-white p-4"
-    >
-      <NuxtLink
-        :to="set.urlSegment"
-        class="flex gap-2 items-baseline text-base no-underline"
-      >
-        <h2 class="text-base font-bold">{{ set.displayName }}</h2>
-        <i v-if="set.code" class="text-xs">{{ set.code }}</i>
-      </NuxtLink>
-      <div class="flex justify-between">
-        <img class="h-16" :src="set.imageUrl ?? '#'" />
-        <div class="flex flex-col justify-center">
-          <span v-for="info in set.extraInformation" class="text-sm">{{
-            info
-          }}</span>
-        </div>
-      </div>
-      <div class="flex justify-between gap-4">
-        <div class="grow self-center">
-          <div v-if="accountStore.isLoggedIn">
-            <ProgressBar :percent-filled="calculateProgressFilled(set.id)" :description="`${getProgress(set.id)?.ownedCards}/${getProgress(set.id)?.totalCards}`"></ProgressBar>
-          </div>
-
-          <!--@if (isLoggedIn)
-                    {
-                        if (collectionSettings.AllowSetCollecting)
-                        {
-                            <div id="collection-@set.Id">
-                                @await Html.PartialAsync("~/Views/Partials/components/collectionButton.cshtml", new CollectionButtonViewModel()
-                                {
-                                    SetId = set.Id,
-                                    ToAdd = !currentSets.Contains(set.Id)
-                                })
-                            </div>
-                        }
-                        else if (collectionSettings.AllowCardCollecting && collectionSettings.ShowProgressBar)
-                        {
-                            var setProgress = _collectionService.CalculateCollectionProgressBySet(set.Id, out var totalCards, out var collectionCards);
-                            @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(setProgress)
-                            {
-                                Description = $"{collectionCards}/{totalCards}"
-                            })
-                        }
-                        }-->
-        </div>
-        <NuxtLink
-          :to="set.urlSegment"
-          class="border border-solid flex gap-2 rounded items-center px-2 py-1 bg-white"
+  <div v-else class="flex flex-col gap-8">
+    <div v-for="group in groupedSets" :key="group.category" class="flex flex-col gap-4">
+      <h3 class="text-lg font-bold">{{ group.category }}</h3>
+      <div class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
+        <div
+          v-for="set in group.sets"
+          :key="set.id"
+          class="flex flex-col gap-2 rounded-md border-2 border-gray-300 bg-white p-4"
         >
-          <PhChartBar />
-          <span>Details</span>
-        </NuxtLink>
+          <NuxtLink
+            :to="set.urlSegment"
+            class="flex gap-2 items-baseline text-base no-underline"
+          >
+            <h2 class="text-base font-bold">{{ set.displayName }}</h2>
+            <i v-if="set.code" class="text-xs">{{ set.code }}</i>
+          </NuxtLink>
+          <div class="flex justify-between">
+            <img class="h-16" :src="set.imageUrl ?? '#'" />
+            <div class="flex flex-col justify-center">
+              <span v-for="info in set.extraInformation" class="text-sm">{{
+                info
+              }}</span>
+            </div>
+          </div>
+          <div class="flex justify-between gap-4">
+            <div class="grow self-center">
+              <div v-if="accountStore.isLoggedIn">
+                <ProgressBar :percent-filled="calculateProgressFilled(set.id)" :description="`${getProgress(set.id)?.ownedCards}/${getProgress(set.id)?.totalCards}`"></ProgressBar>
+              </div>
+
+              <!--@if (isLoggedIn)
+                        {
+                            if (collectionSettings.AllowSetCollecting)
+                            {
+                                <div id="collection-@set.Id">
+                                    @await Html.PartialAsync("~/Views/Partials/components/collectionButton.cshtml", new CollectionButtonViewModel()
+                                    {
+                                        SetId = set.Id,
+                                        ToAdd = !currentSets.Contains(set.Id)
+                                    })
+                                </div>
+                            }
+                            else if (collectionSettings.AllowCardCollecting && collectionSettings.ShowProgressBar)
+                            {
+                                var setProgress = _collectionService.CalculateCollectionProgressBySet(set.Id, out var totalCards, out var collectionCards);
+                                @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(setProgress)
+                                {
+                                    Description = $"{collectionCards}/{totalCards}"
+                                })
+                            }
+                            }-->
+            </div>
+            <NuxtLink
+              :to="set.urlSegment"
+              class="border border-solid flex gap-2 rounded items-center px-2 py-1 bg-white"
+            >
+              <PhChartBar />
+              <span>Details</span>
+            </NuxtLink>
+          </div>
+        </div>
       </div>
     </div>
   </div>

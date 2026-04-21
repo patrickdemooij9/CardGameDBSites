@@ -42,7 +42,10 @@ async function loadSession() {
   isLoading.value = true;
   error.value = null;
   try {
-    const token = useCookie<string | null>("dailyGameGuestToken");
+    const token = useCookie<string | null>("dailyGameGuestToken", {
+      sameSite: "lax",
+      secure: true,
+    });
     const result = await bootstrap(token.value || undefined);
     state.value = result;
     token.value = result.guestSessionToken;

@@ -72,9 +72,30 @@ namespace CardGameDBSites.API.Controllers
                 return NotFound();
             }
 
-            var absoluteUrl = imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                ? imageUrl
-                : $"{Request.Scheme}://{Request.Host}{imageUrl}";
+            string absoluteUrl;
+            if (imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var parsedAbsolute))
+                {
+                    return BadRequest("Invalid image URL.");
+                }
+
+                if (!parsedAbsolute.Host.Equals(Request.Host.Host, StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest("Unsupported image host.");
+                }
+
+                if (parsedAbsolute.Scheme != Uri.UriSchemeHttp && parsedAbsolute.Scheme != Uri.UriSchemeHttps)
+                {
+                    return BadRequest("Unsupported image URL scheme.");
+                }
+
+                absoluteUrl = parsedAbsolute.ToString();
+            }
+            else
+            {
+                absoluteUrl = $"{Request.Scheme}://{Request.Host}{imageUrl}";
+            }
 
             var client = _httpClientFactory.CreateClient();
             using var response = await client.GetAsync(absoluteUrl);

@@ -1,9 +1,8 @@
 using SkytearHorde.Business.Repositories;
-using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Database.DailyGame;
+using System.Collections.Concurrent;
 using System.Text.Json;
-using Umbraco.Cms.Core.Cache;
 using Umbraco.Extensions;
 
 namespace SkytearHorde.Business.Services
@@ -16,22 +15,20 @@ namespace SkytearHorde.Business.Services
         private readonly DailyCardGameGuessRepository _guessRepository;
         private readonly CardService _cardService;
         private readonly MemberInfoService _memberInfoService;
-        private readonly IAppCache _cache;
+        private static readonly ConcurrentDictionary<string, DailyGameSessionState> GuestSessions = new();
 
         public DailyGameService(
             DailyCardChallengeRepository challengeRepository,
             DailyCardGameSessionRepository sessionRepository,
             DailyCardGameGuessRepository guessRepository,
             CardService cardService,
-            MemberInfoService memberInfoService,
-            AppCaches appCaches)
+            MemberInfoService memberInfoService)
         {
             _challengeRepository = challengeRepository;
             _sessionRepository = sessionRepository;
             _guessRepository = guessRepository;
             _cardService = cardService;
             _memberInfoService = memberInfoService;
-            _cache = appCaches.RuntimeCache;
         }
 
         public DailyCardChallengeDBModel GetOrCreateTodayChallenge()
@@ -229,7 +226,9 @@ namespace SkytearHorde.Business.Services
                 return MapSession(created, []);
             }
 
-            var attempts = _guessRepository.GetBySession(session.Id).Select(MapAttempt).ToArray();
+            var attempts = _guessRepository.GetBySession(session.Id)
+                .Select(it => MapAttempt(it, challenge.TargetCardId))
+                .ToArray();
             return MapSession(session, attempts);
         }
 
@@ -237,8 +236,7 @@ namespace SkytearHorde.Business.Services
         {
             if (!string.IsNullOrWhiteSpace(guestSessionToken))
             {
-                var existing = _cache.GetCacheItem<DailyGameSessionState?>(GetGuestCacheKey(guestSessionToken));
-                if (existing != null && existing.ChallengeId == challenge.Id)
+                if (GuestSessions.TryGetValue(GetGuestCacheKey(guestSessionToken), out var existing) && existing.ChallengeId == challenge.Id)
                 {
                     return existing;
                 }
@@ -257,13 +255,13 @@ namespace SkytearHorde.Business.Services
                 IsFinished = false,
                 Attempts = []
             };
-            _cache.Insert(GetGuestCacheKey(token), () => state, TimeSpan.FromHours(36));
+            GuestSessions[GetGuestCacheKey(token)] = state;
             return state;
         }
 
         private void StoreGuestSession(DailyGameSessionState state)
         {
-            _cache.Insert(GetGuestCacheKey(state.GuestSessionToken), () => state, TimeSpan.FromHours(36));
+            GuestSessions[GetGuestCacheKey(state.GuestSessionToken)] = state;
         }
 
         private void PersistMemberSession(DailyGameSessionState state, DailyCardChallengeDBModel challenge, int memberId, DailyGameAttemptState latestAttempt)
@@ -280,7 +278,7 @@ namespace SkytearHorde.Business.Services
                 SessionId = dbSession.Id,
                 AttemptNumber = latestAttempt.AttemptNumber,
                 GuessedCardId = latestAttempt.GuessedCardId,
-                FeedbackJson = JsonSerializer.Serialize(latestAttempt.Feedback),
+                FeedbackJson = SerializeFeedback(latestAttempt.Feedback),
                 CreatedUtc = latestAttempt.CreatedUtc
             });
         }
@@ -302,17 +300,27 @@ namespace SkytearHorde.Business.Services
             };
         }
 
-        private static DailyGameAttemptState MapAttempt(DailyCardGameGuessDBModel guess)
+        private static DailyGameAttemptState MapAttempt(DailyCardGameGuessDBModel guess, int targetCardId)
         {
-            var feedback = JsonSerializer.Deserialize<DailyGameAttributeFeedbackState[]>(guess.FeedbackJson) ?? [];
+            var feedback = DeserializeFeedback(guess.FeedbackJson);
             return new DailyGameAttemptState
             {
                 AttemptNumber = guess.AttemptNumber,
                 GuessedCardId = guess.GuessedCardId,
-                IsCorrect = false,
+                IsCorrect = guess.GuessedCardId == targetCardId,
                 Feedback = feedback,
                 CreatedUtc = guess.CreatedUtc
             };
+        }
+
+        private static string SerializeFeedback(DailyGameAttributeFeedbackState[] feedback)
+        {
+            return JsonSerializer.Serialize(feedback);
+        }
+
+        private static DailyGameAttributeFeedbackState[] DeserializeFeedback(string json)
+        {
+            return JsonSerializer.Deserialize<DailyGameAttributeFeedbackState[]>(json) ?? [];
         }
 
         private static DailyGameAttributeFeedbackState[] BuildFeedback(Card target, Card guess)

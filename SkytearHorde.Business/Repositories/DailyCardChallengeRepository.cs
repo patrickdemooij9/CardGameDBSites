@@ -1,6 +1,7 @@
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Entities.Models.Database.DailyGame;
 using Umbraco.Cms.Infrastructure.Scoping;
+using Umbraco.Extensions;
 
 namespace SkytearHorde.Business.Repositories
 {

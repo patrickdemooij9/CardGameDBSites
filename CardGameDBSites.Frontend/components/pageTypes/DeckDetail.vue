@@ -338,7 +338,7 @@ console.timeEnd('page-render');
               >
                 <div
                   v-for="card in getCardsInGroup(group)"
-                  class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source"
+                  class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source cursor-pointer"
                   v-cursor-image="card.imageUrl?.url"
                   @click="openCardPopup(card)"
                 >

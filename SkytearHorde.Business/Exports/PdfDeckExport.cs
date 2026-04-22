@@ -64,6 +64,7 @@ namespace SkytearHorde.Business.Exports
                     AddImage(image, x, y, width, height);
                 }
 
+                image?.Dispose();
                 if (card.BackImage != null)
                 {
                     path = Path.Combine($"{_webHostEnvironment.WebRootPath}\\{card.BackImage!.Url()}");
@@ -81,15 +82,15 @@ namespace SkytearHorde.Business.Exports
 
                         AddImage(image, x, y, width, height);
                     }
+                    image?.Dispose();
                 }
-                image?.Dispose();
             }
 
             using (var stream = new MemoryStream())
             {
                 _document.Save(stream, false);
                 return Task.FromResult(stream.ToArray());
-            }            
+            }
         }
 
         private void AddImage(XImage? image, double x, double y, double width, double height)
@@ -128,7 +129,7 @@ namespace SkytearHorde.Business.Exports
                     tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
                 }
 
-                var memoryStream = new MemoryStream();
+                using var memoryStream = new MemoryStream();
                 tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
                 memoryStream.Position = 0;
 

@@ -27,7 +27,6 @@ namespace SkytearHorde.Business.Exports
         private PdfDocument _document;
         private XGraphics _gfx;
         private PdfPage _page;
-        private readonly List<MemoryStream> _imageStreams = new();
 
         public PdfDeckExport(IWebHostEnvironment webHostEnvironment, PageSize pageSize, CardService cardService)
         {
@@ -65,6 +64,7 @@ namespace SkytearHorde.Business.Exports
                     AddImage(image, x, y, width, height);
                 }
 
+                image?.Dispose();
                 if (card.BackImage != null)
                 {
                     path = Path.Combine($"{_webHostEnvironment.WebRootPath}\\{card.BackImage!.Url()}");
@@ -82,24 +82,14 @@ namespace SkytearHorde.Business.Exports
 
                         AddImage(image, x, y, width, height);
                     }
+                    image?.Dispose();
                 }
-                image?.Dispose();
             }
 
-            try
+            using (var stream = new MemoryStream())
             {
-                using (var stream = new MemoryStream())
-                {
-                    _document.Save(stream, false);
-                    return Task.FromResult(stream.ToArray());
-                }
-            }
-            finally
-            {
-                foreach (var imageStream in _imageStreams)
-                {
-                    imageStream.Dispose();
-                }
+                _document.Save(stream, false);
+                return Task.FromResult(stream.ToArray());
             }
         }
 
@@ -139,8 +129,7 @@ namespace SkytearHorde.Business.Exports
                     tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
                 }
 
-                var memoryStream = new MemoryStream();
-                _imageStreams.Add(memoryStream);
+                using var memoryStream = new MemoryStream();
                 tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
                 memoryStream.Position = 0;
 

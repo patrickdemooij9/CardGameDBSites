@@ -1,6 +1,7 @@
 using SkytearHorde.Business.Config;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;

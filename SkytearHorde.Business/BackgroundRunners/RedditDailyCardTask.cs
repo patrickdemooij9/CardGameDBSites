@@ -114,7 +114,16 @@ namespace SkytearHorde.Business.BackgroundRunners
                         "533a38e2-ee74-11ed-b8df-469bc4a5ba72",
                         imageUrl);
                 }
-                catch (Exception ex)
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogWarning(ex, "Richtext Reddit daily card post failed, falling back to markdown self-post.");
+                    await redditClient.SubmitPostAsync(
+                        settings.RedditSettings.Subreddit,
+                        title,
+                        stringBuilder.ToString(),
+                        "533a38e2-ee74-11ed-b8df-469bc4a5ba72");
+                }
+                catch (InvalidOperationException ex)
                 {
                     _logger.LogWarning(ex, "Richtext Reddit daily card post failed, falling back to markdown self-post.");
                     await redditClient.SubmitPostAsync(

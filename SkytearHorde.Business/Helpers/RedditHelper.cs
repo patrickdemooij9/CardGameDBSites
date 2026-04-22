@@ -86,7 +86,8 @@ namespace SkytearHorde.Business.Helpers
             var imageData = await DownloadImageAsync(imageUrl);
             var imageAsset = await CreateImageAssetAsync(token, imageData.FileName, imageData.MimeType, imageData.Bytes);
 
-            var markdownText = $"![img]({imageAsset.AssetId} \"{title.Replace("\"", "\\\"")}\")\n\n{textBelowImage}";
+            var caption = EscapeMarkdownCaption(title);
+            var markdownText = $"![img]({imageAsset.AssetId} \"{caption}\")\n\n{textBelowImage}";
             var richTextJson = await ConvertMarkdownToRtJsonAsync(token, markdownText);
 
             var request = new HttpRequestMessage(HttpMethod.Post, $"{SubmitUrl}/?raw_json=1");
@@ -117,6 +118,13 @@ namespace SkytearHorde.Business.Helpers
 
         private async Task<(string FileName, string MimeType, byte[] Bytes)> DownloadImageAsync(string imageUrl)
         {
+            if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) ||
+                !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(uri.Host, "sw-unlimited-db.com", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Unsupported Reddit image URL: {imageUrl}");
+            }
+
             var response = await _httpClient.GetAsync(imageUrl);
             if (!response.IsSuccessStatusCode)
             {
@@ -222,6 +230,15 @@ namespace SkytearHorde.Business.Helpers
             var doc = JsonDocument.Parse(json);
             var output = doc.RootElement.GetProperty("output");
             return output.GetRawText();
+        }
+
+        private static string EscapeMarkdownCaption(string input)
+        {
+            return input
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("\r", " ")
+                .Replace("\n", " ");
         }
 
         public async Task<List<RedditComment>> GetNewCommentsAsync(string subreddit, int limit = 25)

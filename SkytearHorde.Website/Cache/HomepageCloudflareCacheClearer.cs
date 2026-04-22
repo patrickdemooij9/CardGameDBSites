@@ -48,7 +48,10 @@ namespace SkytearHorde.Cache
                 }
             }
 
-            _cloudflareCachePurgeService.PurgeUrls(urls);
+            _ = Task.Run(async () =>
+            {
+                await _cloudflareCachePurgeService.PurgeUrlsAsync(urls, CancellationToken.None);
+            });
         }
     }
 }

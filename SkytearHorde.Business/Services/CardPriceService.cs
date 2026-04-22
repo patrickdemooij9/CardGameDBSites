@@ -76,47 +76,10 @@ namespace SkytearHorde.Business.Services
 
         public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending, int? variantTypeId = null)
         {
-            if (!variantTypeId.HasValue)
-            {
-                return _cardPriceRepository.GetTopPriceChanges(count, descending);
-            }
-
             var allChanges = _cardPriceRepository.GetPriceChanges(descending);
-            var variantType = variantTypeId.Value;
-            var cardIds = allChanges.Select(it => it.CardId).Distinct().ToArray();
-            var variantTypesByCard = _cardRepository.Get(cardIds)
-                .ToDictionary(
-                    it => it.BaseId,
-                    it => it.VariantReferences
-                        .GroupBy(v => v.CardVariantId)
-                        .ToDictionary(v => v.Key, v => v.First().VariantTypeId));
-
-            return allChanges
-                .Where(change => MatchesVariantType(change, variantType, variantTypesByCard))
-                .Take(count)
-                .ToList();
+            var cards = _cardRepository.Get([.. allChanges.Distinct().Select(it => it.VariantId!.Value)]).ToDictionary(it => it.VariantId, it => it);
+            return allChanges.Where(it => cards.TryGetValue(it.VariantId!.Value, out var variant) && variant.VariantTypeId == variantTypeId).Take(count).ToList();
         }
-
-        private bool MatchesVariantType(CardPriceChangeResult change, int variantTypeId, Dictionary<int, Dictionary<int, int?>> variantTypesByCard)
-        {
-            if (!change.VariantId.HasValue)
-            {
-                return variantTypeId == 0;
-            }
-
-            if (!variantTypesByCard.TryGetValue(change.CardId, out var variantTypes))
-                return false;
-
-            if (!variantTypes.TryGetValue(change.VariantId.Value, out var changeVariantTypeId))
-            {
-                return false;
-            }
-
-            return variantTypeId == 0
-                ? !changeVariantTypeId.HasValue
-                : changeVariantTypeId == variantTypeId;
-        }
-
         public List<CardPrice> GetPriceHistory(int cardId, int? variantId)
         {
             return _cardPriceRepository.GetPriceHistory(cardId, variantId)

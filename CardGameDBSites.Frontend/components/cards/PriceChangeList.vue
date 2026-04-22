@@ -18,13 +18,14 @@ const props = defineProps<{
 }>();
 
 const count = props.count ?? 3;
+const variantTypeId = 0;
 
 const { data: increased } = await useAsyncData('price-changes-increased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true`, true)
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true&variantTypeId=${variantTypeId}`, true)
 );
 
 const { data: decreased } = await useAsyncData('price-changes-decreased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false`, true)
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false&variantTypeId=${variantTypeId}`, true)
 );
 
 const formatPrice = (price: number) => `$${price.toFixed(2)}`;

@@ -245,9 +245,11 @@ export class V1Resource {
     public static getApiCardsTopPriceChanges({
         count,
         descending,
+        variantTypeId,
     }: {
         count?: number,
         descending?: boolean,
+        variantTypeId?: number,
     }): CancelablePromise<Array<CardPriceChangeApiModel>> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -255,6 +257,7 @@ export class V1Resource {
             query: {
                 'count': count,
                 'descending': descending,
+                'variantTypeId': variantTypeId,
             },
         });
     }

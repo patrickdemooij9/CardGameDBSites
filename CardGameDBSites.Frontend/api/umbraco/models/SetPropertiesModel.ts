@@ -8,6 +8,7 @@ export type SetPropertiesModel = {
     setCode?: string | null;
     displayName?: string | null;
     displayImage?: Array<IApiMediaWithCropsModel> | null;
+    categoryName?: string | null;
     extraInformation?: Array<string> | null;
     hasBeenReleased?: boolean | null;
     mainVariantType?: Array<IApiContentModel> | null;

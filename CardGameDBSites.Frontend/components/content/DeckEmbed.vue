@@ -11,17 +11,13 @@ import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import DeckService from "~/services/DeckService";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
-
-type DeckEmbedContent = {
-  deckId?: number | null;
-  id?: number | null;
-};
+import type { EmbeddedDeckPropertiesModel } from "~/api/umbraco";
 
 const props = defineProps<{
-  content: DeckEmbedContent;
+  content: EmbeddedDeckPropertiesModel;
 }>();
 
-const deckId = Number(props.content.deckId ?? props.content.id);
+const deckId = Number(props.content.deckId!);
 const hasDeckId = Number.isInteger(deckId) && deckId > 0;
 
 const deck = ref<DeckApiModel | null>(null);

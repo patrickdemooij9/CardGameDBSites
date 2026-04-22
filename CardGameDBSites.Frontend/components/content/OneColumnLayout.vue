@@ -15,9 +15,9 @@ defineProps<{
 
 const componentMap: { [key: string]: Component } = {
   cards: Cards,
-  deckEmbed: DeckEmbed,
+  'embeddedDeck': DeckEmbed,
   'priceChanges': PriceChanges,
-  text: Text
+  text: Text,
 };
 </script>
 

@@ -100,11 +100,38 @@ namespace SkytearHorde.Business.BackgroundRunners
                 settings.RedditSettings.Password,
                 settings.RedditSettings.ClientId,
                 settings.RedditSettings.ClientSecret);
-            await redditClient.SubmitPostAsync(
-                settings.RedditSettings.Subreddit,
-                $"[COTD] {selectedCard.DisplayName}",
-                stringBuilder.ToString(),
-                "533a38e2-ee74-11ed-b8df-469bc4a5ba72");
+            var title = $"[COTD] {selectedCard.DisplayName}";
+            var imagePath = selectedCard.Image?.Url();
+            if (!string.IsNullOrWhiteSpace(imagePath))
+            {
+                var imageUrl = $"https://sw-unlimited-db.com{imagePath}";
+                try
+                {
+                    await redditClient.SubmitRichTextPostWithImageAsync(
+                        settings.RedditSettings.Subreddit,
+                        title,
+                        stringBuilder.ToString(),
+                        "533a38e2-ee74-11ed-b8df-469bc4a5ba72",
+                        imageUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Richtext Reddit daily card post failed, falling back to markdown self-post.");
+                    await redditClient.SubmitPostAsync(
+                        settings.RedditSettings.Subreddit,
+                        title,
+                        stringBuilder.ToString(),
+                        "533a38e2-ee74-11ed-b8df-469bc4a5ba72");
+                }
+            }
+            else
+            {
+                await redditClient.SubmitPostAsync(
+                    settings.RedditSettings.Subreddit,
+                    title,
+                    stringBuilder.ToString(),
+                    "533a38e2-ee74-11ed-b8df-469bc4a5ba72");
+            }
 
             _redditDailyCardRepository.AddCard(selectedCard.BaseId);
         }

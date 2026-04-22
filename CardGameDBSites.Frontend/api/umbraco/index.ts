@@ -164,6 +164,8 @@ export type { DiscordSettingsContentResponseModel } from './models/DiscordSettin
 export type { DiscordSettingsPropertiesModel } from './models/DiscordSettingsPropertiesModel';
 export type { DynamicSquadSlotAmountElementModel } from './models/DynamicSquadSlotAmountElementModel';
 export type { DynamicSquadSlotAmountPropertiesModel } from './models/DynamicSquadSlotAmountPropertiesModel';
+export type { EmbeddedDeckElementModel } from './models/EmbeddedDeckElementModel';
+export type { EmbeddedDeckPropertiesModel } from './models/EmbeddedDeckPropertiesModel';
 export type { EqualAbilitySquadRequirementConfigElementModel } from './models/EqualAbilitySquadRequirementConfigElementModel';
 export type { EqualAbilitySquadRequirementConfigPropertiesModel } from './models/EqualAbilitySquadRequirementConfigPropertiesModel';
 export type { FixedSquadSlotAmountElementModel } from './models/FixedSquadSlotAmountElementModel';

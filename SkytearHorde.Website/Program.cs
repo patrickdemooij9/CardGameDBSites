@@ -27,6 +27,7 @@ builder.CreateUmbracoBuilder()
     .AddComposers()
     .AddNotificationHandler<AfterMetaTagsNotification, DeckMetaTagsEventHandler>()
     .AddNotificationHandler<ContentPublishedNotification, CardOverviewCacheClearer>()
+    .AddNotificationHandler<ContentPublishedNotification, HomepageCloudflareCacheClearer>()
     //.AddNotificationHandler<ContentPublishedNotification, CardSetConnectEventHandler>()
     .AddNotificationHandler<ContentPublishedNotification, CardVariantsEventHandler>()
     .AddNotificationHandler<ContentPublishedNotification, CardCreateVariantsEventHandler>()
@@ -103,6 +104,7 @@ await app.RunAsync();
 void ConfigureServices(IServiceCollection services, bool isProduction)
 {
     services.AddAdServer();
+    services.AddHttpClient<CloudflareCachePurgeService>();
 
     var rootDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
     services.AddDataProtection()

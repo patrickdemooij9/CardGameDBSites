@@ -14,7 +14,8 @@ const navigationViewModel = await getNavigation();
       '--main-color-hover': siteSettings.hoverMainColor,
       '--nav-border-color': siteSettings.mainColor,
     }"
-    class="min-h-screen flex flex-col"
+    :data-theme="siteSettings.themeKey ?? 'default'"
+    class="min-h-screen flex flex-col bg-theme-bg text-theme"
     id="root"
   >
     <Navigation :content="navigationViewModel"> </Navigation>

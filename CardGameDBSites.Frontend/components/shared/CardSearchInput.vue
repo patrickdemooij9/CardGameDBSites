@@ -80,7 +80,7 @@ function handleBlur() {
     
     <div
       v-if="showDropdown"
-      class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-auto"
+      class="absolute z-50 w-full mt-1 bg-theme-surface border border-theme theme-radius shadow-lg max-h-60 overflow-auto"
       @mousedown.prevent
     >
       <div v-if="isLoading" class="px-3 py-2 text-gray-500">Loading...</div>
@@ -88,7 +88,7 @@ function handleBlur() {
         v-else
         v-for="card in searchResults"
         :key="card.baseId"
-        class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
+        class="flex items-center gap-2 px-3 py-2 hover:bg-theme-surface-alt cursor-pointer"
         @click="selectCard(card)"
       >
         <img

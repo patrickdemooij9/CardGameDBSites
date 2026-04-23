@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   typescript: {
     typeCheck: true
   },
+  css: ['~/assets/css/themes.css'],
   components: {
     global: true,
     dirs: ["~/components/pageTypes"]

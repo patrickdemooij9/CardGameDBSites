@@ -218,7 +218,7 @@ init();
       <div :class="{ 'justify-end': hideSearch }" class="flex gap-4">
         <div
           v-if="!hideSearch"
-          class="flex grow h-10 overflow-hidden rounded border border-solid border-gray-300"
+          class="flex grow h-10 overflow-hidden theme-radius border border-solid border-theme"
         >
           <input
             class="pl-4 py-4 grow"
@@ -229,7 +229,7 @@ init();
           />
 
           <button
-            class="flex justify-center items-center w-8 text-lg px-2 bg-white"
+            class="flex justify-center items-center w-8 text-lg px-2 bg-theme-surface"
             type="button"
             @click="handleSubmit"
           >
@@ -245,7 +245,7 @@ init();
           <PhFaders />
         </button>
       </div>
-      <div v-if="filtersOpen" class="py-4 border-b-2 border-gray-300">
+      <div v-if="filtersOpen" class="py-4 border-b-2 border-theme">
         <div class="flex gap-4">
           <div
             v-for="filter in filters.filter(
@@ -254,7 +254,7 @@ init();
           >
             <p class="font-bold">{{ filter.DisplayName }}</p>
             <div
-              class="flex flex-wrap items-center md:gap-2 bg-gray-300 rounded"
+              class="flex flex-wrap items-center md:gap-2 bg-theme-surface-accent theme-radius"
             >
               <div v-for="item in filter.Items" class="flex">
                 <input
@@ -295,7 +295,7 @@ init();
               >
                 <input
                   type="checkbox"
-                  class="h-4 w-4 bg-white rounded appearance-none checked:bg-checked checked:bg-black"
+                  class="h-4 w-4 bg-theme-surface theme-radius appearance-none checked:bg-checked checked:bg-black"
                   :id="`${filter.Alias}-${item.Value}`"
                   :value="item.Value"
                   :checked="isSelectedFilter(filter, item.Value)"
@@ -326,7 +326,7 @@ init();
               <p class="font-bold text-sm">{{ filter.DisplayName }}</p>
               <input
                 type="date"
-                class="border border-gray-300 rounded px-3 py-2 text-sm"
+                class="border border-theme theme-radius px-3 py-2 text-sm"
                 :value="getFilterValue(filter)"
                 @change="
                   ($event) =>
@@ -348,7 +348,7 @@ init();
             :class="
               isSelectedFilter(filter, 'true')
                 ? 'bg-main-color text-white border-main-color'
-                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
+                : 'bg-theme-surface text-theme-muted border-theme hover:border-theme'
             "
             @click="() => selectFilter(filter, 'true')"
           >
@@ -471,7 +471,7 @@ init();
         </div>
       </div>
     </form>
-    <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative">
+    <div :class="{ 'bg-theme-surface': whiteBackground }" class="py-4 relative">
       <div id="card-overview" v-show="!isLoading">
         <slot :viewMode="viewMode"></slot>
       </div>

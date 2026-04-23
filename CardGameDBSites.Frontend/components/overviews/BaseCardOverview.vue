@@ -122,7 +122,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
       >
         <div
           v-if="overview"
-          class="flex items-center mt-3 border border-gray-400 rounded bg-white overflow-hidden"
+          class="flex items-center mt-3 border border-theme theme-radius bg-theme-surface overflow-hidden"
         >
           <a
             v-if="overview.getPage() > 1"
@@ -141,7 +141,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
                   ? 'bg-main-color text-white'
                   : 'hover:bg-gray-100',
               ]"
-              class="pointer px-4 py-2 border-l border-gray-400 no-underline"
+              class="pointer px-4 py-2 border-l border-theme no-underline"
               @click.prevent="overview.setPage(i - 2)"
               >{{ i - 2 }}</a
             >
@@ -150,7 +150,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
           <a
             v-if="overview.getPage() < (pagedCards.totalPages ?? 0)"
             :href="'?page=' + (overview.getPage() + 1)"
-            class="pointer px-4 py-2 border-l border-gray-400 hover:bg-gray-100 no-underline"
+            class="pointer px-4 py-2 border-l border-theme hover:bg-theme-surface-alt no-underline"
             @click.prevent="overview.setPage(overview.getPage() + 1)"
             >Next</a
           >

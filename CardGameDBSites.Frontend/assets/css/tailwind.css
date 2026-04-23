@@ -3,6 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Semantic Design Tokens (default values) ===== */
+:root {
+    --theme-bg: #f3f4f6;
+    --theme-surface: #ffffff;
+    --theme-surface-alt: #f9fafb;
+    --theme-surface-accent: #d1d5db;
+    --theme-text: #000000;
+    --theme-text-muted: #374151;
+    --theme-border: #d1d5db;
+    --theme-font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --theme-radius: 0.375rem;
+    --theme-glow-color: transparent;
+}
+
 h1 {
     @apply text-4xl;
     @apply font-bold;
@@ -31,7 +45,8 @@ h5{
 a:not(.no-underline) {
     @apply border-dotted;
     @apply border-b;
-    @apply border-black;
+    border-color: var(--theme-text);
+    color: inherit;
 }
 
 a:hover{
@@ -120,18 +135,50 @@ nav + .container{
         border-color: var(--nav-border-color);
     }
 
+    /* Semantic theme utility classes */
+    .bg-theme-bg {
+        background-color: var(--theme-bg);
+    }
+
+    .bg-theme-surface {
+        background-color: var(--theme-surface);
+    }
+
+    .bg-theme-surface-alt {
+        background-color: var(--theme-surface-alt);
+    }
+
+    .bg-theme-surface-accent {
+        background-color: var(--theme-surface-accent);
+    }
+
+    .text-theme {
+        color: var(--theme-text);
+    }
+
+    .text-theme-muted {
+        color: var(--theme-text-muted);
+    }
+
+    .border-theme {
+        border-color: var(--theme-border);
+    }
+
+    .theme-radius {
+        border-radius: var(--theme-radius);
+    }
+
     .bg-checked {
         background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
     }
 }
 
 body {
-  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--theme-font-family);
   font-size: 14px;
   line-height: 1.4;
-  color: #000;
-
-  @apply bg-gray-100;
+  color: var(--theme-text);
+  background-color: var(--theme-bg);
 }
 
 .scrollbar::-webkit-scrollbar {

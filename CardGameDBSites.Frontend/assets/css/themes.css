@@ -1,0 +1,78 @@
+/*
+ * Theme Packs
+ *
+ * Each theme overrides the semantic CSS variables defined in tailwind.css.
+ * Apply a theme by setting data-theme="<key>" on the #root element via
+ * the themeKey field in site settings.
+ *
+ * Adding a new theme:
+ *   1. Create a [data-theme="mykey"] { } block below.
+ *   2. Override any of the --theme-* variables you want to change.
+ *   3. Add game-specific global rules under the same selector.
+ *   4. Set themeKey = "mykey" in the Umbraco site settings for that game.
+ */
+
+/* ===== Default Theme ===== */
+/* All defaults are already defined in :root inside tailwind.css. */
+/* This block exists so the key is recognised and can be tested. */
+[data-theme="default"] {}
+
+/* ===== Cyberpunk Theme ===== */
+[data-theme="cyberpunk"] {
+    --theme-bg: #0a0a0f;
+    --theme-surface: #12121a;
+    --theme-surface-alt: #1a1a25;
+    --theme-surface-accent: #1e1e2e;
+    --theme-text: #e2e8f0;
+    --theme-text-muted: #94a3b8;
+    --theme-border: rgba(0, 255, 255, 0.3);
+    --theme-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --theme-radius: 0px;
+    --theme-glow-color: rgba(0, 255, 255, 0.4);
+}
+
+/* Links glow with the main accent colour */
+[data-theme="cyberpunk"] a:not(.no-underline) {
+    border-color: var(--main-color);
+    color: var(--main-color);
+    text-shadow: 0 0 8px var(--theme-glow-color);
+}
+
+/* Headings emit a subtle neon glow */
+[data-theme="cyberpunk"] h1,
+[data-theme="cyberpunk"] h2,
+[data-theme="cyberpunk"] h3 {
+    color: var(--main-color);
+    text-shadow: 0 0 10px var(--theme-glow-color);
+    letter-spacing: 0.05em;
+}
+
+/* Navigation bar glows along its bottom edge */
+[data-theme="cyberpunk"] .bg-main-color {
+    box-shadow: 0 0 18px var(--theme-glow-color);
+}
+
+/* Panels / modals gain a neon border and dark glow */
+[data-theme="cyberpunk"] .bg-theme-surface {
+    border: 1px solid var(--theme-border);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.08);
+}
+
+/* Input fields */
+[data-theme="cyberpunk"] input,
+[data-theme="cyberpunk"] select,
+[data-theme="cyberpunk"] textarea {
+    background-color: var(--theme-surface-alt);
+    color: var(--theme-text);
+    border-color: var(--theme-border);
+}
+
+[data-theme="cyberpunk"] input::placeholder,
+[data-theme="cyberpunk"] textarea::placeholder {
+    color: var(--theme-text-muted);
+}
+
+/* Filter / tag chip accent */
+[data-theme="cyberpunk"] .bg-theme-surface-accent {
+    border: 1px solid var(--theme-border);
+}

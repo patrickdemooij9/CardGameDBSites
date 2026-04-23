@@ -4,11 +4,11 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
     >
       <div
-        class="relative bg-white rounded-lg shadow-lg w-screen mx-4 max-h-screen overflow-auto"
+        class="relative bg-theme-surface theme-radius shadow-lg w-screen mx-4 max-h-screen overflow-auto"
         :class="[getWidthClass()]"
       >
         <button
-          class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors"
+          class="absolute top-3 right-3 text-theme-muted hover:text-theme transition-colors"
           @click.prevent="emit('close')"
         >
           <PhX class="h-6 w-6" />
@@ -17,14 +17,14 @@
           <slot></slot>
         </div>
         <div
-          class="bg-gray-50 px-4 py-3 gap-2 sm:flex sm:flex-row-reverse sm:px-6"
+          class="bg-theme-surface-alt px-4 py-3 gap-2 sm:flex sm:flex-row-reverse sm:px-6"
         >
           <slot name="actions"></slot>
           <button
             formmethod="dialog"
             type="button"
             @click="emit('close')"
-            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+            class="mt-3 inline-flex w-full justify-center theme-radius bg-theme-surface px-3 py-2 text-sm font-semibold text-theme shadow-sm ring-1 ring-inset ring-theme hover:bg-theme-surface-alt sm:mt-0 sm:w-auto"
           >
             Cancel
           </button>

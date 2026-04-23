@@ -83,7 +83,7 @@ function handleBlur() {
       class="absolute z-50 w-full mt-1 bg-theme-surface border border-theme theme-radius shadow-lg max-h-60 overflow-auto"
       @mousedown.prevent
     >
-      <div v-if="isLoading" class="px-3 py-2 text-gray-500">Loading...</div>
+      <div v-if="isLoading" class="px-3 py-2 text-theme-muted">Loading...</div>
       <div
         v-else
         v-for="card in searchResults"

@@ -221,7 +221,7 @@ init();
           class="flex grow h-10 overflow-hidden theme-radius border border-solid border-theme"
         >
           <input
-            class="pl-4 py-4 grow"
+            class="pl-4 py-4 grow bg-theme-surface text-theme"
             name="search"
             type="text"
             placeholder="Search..."

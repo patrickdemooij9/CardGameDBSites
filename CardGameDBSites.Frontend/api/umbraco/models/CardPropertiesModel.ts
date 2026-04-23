@@ -23,5 +23,6 @@ export type CardPropertiesModel = {
     deckMutations?: ApiBlockListModel;
     nonLegalDeckTypes?: Array<IApiContentModel> | null;
     embedFooterText?: string | null;
+    requiresNewImage?: boolean | null;
 };
 

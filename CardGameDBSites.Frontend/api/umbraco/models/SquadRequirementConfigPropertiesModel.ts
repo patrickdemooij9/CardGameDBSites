@@ -5,5 +5,6 @@
 export type SquadRequirementConfigPropertiesModel = {
     restrictionType?: string | null;
     errorMessage?: string | null;
+    filterDisplayName?: string | null;
 };
 

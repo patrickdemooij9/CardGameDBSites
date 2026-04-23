@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
 using PdfSharpCore;
 using SkytearHorde.Business.Exports;
@@ -44,6 +45,7 @@ namespace SkytearHorde.Business.Controllers
             _settingsService = settingsService;
         }
 
+        [EnableRateLimiting("export")]
         public async Task<IActionResult> Export(int deckId, Guid exportId)
         {
             if (!TryGetDeck(deckId, out var deck))

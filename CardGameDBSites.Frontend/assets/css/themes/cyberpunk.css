@@ -1,23 +1,11 @@
 /*
- * Theme Packs
+ * Cyberpunk Theme
  *
- * Each theme overrides the semantic CSS variables defined in tailwind.css.
- * Apply a theme by setting data-theme="<key>" on the #root element via
- * the themeKey field in site settings.
- *
- * Adding a new theme:
- *   1. Create a [data-theme="mykey"] { } block below.
- *   2. Override any of the --theme-* variables you want to change.
- *   3. Add game-specific global rules under the same selector.
- *   4. Set themeKey = "mykey" in the Umbraco site settings for that game.
+ * Dark surfaces with neon-cyan accents, monospace typography, and zero border-radius.
+ * Activate by setting NUXT_THEME_KEY=cyberpunk at build time and
+ * themeKey = "cyberpunk" in the Umbraco site settings for that game.
  */
 
-/* ===== Default Theme ===== */
-/* All defaults are already defined in :root inside tailwind.css. */
-/* This block exists so the key is recognised and can be tested. */
-[data-theme="default"] {}
-
-/* ===== Cyberpunk Theme ===== */
 [data-theme="cyberpunk"] {
     --theme-bg: #0a0a0f;
     --theme-surface: #12121a;

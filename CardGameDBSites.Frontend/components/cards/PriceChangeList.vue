@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useNuxtApp } from '#app';
 import { DoServerFetch } from '~/helpers/RequestsHelper';
 
 export type CardPriceChangeApiModel = {
@@ -18,14 +17,13 @@ const props = defineProps<{
 }>();
 
 const count = props.count ?? 3;
-const variantTypeId = 0;
 
 const { data: increased } = await useAsyncData('price-changes-increased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true&variantTypeId=${variantTypeId}`, true)
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=true`, true)
 );
 
 const { data: decreased } = await useAsyncData('price-changes-decreased', () =>
-    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false&variantTypeId=${variantTypeId}`, true)
+    DoServerFetch<CardPriceChangeApiModel[]>(`/api/cards/topPriceChanges?count=${count}&descending=false`, true)
 );
 
 const formatPrice = (price: number) => `$${price.toFixed(2)}`;

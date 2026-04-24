@@ -10,6 +10,7 @@ using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -59,7 +60,13 @@ namespace SkytearHorde.Business.Controllers
             var exporter = GetExporter(exportType, deck);
             try
             {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
                 var bytes = await exporter.ExportDeck(deck);
+                stopwatch.Stop();
+
+                _logger.LogInformation($"Exported deck {deckId} with {exporter.GetType().Name} in {stopwatch.ElapsedMilliseconds}ms");
+
                 if (exportType.GetMimeType().Equals("redirect"))
                 {
                     return Redirect(Encoding.UTF8.GetString(bytes));

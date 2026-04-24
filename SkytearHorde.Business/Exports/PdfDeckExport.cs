@@ -10,7 +10,7 @@ using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Models.Business;
-using System.Collections.Concurrent;
+using Microsoft.Extensions.Caching.Memory;
 using System.Drawing.Printing;
 using Umbraco.Extensions;
 
@@ -19,8 +19,7 @@ namespace SkytearHorde.Business.Exports
     public class PdfDeckExport : IDeckExport
     {
         private static readonly SemaphoreSlim _concurrencyLimiter = new SemaphoreSlim(3, 3);
-        // Cache is bounded by the number of distinct card image files on disk, which is a known finite set.
-        private static readonly ConcurrentDictionary<string, byte[]> _imageCache = new ConcurrentDictionary<string, byte[]>();
+        private static readonly MemoryCache _imageCache = new MemoryCache(new MemoryCacheOptions { SizeLimit = 200 });
 
         static PdfDeckExport()
         {
@@ -145,7 +144,12 @@ namespace SkytearHorde.Business.Exports
 
         private static XImage LoadImage(string path)
         {
-            var imageBytes = _imageCache.GetOrAdd(path, LoadAndProcessImage);
+            var imageBytes = _imageCache.GetOrCreate(path, entry =>
+            {
+                entry.Size = 1;
+                entry.SlidingExpiration = TimeSpan.FromMinutes(30);
+                return LoadAndProcessImage(path);
+            })!;
             // MemoryStream wrapping a byte[] holds no unmanaged resources; XImage reads it immediately via the factory.
             return XImage.FromStream(() => new MemoryStream(imageBytes));
         }

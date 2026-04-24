@@ -19,7 +19,7 @@ namespace SkytearHorde.Business.Exports
     public class PdfDeckExport : IDeckExport
     {
         private static readonly SemaphoreSlim _concurrencyLimiter = new SemaphoreSlim(3, 3);
-        private static readonly MemoryCache _imageCache = new MemoryCache(new MemoryCacheOptions { SizeLimit = 200 });
+        private static readonly MemoryCache _imageCache = new MemoryCache(new MemoryCacheOptions { SizeLimit = 30 });
 
         static PdfDeckExport()
         {
@@ -147,7 +147,7 @@ namespace SkytearHorde.Business.Exports
             var imageBytes = _imageCache.GetOrCreate(path, entry =>
             {
                 entry.Size = 1;
-                entry.SlidingExpiration = TimeSpan.FromMinutes(30);
+                entry.SlidingExpiration = TimeSpan.FromMinutes(10);
                 return LoadAndProcessImage(path);
             })!;
             // MemoryStream wrapping a byte[] holds no unmanaged resources; XImage reads it immediately via the factory.

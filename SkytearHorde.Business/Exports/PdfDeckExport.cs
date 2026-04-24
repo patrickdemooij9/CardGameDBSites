@@ -122,20 +122,18 @@ namespace SkytearHorde.Business.Exports
 
         private XImage LoadImage(string path)
         {
-            using (var tempImage = Image.Load(path))
+            using var tempImage = Image.Load(path);
+            if (tempImage.Width > tempImage.Height)
             {
-                if (tempImage.Width > tempImage.Height)
-                {
-                    tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
-                }
-
-                using var memoryStream = new MemoryStream();
-                tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
-                memoryStream.Position = 0;
-
-                ImageSource.ImageSourceImpl = new ImageSharpImageSourceFix<Rgba32>();
-                return XImage.FromStream(() => memoryStream);
+                tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
             }
+
+            using var memoryStream = new MemoryStream();
+            tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
+            memoryStream.Position = 0;
+
+            ImageSource.ImageSourceImpl = new ImageSharpImageSourceFix<Rgba32>();
+            return XImage.FromStream(() => memoryStream);
         }
 
         private PdfPage AddNewPage()

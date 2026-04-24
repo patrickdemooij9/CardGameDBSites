@@ -97,7 +97,8 @@ namespace SkytearHorde.Modules
                 var files = ser.Deserialize<CardReaderOuputItem[]>(jsonReader) ?? [];
 
                 using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-                var cardImageParentId = _siteService.GetSettings().FirstChild<SiteSettings>()?.CardImageRoot?.Id ?? throw new InvalidOperationException("Card image root not found.");
+                var siteSettings = _siteService.GetSettings().FirstChild<SiteSettings>() ?? throw new InvalidOperationException("Site settings not found.");
+                var cardImageParentId = siteSettings.CardImageRoot?.Id ?? throw new InvalidOperationException("Card image root not found.");
 
                 var setName = ctx.UmbracoContext.Content?.GetById(setId)?.Name ?? throw new InvalidOperationException("Set not found.");
 

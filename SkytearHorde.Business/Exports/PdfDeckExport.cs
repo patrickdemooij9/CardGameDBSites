@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Models.Business;
+using System.Collections.Concurrent;
 using System.Drawing.Printing;
 using Umbraco.Extensions;
 
@@ -17,6 +18,15 @@ namespace SkytearHorde.Business.Exports
 {
     public class PdfDeckExport : IDeckExport
     {
+        private static readonly SemaphoreSlim _concurrencyLimiter = new SemaphoreSlim(3, 3);
+        // Cache is bounded by the number of distinct card image files on disk, which is a known finite set.
+        private static readonly ConcurrentDictionary<string, byte[]> _imageCache = new ConcurrentDictionary<string, byte[]>();
+
+        static PdfDeckExport()
+        {
+            ImageSource.ImageSourceImpl = new ImageSharpImageSourceFix<Rgba32>();
+        }
+
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly PageSize _pageSize;
         private readonly CardService _cardService;
@@ -38,7 +48,20 @@ namespace SkytearHorde.Business.Exports
             _gfx = XGraphics.FromPdfPage(_page);
         }
 
-        public Task<byte[]> ExportDeck(Deck deck)
+        public async Task<byte[]> ExportDeck(Deck deck)
+        {
+            await _concurrencyLimiter.WaitAsync();
+            try
+            {
+                return ExportDeckInternal(deck);
+            }
+            finally
+            {
+                _concurrencyLimiter.Release();
+            }
+        }
+
+        private byte[] ExportDeckInternal(Deck deck)
         {
             var width = XUnit.FromMillimeter(63.5);
             var height = XUnit.FromMillimeter(88.9);
@@ -89,7 +112,7 @@ namespace SkytearHorde.Business.Exports
             using (var stream = new MemoryStream())
             {
                 _document.Save(stream, false);
-                return Task.FromResult(stream.ToArray());
+                return stream.ToArray();
             }
         }
 
@@ -120,22 +143,24 @@ namespace SkytearHorde.Business.Exports
             }
         }
 
-        private XImage LoadImage(string path)
+        private static XImage LoadImage(string path)
         {
-            using (var tempImage = Image.Load(path))
+            var imageBytes = _imageCache.GetOrAdd(path, LoadAndProcessImage);
+            // MemoryStream wrapping a byte[] holds no unmanaged resources; XImage reads it immediately via the factory.
+            return XImage.FromStream(() => new MemoryStream(imageBytes));
+        }
+
+        private static byte[] LoadAndProcessImage(string path)
+        {
+            using var tempImage = Image.Load(path);
+            if (tempImage.Width > tempImage.Height)
             {
-                if (tempImage.Width > tempImage.Height)
-                {
-                    tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
-                }
-
-                using var memoryStream = new MemoryStream();
-                tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
-                memoryStream.Position = 0;
-
-                ImageSource.ImageSourceImpl = new ImageSharpImageSourceFix<Rgba32>();
-                return XImage.FromStream(() => memoryStream);
+                tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
             }
+
+            using var memoryStream = new MemoryStream();
+            tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
+            return memoryStream.ToArray();
         }
 
         private PdfPage AddNewPage()

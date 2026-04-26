@@ -56,7 +56,7 @@ async function handleRedirectExport(action: DeckActionApiModel) {
     if (!response.ok) throw new Error("Export failed");
     const data = await response.json();
     if (typeof data.redirectUrl === "string" && data.redirectUrl.startsWith("https://")) {
-      window.open(data.redirectUrl, "_blank");
+      location.href = data.redirectUrl;
     }
   } catch (error) {
     toast.error("Failed to open redirect");
@@ -75,7 +75,7 @@ async function handleForceTable() {
     if (!response.ok) throw new Error("Export failed");
     const data = await response.json();
     if (typeof data.redirectUrl === "string" && data.redirectUrl.startsWith("https://")) {
-      window.open(data.redirectUrl, "_blank");
+      location.href = data.redirectUrl;
     }
   } catch (error) {
     toast.error("Failed to open ForceTable");

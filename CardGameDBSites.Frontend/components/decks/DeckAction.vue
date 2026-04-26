@@ -45,17 +45,56 @@ async function copyToClipboard(action: DeckActionApiModel) {
     isLoading.value = false;
   }
 }
+
+async function handleRedirectExport(action: DeckActionApiModel) {
+  if (isLoading.value) return;
+
+  isLoading.value = true;
+  try {
+    const url = `/api/proxy/umbraco/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Export failed");
+    const data = await response.json();
+    if (typeof data.redirectUrl === "string" && data.redirectUrl.startsWith("https://")) {
+      location.href = data.redirectUrl;
+    }
+  } catch (error) {
+    toast.error("Failed to open redirect");
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function handleForceTable() {
+  if (isLoading.value) return;
+
+  isLoading.value = true;
+  try {
+    const url = `/api/proxy/umbraco/api/export/ExportForceTable?deckId=${props.deck.id}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Export failed");
+    const data = await response.json();
+    if (typeof data.redirectUrl === "string" && data.redirectUrl.startsWith("https://")) {
+      location.href = data.redirectUrl;
+    }
+  } catch (error) {
+    toast.error("Failed to open ForceTable");
+  } finally {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <template>
   <div v-if="action.type === 'ForceTable'">
-    <a
+    <button
       class="flex align-center gap-1 no-underline"
-      :href="'/api/proxy/umbraco/api/export/ExportForceTable?deckId=' + deck.id"
+      :disabled="isLoading"
+      @click="handleForceTable()"
     >
       <component :is="icons['crown']"></component>
       <p>{{ action.displayName }}</p>
-    </a>
+    </button>
   </div>
   <div v-else-if="action.type === 'DeckMissingCardsExport'">
     <form id="buyCardsForm" method="post" action="https://api.tcgplayer.com/massentry?productline=Star Wars Unlimited">
@@ -81,6 +120,16 @@ async function copyToClipboard(action: DeckActionApiModel) {
       class="flex align-center gap-1 no-underline"
       :disabled="isLoading"
       @click="copyToClipboard(action)"
+    >
+      <component :is="icons[action.icon!]"></component>
+      <p>{{ action.displayName }}</p>
+    </button>
+  </div>
+  <div v-else-if="action.type === 'DeckRedirectExport'">
+    <button
+      class="flex align-center gap-1 no-underline"
+      :disabled="isLoading"
+      @click="handleRedirectExport(action)"
     >
       <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
@@ -114,6 +163,20 @@ async function copyToClipboard(action: DeckActionApiModel) {
           v-if="subAction.isCopyClipboard"
           class="no-underline w-full"
           @click="copyToClipboard(subAction)"
+        >
+          <Button :button-type="ButtonType.Outline" class="w-full mt-2">
+            <div class="flex gap-2 align-center">
+              <p>
+                {{ subAction.displayName }}
+              </p>
+            </div>
+          </Button>
+        </button>
+        <button
+          v-else-if="subAction.type === 'DeckRedirectExport'"
+          class="no-underline w-full"
+          :disabled="isLoading"
+          @click="handleRedirectExport(subAction)"
         >
           <Button :button-type="ButtonType.Outline" class="w-full mt-2">
             <div class="flex gap-2 align-center">

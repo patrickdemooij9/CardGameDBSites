@@ -112,7 +112,7 @@ namespace CardGameDBSites.API.Controllers
                             PopupTitle = subAction.Title!,
                             PopupDescription = subAction.Description?.ToString(),
                             IsCopyClipboard = exportType.IsCopyToClipboard,
-                            Type = subAction.GetType().Name,
+                            Type = exportType.GetType().Name,
                         };
                     })];
                 }

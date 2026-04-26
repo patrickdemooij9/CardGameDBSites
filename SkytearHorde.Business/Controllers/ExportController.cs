@@ -69,7 +69,7 @@ namespace SkytearHorde.Business.Controllers
 
                 if (exportType.GetMimeType().Equals("redirect"))
                 {
-                    return Redirect(Encoding.UTF8.GetString(bytes));
+                    return Ok(new { redirectUrl = Encoding.UTF8.GetString(bytes) });
                 }
 
                 var fileName = exportType.GetFileName(deck);
@@ -95,7 +95,7 @@ namespace SkytearHorde.Business.Controllers
 
             var ttsExport = new SWUTTSExport(_cardService);
             var exportId = Convert.ToBase64String(await ttsExport.ExportDeck(deck));
-            return Redirect($"https://www.forcetable.net/swu/import?svc=swuunlimiteddb&id={exportId}");
+            return Ok(new { redirectUrl = $"https://www.forcetable.net/swu/import?svc=swuunlimiteddb&id={exportId}" });
         }
 
         private bool TryGetDeck(int deckId, [NotNullWhen(true)] out Deck? deck)

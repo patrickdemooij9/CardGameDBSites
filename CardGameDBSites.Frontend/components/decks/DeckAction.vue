@@ -140,6 +140,7 @@ async function handleForceTable() {
       class="flex align-center gap-1 no-underline"
       :href="`/api/proxy/umbraco/api/export/export?deckId=${deck.id}&exportId=${action.id}`"
       target="_blank"
+      rel="nofollow noreferrer"
     >
       <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
@@ -190,6 +191,8 @@ async function handleForceTable() {
           v-else
           :href="`/api/proxy/umbraco/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"
           class="no-underline"
+          target="_blank"
+          rel="nofollow noreferrer"
         >
           <Button :button-type="ButtonType.Outline" class="w-full mt-2">
             <div class="flex gap-2 align-center">

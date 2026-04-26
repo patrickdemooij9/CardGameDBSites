@@ -21,6 +21,5 @@ export default defineNuxtConfig({
   },
   routeRules: {
     "/": { swr: true },
-    "/media/**": { proxy: "https://api.sw-unlimited-db.com/media/**" },
   },
 })

@@ -21,6 +21,5 @@ export default defineNuxtConfig({
   },
   routeRules: {
     "/": { swr: true },
-    "/media/**": { proxy: `${process.env.NUXT_PUBLIC_API_BASE_URL}/media/**` },
   },
 })

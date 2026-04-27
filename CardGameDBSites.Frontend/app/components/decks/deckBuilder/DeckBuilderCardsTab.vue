@@ -28,6 +28,7 @@ const emit = defineEmits<{
 const props = defineProps<{
   currentTab: DeckBuilderTab;
   currentArea?: CreateDeckSelectedArea;
+  filters: OverviewFilterModel[];
   deck: CreateDeckModel;
   preselectFirstSlot: boolean;
   ignorePassiveFilters: boolean;
@@ -68,7 +69,7 @@ function getUserFilters() {
           );
         },
       };
-    });
+    }).concat(props.filters);
 }
 
 function getInternalFilters() {

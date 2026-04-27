@@ -9,9 +9,11 @@ import type { CreateDeckModel } from "./models/CreateDeckModel";
 import { useSite } from "~/composables/useSite";
 import DeckService from "~/services/DeckService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
+import type { OverviewFilterModel } from "~/components/overviews/OverviewFilterModel";
 
 const props = defineProps<{
   typeId: string
+  filters: OverviewFilterModel[]
 }>();
 
 const route = useRoute();
@@ -180,6 +182,7 @@ onUnmounted(() => {
           :preselect-first-slot="true"
           :ignore-passive-filters="ignorePassiveFilters"
           :collection-only-mode="collectionOnlyMode"
+          :filters="filters"
         />
       </div>
     </div>

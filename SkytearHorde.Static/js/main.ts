@@ -11,6 +11,7 @@ import importModal from './components/importModal';
 import toggler from './utils/toggler';
 import anchorHover from './anchorHover';
 import listManager from './components/listManager';
+import deckCollection from './deckCollection';
  
 (window as any).Alpine = Alpine;
 
@@ -29,3 +30,4 @@ cursorImage();
 toggler();
 anchorHover();
 listManager();
+deckCollection();

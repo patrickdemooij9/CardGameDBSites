@@ -12,7 +12,6 @@
 @inject DeckService _deckService
 @inject ISiteAccessor _siteAccessor
 @inject MemberInfoService _memberInfoService
-@inject CollectionService _collectionService
 @inject CardPriceService _cardPriceService
 @inject CardService _cardService
 @model Deck
@@ -124,10 +123,7 @@ else if (squadSettings.UseCompactDeckDisplay)
                     }
                 </div>
                 <div class="text-right">
-                    @if (memberInfo?.IsLoggedIn is true)
-                    {
-                        <div>Collection: @_collectionService.CalculateDeckCollection(Model).ToString("0.00")%</div>
-                    }
+                    <div data-deck-collection="@Model.Id"></div>
                     
                     @if (_settingsService.GetSiteSettings().AllowPricing)
                     {

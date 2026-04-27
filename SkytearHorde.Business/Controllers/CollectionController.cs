@@ -26,6 +26,7 @@ namespace SkytearHorde.Business.Controllers
         private readonly ViewRenderHelper _viewRenderHelper;
         private readonly ISiteService _siteService;
         private readonly SettingsService _settingsService;
+        private readonly DeckService _deckService;
         private readonly ILogger<CollectionController> _logger;
 
         public CollectionController(CardService cardService,
@@ -34,6 +35,7 @@ namespace SkytearHorde.Business.Controllers
             ViewRenderHelper viewRenderHelper,
             ISiteService siteService,
             SettingsService settingsService,
+            DeckService deckService,
             ILogger<CollectionController> logger)
         {
             _cardService = cardService;
@@ -42,7 +44,23 @@ namespace SkytearHorde.Business.Controllers
             _viewRenderHelper = viewRenderHelper;
             _siteService = siteService;
             _settingsService = settingsService;
+            _deckService = deckService;
             _logger = logger;
+        }
+
+        [HttpGet]
+        public IActionResult GetDecksProgress([FromQuery] int[] deckIds)
+        {
+            if (!_memberManager.IsLoggedIn() || deckIds.Length == 0)
+                return Ok(Array.Empty<object>());
+
+            var decks = _deckService.Get(deckIds);
+            var result = decks.Select(deck => new
+            {
+                deckId = deck.Id,
+                progress = _collectionService.CalculateDeckCollection(deck)
+            });
+            return Ok(result);
         }
 
         public IActionResult RenderManageModal(int cardId, int setId)

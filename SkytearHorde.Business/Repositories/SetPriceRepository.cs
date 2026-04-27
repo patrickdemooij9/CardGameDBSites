@@ -32,8 +32,9 @@ namespace SkytearHorde.Business.Repositories
         {
             var today = DateTime.UtcNow.Date;
 
-            using var existingScope = _scopeProvider.CreateScope(autoComplete: true);
-            var existingRecord = existingScope.Database.FirstOrDefault<SetPriceRecordDBModel>(
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+
+            var existingRecord = scope.Database.FirstOrDefault<SetPriceRecordDBModel>(
                 "SELECT * FROM SetPriceRecord WHERE SetId = @0 AND IsLatest = 1",
                 setId);
 
@@ -42,7 +43,7 @@ namespace SkytearHorde.Business.Repositories
                 var predecessorPrice = existingRecord.TotalPrice - existingRecord.Delta;
                 existingRecord.TotalPrice = totalPrice;
                 existingRecord.Delta = totalPrice - predecessorPrice;
-                existingScope.Database.Update(existingRecord);
+                scope.Database.Update(existingRecord);
                 return;
             }
 
@@ -50,8 +51,6 @@ namespace SkytearHorde.Business.Repositories
             {
                 return;
             }
-
-            using var insertScope = _scopeProvider.CreateScope(autoComplete: true);
 
             var newRecord = new SetPriceRecordDBModel
             {
@@ -61,12 +60,12 @@ namespace SkytearHorde.Business.Repositories
                 IsLatest = true,
                 Delta = existingRecord != null ? totalPrice - existingRecord.TotalPrice : 0.0
             };
-            insertScope.Database.Insert(newRecord);
+            scope.Database.Insert(newRecord);
 
             if (existingRecord != null)
             {
                 existingRecord.IsLatest = false;
-                insertScope.Database.Update(existingRecord);
+                scope.Database.Update(existingRecord);
             }
         }
     }

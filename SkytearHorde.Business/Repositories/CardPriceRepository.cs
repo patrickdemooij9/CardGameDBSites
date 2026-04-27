@@ -116,13 +116,9 @@ namespace SkytearHorde.Business.Repositories
                 }
             }
         }
-
-        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
+        public List<CardPriceChangeResult> GetPriceChanges(bool descending)
         {
-            if (count <= 0 || count > 100)
-                throw new ArgumentOutOfRangeException(nameof(count), "count must be between 1 and 100.");
-
-            var cacheKey = $"uRepo_TopPriceChanges_{count}_{descending}";
+            var cacheKey = $"uRepo_PriceChanges_{descending}";
             var cached = _cache.GetCacheItem<List<CardPriceChangeResult>>(cacheKey);
             if (cached != null)
                 return cached;
@@ -131,7 +127,7 @@ namespace SkytearHorde.Business.Repositories
             var orderDirection = descending ? "DESC" : "ASC";
             var cutoffDate = DateTime.UtcNow.Date.AddDays(-1);
             var sql = $@"
-                SELECT TOP {count} CardId, VariantId, MainPrice AS CurrentPrice, (MainPrice - Delta) AS PreviousPrice
+                SELECT CardId, VariantId, MainPrice AS CurrentPrice, (MainPrice - Delta) AS PreviousPrice
                 FROM CardPriceRecord
                 WHERE IsLatest = 1 AND Delta <> 0 AND (MainPrice - Delta) > 0 AND DateUtc >= @0
                 ORDER BY Delta {orderDirection}";

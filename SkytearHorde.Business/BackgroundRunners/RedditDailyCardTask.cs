@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
+using PdfSharpCore.Drawing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing;
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
@@ -26,9 +30,21 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly RedditDailyCardRepository _redditDailyCardRepository;
         private readonly ILogger<RedditDailyCardTask> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly Random _random;
 
-        public RedditDailyCardTask(CardService cardService, CardPageService cardPageService, SettingsService settingsService, IAbilityFormatter abilityFormatter, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService, ISiteAccessor siteAccessor, RedditDailyCardRepository redditDailyCardRepository, ILogger<RedditDailyCardTask> logger, IHttpClientFactory httpClientFactory) : base(logger, TimeSpan.FromDays(1), DateHelper.GetToNextTime(11))
+        public RedditDailyCardTask(
+            CardService cardService,
+            CardPageService cardPageService,
+            SettingsService settingsService,
+            IAbilityFormatter abilityFormatter,
+            IUmbracoContextFactory umbracoContextFactory,
+            ISiteService siteService,
+            ISiteAccessor siteAccessor,
+            RedditDailyCardRepository redditDailyCardRepository,
+            ILogger<RedditDailyCardTask> logger,
+            IHttpClientFactory httpClientFactory,
+            IWebHostEnvironment webHostEnvironment) : base(logger, TimeSpan.FromDays(1), DateHelper.GetToNextTime(11))
         {
             _cardService = cardService;
             _cardPageService = cardPageService;
@@ -40,6 +56,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             _redditDailyCardRepository = redditDailyCardRepository;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _webHostEnvironment = webHostEnvironment;
             _random = new Random();
         }
 
@@ -94,6 +111,14 @@ namespace SkytearHorde.Business.BackgroundRunners
             stringBuilder.AppendLine();
             stringBuilder.AppendLine("^(This bot is maintained by [Patrick](https://www.reddit.com/user/Patrickdemooij9).)");
 
+            var path = System.IO.Path.Combine($"{_webHostEnvironment.WebRootPath}\\{selectedCard.Image?.Url()}");
+
+            byte[] bytes = [];
+            if (System.IO.File.Exists(path))
+            {
+                bytes = System.IO.File.ReadAllBytes(path);
+            }
+
             var redditClient = new RedditApiClient(
                 _httpClientFactory.CreateClient(),
                 settings.RedditSettings.Username,
@@ -104,7 +129,8 @@ namespace SkytearHorde.Business.BackgroundRunners
                 settings.RedditSettings.Subreddit,
                 $"[COTD] {selectedCard.DisplayName}",
                 stringBuilder.ToString(),
-                "533a38e2-ee74-11ed-b8df-469bc4a5ba72");
+                "533a38e2-ee74-11ed-b8df-469bc4a5ba72",
+                bytes);
 
             _redditDailyCardRepository.AddCard(selectedCard.BaseId);
         }

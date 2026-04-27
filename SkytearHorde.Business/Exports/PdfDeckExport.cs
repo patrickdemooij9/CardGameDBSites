@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Models.Business;
+using Microsoft.Extensions.Caching.Memory;
 using System.Drawing.Printing;
 using Umbraco.Extensions;
 
@@ -17,6 +18,14 @@ namespace SkytearHorde.Business.Exports
 {
     public class PdfDeckExport : IDeckExport
     {
+        private static readonly SemaphoreSlim _concurrencyLimiter = new SemaphoreSlim(3, 3);
+        private static readonly MemoryCache _imageCache = new MemoryCache(new MemoryCacheOptions { SizeLimit = 30 });
+
+        static PdfDeckExport()
+        {
+            ImageSource.ImageSourceImpl = new ImageSharpImageSourceFix<Rgba32>();
+        }
+
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly PageSize _pageSize;
         private readonly CardService _cardService;
@@ -38,7 +47,20 @@ namespace SkytearHorde.Business.Exports
             _gfx = XGraphics.FromPdfPage(_page);
         }
 
-        public Task<byte[]> ExportDeck(Deck deck)
+        public async Task<byte[]> ExportDeck(Deck deck)
+        {
+            await _concurrencyLimiter.WaitAsync();
+            try
+            {
+                return ExportDeckInternal(deck);
+            }
+            finally
+            {
+                _concurrencyLimiter.Release();
+            }
+        }
+
+        private byte[] ExportDeckInternal(Deck deck)
         {
             var width = XUnit.FromMillimeter(63.5);
             var height = XUnit.FromMillimeter(88.9);
@@ -64,6 +86,7 @@ namespace SkytearHorde.Business.Exports
                     AddImage(image, x, y, width, height);
                 }
 
+                image?.Dispose();
                 if (card.BackImage != null)
                 {
                     path = Path.Combine($"{_webHostEnvironment.WebRootPath}\\{card.BackImage!.Url()}");
@@ -81,15 +104,15 @@ namespace SkytearHorde.Business.Exports
 
                         AddImage(image, x, y, width, height);
                     }
+                    image?.Dispose();
                 }
-                image?.Dispose();
             }
 
             using (var stream = new MemoryStream())
             {
                 _document.Save(stream, false);
-                return Task.FromResult(stream.ToArray());
-            }            
+                return stream.ToArray();
+            }
         }
 
         private void AddImage(XImage? image, double x, double y, double width, double height)
@@ -119,22 +142,29 @@ namespace SkytearHorde.Business.Exports
             }
         }
 
-        private XImage LoadImage(string path)
+        private static XImage LoadImage(string path)
         {
-            using (var tempImage = Image.Load(path))
+            var imageBytes = _imageCache.GetOrCreate(path, entry =>
             {
-                if (tempImage.Width > tempImage.Height)
-                {
-                    tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
-                }
+                entry.Size = 1;
+                entry.SlidingExpiration = TimeSpan.FromMinutes(10);
+                return LoadAndProcessImage(path);
+            })!;
+            // MemoryStream wrapping a byte[] holds no unmanaged resources; XImage reads it immediately via the factory.
+            return XImage.FromStream(() => new MemoryStream(imageBytes));
+        }
 
-                var memoryStream = new MemoryStream();
-                tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
-                memoryStream.Position = 0;
-
-                ImageSource.ImageSourceImpl = new ImageSharpImageSourceFix<Rgba32>();
-                return XImage.FromStream(() => memoryStream);
+        private static byte[] LoadAndProcessImage(string path)
+        {
+            using var tempImage = Image.Load(path);
+            if (tempImage.Width > tempImage.Height)
+            {
+                tempImage.Mutate(it => it.Rotate(RotateMode.Rotate270));
             }
+
+            using var memoryStream = new MemoryStream();
+            tempImage.Save(memoryStream, tempImage.DetectEncoder(path));
+            return memoryStream.ToArray();
         }
 
         private PdfPage AddNewPage()

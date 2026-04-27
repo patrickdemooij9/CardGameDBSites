@@ -97,8 +97,10 @@ namespace SkytearHorde.Modules
                 var files = ser.Deserialize<CardReaderOuputItem[]>(jsonReader) ?? [];
 
                 using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-                var cardImageParentId = _siteService.GetSettings().FirstChild<SiteSettings>().CardImageRoot.Id;
-                var setName = ctx.UmbracoContext.Content.GetById(setId).Name;
+                var siteSettings = _siteService.GetSettings().FirstChild<SiteSettings>() ?? throw new InvalidOperationException("Site settings not found.");
+                var cardImageParentId = siteSettings.CardImageRoot?.Id ?? throw new InvalidOperationException("Card image root not found.");
+
+                var setName = ctx.UmbracoContext.Content?.GetById(setId)?.Name ?? throw new InvalidOperationException("Set not found.");
 
                 var importModels = new List<ImportModel>();
                 foreach (var item in files)
@@ -634,8 +636,8 @@ namespace SkytearHorde.Modules
         private int GetSiteIdByNode(int nodeId)
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var currentNode = ctx.UmbracoContext.Content.GetById(nodeId);
-            return currentNode.Root().FirstChild<Settings>().FirstChild<SiteSettings>().SiteId;
+            var currentNode = ctx.UmbracoContext.Content?.GetById(nodeId) ?? throw new InvalidOperationException("Node not found.");
+            return currentNode.Root().FirstChild<Settings>()?.FirstChild<SiteSettings>()?.SiteId ?? throw new InvalidOperationException("Site settings not found.");
         }
     }
 }

@@ -26,6 +26,13 @@ namespace SkytearHorde.Business.ContentFinders
 
         public override IPublishedContent? ResolveContentPath(string path)
         {
+            // If path ends with an extension, ignore it
+            var extension = Path.GetExtension(path);
+            if (!string.IsNullOrWhiteSpace(extension))
+            {
+                return null;
+            }
+
             using var context = _umbracoContextFactory.EnsureUmbracoContext();
 
             var baseSystem = base.ResolveContentPath(path);

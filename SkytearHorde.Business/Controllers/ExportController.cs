@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
 using PdfSharpCore;
 using SkytearHorde.Business.Exports;
@@ -9,6 +10,7 @@ using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -44,6 +46,7 @@ namespace SkytearHorde.Business.Controllers
             _settingsService = settingsService;
         }
 
+        [EnableRateLimiting("export")]
         public async Task<IActionResult> Export(int deckId, Guid exportId)
         {
             if (!TryGetDeck(deckId, out var deck))
@@ -57,10 +60,16 @@ namespace SkytearHorde.Business.Controllers
             var exporter = GetExporter(exportType, deck);
             try
             {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
                 var bytes = await exporter.ExportDeck(deck);
+                stopwatch.Stop();
+
+                _logger.LogInformation($"Exported deck {deckId} with {exporter.GetType().Name} in {stopwatch.ElapsedMilliseconds}ms");
+
                 if (exportType.GetMimeType().Equals("redirect"))
                 {
-                    return Redirect(Encoding.UTF8.GetString(bytes));
+                    return Ok(new { redirectUrl = Encoding.UTF8.GetString(bytes) });
                 }
 
                 var fileName = exportType.GetFileName(deck);
@@ -86,7 +95,7 @@ namespace SkytearHorde.Business.Controllers
 
             var ttsExport = new SWUTTSExport(_cardService);
             var exportId = Convert.ToBase64String(await ttsExport.ExportDeck(deck));
-            return Redirect($"https://www.forcetable.net/swu/import?svc=swuunlimiteddb&id={exportId}");
+            return Ok(new { redirectUrl = $"https://www.forcetable.net/swu/import?svc=swuunlimiteddb&id={exportId}" });
         }
 
         private bool TryGetDeck(int deckId, [NotNullWhen(true)] out Deck? deck)

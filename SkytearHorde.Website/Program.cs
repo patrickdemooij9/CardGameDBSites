@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.DataProtection;
 using System.Reflection;
 using SkytearHorde.Business.Config;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +79,7 @@ else
 }
 
 app.UseSession();
+app.UseRateLimiter();
 
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -159,5 +162,21 @@ void ConfigureServices(IServiceCollection services, bool isProduction)
                 .AllowCredentials()
                 .Build();
         });
+    });
+
+    services.AddRateLimiter(options =>
+    {
+        options.AddPolicy("export", context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new SlidingWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(1),
+                    SegmentsPerWindow = 3,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 0,
+                }));
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     });
 }

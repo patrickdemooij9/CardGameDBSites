@@ -2,6 +2,7 @@ using CardGameDBSites.API.Models.Sets;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
@@ -14,10 +15,12 @@ namespace CardGameDBSites.API.Controllers
     public class SetsApiController : Controller
     {
         private readonly CardService _cardService;
+        private readonly ISiteService _siteService;
 
-        public SetsApiController(CardService cardService)
+        public SetsApiController(CardService cardService, ISiteService siteService)
         {
             _cardService = cardService;
+            _siteService = siteService;
         }
 
         [HttpGet("getAll")]
@@ -52,13 +55,14 @@ namespace CardGameDBSites.API.Controllers
             return Ok(_cardService.GetAllSets().Where(it => ids.Contains(it.Id)).Select(CreateSetViewModel));
         }
 
-        private static SetViewModel CreateSetViewModel(Set set)
+        private SetViewModel CreateSetViewModel(Set set)
         {
+            var setOverviewPageUrl = $"/{_siteService.GetSetOverview()?.UrlSegment()}";
             return new SetViewModel
             {
                 Id = set.Id,
                 DisplayName = set.DisplayName!,
-                UrlSegment = set.UrlSegment()!,
+                UrlSegment = $"{setOverviewPageUrl}/{set.UrlSegment()}",
                 ImageUrl = set.DisplayImage?.Url(mode: UrlMode.Absolute),
                 Code = set.SetCode,
                 Category = set.CategoryName,

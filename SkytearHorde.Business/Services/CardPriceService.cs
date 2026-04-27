@@ -74,11 +74,12 @@ namespace SkytearHorde.Business.Services
             }, TimeSpan.FromMinutes(5));
         }
 
-        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending)
+        public List<CardPriceChangeResult> GetTopPriceChanges(int count, bool descending, int? variantTypeId = null)
         {
-            return _cardPriceRepository.GetTopPriceChanges(count, descending);
+            var allChanges = _cardPriceRepository.GetPriceChanges(descending);
+            var cards = _cardRepository.Get([.. allChanges.Distinct().Select(it => it.VariantId!.Value)]).ToDictionary(it => it.VariantId, it => it);
+            return allChanges.Where(it => cards.TryGetValue(it.VariantId!.Value, out var variant) && variant.VariantTypeId == variantTypeId).Take(count).ToList();
         }
-
         public List<CardPrice> GetPriceHistory(int cardId, int? variantId)
         {
             return _cardPriceRepository.GetPriceHistory(cardId, variantId)

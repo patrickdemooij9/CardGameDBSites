@@ -9,6 +9,7 @@ namespace SkytearHorde.Business.Helpers
         private const string TokenUrl = "https://www.reddit.com/api/v1/access_token";
         private const string SubmitUrl = "https://oauth.reddit.com/api/submit";
         private const string CommentUrl = "https://oauth.reddit.com/api/comment";
+        private const string MediaAssetUrl = "https://oauth.reddit.com/api/media/asset.json?raw_json=1";
         private const string UserAgent = "CardGameDBSites/1.0 (by /u/Patrickdemooij9)";
 
         private readonly HttpClient _httpClient;
@@ -52,23 +53,30 @@ namespace SkytearHorde.Business.Helpers
                 ?? throw new InvalidOperationException("No access_token in Reddit OAuth response.");
         }
 
-        public async Task SubmitPostAsync(string subreddit, string title, string text, string flairId)
+        public async Task SubmitPostAsync(string subreddit, string title, string text, string flairId, byte[] imageBytes)
         {
-            var token = await GetAccessTokenAsync();
+            var token = await GetAccessTokenAsync();           
 
             var request = new HttpRequestMessage(HttpMethod.Post, SubmitUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.UserAgent.ParseAdd(UserAgent);
-            request.Content = new FormUrlEncodedContent(new[]
+
+            var content = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("api_type", "json"),
-                new KeyValuePair<string, string>("kind", "self"),
+                new KeyValuePair<string, string>("kind", imageBytes.Length > 0 ? "image" : "self"),
                 new KeyValuePair<string, string>("sr", subreddit),
                 new KeyValuePair<string, string>("title", title),
                 new KeyValuePair<string, string>("text", text),
                 new KeyValuePair<string, string>("flair_id", flairId),
                 new KeyValuePair<string, string>("resubmit", "true"),
-            });
+            };
+            if (imageBytes.Length > 0)
+            {
+                var asset = await CreateImageAssetAsync(token, "image.png", "image/png", imageBytes);
+                content.Add(new KeyValuePair<string, string>("url", asset.Url));
+            }
+            request.Content = new FormUrlEncodedContent(content);
 
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
@@ -187,7 +195,66 @@ namespace SkytearHorde.Business.Helpers
                 throw new HttpRequestException($"Reddit reply request failed with status {response.StatusCode}: {body}");
             }
         }
+
+        private async Task<RedditMediaAsset> CreateImageAssetAsync(string token, string fileName, string mimeType, byte[] bytes)
+        {
+            var registerRequest = new HttpRequestMessage(HttpMethod.Post, MediaAssetUrl);
+            registerRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            registerRequest.Headers.UserAgent.ParseAdd(UserAgent);
+            registerRequest.Content = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("api_type", "json"),
+                new KeyValuePair<string, string>("filepath", fileName),
+                new KeyValuePair<string, string>("mimetype", mimeType),
+            });
+
+            var registerResponse = await _httpClient.SendAsync(registerRequest);
+            var body = await registerResponse.Content.ReadAsStringAsync();
+            if (!registerResponse.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Reddit media asset request failed with status {registerResponse.StatusCode}: {body}");
+            }
+
+            var registerJson = await registerResponse.Content.ReadAsStringAsync();
+            var registerDoc = JsonDocument.Parse(registerJson);
+
+            var action = registerDoc.RootElement.GetProperty("args").GetProperty("action").GetString()
+                ?? throw new InvalidOperationException("No Reddit media upload action provided.");
+            var actionUrl = action.StartsWith("//", StringComparison.Ordinal) ? $"https:{action}" : action;
+            var assetId = registerDoc.RootElement.GetProperty("asset").GetProperty("asset_id").GetString()
+                ?? throw new InvalidOperationException("No Reddit media asset id provided.");
+
+            using var uploadRequest = new HttpRequestMessage(HttpMethod.Post, actionUrl);
+            using var uploadContent = new MultipartFormDataContent();
+
+            var fields = registerDoc.RootElement.GetProperty("args").GetProperty("fields");
+            foreach (var field in fields.EnumerateArray())
+            {
+                var fieldName = field.GetProperty("name").GetString();
+                var fieldValue = field.GetProperty("value").GetString();
+                if (!string.IsNullOrWhiteSpace(fieldName) && fieldValue is not null)
+                {
+                    uploadContent.Add(new StringContent(fieldValue), fieldName);
+                }
+            }
+
+            var fileContent = new ByteArrayContent(bytes);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
+            uploadContent.Add(fileContent, "file", fileName);
+            uploadRequest.Content = uploadContent;
+
+            var uploadResponse = await _httpClient.SendAsync(uploadRequest);
+            var body2 = await uploadResponse.Content.ReadAsStringAsync();
+            if (!uploadResponse.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Reddit media upload failed with status {uploadResponse.StatusCode}: {body2}");
+            }
+
+            return new RedditMediaAsset($"{actionUrl}/{assetId}");
+        }
     }
+
+    public record RedditMediaAsset(string Url);
 
     public class RedditComment
     {

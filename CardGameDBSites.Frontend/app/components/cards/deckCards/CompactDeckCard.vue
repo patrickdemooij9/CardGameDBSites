@@ -64,7 +64,7 @@ const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
           />
         </div>
         <div class="text-right">
-          <div v-if="progress">
+          <div v-if="progress !== undefined">
             Collection:
             {{ progress.toFixed(2) }}%
           </div>

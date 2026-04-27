@@ -5,7 +5,11 @@ import { resolve } from 'path';
 
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+  devtools: { enabled: true, 
+    timeline: {
+      enabled: true,
+    }, },
+  css: ['~/assets/css/tailwind.css'],
   typescript: {
     typeCheck: true
   },
@@ -22,4 +26,14 @@ export default defineNuxtConfig({
   routeRules: {
     "/": { swr: true },
   },
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        'vue-toastification',
+        '@phosphor-icons/vue'
+      ]
+    }
+  }
 })

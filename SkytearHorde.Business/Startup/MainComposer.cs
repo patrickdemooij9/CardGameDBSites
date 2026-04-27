@@ -70,6 +70,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<CollectionSetRepository>();
             builder.Services.AddSingleton<CollectionCardRepository>();
             builder.Services.AddSingleton<CardPriceRepository>();
+            builder.Services.AddSingleton<SetPriceRepository>();
             builder.Services.AddSingleton<CardRepository>();
             builder.Services.AddSingleton<CollectionPackRepository>();
             builder.Services.AddSingleton<RedditDailyCardRepository>();

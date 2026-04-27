@@ -1,12 +1,17 @@
 ﻿@using SkytearHorde.Business.Services.Site
+@using SkytearHorde.Business.Services
 @using SkytearHorde.Entities.Enums
 @using SkytearHorde.ViewComponents
 @inherits UmbracoViewPage<Set>
 @inject ISiteService _siteService
+@inject CardPriceService _cardPriceService
 @{
     Layout = "_masterTemplate.cshtml";
 
     var cardOverview = _siteService.GetCardOverview();
+
+    var setPrice = _cardPriceService.GetSetPrice(Model.Id);
+    var priceHistory = _cardPriceService.GetSetPriceHistory(Model.Id);
 }
 
 @await Html.PartialAsync("/Views/Partials/components/navigation.cshtml")
@@ -24,9 +29,63 @@
                     <p>@info.Replace("{childCount}", Model.Children.Count().ToString())</p>
                 }
             </div>
+            @if (setPrice.HasValue)
+            {
+                <div class="mt-4">
+                    <p class="text-lg font-semibold">Set Value: <span class="text-green-700">$@setPrice.Value.ToString("F2")</span></p>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+@if (priceHistory != null && priceHistory.Count > 1)
+{
+    <div class="container px-4 md:px-8 mb-12">
+        <div class="bg-white rounded p-4">
+            <h2 class="text-lg mb-4">Set Value History</h2>
+            <canvas id="setPriceChart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            var labels = [@Html.Raw(string.Join(",", priceHistory.Select(p => $"\"{p.DateUtc:yyyy-MM-dd}\"")))];
+            var data = [@string.Join(",", priceHistory.Select(p => p.TotalPrice.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)))];
+
+            var ctx = document.getElementById('setPriceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Set Value ($)',
+                        data: data,
+                        borderColor: 'rgb(22, 163, 74)',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function (value) { return '$' + value.toFixed(2); }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+}
 
 @(
 await Component.InvokeAsync<OverviewViewComponent>(new

@@ -30,6 +30,7 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly CardService _cardService;
         private readonly SettingsService _settingsService;
         private readonly CardPriceRepository _cardPriceRepository;
+        private readonly SetPriceRepository _setPriceRepository;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IUmbracoIndexingHandler _umbracoIndexingHandler;
         private readonly IContentService _contentService;
@@ -37,7 +38,7 @@ namespace SkytearHorde.Business.BackgroundRunners
         private readonly IServiceProvider _serviceProvider;
         private readonly IRuntimeState _runtimeState;
 
-        public CardPriceSyncTask(ILogger<CardPriceSyncTask> logger, HttpClient httpClient, ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, SettingsService settingsService, CardPriceRepository cardPriceRepository, IUmbracoContextFactory umbracoContextFactory, IUmbracoIndexingHandler umbracoIndexingHandler, IContentService contentService, IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption, IServiceProvider serviceProvider, IRuntimeState runtimeState) : base(logger, TimeSpan.FromHours(2), TimeSpan.FromMinutes(1))
+        public CardPriceSyncTask(ILogger<CardPriceSyncTask> logger, HttpClient httpClient, ISiteService siteService, ISiteAccessor siteAccessor, CardService cardService, SettingsService settingsService, CardPriceRepository cardPriceRepository, SetPriceRepository setPriceRepository, IUmbracoContextFactory umbracoContextFactory, IUmbracoIndexingHandler umbracoIndexingHandler, IContentService contentService, IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption, IServiceProvider serviceProvider, IRuntimeState runtimeState) : base(logger, TimeSpan.FromHours(2), TimeSpan.FromMinutes(1))
         {
             _logger = logger;
             _httpClient = httpClient;
@@ -46,6 +47,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             _cardService = cardService;
             _settingsService = settingsService;
             _cardPriceRepository = cardPriceRepository;
+            _setPriceRepository = setPriceRepository;
             _umbracoContextFactory = umbracoContextFactory;
             _umbracoIndexingHandler = umbracoIndexingHandler;
             _contentService = contentService;
@@ -132,6 +134,8 @@ namespace SkytearHorde.Business.BackgroundRunners
                     {
                         _umbracoIndexingHandler.ReIndexForContent(umbracoCard, true);
                     }
+
+                    SyncSetPrices(cardsToSync);
                 }
             }
             catch (Exception ex)
@@ -139,6 +143,42 @@ namespace SkytearHorde.Business.BackgroundRunners
                 _logger.LogError(ex, "Something went wrong");
             }
             _logger.LogInformation("Finished card price sync");
+        }
+
+        private void SyncSetPrices(Dictionary<int, Card> syncedCards)
+        {
+            _logger.LogInformation("Starting set price sync");
+
+            var sets = _cardService.GetAllSets().ToArray();
+            foreach (var set in sets)
+            {
+                var baseCards = _cardService.GetAllBaseBySet(set.Id).ToArray();
+                if (baseCards.Length == 0) continue;
+
+                var baseCardIds = baseCards.Select(it => it.BaseId).Distinct().ToArray();
+                var priceGroups = _cardPriceRepository.GetPrices(baseCardIds)
+                    .ToDictionary(pg => pg.CardId, pg => pg);
+
+                double totalPrice = 0;
+                int priceCount = 0;
+
+                foreach (var card in baseCards)
+                {
+                    if (!priceGroups.TryGetValue(card.BaseId, out var priceGroup)) continue;
+
+                    var price = priceGroup.GetByVariant(card.VariantId);
+                    if (price == null) continue;
+
+                    totalPrice += price.LowestPrice;
+                    priceCount++;
+                }
+
+                if (priceCount == 0) continue;
+
+                _setPriceRepository.InsertPrice(set.Id, totalPrice);
+            }
+
+            _logger.LogInformation("Finished set price sync");
         }
     }
 

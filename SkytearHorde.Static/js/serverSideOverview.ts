@@ -162,7 +162,6 @@ export default (config: Config) => ({
         // @ts-ignore
         htmx.process(cardOverviewElem);
         this.loading = false;
-        window.dispatchEvent(new CustomEvent('deck-overview-updated'));
       });
   },
 

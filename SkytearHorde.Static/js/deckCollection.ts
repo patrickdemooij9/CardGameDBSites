@@ -22,10 +22,16 @@ function loadDeckCollectionProgress() {
         }
       });
     })
-    .catch(() => {});
+    .catch((err) => {
+      console.error('Failed to load deck collection progress:', err);
+    });
 }
 
 export default () => {
-  document.addEventListener('DOMContentLoaded', loadDeckCollectionProgress);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadDeckCollectionProgress);
+  } else {
+    loadDeckCollectionProgress();
+  }
   window.addEventListener('deck-overview-updated', loadDeckCollectionProgress);
 };

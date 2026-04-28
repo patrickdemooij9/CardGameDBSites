@@ -49,10 +49,15 @@ namespace SkytearHorde.Business.Exports
 
         public async Task<byte[]> ExportDeck(Deck deck)
         {
+            return await ExportCards(deck.Cards.Select(c => (c.CardId, c.Amount)));
+        }
+
+        public async Task<byte[]> ExportCards(IEnumerable<(int CardId, int Amount)> cards)
+        {
             await _concurrencyLimiter.WaitAsync();
             try
             {
-                return ExportDeckInternal(deck);
+                return ExportCardsInternal(cards);
             }
             finally
             {
@@ -60,16 +65,16 @@ namespace SkytearHorde.Business.Exports
             }
         }
 
-        private byte[] ExportDeckInternal(Deck deck)
+        private byte[] ExportCardsInternal(IEnumerable<(int CardId, int Amount)> deckCards)
         {
             var width = XUnit.FromMillimeter(63.5);
             var height = XUnit.FromMillimeter(88.9);
             double gap = 1.3;
             double startingPointX = (_page.Width - width * 3 - gap * 2) / 2;
             double startingPointY = (_page.Height - height * 3 - gap * 2) / 2;
-            foreach (var deckCard in deck.Cards)
+            foreach (var (cardId, amount) in deckCards)
             {
-                var card = _cardService.Get(deckCard.CardId);
+                var card = _cardService.Get(cardId);
                 var path = Path.Combine($"{_webHostEnvironment.WebRootPath}\\{card.Image!.Url()}");
 
                 XImage? image = null;
@@ -78,7 +83,7 @@ namespace SkytearHorde.Business.Exports
                     image = LoadImage(path);
                 }
 
-                for (var i = 0; i < deckCard.Amount; i++)
+                for (var i = 0; i < amount; i++)
                 {
                     var x = startingPointX + width * _xCount + gap * _xCount;
                     var y = startingPointY + height * _yCount + gap * _yCount;
@@ -97,7 +102,7 @@ namespace SkytearHorde.Business.Exports
                         image = LoadImage(path);
                     }
 
-                    for (var i = 0; i < deckCard.Amount; i++)
+                    for (var i = 0; i < amount; i++)
                     {
                         var x = startingPointX + width * _xCount + gap * _xCount;
                         var y = startingPointY + height * _yCount + gap * _yCount;

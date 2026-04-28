@@ -86,6 +86,33 @@ namespace SkytearHorde.Business.Controllers
             }
         }
 
+        [HttpPost]
+        [EnableRateLimiting("export")]
+        public async Task<IActionResult> ProxyExport([FromBody] ProxyExportRequest request)
+        {
+            if (request?.Cards == null || request.Cards.Count == 0)
+            {
+                return BadRequest("No cards provided.");
+            }
+
+            var pdfExport = new PdfDeckExport(_webHostEnvironment, PdfSharpCore.PageSize.A4, _cardService);
+            try
+            {
+                var cards = request.Cards
+                    .Where(c => c.Amount > 0)
+                    .Select(c => (c.CardId, Math.Min(c.Amount, 10)))
+                    .Take(100);
+
+                var bytes = await pdfExport.ExportCards(cards);
+                return File(bytes, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not generate proxy export");
+                throw;
+            }
+        }
+
         public async Task<IActionResult> ExportForceTable(int deckId)
         {
             if (!TryGetDeck(deckId, out var deck))
@@ -176,5 +203,18 @@ namespace SkytearHorde.Business.Controllers
             }
             throw new NotImplementedException();
         }
+    }
+
+    public class ProxyExportRequest
+    {
+        public List<ProxyExportCard> Cards { get; set; } = new();
+    }
+
+    public class ProxyExportCard
+    {
+        public int CardId { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Range(1, 99)]
+        public int Amount { get; set; }
     }
 }

@@ -51,7 +51,9 @@ namespace SkytearHorde.Business.Services
             }
 
             var selectedCard = allCards[Random.Shared.Next(0, allCards.Length)];
-            return _challengeRepository.Add(selectedCard.VariantId, today);
+            var result = _challengeRepository.Add(selectedCard.VariantId, today);
+            GuestSessions.Clear();
+            return result;
         }
 
         public DailyGameSessionState GetSession(int? memberId, string? guestSessionToken)
@@ -326,8 +328,9 @@ namespace SkytearHorde.Business.Services
 
         private static DailyGameAttributeFeedbackState[] BuildFeedback(Card target, Card guess)
         {
-            var attributes = new[] { "Cost", "Traits", "Aspects", "Type", "HP", "Power" };
-            return attributes.Select(attribute =>
+            var attributes = new[] { "Cost", "Traits", "Aspects", "Card Type", "Health", "Power", "Rarity", "Location" };
+
+            var differences = attributes.Select(attribute =>
             {
                 var targetValues = target.GetMultipleCardAttributeValue(attribute) ?? [];
                 var guessValues = guess.GetMultipleCardAttributeValue(attribute) ?? [];
@@ -338,7 +341,14 @@ namespace SkytearHorde.Business.Services
                     MatchType = matchType,
                     GuessValues = guessValues
                 };
-            }).ToArray();
+            }).ToList();
+            differences.Add(new DailyGameAttributeFeedbackState
+            {
+                Name = "Set",
+                MatchType = DailyGameRules.CompareValues([target.SetName], [guess.SetName]),
+                GuessValues = [guess.SetName]
+            });
+            return differences.ToArray();
         }
 
         private static int GetElapsedSeconds(DateTime startedUtc, DateTime finishedUtc)

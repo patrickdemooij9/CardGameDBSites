@@ -40,7 +40,7 @@ namespace SkytearHorde.Business.Services
                 return "partial";
             }
 
-            return "none";
+            return "no";
         }
 
         public static IEnumerable<T> Rank<T>(IEnumerable<T> entries, Func<T, bool> solvedSelector, Func<T, int> attemptsSelector, Func<T, int> elapsedSecondsSelector)

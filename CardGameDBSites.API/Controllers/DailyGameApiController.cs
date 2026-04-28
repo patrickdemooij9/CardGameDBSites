@@ -1,7 +1,11 @@
 using CardGameDBSites.API.Attributes;
 using CardGameDBSites.API.Models.DailyGame;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using PdfSharpCore.Drawing;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Services;
 using Umbraco.Cms.Core.Security;
 
@@ -16,12 +20,14 @@ namespace CardGameDBSites.API.Controllers
         private readonly DailyGameService _dailyGameService;
         private readonly IMemberManager _memberManager;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public DailyGameApiController(DailyGameService dailyGameService, IMemberManager memberManager, IHttpClientFactory httpClientFactory)
+        public DailyGameApiController(DailyGameService dailyGameService, IMemberManager memberManager, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
         {
             _dailyGameService = dailyGameService;
             _memberManager = memberManager;
             _httpClientFactory = httpClientFactory;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet("bootstrap")]
@@ -64,7 +70,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpGet("image")]
-        public async Task<IActionResult> Image()
+        public async Task<IActionResult> Image(string? guestSessionToken = null)
         {
             var imageUrl = _dailyGameService.GetTargetImageUrl();
             if (string.IsNullOrWhiteSpace(imageUrl))
@@ -72,45 +78,20 @@ namespace CardGameDBSites.API.Controllers
                 return NotFound();
             }
 
-            string absoluteUrl;
-            if (imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            var memberId = await GetCurrentMemberId();
+            var session = _dailyGameService.GetSession(memberId, guestSessionToken);
+
+            var path = Path.Combine($"{_webHostEnvironment.WebRootPath}\\{imageUrl}");
+            using var image = SixLabors.ImageSharp.Image.Load(path);
+            if (!session.IsFinished)
             {
-                if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var parsedAbsolute))
-                {
-                    return BadRequest("Invalid image URL.");
-                }
-
-                var requestAuthority = Request.Host.ToString();
-                var imageAuthority = parsedAbsolute.IsDefaultPort
-                    ? parsedAbsolute.Host
-                    : $"{parsedAbsolute.Host}:{parsedAbsolute.Port}";
-                if (!imageAuthority.Equals(requestAuthority, StringComparison.OrdinalIgnoreCase))
-                {
-                    return BadRequest("Unsupported image host.");
-                }
-
-                if (parsedAbsolute.Scheme != Uri.UriSchemeHttp && parsedAbsolute.Scheme != Uri.UriSchemeHttps)
-                {
-                    return BadRequest("Unsupported image URL scheme.");
-                }
-
-                absoluteUrl = parsedAbsolute.ToString();
-            }
-            else
-            {
-                absoluteUrl = $"{Request.Scheme}://{Request.Host}{imageUrl}";
+                image.Mutate(it => it.GaussianBlur(_dailyGameService.GetBlurLevel(session.AttemptsUsed)));
             }
 
-            var client = _httpClientFactory.CreateClient();
-            using var response = await client.GetAsync(absoluteUrl);
-            if (!response.IsSuccessStatusCode)
-            {
-                return NotFound();
-            }
-
-            var contentType = response.Content.Headers.ContentType?.MediaType ?? "image/webp";
-            var bytes = await response.Content.ReadAsByteArrayAsync();
-            return File(bytes, contentType);
+            using var stream = new MemoryStream();
+            await image.SaveAsync(stream, image.DetectEncoder(path));
+            stream.Position = 0;
+            return File(stream.ToArray(), "image/webp");
         }
 
         private async Task<int?> GetCurrentMemberId()

@@ -16,6 +16,7 @@ import Dropdown from "../shared/Dropdown.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
 import CardSearchInput from "~/components/shared/CardSearchInput.vue";
 import type { CardDetailApiModel } from "~/api/default";
+import type { LocationQueryValue } from "vue-router";
 
 const props = defineProps<{
   hideSearch: boolean;

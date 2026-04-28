@@ -153,6 +153,34 @@ namespace SkytearHorde.Business.Services.Search
                 }
             }
 
+            if (query.SortByCollection && query.MemberId.HasValue)
+            {
+                using var collectionScope = _serviceProvider.CreateScope();
+                var collectionService = collectionScope.ServiceProvider.GetService<CollectionService>()!;
+                var collectionCards = collectionService.GetCardsByUser(query.MemberId.Value);
+                var collectionAmountByCardId = collectionCards
+                    .GroupBy(it => it.CardId)
+                    .ToDictionary(g => g.Key, g => g.Sum(it => it.Amount));
+
+                var allResults = searcher.Execute(new QueryOptions(0, int.MaxValue));
+                totalItems = (int)allResults.TotalItemCount;
+
+                var sortedIds = allResults
+                    .Select(result =>
+                    {
+                        var variantId = int.Parse(result.Id);
+                        int.TryParse(result["CustomField.baseId"], out var baseId);
+                        return (variantId, baseId);
+                    })
+                    .OrderByDescending(it => collectionAmountByCardId.TryGetValue(it.baseId, out var amount) ? amount : 0)
+                    .Skip(query.Skip)
+                    .Take(query.Amount)
+                    .Select(it => it.variantId)
+                    .ToArray();
+
+                return sortedIds;
+            }
+
             var results = searcher.Execute(new QueryOptions(query.Skip, query.Amount));
             totalItems = (int)results.TotalItemCount;
             var ids = results.Select(it => int.Parse(it.Id));

@@ -47,12 +47,20 @@ namespace SkytearHorde.ViewComponents
             var viewModel = new CardOverviewDataModel();
 
             var sorting = new List<CardSorting>();
+            bool sortByCollection = false;
             if (!string.IsNullOrWhiteSpace(model.SortBy))
             {
                 var selectedSorting = cardOverview.Sortings.ToItems<SortingItem>().FirstOrDefault(it => it.Value == model.SortBy);
                 if (selectedSorting != null)
                 {
-                    sorting.Add(new CardSorting(selectedSorting.ExamineField!) { IsDescending = selectedSorting.Descending });
+                    if (!string.IsNullOrWhiteSpace(selectedSorting.ExamineField))
+                    {
+                        sorting.Add(new CardSorting(selectedSorting.ExamineField!) { IsDescending = selectedSorting.Descending });
+                    }
+                    else if (model.SortBy.Equals("collection"))
+                    {
+                        sortByCollection = true;
+                    }
                 }
             }
             else
@@ -68,14 +76,17 @@ namespace SkytearHorde.ViewComponents
             filters.AddRange(model.Config.Filters);
             filters.AddRange(model.Config.InternalFilters);
 
-            var allCards = GetCards([.. filters], model.SearchQuery, sorting.ToArray(), config.VariantTypeId, model.PageNumber ?? 1, config.PageSize ?? int.MaxValue, out var totalCards);
+            var memberInfo = _memberInfoService.GetMemberInfo();
+            var memberId = memberInfo?.IsLoggedIn is true ? memberInfo.Id : (int?)null;
+
+            var allCards = GetCards([.. filters], model.SearchQuery, sorting.ToArray(), config.VariantTypeId, model.PageNumber ?? 1, config.PageSize ?? int.MaxValue, sortByCollection, memberId, out var totalCards);
             var ownedFilter = config.Filters.FirstOrDefault(it => it.Alias == "collection");
 
             viewModel.AbilitiesToShow = config.AttributesToShow;
 
             var prices = _settingsService.GetSiteSettings().AllowPricing ? _cardPriceService.GetPrices(allCards) : [];
 
-            if (_settingsService.GetCollectionSettings().AllowCardCollecting && _memberInfoService.GetMemberInfo()?.IsLoggedIn is true)
+            if (_settingsService.GetCollectionSettings().AllowCardCollecting && memberInfo?.IsLoggedIn is true)
             {
                 viewModel.ShowCollection = true;
 
@@ -150,19 +161,9 @@ namespace SkytearHorde.ViewComponents
                 });
             }
 
-            CardItemViewModel[] cards;
-            // TODO: This should also be handled by Examine in some way. This will certainly break after a few sets!
-            if (model.SortBy?.Equals("collection") is true && viewModel.ShowCollection)
-            {
-                cards = filteredCards.OrderByDescending(it => it.Collection?.GetTotalAmount() ?? 0).ToArray();
-            }
-            else
-            {
-                cards = filteredCards.ToArray();
-            }
             viewModel.Cards = new PagedResult<CardItemViewModel>(totalCards, model.PageNumber ?? 1, config.PageSize ?? int.MaxValue)
             {
-                Items = cards
+                Items = filteredCards.ToArray()
             };
             viewModel.Page = model.PageNumber ?? 1;
             viewModel.BaseUrl = cardOverview.Url();
@@ -170,16 +171,16 @@ namespace SkytearHorde.ViewComponents
             return View("/Views/Partials/components/cardOverviewData.cshtml", viewModel);
         }
 
-        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, CardSorting[] orderby, int variantTypeId, int pageNumber, int pageSize, out int totalCards)
+        private Card[] GetCards(FilterViewModel[] filters, string? searchQuery, CardSorting[] orderby, int variantTypeId, int pageNumber, int pageSize, bool sortByCollection, int? memberId, out int totalCards)
         {
             var filtersSelected = filters.Any(it => it.Items.Any(item => item.IsChecked));
-            if (string.IsNullOrWhiteSpace(searchQuery) && orderby.Length == 0 && !filtersSelected)
+            if (string.IsNullOrWhiteSpace(searchQuery) && orderby.Length == 0 && !filtersSelected && !sortByCollection)
             {
                 var cards = _cardService.GetAll().Skip(pageSize * (pageNumber - 1)).Take(pageSize).ToArray();
                 totalCards = cards.Length;
                 return cards;
             }
-            var query = new CardSearchQuery(pageSize, _siteAccessor.GetSiteId()) { Query = searchQuery, VariantTypeId = variantTypeId, Skip = pageSize * (pageNumber - 1) };
+            var query = new CardSearchQuery(pageSize, _siteAccessor.GetSiteId()) { Query = searchQuery, VariantTypeId = variantTypeId, Skip = pageSize * (pageNumber - 1), SortByCollection = sortByCollection, MemberId = memberId };
             if (orderby.Length > 0)
             {
                 query.OrderBy.AddRange(orderby);

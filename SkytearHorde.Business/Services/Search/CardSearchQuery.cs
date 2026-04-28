@@ -15,6 +15,7 @@
         public int? MemberId { get; set; }
         public bool IncludeReprintedCards { get; set; } = true;
         public int? LegalForDeckTypeId { get; set; }
+        public bool SortByCollection { get; set; }
 
         public CardSearchQuery(int amount, int siteId)
         {

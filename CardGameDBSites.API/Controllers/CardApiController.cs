@@ -90,6 +90,7 @@ namespace CardGameDBSites.API.Controllers
         public IActionResult Query(CardsQueryPostApiModel model)
         {
             var sorting = new List<CardSorting>();
+            bool sortByCollection = false;
             if (!string.IsNullOrWhiteSpace(model.SortBy))
             {
                 var cardOverview = _siteService.GetCardOverview();
@@ -97,6 +98,10 @@ namespace CardGameDBSites.API.Controllers
                 if (selectedSorting != null && !string.IsNullOrWhiteSpace(selectedSorting.ExamineField))
                 {
                     sorting.Add(new CardSorting(selectedSorting.ExamineField) { IsDescending = selectedSorting.Descending });
+                }
+                else if (selectedSorting != null && model.SortBy.Equals("collection"))
+                {
+                    sortByCollection = true;
                 }
             }
             else
@@ -109,7 +114,7 @@ namespace CardGameDBSites.API.Controllers
             }
 
             int? memberId = null;
-            if (model.OnlyOwnedCards && _memberManager.IsLoggedIn())
+            if ((model.OnlyOwnedCards || sortByCollection) && _memberManager.IsLoggedIn())
             {
                 var member = _memberManager.GetCurrentMemberAsync().GetAwaiter().GetResult();
                 if (member != null && int.TryParse(member.Id, out var id))
@@ -138,7 +143,8 @@ namespace CardGameDBSites.API.Controllers
                 OnlyOwnedCards = model.OnlyOwnedCards,
                 MemberId = memberId,
                 IncludeReprintedCards = model.IncludeReprintedCards,
-                LegalForDeckTypeId = model.LegalForDeckTypeId
+                LegalForDeckTypeId = model.LegalForDeckTypeId,
+                SortByCollection = sortByCollection
             }, out var totalItems).Select(MapToApiModel);
             return Ok(new PagedResult<CardDetailApiModel>(totalItems, model.PageNumber, model.PageSize)
             {

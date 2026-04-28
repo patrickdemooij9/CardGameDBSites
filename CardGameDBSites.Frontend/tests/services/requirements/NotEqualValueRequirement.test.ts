@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import NotEqualValueRequirement from "~/services/requirements/NotEqualValueRequirement";
-import type { CardDetailApiModel } from "~/api/default";
+import NotEqualValueRequirement from "~/app/services/requirements/NotEqualValueRequirement";
+import type { CardDetailApiModel } from "~/app/api/default";
 
 function makeCard(attributes: Record<string, Array<string>>): CardDetailApiModel {
   return { baseId: 1, displayName: "Test Card", attributes };

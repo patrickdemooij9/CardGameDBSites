@@ -207,6 +207,19 @@ namespace SkytearHorde.Business.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        public IActionResult GetCardsMissingTcgPlayerAttribute(int setId, int siteId)
+        {
+            _siteAccessor.SetSiteId(siteId);
+
+            var cards = _cardService.GetAllBySet(setId, true)
+                .Where(it => it.VariantId > 0 && it.GetMultipleCardAttributeValue("TcgPlayerId")?.Any() != true)
+                .Select(it => new { it.BaseId, it.VariantId, it.DisplayName })
+                .ToArray();
+
+            return Ok(cards);
+        }
+
         [HttpPost]
         public async Task<ActionResult> UpdateOutdatedImages(int siteId)
         {

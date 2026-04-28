@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using CardGameDBSites.API.Attributes;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
 using PdfSharpCore;
+using SkytearHorde.Business.Controllers;
 using SkytearHorde.Business.Exports;
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services;
@@ -14,12 +17,14 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Extensions;
 
-namespace SkytearHorde.Business.Controllers
+namespace CardGameDBSites.API.Controllers
 {
-    public class ExportController : UmbracoApiController
+    [ApiController]
+    [EnableCors("api")]
+    [Route("/api/export")]
+    public class ExportApiController : Controller
     {
         private readonly DeckService _deckService;
         private readonly IWebHostEnvironment _webHostEnvironment;
@@ -29,7 +34,7 @@ namespace SkytearHorde.Business.Controllers
         private readonly CardService _cardService;
         private readonly SettingsService _settingsService;
 
-        public ExportController(DeckService deckService,
+        public ExportApiController(DeckService deckService,
             IWebHostEnvironment webHostEnvironment,
             MemberInfoService memberInfoService,
             ISiteService siteService,
@@ -47,6 +52,8 @@ namespace SkytearHorde.Business.Controllers
         }
 
         [EnableRateLimiting("export")]
+        [OptionalJwtAuthorization]
+        [HttpGet("export")]
         public async Task<IActionResult> Export(int deckId, Guid exportId)
         {
             if (!TryGetDeck(deckId, out var deck))
@@ -88,6 +95,7 @@ namespace SkytearHorde.Business.Controllers
 
         [HttpPost]
         [EnableRateLimiting("export")]
+        [HttpGet("proxyExport")]
         public async Task<IActionResult> ProxyExport([FromBody] ProxyExportRequest request)
         {
             if (request?.Cards == null || request.Cards.Count == 0)
@@ -113,6 +121,7 @@ namespace SkytearHorde.Business.Controllers
             }
         }
 
+        [HttpGet("exportForceTable")]
         public async Task<IActionResult> ExportForceTable(int deckId)
         {
             if (!TryGetDeck(deckId, out var deck))
@@ -141,7 +150,7 @@ namespace SkytearHorde.Business.Controllers
 
         private IEnumerable<IDeckExportType> GetExportTypes()
         {
-            foreach(var deckOverview in _siteService.GetDeckOverviews())
+            foreach (var deckOverview in _siteService.GetDeckOverviews())
             {
                 var deckDetail = deckOverview.FirstChild<DeckDetail>();
                 if (deckDetail is null)
@@ -203,18 +212,5 @@ namespace SkytearHorde.Business.Controllers
             }
             throw new NotImplementedException();
         }
-    }
-
-    public class ProxyExportRequest
-    {
-        public List<ProxyExportCard> Cards { get; set; } = new();
-    }
-
-    public class ProxyExportCard
-    {
-        public int CardId { get; set; }
-
-        [System.ComponentModel.DataAnnotations.Range(1, 99)]
-        public int Amount { get; set; }
     }
 }

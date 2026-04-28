@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { firstCharUppercase } from "~/helpers/StringHelpers";
+import { firstCharUppercase } from "~/app/helpers/StringHelpers";
 
 describe("StringHelpers", () => {
   describe("firstCharUppercase", () => {

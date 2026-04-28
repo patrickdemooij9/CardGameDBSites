@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyGuessResult, canGuess, shouldShowLeaderboard } from "~/services/dailygame/DailyGameStateService";
-import type { DailyGameBootstrap } from "~/models/dailygame/DailyGameModels";
+import { applyGuessResult, canGuess, shouldShowLeaderboard } from "~/app/services/dailygame/DailyGameStateService";
+import type { DailyGameBootstrap } from "~/app/models/dailygame/DailyGameModels";
 
 function makeState(overrides: Partial<DailyGameBootstrap> = {}): DailyGameBootstrap {
   return {

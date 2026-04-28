@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import CreateDeckGroup from "~/app/components/decks/deckBuilder/models/CreateDeckGroup";
-import CreateDeckSlot from "~/app/components/decks/deckBuilder/models/CreateDeckSlot";
-import CreateDeckCardGroup from "~/app/components/decks/deckBuilder/models/CreateDeckCardGroup";
-import { FixedDeckAmountConfig } from "~/app/components/decks/deckBuilder/models/CreateDeckSlotAmount";
-import type { CardDetailApiModel } from "~/app/api/default";
+import CreateDeckGroup from "~/components/decks/deckBuilder/models/CreateDeckGroup";
+import CreateDeckSlot from "~/components/decks/deckBuilder/models/CreateDeckSlot";
+import CreateDeckCardGroup from "~/components/decks/deckBuilder/models/CreateDeckCardGroup";
+import { FixedDeckAmountConfig } from "~/components/decks/deckBuilder/models/CreateDeckSlotAmount";
+import type { CardDetailApiModel } from "~/api/default";
 
 function makeCard(
   id: number,

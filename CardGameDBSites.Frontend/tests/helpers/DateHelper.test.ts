@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { ToHumanReadableText, ParseToHumanReadableText } from "~/app/helpers/DateHelper";
+import { ToHumanReadableText, ParseToHumanReadableText } from "~/helpers/DateHelper";
 
 describe("DateHelper", () => {
   describe("ToHumanReadableText", () => {

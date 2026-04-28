@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import SameValueRequirement from "~/app/services/requirements/SameValueRequirement";
-import type { CardDetailApiModel } from "~/app/api/default";
+import SameValueRequirement from "~/services/requirements/SameValueRequirement";
+import type { CardDetailApiModel } from "~/api/default";
 
 function makeCard(attributes: Record<string, Array<string>>): CardDetailApiModel {
   return { baseId: 1, displayName: "Test Card", attributes };

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { GetCardValue, GetCardValues } from "~/app/helpers/CardHelper";
-import type { CardDetailApiModel } from "~/app/api/default";
+import { GetCardValue, GetCardValues } from "~/helpers/CardHelper";
+import type { CardDetailApiModel } from "~/api/default";
 
 function makeCard(attributes: Record<string, Array<string>>): CardDetailApiModel {
   return { baseId: 1, displayName: "Test Card", attributes };

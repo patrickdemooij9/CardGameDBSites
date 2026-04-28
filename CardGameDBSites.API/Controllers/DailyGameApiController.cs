@@ -3,8 +3,6 @@ using CardGameDBSites.API.Models.DailyGame;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using PdfSharpCore.Drawing;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Services;
 using Umbraco.Cms.Core.Security;
@@ -19,14 +17,12 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly DailyGameService _dailyGameService;
         private readonly IMemberManager _memberManager;
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public DailyGameApiController(DailyGameService dailyGameService, IMemberManager memberManager, IHttpClientFactory httpClientFactory, IWebHostEnvironment webHostEnvironment)
+        public DailyGameApiController(DailyGameService dailyGameService, IMemberManager memberManager, IWebHostEnvironment webHostEnvironment)
         {
             _dailyGameService = dailyGameService;
             _memberManager = memberManager;
-            _httpClientFactory = httpClientFactory;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -38,8 +34,9 @@ namespace CardGameDBSites.API.Controllers
             var session = _dailyGameService.GetSession(memberId, guestSessionToken);
             var leaderboard = session.IsFinished ? _dailyGameService.GetLeaderboard(50, memberId) : [];
             var placement = _dailyGameService.GetPlacement(session, session.ChallengeId, memberId);
+            var imageDataUrl = await GetBlurredImageDataUrlAsync(session.AttemptsUsed, session.IsFinished);
 
-            return Ok(MapBootstrap(session, leaderboard, placement));
+            return Ok(await MapBootstrap(session, leaderboard, placement, imageDataUrl));
         }
 
         [HttpPost("guess")]
@@ -49,7 +46,8 @@ namespace CardGameDBSites.API.Controllers
             var memberId = await GetCurrentMemberId();
             var result = _dailyGameService.SubmitGuess(model.GuessedCardId, memberId, model.GuestSessionToken);
             var leaderboard = result.State.IsFinished ? _dailyGameService.GetLeaderboard(50, memberId) : [];
-            var bootstrap = MapBootstrap(result.State, leaderboard, result.CurrentPlacement);
+            var imageDataUrl = await GetBlurredImageDataUrlAsync(result.State.AttemptsUsed, result.State.IsFinished);
+            var bootstrap = await MapBootstrap(result.State, leaderboard, result.CurrentPlacement, imageDataUrl);
 
             return Ok(new DailyGameGuessResultApiModel
             {
@@ -69,29 +67,32 @@ namespace CardGameDBSites.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("image")]
-        public async Task<IActionResult> Image(string? guestSessionToken = null)
+        private async Task<string?> GetBlurredImageDataUrlAsync(int attemptsUsed, bool isFinished)
         {
             var imageUrl = _dailyGameService.GetTargetImageUrl();
             if (string.IsNullOrWhiteSpace(imageUrl))
             {
-                return NotFound();
+                return null;
             }
 
-            var memberId = await GetCurrentMemberId();
-            var session = _dailyGameService.GetSession(memberId, guestSessionToken);
-
-            var path = Path.Combine($"{_webHostEnvironment.WebRootPath}\\{imageUrl}");
-            using var image = SixLabors.ImageSharp.Image.Load(path);
-            if (!session.IsFinished)
+            var path = Path.Combine(_webHostEnvironment.WebRootPath, imageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            try
             {
-                image.Mutate(it => it.GaussianBlur(_dailyGameService.GetBlurLevel(session.AttemptsUsed)));
-            }
+                using var image = SixLabors.ImageSharp.Image.Load(path, out var format);
+                if (!isFinished)
+                {
+                    image.Mutate(it => it.GaussianBlur(_dailyGameService.GetBlurLevel(attemptsUsed)));
+                }
 
-            using var stream = new MemoryStream();
-            await image.SaveAsync(stream, image.DetectEncoder(path));
-            stream.Position = 0;
-            return File(stream.ToArray(), "image/webp");
+                using var stream = new MemoryStream();
+                await image.SaveAsync(stream, image.DetectEncoder(path));
+                var base64 = Convert.ToBase64String(stream.ToArray());
+                return $"data:{format.DefaultMimeType};base64,{base64}";
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private async Task<int?> GetCurrentMemberId()
@@ -104,10 +105,20 @@ namespace CardGameDBSites.API.Controllers
             return memberId;
         }
 
-        private DailyGameBootstrapApiModel MapBootstrap(DailyGameSessionState session, DailyGameLeaderboardEntryState[] leaderboard, DailyGameLeaderboardEntryState? placement)
+        private async Task<DailyGameBootstrapApiModel> MapBootstrap(DailyGameSessionState session, DailyGameLeaderboardEntryState[] leaderboard, DailyGameLeaderboardEntryState? placement, string? imageDataUrl)
         {
             var now = session.FinishedUtc ?? DateTime.UtcNow;
             var elapsed = Math.Max(0, (int)(now - session.StartedUtc).TotalSeconds);
+
+            // Include the guest's simulated placement in the leaderboard list so the frontend
+            // can render it without needing to special-case it outside the table.
+            var leaderboardEntries = leaderboard.Select(MapLeaderboard).ToList();
+            if (placement is { IsCurrentPlayer: true } && leaderboardEntries.All(e => !e.IsCurrentPlayer))
+            {
+                var mapped = MapLeaderboard(placement);
+                var insertIndex = Math.Clamp(mapped.Rank - 1, 0, leaderboardEntries.Count);
+                leaderboardEntries.Insert(insertIndex, mapped);
+            }
 
             return new DailyGameBootstrapApiModel
             {
@@ -119,8 +130,9 @@ namespace CardGameDBSites.API.Controllers
                 BlurLevel = _dailyGameService.GetBlurLevel(session.AttemptsUsed),
                 IsFinished = session.IsFinished,
                 IsSolved = session.IsSolved,
+                ImageDataUrl = imageDataUrl,
                 Attempts = session.Attempts.Select(MapAttempt).ToArray(),
-                Leaderboard = leaderboard.Select(MapLeaderboard).ToArray(),
+                Leaderboard = leaderboardEntries.ToArray(),
                 CurrentPlacement = placement is null ? null : MapLeaderboard(placement)
             };
         }

@@ -13,9 +13,9 @@ const isLoading = ref(false);
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
 const elapsedSeconds = ref(0);
+const leaderboardRef = ref<HTMLElement | null>(null);
 let timer: ReturnType<typeof setInterval> | null = null;
 
-const imageUrl = computed(() => "/api/proxy/api/dailygame/image?guestSessionToken=" + state.value?.guestSessionToken);
 const canSubmit = computed(() => !!state.value && canGuess(state.value) && !isSubmitting.value);
 
 function formatSeconds(totalSeconds: number): string {
@@ -71,12 +71,17 @@ async function onSelectCard(card: CardDetailApiModel) {
       guessedCardId: card.variantId,
       guestSessionToken: state.value?.guestSessionToken,
     });
+    const wasFinished = state.value?.isFinished ?? false;
     if (state.value) {
       state.value = applyGuessResult(state.value, result);
     } else {
       state.value = result.state;
     }
     resetTimer(result.state.elapsedSeconds, result.state.isFinished);
+    if (!wasFinished && result.state.isFinished) {
+      await nextTick();
+      leaderboardRef.value?.scrollIntoView({ behavior: "smooth" });
+    }
   } catch {
     error.value = "Could not submit guess.";
   } finally {
@@ -116,7 +121,8 @@ onBeforeUnmount(() => {
 
       <div class="mb-4 flex justify-center">
         <img
-          :src="imageUrl"
+          v-if="state.imageDataUrl"
+          :src="state.imageDataUrl"
           alt="Daily card"
           class="max-h-[420px] rounded-md"
         />
@@ -155,7 +161,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div v-if="shouldShowLeaderboard(state)" class="mt-6">
+      <div v-if="shouldShowLeaderboard(state)" ref="leaderboardRef" class="mt-6">
         <h3 class="text-lg font-semibold mb-2">Leaderboard</h3>
         <p v-if="state.currentPlacement" class="mb-2 text-sm text-gray-700">
           You are currently rank #{{ state.currentPlacement.rank }}.

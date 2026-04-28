@@ -32,6 +32,7 @@ export interface DailyGameBootstrap {
   blurLevel: number;
   isFinished: boolean;
   isSolved: boolean;
+  imageDataUrl?: string;
   attempts: DailyGameAttempt[];
   leaderboard: DailyGameLeaderboardEntry[];
   currentPlacement?: DailyGameLeaderboardEntry;

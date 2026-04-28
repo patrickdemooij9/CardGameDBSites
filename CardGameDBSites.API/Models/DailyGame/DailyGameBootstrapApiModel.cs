@@ -10,6 +10,7 @@ namespace CardGameDBSites.API.Models.DailyGame
         public int BlurLevel { get; set; }
         public bool IsFinished { get; set; }
         public bool IsSolved { get; set; }
+        public string? ImageDataUrl { get; set; }
         public DailyGameAttemptApiModel[] Attempts { get; set; } = [];
         public DailyGameLeaderboardEntryApiModel[] Leaderboard { get; set; } = [];
         public DailyGameLeaderboardEntryApiModel? CurrentPlacement { get; set; }

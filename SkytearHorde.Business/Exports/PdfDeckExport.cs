@@ -49,15 +49,7 @@ namespace SkytearHorde.Business.Exports
 
         public async Task<byte[]> ExportDeck(Deck deck)
         {
-            await _concurrencyLimiter.WaitAsync();
-            try
-            {
-                return ExportCardsInternal(deck.Cards.Select(c => (c.CardId, c.Amount)));
-            }
-            finally
-            {
-                _concurrencyLimiter.Release();
-            }
+            return await ExportCards(deck.Cards.Select(c => (c.CardId, c.Amount)));
         }
 
         public async Task<byte[]> ExportCards(IEnumerable<(int CardId, int Amount)> cards)

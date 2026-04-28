@@ -233,6 +233,9 @@ export type { PagedIApiMediaWithCropsResponseModel } from './models/PagedIApiMed
 export type { PriceChangesElementModel } from './models/PriceChangesElementModel';
 export type { PriceChangesPropertiesModel } from './models/PriceChangesPropertiesModel';
 export type { ProblemDetails } from './models/ProblemDetails';
+export type { ProxyCardsContentModel } from './models/ProxyCardsContentModel';
+export type { ProxyCardsContentResponseModel } from './models/ProxyCardsContentResponseModel';
+export type { ProxyCardsPropertiesModel } from './models/ProxyCardsPropertiesModel';
 export type { RandomizerElementModel } from './models/RandomizerElementModel';
 export type { RandomizerPropertiesModel } from './models/RandomizerPropertiesModel';
 export type { RandomizerResultElementModel } from './models/RandomizerResultElementModel';

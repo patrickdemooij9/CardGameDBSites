@@ -50,8 +50,10 @@ if (props.decks.length > 0) {
   }
 }
 
-onMounted(() => {
-  if (useAccountStore().isLoggedIn) {
+onMounted(async () => {
+  const accountStore = useAccountStore();
+  await accountStore.checkLogin();
+  if (accountStore.isLoggedIn) {
     const collectionService = useCollection();
     const deckIds = props.decks.map(d => d.id!);
     collectionService.loadDecksProgress(deckIds).then(progress => {

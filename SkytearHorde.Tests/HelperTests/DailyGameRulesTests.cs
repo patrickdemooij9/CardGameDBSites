@@ -26,7 +26,7 @@ namespace SkytearHorde.Tests.HelperTests
         {
             Assert.That(DailyGameRules.CompareValues(["Hero", "Jedi"], ["Jedi", "Hero"]), Is.EqualTo("exact"));
             Assert.That(DailyGameRules.CompareValues(["Hero", "Jedi"], ["Hero", "Pilot"]), Is.EqualTo("partial"));
-            Assert.That(DailyGameRules.CompareValues(["Hero"], ["Villain"]), Is.EqualTo("none"));
+            Assert.That(DailyGameRules.CompareValues(["Hero"], ["Villain"]), Is.EqualTo("no"));
         }
 
         [Test]

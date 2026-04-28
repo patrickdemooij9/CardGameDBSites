@@ -9,5 +9,5 @@
       "~/*": ["../*"]
     }
   },
-  "include": ["./**/*.ts", "../helpers/**/*.ts", "../services/**/*.ts", "../components/**/*.ts", "../api/**/*.ts"]
+  "include": ["./**/*.ts", "../helpers/**/*.ts", "../services/**/*.ts", "../components/**/*.ts", "../api/**/*.ts", "../models/**/*.ts"]
 }

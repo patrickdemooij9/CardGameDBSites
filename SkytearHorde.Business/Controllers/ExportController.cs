@@ -10,6 +10,7 @@ using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -59,10 +60,16 @@ namespace SkytearHorde.Business.Controllers
             var exporter = GetExporter(exportType, deck);
             try
             {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
                 var bytes = await exporter.ExportDeck(deck);
+                stopwatch.Stop();
+
+                _logger.LogInformation($"Exported deck {deckId} with {exporter.GetType().Name} in {stopwatch.ElapsedMilliseconds}ms");
+
                 if (exportType.GetMimeType().Equals("redirect"))
                 {
-                    return Redirect(Encoding.UTF8.GetString(bytes));
+                    return Ok(new { redirectUrl = Encoding.UTF8.GetString(bytes) });
                 }
 
                 var fileName = exportType.GetFileName(deck);
@@ -79,6 +86,33 @@ namespace SkytearHorde.Business.Controllers
             }
         }
 
+        [HttpPost]
+        [EnableRateLimiting("export")]
+        public async Task<IActionResult> ProxyExport([FromBody] ProxyExportRequest request)
+        {
+            if (request?.Cards == null || request.Cards.Count == 0)
+            {
+                return BadRequest("No cards provided.");
+            }
+
+            var pdfExport = new PdfDeckExport(_webHostEnvironment, PdfSharpCore.PageSize.A4, _cardService);
+            try
+            {
+                var cards = request.Cards
+                    .Where(c => c.Amount > 0)
+                    .Select(c => (c.CardId, Math.Min(c.Amount, 10)))
+                    .Take(100);
+
+                var bytes = await pdfExport.ExportCards(cards);
+                return File(bytes, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not generate proxy export");
+                throw;
+            }
+        }
+
         public async Task<IActionResult> ExportForceTable(int deckId)
         {
             if (!TryGetDeck(deckId, out var deck))
@@ -88,7 +122,7 @@ namespace SkytearHorde.Business.Controllers
 
             var ttsExport = new SWUTTSExport(_cardService);
             var exportId = Convert.ToBase64String(await ttsExport.ExportDeck(deck));
-            return Redirect($"https://www.forcetable.net/swu/import?svc=swuunlimiteddb&id={exportId}");
+            return Ok(new { redirectUrl = $"https://www.forcetable.net/swu/import?svc=swuunlimiteddb&id={exportId}" });
         }
 
         private bool TryGetDeck(int deckId, [NotNullWhen(true)] out Deck? deck)
@@ -169,5 +203,18 @@ namespace SkytearHorde.Business.Controllers
             }
             throw new NotImplementedException();
         }
+    }
+
+    public class ProxyExportRequest
+    {
+        public List<ProxyExportCard> Cards { get; set; } = new();
+    }
+
+    public class ProxyExportCard
+    {
+        public int CardId { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Range(1, 99)]
+        public int Amount { get; set; }
     }
 }

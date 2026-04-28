@@ -10,32 +10,31 @@
     "postinstall": "nuxt prepare",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generateUmbracoApi": "openapi --input http://localhost:58529/umbraco/swagger/delivery/swagger.json --output api/umbraco --postfixServices Resource --useOptions",
-    "generateDefaultApi": "openapi --input http://localhost:58529/umbraco/swagger/default/swagger.json --output api/default --postfixServices Resource --useOptions"
+    "generateUmbracoApi": "openapi --input http://localhost:58529/umbraco/swagger/delivery/swagger.json --output app/api/umbraco --postfixServices Resource --useOptions",
+    "generateDefaultApi": "openapi --input http://localhost:58529/umbraco/swagger/default/swagger.json --output app/api/default --postfixServices Resource --useOptions"
   },
   "dependencies": {
     "@phosphor-icons/vue": "^2.2.1",
-    "@pinia/nuxt": "^0.11.0",
+    "@pinia/nuxt": "^0.11.3",
     "chart.js": "^4.5.1",
     "floating-vue": "^5.2.2",
     "jwt-decode": "^4.0.0",
-    "nuxt": "^3.17.7",
-    "pinia": "^3.0.2",
-    "vue": "^3.5.13",
+    "nuxt": "^4.4.2",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.33",
     "vue-chartjs": "^5.3.3",
-    "vue-router": "^4.5.0",
     "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "@nuxtjs/eslint-module": "^4.1.0",
-    "@nuxtjs/tailwindcss": "^6.13.2",
-    "@typescript-eslint/eslint-plugin": "^8.26.1",
-    "@typescript-eslint/parser": "^8.26.1",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
     "eslint": "^9.22.0",
-    "eslint-plugin-vue": "^10.0.0",
+    "eslint-plugin-vue": "^10.9.0",
     "openapi-typescript-codegen": "^0.29.0",
-    "typescript": "^5.8.2",
-    "vitest": "^4.1.4",
-    "vue-tsc": "^2.2.8"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5",
+    "vue-tsc": "^3.2.7"
   }
 }

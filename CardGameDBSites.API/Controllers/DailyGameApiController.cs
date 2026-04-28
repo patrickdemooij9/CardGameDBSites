@@ -3,6 +3,8 @@ using CardGameDBSites.API.Models.DailyGame;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Services;
 using Umbraco.Cms.Core.Security;
@@ -75,19 +77,26 @@ namespace CardGameDBSites.API.Controllers
                 return null;
             }
 
-            var path = Path.Combine(_webHostEnvironment.WebRootPath, imageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            var path = Path.Combine($"{_webHostEnvironment.WebRootPath}\\{imageUrl}");
             try
             {
-                using var image = SixLabors.ImageSharp.Image.Load(path, out var format);
+                using var image = SixLabors.ImageSharp.Image.Load(path);
                 if (!isFinished)
                 {
                     image.Mutate(it => it.GaussianBlur(_dailyGameService.GetBlurLevel(attemptsUsed)));
                 }
 
+                var provider = new FileExtensionContentTypeProvider();
+
+                if (!provider.TryGetContentType(path, out var contentType))
+                {
+                    contentType = "image/png";
+                }
+
                 using var stream = new MemoryStream();
                 await image.SaveAsync(stream, image.DetectEncoder(path));
                 var base64 = Convert.ToBase64String(stream.ToArray());
-                return $"data:{format.DefaultMimeType};base64,{base64}";
+                return $"data:{contentType};base64,{base64}";
             }
             catch
             {

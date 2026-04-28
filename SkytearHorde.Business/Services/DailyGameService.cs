@@ -193,11 +193,11 @@ namespace SkytearHorde.Business.Services
         {
             return attemptsUsed switch
             {
-                <= 0 => 24,
-                1 => 18,
-                2 => 13,
-                3 => 8,
-                4 => 4,
+                <= 0 => 30,
+                1 => 25,
+                2 => 20,
+                3 => 15,
+                4 => 10,
                 _ => 0
             };
         }

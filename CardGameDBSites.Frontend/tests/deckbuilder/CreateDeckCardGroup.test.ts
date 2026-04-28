@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import CreateDeckCardGroup from "~/app/components/decks/deckBuilder/models/CreateDeckCardGroup";
-import type { CardDetailApiModel } from "~/app/api/default";
+import CreateDeckCardGroup from "~/components/decks/deckBuilder/models/CreateDeckCardGroup";
+import type { CardDetailApiModel } from "~/api/default";
 
 function makeCard(id: number, attributes: Record<string, Array<string>> = {}): CardDetailApiModel {
   return { baseId: id, displayName: `Card ${id}`, attributes };

@@ -300,13 +300,14 @@ namespace SkytearHorde.Business.Services
             };
         }
 
-        private static DailyGameAttemptState MapAttempt(DailyCardGameGuessDBModel guess, int targetCardId)
+        private DailyGameAttemptState MapAttempt(DailyCardGameGuessDBModel guess, int targetCardId)
         {
             var feedback = DeserializeFeedback(guess.FeedbackJson);
             return new DailyGameAttemptState
             {
                 AttemptNumber = guess.AttemptNumber,
                 GuessedCardId = guess.GuessedCardId,
+                GuessedCardName = _cardService.GetVariant(guess.GuessedCardId)?.DisplayName,
                 IsCorrect = guess.GuessedCardId == targetCardId,
                 Feedback = feedback,
                 CreatedUtc = guess.CreatedUtc

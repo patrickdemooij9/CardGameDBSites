@@ -59,7 +59,8 @@ const pageComponents: {[key: string]: Component} = {
     'set': defineAsyncComponent(() => import('~/components/pageTypes/SetPage.vue')),
     'collectionPage': defineAsyncComponent(() => import('~/components/pageTypes/CollectionPage.vue')),
     'blogOverview': defineAsyncComponent(() => import('~/components/pageTypes/BlogOverviewPage.vue')),
-    'blogDetail': defineAsyncComponent(() => import('~/components/pageTypes/BlogDetailPage.vue'))
+    'blogDetail': defineAsyncComponent(() => import('~/components/pageTypes/BlogDetailPage.vue')),
+    'dailyGame': defineAsyncComponent(() => import('~/components/pageTypes/DailyGamePage.vue'))
 }
 const pageComponent = pageComponents[componentName];
 </script>

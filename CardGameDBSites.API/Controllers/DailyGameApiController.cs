@@ -80,7 +80,11 @@ namespace CardGameDBSites.API.Controllers
                     return BadRequest("Invalid image URL.");
                 }
 
-                if (!parsedAbsolute.Host.Equals(Request.Host.Host, StringComparison.OrdinalIgnoreCase))
+                var requestAuthority = Request.Host.ToString();
+                var imageAuthority = parsedAbsolute.IsDefaultPort
+                    ? parsedAbsolute.Host
+                    : $"{parsedAbsolute.Host}:{parsedAbsolute.Port}";
+                if (!imageAuthority.Equals(requestAuthority, StringComparison.OrdinalIgnoreCase))
                 {
                     return BadRequest("Unsupported image host.");
                 }

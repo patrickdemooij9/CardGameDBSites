@@ -100,7 +100,8 @@ namespace SkytearHorde.Business.Controllers
             {
                 var cards = request.Cards
                     .Where(c => c.Amount > 0)
-                    .Select(c => (c.CardId, c.Amount));
+                    .Select(c => (c.CardId, Math.Min(c.Amount, 10)))
+                    .Take(100);
 
                 var bytes = await pdfExport.ExportCards(cards);
                 return File(bytes, "application/pdf");

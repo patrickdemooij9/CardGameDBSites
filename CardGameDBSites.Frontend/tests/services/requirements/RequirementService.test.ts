@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { GetValidCards, IsValid, GetInvalidRequirements } from "~/services/requirements/RequirementService";
-import type { CardDetailApiModel, RequirementApiModel } from "~/api/default";
-import { RestrictionType } from "~/api/default";
+import { GetValidCards, IsValid, GetInvalidRequirements } from "~/app/services/requirements/RequirementService";
+import type { CardDetailApiModel, RequirementApiModel } from "~/app/api/default";
+import { RestrictionType } from "~/app/api/default";
 
 function makeCard(id: number, attributes: Record<string, Array<string>>): CardDetailApiModel {
   return { baseId: id, displayName: `Card ${id}`, attributes };

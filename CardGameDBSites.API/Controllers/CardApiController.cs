@@ -89,6 +89,34 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(PagedResult<CardDetailApiModel>), 200)]
         public IActionResult Query(CardsQueryPostApiModel model)
         {
+            var potentialCollectionFilter = model.FilterClauses.SelectMany(it => it.Filters).FirstOrDefault(it => it.Alias == "collection");
+            if (potentialCollectionFilter != null)
+            {
+                var collectionValue = potentialCollectionFilter.Values.FirstOrDefault();
+                model.CollectionMode = collectionValue switch
+                {
+                    "inCollection" => CardSearchCollectionMode.InCollection,
+                    "none" => CardSearchCollectionMode.NoCopies,
+                    "missing" => CardSearchCollectionMode.MissingCopies,
+                    _ => CardSearchCollectionMode.Ignore,
+                };
+            }
+
+            int? memberId = null;
+            if (_memberManager.IsLoggedIn() && (model.CollectionMode != CardSearchCollectionMode.Ignore || model.SortBy == "collection"))
+            {
+                var member = _memberManager.GetCurrentMemberAsync().GetAwaiter().GetResult();
+                if (member != null && int.TryParse(member.Id, out var id))
+                {
+                    memberId = id;
+                }
+            }
+            else
+            {
+                model.CollectionMode = CardSearchCollectionMode.Ignore;
+                model.SortBy = string.Empty;
+            }
+
             var sorting = new List<CardSorting>();
             if (!string.IsNullOrWhiteSpace(model.SortBy))
             {
@@ -97,6 +125,10 @@ namespace CardGameDBSites.API.Controllers
                 if (selectedSorting != null && !string.IsNullOrWhiteSpace(selectedSorting.ExamineField))
                 {
                     sorting.Add(new CardSorting(selectedSorting.ExamineField) { IsDescending = selectedSorting.Descending });
+                }
+                if (model.SortBy == "collection")
+                {
+                    sorting.Add(new CardSorting("collection"));
                 }
             }
             else
@@ -108,16 +140,6 @@ namespace CardGameDBSites.API.Controllers
                 }
             }
 
-            int? memberId = null;
-            if (model.OnlyOwnedCards && _memberManager.IsLoggedIn())
-            {
-                var member = _memberManager.GetCurrentMemberAsync().GetAwaiter().GetResult();
-                if (member != null && int.TryParse(member.Id, out var id))
-                {
-                    memberId = id;
-                }
-            }
-
             var result = _cardService.Search(new CardSearchQuery(model.PageSize, _siteAccessor.GetSiteId())
             {
                 Query = model.Query,
@@ -126,7 +148,7 @@ namespace CardGameDBSites.API.Controllers
                 FilterClauses = [.. model.FilterClauses.Select(it => new CardSearchFilterClause
                 {
                     ClauseType = it.ClauseType,
-                    Filters = [.. it.Filters.Select(f => new CardSearchFilter
+                    Filters = [.. it.Filters.Where(it => it.Alias != "collection").Select(f => new CardSearchFilter
                     {
                         Alias = f.Alias,
                         Values = f.Values,
@@ -135,7 +157,7 @@ namespace CardGameDBSites.API.Controllers
                 })],
                 OrderBy = sorting,
                 VariantTypeId = model.VariantTypeId,
-                OnlyOwnedCards = model.OnlyOwnedCards,
+                CollectionMode = model.CollectionMode,
                 MemberId = memberId,
                 IncludeReprintedCards = model.IncludeReprintedCards,
                 LegalForDeckTypeId = model.LegalForDeckTypeId

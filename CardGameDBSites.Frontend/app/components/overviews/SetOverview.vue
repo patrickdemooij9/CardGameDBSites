@@ -72,7 +72,7 @@ onMounted(async () => {
             <i v-if="set.code" class="text-xs">{{ set.code }}</i>
           </NuxtLink>
           <div class="flex justify-between">
-            <img class="h-16" :src="set.imageUrl ?? '#'" />
+            <img class="h-16" v-if="set.imageUrl" :src="set.imageUrl" />
             <div class="flex flex-col justify-center">
               <span v-for="info in set.extraInformation" class="text-sm">{{
                 info

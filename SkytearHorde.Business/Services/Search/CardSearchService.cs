@@ -33,30 +33,43 @@ namespace SkytearHorde.Business.Services.Search
 
         public int[] Search(CardSearchQuery query, out int totalItems)
         {
-            if (query.OnlyOwnedCards && query.MemberId.HasValue)
+            Dictionary<int, CollectionCardItem[]> collectionCards = [];
+            if (query.MemberId.HasValue && (query.CollectionMode != CardSearchCollectionMode.Ignore || query.OrderBy.FirstOrDefault()?.Field == "collection"))
             {
                 using var scope = _serviceProvider.CreateScope();
                 var _collectionService = scope.ServiceProvider.GetService<CollectionService>()!;
 
-                var collectionCards = _collectionService.GetCardsByUser(query.MemberId.Value);
-                var cardIds = collectionCards.Select(it => it.CardId).Distinct().ToArray();
-                
-                if (cardIds.Length == 0)
+                collectionCards = _collectionService.GetCardsByUser(query.MemberId.Value)
+                    .GroupBy(it => it.CardId)
+                    .Where(it =>
+                        query.CollectionMode == CardSearchCollectionMode.Ignore ||
+                        query.CollectionMode == CardSearchCollectionMode.InCollection ||
+                        query.CollectionMode == CardSearchCollectionMode.NoCopies ||
+                        (query.CollectionMode == CardSearchCollectionMode.MissingCopies && it.Sum(c => c.Amount) < 3)) //TODO: make the 3 configurable
+                    .ToDictionary(it => it.Key, it => it.ToArray());
+            }
+
+            if (query.CollectionMode != CardSearchCollectionMode.Ignore && query.MemberId.HasValue)
+            {
+                var collectionCardIds = collectionCards.Keys.ToArray();
+                if (collectionCardIds.Length > 0)
+                {
+                    query.FilterClauses.Add(new CardSearchFilterClause
+                    {
+                        ClauseType = query.CollectionMode == CardSearchCollectionMode.NoCopies ? CardSearchFilterClauseType.NOT : CardSearchFilterClauseType.AND,
+                        Filters = [new CardSearchFilter
+                        {
+                            Alias = "baseId",
+                            Values = [.. collectionCardIds.Select(id => id.ToString())],
+                            Mode = CardSearchFilterMode.Contains
+                        }]
+                    });
+                }
+                else if (query.CollectionMode == CardSearchCollectionMode.InCollection || query.CollectionMode == CardSearchCollectionMode.MissingCopies)
                 {
                     totalItems = 0;
-                    return Array.Empty<int>();
+                    return [];
                 }
-
-                query.FilterClauses.Add(new CardSearchFilterClause
-                {
-                    ClauseType = CardSearchFilterClauseType.AND,
-                    Filters = [new CardSearchFilter
-                    {
-                        Alias = "baseId",
-                        Values = cardIds.Select(id => id.ToString()).ToArray(),
-                        Mode = CardSearchFilterMode.Contains
-                    }]
-                });
             }
 
             if (!_examineManager.TryGetIndex("CardIndex", out var index))
@@ -69,7 +82,7 @@ namespace SkytearHorde.Business.Services.Search
                 .CreateQuery()
                 .NativeQuery($"+__IndexType:content");
 
-            foreach(var filterClause in query.FilterClauses)
+            foreach (var filterClause in query.FilterClauses)
             {
                 var filters = filterClause.Filters.Where(it => it.Values.Length > 0).ToArray();
                 if (filters.Length == 0)
@@ -153,10 +166,24 @@ namespace SkytearHorde.Business.Services.Search
                 }
             }
 
-            var results = searcher.Execute(new QueryOptions(query.Skip, query.Amount));
-            totalItems = (int)results.TotalItemCount;
-            var ids = results.Select(it => int.Parse(it.Id));
-            return ids.ToArray();
+            if (collectionCards.Count > 0)
+            {
+                var results = searcher.Execute();
+                totalItems = (int)results.TotalItemCount;
+                var ids = results
+                    .OrderByDescending(it => collectionCards.TryGetValue(int.Parse(it["CustomField.baseId"]), out var items) ? items.Sum(c => c.Amount) : 0)
+                    .Select(it => int.Parse(it.Id))
+                    .Skip(query.Skip)
+                    .Take(query.Amount);
+                return ids.ToArray();
+            }
+            else
+            {
+                var results = searcher.Execute(new QueryOptions(query.Skip, query.Amount));
+                totalItems = (int)results.TotalItemCount;
+                var ids = results.Select(it => int.Parse(it.Id));
+                return ids.ToArray();
+            }
 
             /*using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             var cards = new List<Card>();

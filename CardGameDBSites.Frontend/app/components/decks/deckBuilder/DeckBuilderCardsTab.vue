@@ -2,6 +2,7 @@
 import BaseCardOverview from "~/components/overviews/BaseCardOverview.vue";
 import DeckBuilderTab from "./DeckBuilderTab";
 import {
+  CardSearchCollectionMode,
   RestrictionType,
   type CardDetailApiModel,
   type RequirementApiModel,
@@ -176,7 +177,7 @@ async function toggleMarkdownPreview() {
         :internal-filters="getInternalFilters()"
         :white-background="false"
         :enable-query-string-sync="false"
-        :collection-only-mode="collectionOnlyMode"
+        :collection-mode="collectionOnlyMode ? CardSearchCollectionMode.IN_COLLECTION : CardSearchCollectionMode.IGNORE"
         :hide-reprinted-cards="true"
         :legal-for-deck-type-id="deck.typeId"
         v-slot="{cards}"

@@ -1,4 +1,6 @@
-﻿namespace CardGameDBSites.API.Models.Cards
+﻿using SkytearHorde.Business.Services.Search;
+
+namespace CardGameDBSites.API.Models.Cards
 {
     public class CardsQueryPostApiModel
     {
@@ -8,7 +10,7 @@
         public int? SetId { get; set; }
         public int? VariantTypeId { get; set; }
         public CardsQueryFilterClauseApiModel[] FilterClauses { get; set; }
-        public bool OnlyOwnedCards { get; set; }
+        public CardSearchCollectionMode CollectionMode { get; set; }
         public string? SortBy { get; set; }
         public bool IncludeReprintedCards { get; set; } = true;
         public int? LegalForDeckTypeId { get; set; }

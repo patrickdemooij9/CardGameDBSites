@@ -32,7 +32,9 @@ export default defineNuxtConfig({
         '@vue/devtools-core',
         '@vue/devtools-kit',
         'vue-toastification',
-        '@phosphor-icons/vue'
+        '@phosphor-icons/vue',
+        'vue-chartjs',
+        'chart.js'
       ]
     }
   }

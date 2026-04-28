@@ -156,7 +156,7 @@ namespace CardGameDBSites.API.Controllers
 
             return Ok(new SetOverviewSettingsApiModel
             {
-                Filters = setOverview.SetFilters.ToItems<OverviewFilter>().Select(it => new OverviewFilterApiModel
+                Filters = [.. setOverview.SetFilters.ToItems<OverviewFilter>().Select(it => new OverviewFilterApiModel
                 {
                     Alias = it.IsExpansionFilter ? "Set Name" : it.Ability!.Name,
                     DisplayName = it.DisplayName,
@@ -168,7 +168,12 @@ namespace CardGameDBSites.API.Controllers
                         Value = c.Value,
                         IconUrl = c.Icon?.Url(mode: UrlMode.Absolute)
                     }).ToArray()
-                }).ToArray()
+                })],
+                SortOptions = [.. setOverview.SetSortings.ToItems<SortingItem>().Select(it => new OverviewSortOptionApiModel
+                {
+                    Name = it.DisplayName!,
+                    Value = it.Value!
+                })]
             });
         }
 

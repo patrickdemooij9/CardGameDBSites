@@ -3,6 +3,7 @@ import Overview from "./Overview.vue";
 import type { OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import {
+  CardSearchCollectionMode,
   CardSearchFilterClauseType,
   type CardsQueryFilterClauseApiModel,
   type PagedResultCardDetailApiModel,
@@ -15,10 +16,11 @@ const props = defineProps<{
   internalFilters?: CardsQueryFilterClauseApiModel[];
   whiteBackground: boolean;
   enableQueryStringSync: boolean;
-  collectionOnlyMode?: boolean;
+  collectionMode?: CardSearchCollectionMode;
   hideReprintedCards?: boolean;
   legalForDeckTypeId?: number;
   availableViews?: string[];
+  pageSize?: number;
 }>();
 
 const emit = defineEmits<{
@@ -41,7 +43,7 @@ watch(
 );
 
 watch(
-  () => props.collectionOnlyMode,
+  () => props.collectionMode,
   () => {
     overview.value?.setPage(1, true);
   },
@@ -75,10 +77,10 @@ async function loadData(value: OverviewRefreshModel) {
   pagedCards.value = await useCards().queryCards({
     query: value.Query,
     pageNumber: value.PageNumber,
-    pageSize: 30,
+    pageSize: props.pageSize ?? 30,
     filterClauses: filters,
     variantTypeId: 0,
-    onlyOwnedCards: props.collectionOnlyMode,
+    collectionMode: props.collectionMode ?? CardSearchCollectionMode.IGNORE,
     sortBy: value.SortBy,
     includeReprintedCards: props.hideReprintedCards ? false : undefined,
     legalForDeckTypeId: props.legalForDeckTypeId,

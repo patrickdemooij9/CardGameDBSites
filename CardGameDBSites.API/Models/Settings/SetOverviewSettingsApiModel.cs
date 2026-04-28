@@ -3,5 +3,6 @@
     public class SetOverviewSettingsApiModel
     {
         public OverviewFilterApiModel[] Filters { get; set; } = [];
+        public OverviewSortOptionApiModel[] SortOptions { get; set; } = [];
     }
 }

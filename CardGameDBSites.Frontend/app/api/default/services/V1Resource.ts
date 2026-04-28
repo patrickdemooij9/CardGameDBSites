@@ -155,17 +155,14 @@ export class V1Resource {
      */
     public static getApiCardsById({
         id,
-        setId,
     }: {
         id?: string,
-        setId?: number,
     }): CancelablePromise<CardDetailApiModel> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/cards/byId',
             query: {
                 'id': id,
-                'setId': setId,
             },
         });
     }

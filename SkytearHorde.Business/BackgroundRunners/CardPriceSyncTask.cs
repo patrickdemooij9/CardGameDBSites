@@ -169,7 +169,7 @@ namespace SkytearHorde.Business.BackgroundRunners
                     var price = priceGroup.GetByVariant(card.VariantId);
                     if (price == null) continue;
 
-                    totalPrice += price.LowestPrice;
+                    totalPrice += price.MainPrice;
                     priceCount++;
                 }
 

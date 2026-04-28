@@ -1,5 +1,5 @@
-import type { SetViewModel } from "~/api/default";
-import { DoFetch } from "~/helpers/RequestsHelper";
+import type { SetPriceHistoryItemApiModel, SetViewModel } from "~/api/default";
+import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
 
 export default class SetService {
   async getAllSets() {
@@ -22,5 +22,12 @@ export default class SetService {
     return await DoFetch<SetViewModel>(`/api/sets/get?id=${id}`, {
       method: "GET",
     });
+  }
+
+  async getPriceHistory(setId: number) {
+    return await DoServerFetch<SetPriceHistoryItemApiModel[]>(
+      `/api/sets/priceHistory?setId=${setId}`,
+      true,
+    );
   }
 }

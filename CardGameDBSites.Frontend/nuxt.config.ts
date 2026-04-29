@@ -4,7 +4,7 @@ import { defineNuxtConfig } from 'nuxt/config';
 import { resolve } from 'path';
 
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2025-04-29',
   devtools: { enabled: true, 
     timeline: {
       enabled: true,
@@ -22,9 +22,6 @@ export default defineNuxtConfig({
     public: {
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL
     }
-  },
-  routeRules: {
-    "/": { swr: true },
   },
   vite: {
     optimizeDeps: {

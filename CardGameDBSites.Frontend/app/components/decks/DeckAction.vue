@@ -67,6 +67,31 @@ async function handleRedirectExport(action: DeckActionApiModel) {
   }
 }
 
+async function downloadImage(action: DeckActionApiModel) {
+  if (isLoading.value) return;
+
+  isLoading.value = true;
+  try {
+    const { token } = await $fetch<{ token: string | null }>("/api/auth/token");
+    const url = `${baseApiUrl}/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`;
+    const response = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!response.ok) throw new Error("Export failed");
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = `${props.deck.id}-deck.png`;
+    a.click();
+    URL.revokeObjectURL(objectUrl);
+  } catch (error) {
+    toast.error("Failed to download image");
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 async function handleForceTable() {
   if (isLoading.value) return;
 
@@ -138,15 +163,14 @@ async function handleForceTable() {
     </button>
   </div>
   <div v-else-if="action.type === 'DeckImageExport'">
-    <a
+    <button
       class="flex align-center gap-1 no-underline"
-      :href="`${baseApiUrl}/api/export/export?deckId=${deck.id}&exportId=${action.id}`"
-      target="_blank"
-      rel="nofollow noreferrer"
+      :disabled="isLoading"
+      @click="downloadImage(action)"
     >
       <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
-    </a>
+    </button>
   </div>
   <div v-else>
     <a
@@ -200,12 +224,11 @@ async function handleForceTable() {
             </div>
           </Button>
         </button>
-        <a
+        <button
           v-else-if="subAction.type === 'DeckImageExport'"
-          :href="`${baseApiUrl}/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"
-          class="no-underline"
-          target="_blank"
-          rel="nofollow noreferrer"
+          class="no-underline w-full"
+          :disabled="isLoading"
+          @click="downloadImage(subAction)"
         >
           <Button :button-type="ButtonType.Outline" class="w-full mt-2">
             <div class="flex gap-2 align-center">
@@ -214,7 +237,7 @@ async function handleForceTable() {
               </p>
             </div>
           </Button>
-        </a>
+        </button>
         <a
           v-else
           :href="`/api/proxy/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"

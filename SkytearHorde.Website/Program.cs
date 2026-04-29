@@ -107,6 +107,8 @@ void ConfigureServices(IServiceCollection services, bool isProduction)
 {
     services.AddAdServer();
 
+    services.AddSingleton<CardGameDBSites.API.Services.ExportTokenService>();
+
     var rootDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
     services.AddDataProtection()
         .PersistKeysToFileSystem(new DirectoryInfo(rootDirectory + "/umbraco"))

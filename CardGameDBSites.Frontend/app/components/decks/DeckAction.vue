@@ -11,7 +11,6 @@ import { PopupSize } from "../popups/PopupTypes";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import { useAppToast } from "~/composables/useAppToast";
-import { GetBaseApiUrl } from "~/helpers/RequestsHelper";
 
 const props = defineProps<{
   deck: DeckApiModel;
@@ -22,7 +21,6 @@ const props = defineProps<{
 const showModal = ref(false);
 const toast = useAppToast();
 const isLoading = ref(false);
-const baseApiUrl = GetBaseApiUrl();
 
 const icons: { [key: string]: Component } = {
   crown: PhCrown,
@@ -67,26 +65,17 @@ async function handleRedirectExport(action: DeckActionApiModel) {
   }
 }
 
-async function downloadImage(action: DeckActionApiModel) {
+async function openImageExport(action: DeckActionApiModel) {
   if (isLoading.value) return;
 
   isLoading.value = true;
   try {
-    const { token } = await $fetch<{ token: string | null }>("/api/auth/token");
-    const url = `${baseApiUrl}/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`;
-    const response = await fetch(url, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!response.ok) throw new Error("Export failed");
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = objectUrl;
-    a.download = `${props.deck.id}-deck.png`;
-    a.click();
-    URL.revokeObjectURL(objectUrl);
+    const { url } = await $fetch<{ url: string }>(
+      `/api/export/image-url?deckId=${props.deck.id}&exportId=${action.id}`
+    );
+    window.open(url, "_blank", "noreferrer");
   } catch (error) {
-    toast.error("Failed to download image");
+    toast.error("Failed to generate export link");
   } finally {
     isLoading.value = false;
   }
@@ -166,7 +155,7 @@ async function handleForceTable() {
     <button
       class="flex align-center gap-1 no-underline"
       :disabled="isLoading"
-      @click="downloadImage(action)"
+      @click="openImageExport(action)"
     >
       <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
@@ -228,7 +217,7 @@ async function handleForceTable() {
           v-else-if="subAction.type === 'DeckImageExport'"
           class="no-underline w-full"
           :disabled="isLoading"
-          @click="downloadImage(subAction)"
+          @click="openImageExport(subAction)"
         >
           <Button :button-type="ButtonType.Outline" class="w-full mt-2">
             <div class="flex gap-2 align-center">

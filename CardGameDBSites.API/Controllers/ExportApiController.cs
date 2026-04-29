@@ -1,4 +1,5 @@
 ﻿using CardGameDBSites.API.Attributes;
+using CardGameDBSites.API.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,7 @@ namespace CardGameDBSites.API.Controllers
         private readonly ILogger<ExportController> _logger;
         private readonly CardService _cardService;
         private readonly SettingsService _settingsService;
+        private readonly ExportTokenService _exportTokenService;
 
         public ExportApiController(DeckService deckService,
             IWebHostEnvironment webHostEnvironment,
@@ -40,7 +42,8 @@ namespace CardGameDBSites.API.Controllers
             ISiteService siteService,
             ILogger<ExportController> logger,
             CardService cardService,
-            SettingsService settingsService)
+            SettingsService settingsService,
+            ExportTokenService exportTokenService)
         {
             _deckService = deckService;
             _webHostEnvironment = webHostEnvironment;
@@ -49,13 +52,39 @@ namespace CardGameDBSites.API.Controllers
             _logger = logger;
             _cardService = cardService;
             _settingsService = settingsService;
+            _exportTokenService = exportTokenService;
+        }
+
+        [EnableRateLimiting("export")]
+        [OptionalJwtAuthorization]
+        [HttpGet("createToken")]
+        public IActionResult CreateToken(int deckId, Guid exportId)
+        {
+            if (!TryGetDeck(deckId, out _))
+                return NotFound();
+
+            var exportType = GetExportTypes().FirstOrDefault(it => it.Key == exportId);
+            if (exportType is null)
+                return NotFound();
+
+            var token = _exportTokenService.CreateToken(deckId, exportId, TimeSpan.FromMinutes(1));
+            return Ok(new { token });
         }
 
         [EnableRateLimiting("export")]
         [OptionalJwtAuthorization]
         [HttpGet("export")]
-        public async Task<IActionResult> Export(int deckId, Guid exportId)
+        public async Task<IActionResult> Export(int deckId, Guid exportId, string? exportToken = null)
         {
+            if (exportToken is not null)
+            {
+                if (!_exportTokenService.TryConsume(exportToken, out var tokenDeckId, out var tokenExportId))
+                    return Unauthorized();
+
+                deckId = tokenDeckId;
+                exportId = tokenExportId;
+            }
+
             if (!TryGetDeck(deckId, out var deck))
             {
                 return NotFound();

@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     }
   },
   routeRules: {
-    "/": { swr: 300 },
+    "/": { isr: 300 },
   },
   vite: {
     optimizeDeps: {

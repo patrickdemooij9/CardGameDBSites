@@ -11,6 +11,7 @@ import { PopupSize } from "../popups/PopupTypes";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import { useAppToast } from "~/composables/useAppToast";
+import { GetBaseApiUrl } from "~/helpers/RequestsHelper";
 
 const props = defineProps<{
   deck: DeckApiModel;
@@ -21,6 +22,7 @@ const props = defineProps<{
 const showModal = ref(false);
 const toast = useAppToast();
 const isLoading = ref(false);
+const baseApiUrl = GetBaseApiUrl();
 
 const icons: { [key: string]: Component } = {
   crown: PhCrown,
@@ -135,6 +137,17 @@ async function handleForceTable() {
       <p>{{ action.displayName }}</p>
     </button>
   </div>
+  <div v-else-if="action.type === 'DeckImageExport'">
+    <a
+      class="flex align-center gap-1 no-underline"
+      :href="`${baseApiUrl}/api/export/export?deckId=${deck.id}&exportId=${action.id}`"
+      target="_blank"
+      rel="nofollow noreferrer"
+    >
+      <component :is="icons[action.icon!]"></component>
+      <p>{{ action.displayName }}</p>
+    </a>
+  </div>
   <div v-else>
     <a
       class="flex align-center gap-1 no-underline"
@@ -187,6 +200,21 @@ async function handleForceTable() {
             </div>
           </Button>
         </button>
+        <a
+          v-else-if="subAction.type === 'DeckImageExport'"
+          :href="`${baseApiUrl}/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"
+          class="no-underline"
+          target="_blank"
+          rel="nofollow noreferrer"
+        >
+          <Button :button-type="ButtonType.Outline" class="w-full mt-2">
+            <div class="flex gap-2 align-center">
+              <p>
+                {{ subAction.displayName }}
+              </p>
+            </div>
+          </Button>
+        </a>
         <a
           v-else
           :href="`/api/proxy/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"

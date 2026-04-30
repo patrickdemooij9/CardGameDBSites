@@ -32,11 +32,6 @@ export async function DoServerFetch<T>(
     url = `/api/proxy${url}`;
   }
 
-  if (import.meta.server){
-    const { data, error } = await useFetch(url, options);
-    return data.value as T;
-  }
-
   return $fetch<T>(url, options);
 }
 

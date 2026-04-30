@@ -74,7 +74,8 @@ namespace SkytearHorde.Business.Startup.Migrations
                 .To<RedditBotCommentMigration>("v35")
                 .To<CardPriceDeltaMigration>("v36")
                 .To<DailyCardGameMigration>("v37")
-                .To<SetPriceMigration>("v38");
+                .To<SetPriceMigration>("v38")
+                .To<TournamentMigration>("v39");
 
             var upgrader = new Upgrader(migrationPlan);
             upgrader.Execute(_migrationPlanExecutor, _coreScopeProvider, _keyValueService);

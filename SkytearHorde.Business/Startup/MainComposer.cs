@@ -57,6 +57,11 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddScoped<CollectionService>();
             builder.Services.AddSingleton<CardPriceService>();
             builder.Services.AddScoped<RandomizeService>();
+            builder.Services.AddSingleton<TournamentService>();
+            builder.Services.AddSingleton<EntrantService>();
+            builder.Services.AddSingleton<DeckIntegrationService>();
+            builder.Services.AddSingleton<ArchetypeService>();
+            builder.Services.AddSingleton<MetaService>();
             builder.Services.AddSingleton<CardSearchFieldsFinder>();
 
             builder.Services.AddSingleton<DeckRepository>();
@@ -78,6 +83,9 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<DailyCardChallengeRepository>();
             builder.Services.AddSingleton<DailyCardGameSessionRepository>();
             builder.Services.AddSingleton<DailyCardGameGuessRepository>();
+            builder.Services.AddSingleton<TournamentRepository>();
+            builder.Services.AddSingleton<TournamentEntrantRepository>();
+            builder.Services.AddSingleton<ArchetypeRepository>();
 
             builder.Services.AddSingleton<IAdRepository, AdRepository>();
             builder.Services.AddSingleton<IMetricRawDataRepository, MetricRawDataRepository>();

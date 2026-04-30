@@ -12,16 +12,19 @@ namespace SkytearHorde.Business.Services
     {
         private readonly CardRepository _cardRepository;
         private readonly CardPriceRepository _cardPriceRepository;
+        private readonly SetPriceRepository _setPriceRepository;
         private readonly IAppPolicyCache _appPolicyCache;
         private readonly IProfiler _profiler;
 
         public CardPriceService(CardRepository cardRepository,
             CardPriceRepository cardPriceRepository,
+            SetPriceRepository setPriceRepository,
             AppCaches appCaches,
             IProfiler profiler)
         {
             _cardRepository = cardRepository;
             _cardPriceRepository = cardPriceRepository;
+            _setPriceRepository = setPriceRepository;
             _appPolicyCache = appCaches.RuntimeCache;
             _profiler = profiler;
         }
@@ -103,6 +106,22 @@ namespace SkytearHorde.Business.Services
             if (externalId is null) return "";
 
             return $"{baseUrl}?u={UrlEncoder.Default.Encode($"https://tcgplayer.com/product/{externalId}")}";
+        }
+
+        public double? GetSetPrice(int setId)
+        {
+            return _setPriceRepository.GetLatestPrice(setId)?.TotalPrice;
+        }
+
+        public List<SetPricePoint> GetSetPriceHistory(int setId)
+        {
+            return _setPriceRepository.GetPriceHistory(setId)
+                .Select(r => new SetPricePoint
+                {
+                    TotalPrice = r.TotalPrice,
+                    DateUtc = r.DateUtc,
+                })
+                .ToList();
         }
     }
 }

@@ -16,11 +16,15 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly CardService _cardService;
         private readonly ISiteService _siteService;
+        private readonly CardPriceService _cardPriceService;
+        private readonly SettingsService _settingsService;
 
-        public SetsApiController(CardService cardService, ISiteService siteService)
+        public SetsApiController(CardService cardService, ISiteService siteService, CardPriceService cardPriceService, SettingsService settingsService)
         {
             _cardService = cardService;
             _siteService = siteService;
+            _cardPriceService = cardPriceService;
+            _settingsService = settingsService;
         }
 
         [HttpGet("getAll")]
@@ -53,6 +57,23 @@ namespace CardGameDBSites.API.Controllers
         public IActionResult GetSetsByIds(int[] ids)
         {
             return Ok(_cardService.GetAllSets().Where(it => ids.Contains(it.Id)).Select(CreateSetViewModel));
+        }
+
+        [HttpGet("priceHistory")]
+        [ProducesResponseType(typeof(SetPriceHistoryItemApiModel[]), 200)]
+        public IActionResult GetPriceHistory(int setId)
+        {
+            if (!_settingsService.GetSiteSettings().AllowPricing)
+                return Ok(Array.Empty<SetPriceHistoryItemApiModel>());
+
+            var history = _cardPriceService.GetSetPriceHistory(setId);
+            var result = history.Select(h => new SetPriceHistoryItemApiModel
+            {
+                Date = h.DateUtc.ToString("yyyy-MM-dd"),
+                Price = h.TotalPrice
+            }).ToArray();
+
+            return Ok(result);
         }
 
         private SetViewModel CreateSetViewModel(Set set)

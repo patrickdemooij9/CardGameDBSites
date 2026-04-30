@@ -4,12 +4,19 @@ import SetService from "~/services/SetService";
 import CardOverview from "../overviews/CardOverview.vue";
 import { OverviewFilterType, type OverviewFilterModel } from "../overviews/OverviewFilterModel";
 import { useSite } from "~/composables/useSite";
+import SetPriceHistoryChart from "../cards/SetPriceHistoryChart.vue";
 
 const props = defineProps<{
   content: IApiContentModel;
 }>();
 
-const set = await new SetService().get(props.content.id!);
+const setService = new SetService();
+const set = await setService.get(props.content.id!);
+const priceHistory = await setService.getPriceHistory(set.id);
+const currentPrice = priceHistory && priceHistory.length > 0
+  ? priceHistory[priceHistory.length - 1]!.price
+  : null;
+
 const settings = await useSite().getSetOverviewSettings();
 const filters: OverviewFilterModel[] = settings.filters?.map<OverviewFilterModel>((filter) => {
   return {
@@ -75,9 +82,14 @@ onMounted(async () => {
               {{ info }}
             </p>
           </div>
+          <div v-if="currentPrice !== null" class="mt-4">
+            <p>Current set value: <span class="text-green-700">${{ currentPrice.toFixed(2) }}</span></p>
+          </div>
         </div>
       </div>
+      <SetPriceHistoryChart v-if="priceHistory && priceHistory.length > 1" :set-id="set.id" />
     </div>
     <CardOverview :filters="filters" :sortings="sortings" :set-id="set.id" :page-size="1000"></CardOverview>
   </div>
 </template>
+

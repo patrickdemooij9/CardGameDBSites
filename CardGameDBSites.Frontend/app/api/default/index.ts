@@ -74,6 +74,7 @@ export type { RequirementApiModel } from './models/RequirementApiModel';
 export { RestrictionType } from './models/RestrictionType';
 export type { SetOverviewSettingsApiModel } from './models/SetOverviewSettingsApiModel';
 export type { SetProgressApiModel } from './models/SetProgressApiModel';
+export type { SetPriceHistoryItemApiModel } from './models/SetPriceHistoryItemApiModel';
 export type { SetViewModel } from './models/SetViewModel';
 export type { SiteSettingsApiModel } from './models/SiteSettingsApiModel';
 

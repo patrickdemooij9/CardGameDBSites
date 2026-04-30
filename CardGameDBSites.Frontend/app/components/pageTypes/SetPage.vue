@@ -83,7 +83,7 @@ onMounted(async () => {
             </p>
           </div>
           <div v-if="currentPrice !== null" class="mt-4">
-            <p class="text-lg font-semibold">Set Value: <span class="text-green-700">${{ currentPrice.toFixed(2) }}</span></p>
+            <p>Current set value: <span class="text-green-700">${{ currentPrice.toFixed(2) }}</span></p>
           </div>
         </div>
       </div>

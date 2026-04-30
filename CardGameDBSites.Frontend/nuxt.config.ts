@@ -23,9 +23,6 @@ export default defineNuxtConfig({
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL
     }
   },
-  routeRules: {
-    "/": { swr: 300 },
-  },
   vite: {
     optimizeDeps: {
       include: [

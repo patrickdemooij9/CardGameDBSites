@@ -75,6 +75,9 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<CollectionPackRepository>();
             builder.Services.AddSingleton<RedditDailyCardRepository>();
             builder.Services.AddSingleton<RedditBotCommentRepository>();
+            builder.Services.AddSingleton<DailyCardChallengeRepository>();
+            builder.Services.AddSingleton<DailyCardGameSessionRepository>();
+            builder.Services.AddSingleton<DailyCardGameGuessRepository>();
 
             builder.Services.AddSingleton<IAdRepository, AdRepository>();
             builder.Services.AddSingleton<IMetricRawDataRepository, MetricRawDataRepository>();
@@ -88,6 +91,7 @@ namespace SkytearHorde.Business.Startup
 
             builder.Services.AddSingleton<ViewSessionGenerator>();
             builder.Services.AddSingleton<ViewTrackingProcessor>();
+            builder.Services.AddScoped<DailyGameService>();
 
             builder.Services.AddScoped<ViewRenderHelper>();
 

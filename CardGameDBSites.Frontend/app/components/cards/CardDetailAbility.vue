@@ -8,6 +8,16 @@ const props = defineProps<{
 }>();
 
 const abilityValue = props.card.attributes![props.section.ability!];
+
+// Bit ugly. Should eventually replace with something like sitesettings
+function trimUrlDomain(url: string) {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.pathname + parsedUrl.search + parsedUrl.hash;
+  } catch (e) {
+    return url;
+  }
+}
 </script>
 
 <template>
@@ -37,7 +47,7 @@ const abilityValue = props.card.attributes![props.section.ability!];
           v-for="(item, abilityIndex) in abilityValue"
           v-else
           :key="abilityIndex"
-          :to="`${section.overviewPageUrl}?${section.ability}=${encodeURIComponent(item)}`"
+          :to="`${trimUrlDomain(section.overviewPageUrl!)}?${section.ability}=${encodeURIComponent(item)}`"
           class="p-1 rounded bg-main-color text-white inline-block text-xs no-underline"
         >
           {{ item }}

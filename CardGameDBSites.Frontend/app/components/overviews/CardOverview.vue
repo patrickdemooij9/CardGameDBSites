@@ -39,6 +39,7 @@ const props = defineProps<{
   sortings?: OverviewSortModel[];
   setId?: number;
   tableColumns?: CardOverviewTableColumn[];
+  pageSize?: number;
 }>();
 
 const availableViews = computed(() =>
@@ -150,6 +151,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :white-background="true"
     :enable-query-string-sync="true"
     :available-views="availableViews"
+    :page-size="pageSize"
     v-slot="{ cards, viewMode }"
     @reloaded="loadCollectionCards"
   >
@@ -164,9 +166,9 @@ function getCardIdentifier(card: CardDetailApiModel) {
             <h2>{{ card.displayName }}</h2>
             <p>No image yet</p>
           </div>
-          <img v-else :src="GetCrop(card.imageUrl, undefined)" />
+          <img v-else :src="GetCrop(card.imageUrl, undefined)" loading="lazy" />
         </NuxtLink>
-        <div class="flex justify-between align-center mt-2">
+        <div class="flex justify-between items-center mt-2">
           <p>
             <span v-if="siteSettings.cardOverviewIdentifier">{{ getCardIdentifier(card) }}</span>
           </p>
@@ -189,7 +191,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                       ? 'bg-red-600'
                       : 'bg-[#cfcfcf]',
                   ]"
-                  class="absolute top-0 flex align-center justify-center border border-white rounded h-6 w-4 pt-1 z-10"
+                  class="absolute top-0 flex justify-center border border-white rounded h-6 w-4 pt-1 z-10"
                   title="Base card"
                 >
                   <span class="bg-white rounded-full w-2 h-2"></span>
@@ -197,7 +199,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                 <span
                   v-for="(variant, index) in getMainVariants(card)"
                   :key="variant.id"
-                  class="absolute top-0 flex align-center justify-center border border-white rounded h-6 w-4 pt-1"
+                  class="absolute top-0 flex justify-center border border-white rounded h-6 w-4 pt-1"
                   :title="variant.displayName"
                   :style="{
                     'background-color': ownsVariant(card, variant.id)

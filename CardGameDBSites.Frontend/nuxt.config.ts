@@ -4,7 +4,7 @@ import { defineNuxtConfig } from 'nuxt/config';
 import { resolve } from 'path';
 
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2025-04-29',
   devtools: { enabled: true, 
     timeline: {
       enabled: true,
@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     }
   },
   routeRules: {
-    "/": { swr: true },
+    "/": { swr: 300 },
   },
   vite: {
     optimizeDeps: {
@@ -32,7 +32,9 @@ export default defineNuxtConfig({
         '@vue/devtools-core',
         '@vue/devtools-kit',
         'vue-toastification',
-        '@phosphor-icons/vue'
+        '@phosphor-icons/vue',
+        'vue-chartjs',
+        'chart.js'
       ]
     }
   }

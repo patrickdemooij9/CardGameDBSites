@@ -11,7 +11,7 @@
         public List<CardSorting> OrderBy { get; set; }
         public int? VariantTypeId { get; set; }
         public bool IncludeHideFromDeck { get; set; } = true;
-        public bool OnlyOwnedCards { get; set; }
+        public CardSearchCollectionMode CollectionMode { get; set; }
         public int? MemberId { get; set; }
         public bool IncludeReprintedCards { get; set; } = true;
         public int? LegalForDeckTypeId { get; set; }
@@ -23,6 +23,8 @@
 
             FilterClauses = [];
             OrderBy = [];
+
+            CollectionMode = CardSearchCollectionMode.Ignore;
         }
     }
 }

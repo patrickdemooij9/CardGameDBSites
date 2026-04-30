@@ -81,9 +81,18 @@ namespace CardGameDBSites.API.Controllers
         {
             var status = DeckStatus.Published;
             var currentUser = await _memberManager.GetCurrentMemberAsync();
-            if (_memberManager.IsLoggedIn() && currentUser != null && query.UserId.HasValue && currentUser.Id == query.UserId.ToString())
+            int? useUserCollection = null;
+            if (_memberManager.IsLoggedIn() && currentUser != null)
             {
-                status = query.Status;
+                if (query.UserId.HasValue && currentUser.Id == query.UserId.ToString())
+                {
+                    status = query.Status;
+                }
+                
+                if (query.OrderBy == "collection")
+                {
+                    useUserCollection = int.Parse(currentUser.Id);
+                }
             }
 
             var decks = _deckService.GetAll(new DeckPagedRequest(query.TypeId)
@@ -96,7 +105,8 @@ namespace CardGameDBSites.API.Controllers
                 UserId = query.UserId,
                 OrderBy = query.OrderBy,
                 DateFrom = query.DateFrom,
-                DateTo = query.DateTo
+                DateTo = query.DateTo,
+                UseUserCollectionId = useUserCollection
             });
             return Ok(new PagedResult<DeckApiModel>(decks.TotalItems, query.Page, query.Take)
             {

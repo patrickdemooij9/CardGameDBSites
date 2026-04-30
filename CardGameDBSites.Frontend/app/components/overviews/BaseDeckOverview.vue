@@ -50,7 +50,7 @@ const filters: OverviewFilterModel[] = [
     Type: OverviewFilterType.DATE,
     Items: [],
     AutoFillValues: false,
-  }
+  },
 ];
 
 async function loadData(value: OverviewRefreshModel) {
@@ -66,8 +66,11 @@ async function loadData(value: OverviewRefreshModel) {
   });
 
   const cardFilter = value.SelectedFilters.get(filters[0]!);
-  const cardIds = cardFilter && cardFilter.length > 0 ? cardFilter.map(v => parseInt(v)) : undefined;
-  
+  const cardIds =
+    cardFilter && cardFilter.length > 0
+      ? cardFilter.map((v) => parseInt(v))
+      : undefined;
+
   pagedDecks.value = await deckService.query({
     page: value.PageNumber,
     take: 20,
@@ -84,6 +87,15 @@ async function loadData(value: OverviewRefreshModel) {
     value.LoadedCallback();
   }
 }
+
+onMounted(() => {
+  const accountStore = useAccountStore();
+  accountStore.checkLogin().then((isLoggedIn) => {
+    if (isLoggedIn) {
+      defaultSortings.push({ Name: "Collection", Value: "collection" });
+    }
+  });
+});
 </script>
 
 <template>
@@ -99,7 +111,10 @@ async function loadData(value: OverviewRefreshModel) {
   >
     <div v-if="pagedDecks">
       <slot :decks="pagedDecks">
-        <DeckCardCollection :decks="pagedDecks.items ?? []" :decks-per-row="props.decksPerRow"></DeckCardCollection>
+        <DeckCardCollection
+          :decks="pagedDecks.items ?? []"
+          :decks-per-row="props.decksPerRow"
+        ></DeckCardCollection>
       </slot>
 
       <div

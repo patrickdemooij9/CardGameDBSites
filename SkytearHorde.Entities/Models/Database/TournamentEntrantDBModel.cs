@@ -15,7 +15,7 @@ namespace SkytearHorde.Entities.Models.Database
         public Guid TournamentEventId { get; set; }
 
         [Column("PlayerName")]
-        public string PlayerName { get; set; }
+        public required string PlayerName { get; set; }
 
         [Column("Placement")]
         [NullSetting(NullSetting = NullSettings.Null)]

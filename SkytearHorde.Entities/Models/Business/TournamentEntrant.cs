@@ -4,7 +4,7 @@ namespace SkytearHorde.Entities.Models.Business
     {
         public Guid Id { get; set; }
         public Guid TournamentEventId { get; set; }
-        public string PlayerName { get; set; }
+        public required string PlayerName { get; set; }
         public int? Placement { get; set; }
         public int? Wins { get; set; }
         public int? Losses { get; set; }

@@ -15,7 +15,7 @@ namespace SkytearHorde.Entities.Models.Database
         public int SiteId { get; set; }
 
         [Column("Name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [Column("Date")]
         public DateTime Date { get; set; }

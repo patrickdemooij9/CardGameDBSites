@@ -9,6 +9,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/tournaments")]
+    [IgnoreAntiforgeryToken]
     public class TournamentsApiController : Controller
     {
         private readonly TournamentService _tournamentService;

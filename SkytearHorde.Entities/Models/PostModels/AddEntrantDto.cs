@@ -2,7 +2,7 @@ namespace SkytearHorde.Entities.Models.PostModels
 {
     public class AddEntrantDto
     {
-        public string PlayerName { get; set; }
+        public required string PlayerName { get; set; }
         public int? Placement { get; set; }
         public int? Wins { get; set; }
         public int? Losses { get; set; }

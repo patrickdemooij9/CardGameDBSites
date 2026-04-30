@@ -106,7 +106,7 @@ namespace SkytearHorde.Business.Services
 
     public class ArchetypeMetaResult
     {
-        public Archetype Archetype { get; set; }
+        public required Archetype Archetype { get; set; }
         public int DeckCount { get; set; }
         public int PreviousDeckCount { get; set; }
         public int Trend { get; set; }

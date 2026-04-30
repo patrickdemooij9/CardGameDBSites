@@ -19,7 +19,7 @@ namespace SkytearHorde.Entities.Models.Database
         public int? FormatId { get; set; }
 
         [Column("Name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [Column("Description")]
         [NullSetting(NullSetting = NullSettings.Null)]

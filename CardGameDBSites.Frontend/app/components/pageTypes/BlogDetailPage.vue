@@ -38,7 +38,7 @@ const headerImageUrl = props.content.properties?.image?.length
         </p>
     </div>
 
-    <div class="container px-4 md:px-8">
+    <div class="container px-4 md:px-8 content">
         <ContentGrid v-if="content.properties?.grid" :content="content.properties.grid" />
     </div>
 </template>

@@ -99,7 +99,7 @@ namespace SkytearHorde.Business.Services
                 });
             }
 
-            return results.OrderBy(r => r.Placement).ToList();
+            return results.OrderBy(r => r.Placement.HasValue ? 0 : 1).ThenBy(r => r.Placement).ToList();
         }
     }
 

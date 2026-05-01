@@ -23,7 +23,9 @@ export function useSite() {
     const { data } = await useAsyncData("site-settings", () =>
       DoFetch<SiteSettingsApiModel>("/api/settings/site")
     );
-    store.setSiteSettings(data.value!);
+    if (data.value) {
+      store.setSiteSettings(data.value);
+    }
     return data.value!;
   };
 
@@ -65,7 +67,9 @@ export function useSite() {
         query: { typeId }
       })
     );
-    store.setDeckTypeSettings(typeId, data.value!);
+    if (data.value) {
+      store.setDeckTypeSettings(typeId, data.value);
+    }
     return data.value!;
   };
 
@@ -77,7 +81,9 @@ export function useSite() {
     const { data } = await useAsyncData("set-overview-settings", () =>
       DoFetch<SetOverviewSettingsApiModel>("/api/settings/setOverview")
     );
-    store.setSetOverviewSettings(data.value!);
+    if (data.value) {
+      store.setSetOverviewSettings(data.value);
+    }
     return data.value!;
   };
 

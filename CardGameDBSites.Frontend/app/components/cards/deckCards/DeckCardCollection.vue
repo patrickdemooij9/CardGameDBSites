@@ -20,20 +20,19 @@ const cards = ref<Record<number, CardDetailApiModel>>({});
 const deckSettings = ref<Record<number, DeckTypeSettingsApiModel>>({});
 const deckProgress = ref<Record<number, number>>({});
 
-async function loadDeckData(decks: DeckApiModel[]) {
-  if (decks.length === 0) return;
+const uniqueTypeIds = [...new Set(props.decks.map(d => d.typeId).filter(Boolean) as number[])];
 
-  const uniqueCreatorIds = [...new Set(decks.map(d => d.createdBy).filter((id): id is number => !!id))];
-  const newCreatorIds = uniqueCreatorIds.filter(id => !members.value[id]);
-  if (newCreatorIds.length > 0) {
-    const loadedMembers = await loadMembersByIds(newCreatorIds);
+if (props.decks.length > 0) {
+  const uniqueCreatorIds = [...new Set(props.decks.map(d => d.createdBy).filter((id): id is number => !!id))];
+  if (uniqueCreatorIds.length > 0) {
+    const loadedMembers = await loadMembersByIds(uniqueCreatorIds);
     loadedMembers.forEach(m => {
       members.value[m.id] = m;
     });
   }
 
-  const allCardIds = decks.flatMap(d => d.cards?.map(c => c.cardId!).filter(Boolean) ?? []);
-  const uniqueCardIds = [...new Set(allCardIds)].filter(id => !cards.value[id]);
+  const allCardIds = props.decks.flatMap(d => d.cards?.map(c => c.cardId!).filter(Boolean) ?? []);
+  const uniqueCardIds = [...new Set(allCardIds)];
   if (uniqueCardIds.length > 0) {
     const loadedCards = await loadCardsByIds(uniqueCardIds);
     loadedCards.forEach(c => {
@@ -43,22 +42,13 @@ async function loadDeckData(decks: DeckApiModel[]) {
     });
   }
 
-  const uniqueTypeIds = [...new Set(decks.map(d => d.typeId).filter(Boolean) as number[])];
   for (const typeId of uniqueTypeIds) {
-    if (!deckSettings.value[typeId]) {
-      const settings = await getDeckTypeSettings(typeId);
-      if (settings) {
-        deckSettings.value[typeId] = settings;
-      }
+    const settings = await getDeckTypeSettings(typeId);
+    if (settings) {
+      deckSettings.value[typeId] = settings;
     }
   }
 }
-
-await loadDeckData(props.decks);
-
-watch(() => props.decks, (newDecks) => {
-  loadDeckData(newDecks);
-});
 
 onMounted(async () => {
   const accountStore = useAccountStore();

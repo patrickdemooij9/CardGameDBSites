@@ -10,12 +10,20 @@ import { DoFetch } from "~/helpers/RequestsHelper";
 import DeckService from "~/services/DeckService";
 import { useCards } from "~/composables/useCards";
 import type { DisplaySize } from "~/components/decks/deckBuilder/DeckBuilderModels";
+import { useSiteStore } from "~/stores/SiteStore";
 
 export function useSite() {
+  const store = useSiteStore();
+
   const getSettings = async () => {
+    if (!store.isExpired(store.siteSettings)) {
+      return store.siteSettings!.data;
+    }
+
     const { data } = await useAsyncData("site-settings", () =>
       DoFetch<SiteSettingsApiModel>("/api/settings/site")
     );
+    store.setSiteSettings(data.value!);
     return data.value!;
   };
 
@@ -47,18 +55,29 @@ export function useSite() {
   };
 
   const getDeckTypeSettings = async (typeId: number) => {
+    const cached = store.deckTypeSettings[typeId] ?? null;
+    if (!store.isExpired(cached)) {
+      return cached!.data;
+    }
+
     const { data } = await useAsyncData(`deck-type-settings-${typeId}`, () =>
       DoFetch<DeckTypeSettingsApiModel>("/api/settings/deckType", {
         query: { typeId }
       })
     );
+    store.setDeckTypeSettings(typeId, data.value!);
     return data.value!;
   };
 
   const getSetOverviewSettings = async () => {
+    if (!store.isExpired(store.setOverviewSettings)) {
+      return store.setOverviewSettings!.data;
+    }
+
     const { data } = await useAsyncData("set-overview-settings", () =>
       DoFetch<SetOverviewSettingsApiModel>("/api/settings/setOverview")
     );
+    store.setSetOverviewSettings(data.value!);
     return data.value!;
   };
 

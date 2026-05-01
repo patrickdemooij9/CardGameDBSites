@@ -91,5 +91,11 @@ namespace CardGameDBSites.API.Controllers
             if (entrant is null) return NotFound();
             return Ok(entrant);
         }
+        [HttpGet("deck/{deckId:int}")]
+        public IActionResult GetByDeck(int deckId)
+        {
+            var results = _tournamentService.GetTournamentsForDeck(deckId);
+            return Ok(results);
+        }
     }
 }

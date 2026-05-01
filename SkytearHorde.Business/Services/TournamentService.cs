@@ -72,5 +72,48 @@ namespace SkytearHorde.Business.Services
 
             return tournaments;
         }
+        public List<DeckTournamentResult> GetTournamentsForDeck(int deckId)
+        {
+            var entrants = _entrantRepository.GetByDeck(deckId);
+            var types = _settingsService.GetTypes();
+            var results = new List<DeckTournamentResult>();
+
+            foreach (var entrant in entrants)
+            {
+                var tournament = _tournamentRepository.Get(entrant.TournamentEventId);
+                if (tournament is null) continue;
+
+                var format = types.FirstOrDefault(t => t.Id == tournament.FormatId);
+                results.Add(new DeckTournamentResult
+                {
+                    TournamentId = tournament.Id,
+                    TournamentName = tournament.Name,
+                    Date = tournament.Date,
+                    FormatDisplayName = format?.DisplayName,
+                    PlayerCount = tournament.PlayerCount,
+                    SourceUrl = tournament.SourceUrl,
+                    Placement = entrant.Placement,
+                    Wins = entrant.Wins,
+                    Losses = entrant.Losses,
+                    Draws = entrant.Draws
+                });
+            }
+
+            return results.OrderBy(r => r.Placement).ToList();
+        }
+    }
+
+    public class DeckTournamentResult
+    {
+        public Guid TournamentId { get; set; }
+        public required string TournamentName { get; set; }
+        public DateTime Date { get; set; }
+        public string? FormatDisplayName { get; set; }
+        public int? PlayerCount { get; set; }
+        public string? SourceUrl { get; set; }
+        public int? Placement { get; set; }
+        public int? Wins { get; set; }
+        public int? Losses { get; set; }
+        public int? Draws { get; set; }
     }
 }

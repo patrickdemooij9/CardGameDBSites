@@ -25,6 +25,7 @@ namespace CardGameDBSites.API.Models
         public CardSectionApiModel[] CardSections { get; set; }
         public KeywordImageApiModel[] KeywordImages { get; set; } = [];
         public string? CardOverviewIdentifier { get; set; }
+        public int SiteId { get; set; }
 
         public SiteSettingsApiModel()
         {

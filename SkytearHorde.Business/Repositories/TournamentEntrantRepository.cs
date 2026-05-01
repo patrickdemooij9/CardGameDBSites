@@ -72,6 +72,19 @@ namespace SkytearHorde.Business.Repositories
                 .ToList();
         }
 
+        public List<TournamentEntrant> GetByDeck(int deckId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            return scope.Database.Fetch<TournamentEntrantDBModel>(
+                scope.SqlContext.Sql()
+                    .SelectAll()
+                    .From<TournamentEntrantDBModel>()
+                    .Where<TournamentEntrantDBModel>(e => e.DeckId == deckId))
+                .Select(Map)
+                .ToList();
+        }
+
         public TournamentEntrant? Get(Guid id)
         {
             using var scope = _scopeProvider.CreateScope();

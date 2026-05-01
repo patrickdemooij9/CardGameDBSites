@@ -21,6 +21,11 @@ import CommentSection from "../comments/CommentSection.vue";
 import { PhDotsThree } from "@phosphor-icons/vue";
 import DeckDetailCardModal from "../decks/DeckDetailCardModal.vue";
 import { useAccountStore } from "~/stores/AccountStore";
+import MetaService from "~/services/MetaService";
+import type { Archetype } from "~/services/MetaService";
+import TournamentService from "~/services/TournamentService";
+import type { DeckTournamentResult } from "~/services/TournamentService";
+import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 
 console.time('page-render')
 
@@ -76,6 +81,17 @@ if (deck.createdBy) {
     .displayName;
 }
 console.timeEnd("member");
+
+const deckArchetypes = ref<Archetype[]>([]);
+const tournamentResults = ref<DeckTournamentResult[]>([]);
+try {
+  [deckArchetypes.value, tournamentResults.value] = await Promise.all([
+    new MetaService().getDeckArchetypes(deckId),
+    new TournamentService().getForDeck(deckId),
+  ]);
+} catch {
+  // Non-critical – silently ignore if meta/tournament data is unavailable
+}
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
@@ -410,6 +426,74 @@ console.timeEnd('page-render');
           @add-comment="handleCommentAdded"
           @delete-comment="handleCommentDeleted"
         ></CommentSection>
+      </div>
+
+      <div v-if="deckArchetypes.length > 0" class="pt-4">
+        <h2 class="text-lg pb-2">Archetypes</h2>
+        <hr class="my-2" />
+        <div class="flex flex-wrap gap-2">
+          <span
+            v-for="archetype in deckArchetypes"
+            :key="archetype.id"
+            class="border rounded px-3 py-1 text-sm bg-gray-50"
+            :title="archetype.description ?? undefined"
+          >
+            {{ archetype.name }}
+          </span>
+        </div>
+      </div>
+
+      <div v-if="tournamentResults.length > 0" class="pt-4">
+        <h2 class="text-lg pb-2">Tournament Results</h2>
+        <hr class="my-2" />
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="bg-gray-100 text-left">
+                <th class="px-3 py-2 border border-gray-200">Tournament</th>
+                <th class="px-3 py-2 border border-gray-200">Date</th>
+                <th class="px-3 py-2 border border-gray-200 text-center">Placement</th>
+                <th class="px-3 py-2 border border-gray-200 text-center">W</th>
+                <th class="px-3 py-2 border border-gray-200 text-center">L</th>
+                <th class="px-3 py-2 border border-gray-200 text-center">D</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="result in tournamentResults"
+                :key="result.tournamentId"
+                class="hover:bg-gray-50 border-b border-gray-100"
+              >
+                <td class="px-3 py-2 border border-gray-200">
+                  <a
+                    :href="`/tournaments/${result.tournamentId}`"
+                    class="text-blue-600 hover:underline"
+                  >
+                    {{ result.tournamentName }}
+                  </a>
+                  <span v-if="result.formatDisplayName" class="text-xs text-gray-500 ml-1">
+                    ({{ result.formatDisplayName }})
+                  </span>
+                </td>
+                <td class="px-3 py-2 border border-gray-200 text-gray-600">
+                  {{ ParseToHumanReadableText(result.date) }}
+                </td>
+                <td class="px-3 py-2 border border-gray-200 text-center font-semibold">
+                  {{ result.placement ?? '—' }}
+                </td>
+                <td class="px-3 py-2 border border-gray-200 text-center text-green-700">
+                  {{ result.wins ?? '—' }}
+                </td>
+                <td class="px-3 py-2 border border-gray-200 text-center text-red-700">
+                  {{ result.losses ?? '—' }}
+                </td>
+                <td class="px-3 py-2 border border-gray-200 text-center text-gray-600">
+                  {{ result.draws ?? '—' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
     <div

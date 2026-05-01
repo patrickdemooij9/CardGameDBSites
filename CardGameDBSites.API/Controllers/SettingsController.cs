@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Exports;
 using SkytearHorde.Business.Extensions;
+using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
@@ -26,15 +27,18 @@ namespace CardGameDBSites.API.Controllers
         private readonly SettingsService _settingsService;
         private readonly ISiteService _siteService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
+        private readonly ISiteAccessor _siteAccessor;
 
         public SettingsController(
             SettingsService settingsService,
             ISiteService siteService,
-            IUmbracoContextFactory umbracoContextFactory)
+            IUmbracoContextFactory umbracoContextFactory,
+            ISiteAccessor siteAccessor)
         {
             _settingsService = settingsService;
             _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
+            _siteAccessor = siteAccessor;
         }
 
         [HttpGet("site")]
@@ -73,7 +77,8 @@ namespace CardGameDBSites.API.Controllers
                     Keyword = it.Keyword,
                     ImageUrl = it.Image ?? "#",
                 })],
-                CardOverviewIdentifier = settings.CardOverviewIdentifier
+                CardOverviewIdentifier = settings.CardOverviewIdentifier,
+                SiteId = _siteAccessor.GetSiteId()
             });
         }
 

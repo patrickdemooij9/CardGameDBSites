@@ -23,5 +23,6 @@ export type SiteSettingsApiModel = {
     cardSections?: Array<CardSectionApiModel>;
     keywordImages?: Array<KeywordImageApiModel>;
     cardOverviewIdentifier?: string | null;
+    siteId?: number;
 };
 

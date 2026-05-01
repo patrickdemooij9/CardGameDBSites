@@ -55,6 +55,11 @@ namespace SkytearHorde.Business.Startup.Indexes
             options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.Command.Amount", FieldDefinitionTypes.Integer));
             options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Aspects.None.Amount", FieldDefinitionTypes.Integer));
 
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Ram.Green.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Ram.Yellow.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Ram.Red.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Ram.Blue.Amount", FieldDefinitionTypes.Integer));
+
             options.UnlockIndex = true;
 
             if (_settings.Value.LuceneDirectoryFactory == LuceneDirectoryFactory.SyncedTempFileSystemDirectoryFactory)

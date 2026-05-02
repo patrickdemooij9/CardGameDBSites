@@ -201,12 +201,41 @@ namespace CardGameDBSites.API.Controllers
             var member = _memberInfoService.GetMemberInfo();
             if (member is null) return Unauthorized("You need to be logged in to see this information.");
 
+            var isAdmin = HttpContext.User.FindFirst("isAdmin")?.Value == "true";
+            var impersonatedByStr = HttpContext.User.FindFirst("impersonatedBy")?.Value;
+            int? impersonatedBy = impersonatedByStr != null && int.TryParse(impersonatedByStr, out var parsedId)
+                ? parsedId
+                : null;
+
             return Ok(new CurrentMemberApiModel
             {
                 Id = member.Id,
                 DisplayName = member.DisplayName,
-                LikedDecks = member.LikedDecks
+                LikedDecks = member.LikedDecks,
+                IsAdmin = isAdmin,
+                ImpersonatedBy = impersonatedBy
             });
+        }
+
+        [HttpPost("impersonate/{memberId}")]
+        [ProducesResponseType(typeof(string), 200)]
+        [OptionalJwtAuthorization]
+        public async Task<IActionResult> Impersonate(int memberId)
+        {
+            var isAdminClaim = HttpContext.User.FindFirst("isAdmin");
+            if (isAdminClaim?.Value != "true")
+                return Forbid();
+
+            var callerIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (callerIdClaim is null)
+                return Forbid();
+
+            var targetMember = await _memberManager.FindByIdAsync(memberId.ToString());
+            if (targetMember is null)
+                return NotFound();
+
+            var token = GetImpersonationJwtToken(targetMember, callerIdClaim.Value);
+            return Ok(new JwtSecurityTokenHandler().WriteToken(token));
         }
 
         private JwtSecurityToken GetJwtToken(MemberIdentityUser user, bool rememberMe)
@@ -214,15 +243,41 @@ namespace CardGameDBSites.API.Controllers
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var roles = _memberService.GetAllRoles(user.UserName!);
+            var isAdmin = roles.Contains("Admin");
+
+            var claims = new List<Claim>
             {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, user.Name!)
-                };
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.Name!)
+            };
+
+            if (isAdmin)
+                claims.Add(new Claim("isAdmin", "true"));
+
             return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
                 null,
                 claims,
                 expires: DateTime.Now.AddDays(rememberMe ? 30 : 1),
+                signingCredentials: credentials);
+        }
+
+        private JwtSecurityToken GetImpersonationJwtToken(MemberIdentityUser user, string impersonatedByMemberId)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.Name!),
+                new Claim("impersonatedBy", impersonatedByMemberId)
+            };
+
+            return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
+                null,
+                claims,
+                expires: DateTime.Now.AddHours(1),
                 signingCredentials: credentials);
         }
     }

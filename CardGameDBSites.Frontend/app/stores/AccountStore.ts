@@ -29,6 +29,8 @@ export const useAccountStore = defineStore("accountStore", {
           id: member.id,
           name: member.displayName,
           likedDecks: member.likedDecks || [],
+          isAdmin: member.isAdmin ?? false,
+          impersonatedBy: member.impersonatedBy,
         };
         this.validatedLogin = true;
       } catch (error) {
@@ -57,6 +59,8 @@ export const useAccountStore = defineStore("accountStore", {
             id: result.id,
             name: result.displayName,
             likedDecks: result.likedDecks || [],
+            isAdmin: result.isAdmin ?? false,
+            impersonatedBy: result.impersonatedBy,
           };
         } catch (error) {
           this.member = undefined;
@@ -87,6 +91,8 @@ export const useAccountStore = defineStore("accountStore", {
         id: result.id,
         name: result.displayName,
         likedDecks: result.likedDecks || [],
+        isAdmin: result.isAdmin ?? false,
+        impersonatedBy: result.impersonatedBy,
       };
     },
     async forgotPassword(email: string) {
@@ -96,6 +102,41 @@ export const useAccountStore = defineStore("accountStore", {
           email: email,
         },
       });
+    },
+    async impersonate(memberId: number) {
+      const result = await DoServerFetch<CurrentMemberApiModel>(
+        "/api/account/impersonate",
+        false,
+        {
+          method: "POST",
+          body: { memberId },
+        }
+      );
+      this.member = {
+        id: result.id,
+        name: result.displayName,
+        likedDecks: result.likedDecks || [],
+        isAdmin: false,
+        impersonatedBy: result.impersonatedBy,
+      };
+      this.validatedLogin = true;
+    },
+    async stopImpersonating() {
+      const result = await DoServerFetch<CurrentMemberApiModel>(
+        "/api/account/stopImpersonating",
+        false,
+        {
+          method: "POST",
+        }
+      );
+      this.member = {
+        id: result.id,
+        name: result.displayName,
+        likedDecks: result.likedDecks || [],
+        isAdmin: result.isAdmin ?? false,
+        impersonatedBy: undefined,
+      };
+      this.validatedLogin = true;
     },
     toggleDeckLike(deckId: number) {
       if (this.member?.likedDecks?.includes(deckId)) {

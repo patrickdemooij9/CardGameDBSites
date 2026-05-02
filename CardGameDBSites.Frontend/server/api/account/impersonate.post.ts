@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     httpOnly: true,
     secure: isProduction,
     path: "/",
-    sameSite: "strict",
+    sameSite: "lax",
   });
 
   // Replace the main session cookie with the short-lived impersonation token

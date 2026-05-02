@@ -116,7 +116,7 @@ export const useAccountStore = defineStore("accountStore", {
         id: result.id,
         name: result.displayName,
         likedDecks: result.likedDecks || [],
-        isAdmin: false,
+        isAdmin: result.isAdmin ?? false,
         impersonatedBy: result.impersonatedBy,
       };
       this.validatedLogin = true;

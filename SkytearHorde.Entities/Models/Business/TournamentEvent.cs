@@ -11,6 +11,7 @@ namespace SkytearHorde.Entities.Models.Business
         public int? PlayerCount { get; set; }
         public string? SourceUrl { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? ExternalId { get; set; }
         public List<TournamentEntrant> Entrants { get; set; } = new();
     }
 }

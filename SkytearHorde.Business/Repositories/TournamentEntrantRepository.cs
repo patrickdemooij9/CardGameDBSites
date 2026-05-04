@@ -27,13 +27,45 @@ namespace SkytearHorde.Business.Repositories
                 Wins = entrant.Wins,
                 Losses = entrant.Losses,
                 Draws = entrant.Draws,
-                DeckId = entrant.DeckId
+                DeckId = entrant.DeckId,
+                ExternalId = entrant.ExternalId
             };
 
             scope.Database.Insert(model);
             scope.Complete();
 
             return model.Id;
+        }
+
+        public void AddRange(IEnumerable<TournamentEntrant> entrants)
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            foreach (var entrant in entrants)
+            {
+                scope.Database.Insert(new TournamentEntrantDBModel
+                {
+                    Id = entrant.Id == Guid.Empty ? Guid.NewGuid() : entrant.Id,
+                    TournamentEventId = entrant.TournamentEventId,
+                    PlayerName = entrant.PlayerName,
+                    Placement = entrant.Placement,
+                    Wins = entrant.Wins,
+                    Losses = entrant.Losses,
+                    Draws = entrant.Draws,
+                    DeckId = entrant.DeckId,
+                    ExternalId = entrant.ExternalId
+                });
+            }
+
+            scope.Complete();
+        }
+
+        public bool ExternalIdExists(Guid tournamentEventId, string externalId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            return scope.Database.ExecuteScalar<int>(
+                "SELECT COUNT(1) FROM TournamentEntrant WHERE TournamentEventId = @0 AND ExternalId = @1",
+                tournamentEventId, externalId) > 0;
         }
 
         public void Update(TournamentEntrant entrant)
@@ -107,7 +139,8 @@ namespace SkytearHorde.Business.Repositories
             Wins = model.Wins,
             Losses = model.Losses,
             Draws = model.Draws,
-            DeckId = model.DeckId
+            DeckId = model.DeckId,
+            ExternalId = model.ExternalId
         };
     }
 }

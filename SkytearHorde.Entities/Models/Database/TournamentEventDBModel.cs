@@ -33,5 +33,9 @@ namespace SkytearHorde.Entities.Models.Database
 
         [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; }
+
+        [Column("ExternalId")]
+        [NullSetting(NullSetting = NullSettings.Null)]
+        public string? ExternalId { get; set; }
     }
 }

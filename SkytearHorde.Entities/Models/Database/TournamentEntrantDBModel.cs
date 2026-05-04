@@ -36,5 +36,9 @@ namespace SkytearHorde.Entities.Models.Database
         [Column("DeckId")]
         [NullSetting(NullSetting = NullSettings.Null)]
         public int? DeckId { get; set; }
+
+        [Column("ExternalId")]
+        [NullSetting(NullSetting = NullSettings.Null)]
+        public string? ExternalId { get; set; }
     }
 }

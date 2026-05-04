@@ -27,7 +27,8 @@ namespace SkytearHorde.Business.Repositories
                 FormatId = tournament.FormatId,
                 PlayerCount = tournament.PlayerCount,
                 SourceUrl = tournament.SourceUrl,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ExternalId = tournament.ExternalId
             };
 
             scope.Database.Insert(model);
@@ -67,6 +68,19 @@ namespace SkytearHorde.Business.Repositories
             return scope.Database.Fetch<TournamentEventDBModel>(sql).Select(Map).ToList();
         }
 
+        public TournamentEvent? GetByExternalId(string externalId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            var model = scope.Database.FirstOrDefault<TournamentEventDBModel>(
+                scope.SqlContext.Sql()
+                    .SelectAll()
+                    .From<TournamentEventDBModel>()
+                    .Where<TournamentEventDBModel>(t => t.ExternalId == externalId));
+
+            return model is null ? null : Map(model);
+        }
+
         private static TournamentEvent Map(TournamentEventDBModel model) => new TournamentEvent
         {
             Id = model.Id,
@@ -76,7 +90,8 @@ namespace SkytearHorde.Business.Repositories
             FormatId = model.FormatId,
             PlayerCount = model.PlayerCount,
             SourceUrl = model.SourceUrl,
-            CreatedAt = model.CreatedAt
+            CreatedAt = model.CreatedAt,
+            ExternalId = model.ExternalId
         };
     }
 }

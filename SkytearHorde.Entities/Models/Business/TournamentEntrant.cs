@@ -10,5 +10,6 @@ namespace SkytearHorde.Entities.Models.Business
         public int? Losses { get; set; }
         public int? Draws { get; set; }
         public int? DeckId { get; set; }
+        public string? ExternalId { get; set; }
     }
 }

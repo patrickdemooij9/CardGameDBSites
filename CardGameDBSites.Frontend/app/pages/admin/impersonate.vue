@@ -2,12 +2,6 @@
 import { useAccountStore } from "~/stores/AccountStore";
 
 const accountStore = useAccountStore();
-await accountStore.checkLogin();
-
-if (!accountStore.member?.isAdmin) {
-  throw createError({ statusCode: 403, statusMessage: "Forbidden" });
-}
-
 const memberId = ref<number | null>(null);
 const errorMessage = ref<string | null>(null);
 const isLoading = ref(false);
@@ -20,11 +14,20 @@ async function startImpersonating() {
     await accountStore.impersonate(memberId.value);
     navigateTo("/");
   } catch {
-    errorMessage.value = "Could not impersonate this member. Please check the member ID and try again.";
+    errorMessage.value =
+      "Could not impersonate this member. Please check the member ID and try again.";
   } finally {
     isLoading.value = false;
   }
 }
+
+onMounted(async () => {
+  await accountStore.checkLogin();
+
+  if (!accountStore.member?.isAdmin) {
+    navigateTo("/");
+  }
+});
 </script>
 
 <template>

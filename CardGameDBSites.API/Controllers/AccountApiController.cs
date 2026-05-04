@@ -240,45 +240,42 @@ namespace CardGameDBSites.API.Controllers
 
         private JwtSecurityToken GetJwtToken(MemberIdentityUser user, bool rememberMe)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var roles = _memberService.GetAllRoles(user.UserName!);
-            var isAdmin = roles.Contains("Admin");
+            var isAdmin = _config.AdminMembers.Contains(user.Id);
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.Name!)
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, user.Name!)
             };
 
             if (isAdmin)
                 claims.Add(new Claim("isAdmin", "true"));
 
-            return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
-                null,
-                claims,
-                expires: DateTime.Now.AddDays(rememberMe ? 30 : 1),
-                signingCredentials: credentials);
+            return GetJwtTokenByClaims(claims, DateTime.Now.AddDays(rememberMe ? 30 : 1));
         }
 
         private JwtSecurityToken GetImpersonationJwtToken(MemberIdentityUser user, string impersonatedByMemberId)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.Name!),
                 new Claim("impersonatedBy", impersonatedByMemberId)
             };
+            return GetJwtTokenByClaims(claims, DateTime.Now.AddHours(1));
+        }
 
-            return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
-                null,
-                claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: credentials);
+        private JwtSecurityToken GetJwtTokenByClaims(IEnumerable<Claim> claims, DateTime? expires)
+        {
+            {
+                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
+                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+                return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
+                    null,
+                    claims,
+                    expires: expires,
+                    signingCredentials: credentials);
+            }
         }
     }
 }

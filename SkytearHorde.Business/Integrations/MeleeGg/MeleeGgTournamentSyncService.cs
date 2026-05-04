@@ -115,7 +115,14 @@ namespace SkytearHorde.Business.Integrations.MeleeGg
                 // Skip entrants we already imported
                 if (_entrantRepository.ExternalIdExists(tournamentId, reg.Id)) continue;
 
-                var playerName = reg.Player?.Name ?? "Unknown";
+                var playerName = reg.Player?.Name;
+                if (string.IsNullOrWhiteSpace(playerName))
+                {
+                    _logger.LogWarning(
+                        "Registration {RegistrationId} in tournament {TournamentId} has no player name — skipping",
+                        reg.Id, summary.Id);
+                    continue;
+                }
                 newEntrants.Add(new TournamentEntrant
                 {
                     Id = Guid.NewGuid(),

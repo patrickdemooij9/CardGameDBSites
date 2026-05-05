@@ -97,11 +97,12 @@ export function ApplyInternalFilterRestrictions(
         if (clause.clauseType === CardSearchFilterClauseType.AND) {
             clause.filters?.forEach((filter) => {
                 if (filter.mode === CardSearchFilterMode.CONTAINS && filter.values?.length) {
+                    const values = filter.values;
                     const existing = restrictionMap.get(filter.alias);
                     if (existing) {
-                        restrictionMap.set(filter.alias, existing.filter((v) => filter.values!.includes(v)));
+                        restrictionMap.set(filter.alias, existing.filter((v) => values.includes(v)));
                     } else {
-                        restrictionMap.set(filter.alias, filter.values);
+                        restrictionMap.set(filter.alias, values);
                     }
                 }
             });

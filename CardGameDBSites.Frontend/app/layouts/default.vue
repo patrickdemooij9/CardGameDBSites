@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Navigation from "~/components/navigation/Navigation.vue";
+import ImpersonationBanner from "~/components/shared/ImpersonationBanner.vue";
 import { useSite } from "~/composables/useSite";
 
 const { getSettings, getNavigation } = useSite();
@@ -17,6 +18,7 @@ const navigationViewModel = await getNavigation();
     class="min-h-screen flex flex-col"
     id="root"
   >
+    <ImpersonationBanner />
     <Navigation :content="navigationViewModel"> </Navigation>
     <div class="grow">
       <slot />

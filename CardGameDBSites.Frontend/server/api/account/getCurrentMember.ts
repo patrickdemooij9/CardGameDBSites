@@ -8,6 +8,8 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   const backendUrl = `${config.public.API_BASE_URL}/api/account/getcurrentmember`;
 
+  console.log(jwt);
+
   // Proxy the request, adding the Authorization header if JWT exists
   const response = await proxyRequest(event, backendUrl, {
     headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},

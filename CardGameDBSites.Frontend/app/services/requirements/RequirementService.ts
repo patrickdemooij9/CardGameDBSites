@@ -97,7 +97,12 @@ export function ApplyInternalFilterRestrictions(
         if (clause.clauseType === CardSearchFilterClauseType.AND) {
             clause.filters?.forEach((filter) => {
                 if (filter.mode === CardSearchFilterMode.CONTAINS && filter.values?.length) {
-                    restrictionMap.set(filter.alias, filter.values);
+                    const existing = restrictionMap.get(filter.alias);
+                    if (existing) {
+                        restrictionMap.set(filter.alias, existing.filter((v) => filter.values!.includes(v)));
+                    } else {
+                        restrictionMap.set(filter.alias, filter.values);
+                    }
                 }
             });
         }
@@ -113,7 +118,7 @@ export function ApplyInternalFilterRestrictions(
             if (!restriction) {
                 return filter;
             }
-            if (restriction.length === 1) {
+            if (restriction.length <= 1) {
                 return null;
             }
             if (filter.AutoFillValues) {

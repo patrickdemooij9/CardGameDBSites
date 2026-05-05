@@ -113,13 +113,13 @@ describe("RequirementService", () => {
   });
 });
 
-function makeFilter(alias: string, items: string[] = [], autoFill = false): OverviewFilterModel {
+function makeFilter(alias: string, items: string[] = [], autoFillValues = false): OverviewFilterModel {
   return {
     Alias: alias,
     DisplayName: alias,
     Type: OverviewFilterType.DROPDOWN,
     Items: items.map((v) => ({ DisplayName: v, Value: v })),
-    AutoFillValues: autoFill,
+    AutoFillValues: autoFillValues,
   };
 }
 
@@ -189,4 +189,25 @@ describe("ApplyInternalFilterRestrictions", () => {
     expect(result[0]!.Items.map((i) => i.Value)).toEqual(["Unit", "Event"]);
     expect(result[1]!.Items.map((i) => i.Value)).toEqual(["Fire", "Water"]);
   });
+
+  it("intersects values when multiple clauses restrict the same alias", () => {
+    const filter = makeFilter("Card Type", ["Leader", "Unit", "Event", "Upgrade", "Base"]);
+    const clauses = [
+      makeAndClause("Card Type", ["Unit", "Event", "Upgrade"]),
+      makeAndClause("Card Type", ["Event", "Upgrade", "Base"]),
+    ];
+    const result = ApplyInternalFilterRestrictions(clauses, [filter]);
+    expect(result).toHaveLength(1);
+    expect(result[0]!.Items.map((i) => i.Value)).toEqual(["Event", "Upgrade"]);
+  });
+
+  it("hides a filter when the intersection of multiple restrictions yields a single value", () => {
+    const filter = makeFilter("Card Type", ["Leader", "Unit", "Event"]);
+    const clauses = [
+      makeAndClause("Card Type", ["Unit", "Event"]),
+      makeAndClause("Card Type", ["Unit"]),
+    ];
+    expect(ApplyInternalFilterRestrictions(clauses, [filter])).toHaveLength(0);
+  });
+
 });

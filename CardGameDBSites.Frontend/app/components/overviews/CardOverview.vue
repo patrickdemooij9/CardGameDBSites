@@ -110,14 +110,15 @@ function getMainVariants(card: CardDetailApiModel){
   return mainVariants.filter((item) => cardSetVariants.some((v) => v.variantTypeId == item.id));
 }
 
-function ownsVariant(card: CardDetailApiModel, variantTypeId?: number) {
+function ownsVariant(card: CardDetailApiModel, variantTypeId: number | null) {
   const variant = card.variants?.find(
     (item) => item.variantTypeId == variantTypeId && item.setId == card.setId,
   );
+  
   return (
     (useCollectionStore()
       .getCards(card.baseId!)
-      .find((item) => variant == item.variantId)?.amount ?? 0) > 0
+      .find((item) => variant?.cardVariantId == item.variantId)?.amount ?? 0) > 0
   );
 }
 
@@ -187,7 +188,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
             <p class="relative w-4 h-6" :style="{'width': (mainVariants.length * 8) + 'px'}">
                 <span
                   :class="[
-                    ownsVariant(card, undefined)
+                    ownsVariant(card, null)
                       ? 'bg-red-600'
                       : 'bg-[#cfcfcf]',
                   ]"
@@ -218,7 +219,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                 </span>
               </p>
             <span class="ml-2"
-              >{{ collectionService.getAmount(card.baseId!) }}
+              >{{ collectionService.getAmountForSet(card) }}
               <span class="md:inline hidden">copies</span></span
             >
             <Button
@@ -272,8 +273,8 @@ function getCardIdentifier(card: CardDetailApiModel) {
             </td>
             <td v-if="showCollection" class="py-2 pr-4">
               <div class="flex items-center gap-2">
-                <span :aria-label="`${collectionService.getAmount(card.baseId!)} copies`">
-                  {{ collectionService.getAmount(card.baseId!) }}
+                <span :aria-label="`${collectionService.getAmountForSet(card)} copies`">
+                  {{ collectionService.getAmountForSet(card) }}
                   <span class="md:inline hidden" aria-hidden="true">copies</span>
                 </span>
                 <Button

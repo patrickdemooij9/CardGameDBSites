@@ -8,7 +8,7 @@ import {
   type RequirementApiModel,
 } from "~/api/default";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
-import { GetFilters } from "~/services/requirements/RequirementService";
+import { GetFilters, ApplyInternalFilterRestrictions } from "~/services/requirements/RequirementService";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
 import Button from "~/components/shared/Button.vue";
 import ButtonType from "~/components/shared/ButtonType";
@@ -52,7 +52,7 @@ function getUserFilters() {
     ...props.currentArea.slot.requirements,
   ];
 
-  return allRequirements
+  const filterRequirementFilters = allRequirements
     .filter((req) => req.restrictionType === RestrictionType.FILTER)
     .map<OverviewFilterModel>((req) => {
       return {
@@ -70,7 +70,29 @@ function getUserFilters() {
           );
         },
       };
-    }).concat(props.filters);
+    });
+
+  const allPublicFilters = [...filterRequirementFilters, ...props.filters];
+
+  const cards = props.currentArea.group.getCards();
+  const internalClauses = [
+    ...GetFilters(
+      cards,
+      props.currentArea.group.requirements.filter(
+        (req) => req.restrictionType !== RestrictionType.FILTER,
+      ),
+      props.ignorePassiveFilters,
+    ),
+    ...GetFilters(
+      cards,
+      props.currentArea.slot.requirements.filter(
+        (req) => req.restrictionType !== RestrictionType.FILTER,
+      ),
+      props.ignorePassiveFilters,
+    ),
+  ];
+
+  return ApplyInternalFilterRestrictions(internalClauses, allPublicFilters);
 }
 
 function getInternalFilters() {

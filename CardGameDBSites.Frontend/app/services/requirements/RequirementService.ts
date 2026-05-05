@@ -1,4 +1,4 @@
-import { RestrictionType, type CardDetailApiModel, type CardsQueryFilterClauseApiModel, type RequirementApiModel } from "~/api/default";
+import { CardSearchFilterClauseType, CardSearchFilterMode, RestrictionType, type CardDetailApiModel, type CardsQueryFilterClauseApiModel, type RequirementApiModel } from "~/api/default";
 import EqualValueRequirement from "./EqualValueRequirement";
 import type OverviewFilterValueModel from "~/components/overviews/OverviewFilterValueModel";
 import NotEqualValueRequirement from "./NotEqualValueRequirement";
@@ -6,6 +6,7 @@ import ResourceRequirement from "./ResourceRequirement";
 import type { IRequirement } from "./IRequirement";
 import ConditionalRequirement from "./ConditionalRequirement";
 import SameValueRequirement from "./SameValueRequirement";
+import type { OverviewFilterModel } from "~/components/overviews/OverviewFilterModel";
 
 const requirementHandlers: IRequirement[] = [
     new EqualValueRequirement(),
@@ -85,4 +86,50 @@ export function GetFilters(cards: CardDetailApiModel[], requirements: Requiremen
         }
     })
     return filters;
+}
+
+export function ApplyInternalFilterRestrictions(
+    internalClauses: CardsQueryFilterClauseApiModel[],
+    publicFilters: OverviewFilterModel[]
+): OverviewFilterModel[] {
+    const restrictionMap = new Map<string, string[]>();
+    internalClauses.forEach((clause) => {
+        if (clause.clauseType === CardSearchFilterClauseType.AND) {
+            clause.filters?.forEach((filter) => {
+                if (filter.mode === CardSearchFilterMode.CONTAINS && filter.values?.length) {
+                    restrictionMap.set(filter.alias, filter.values);
+                }
+            });
+        }
+    });
+
+    if (restrictionMap.size === 0) {
+        return publicFilters;
+    }
+
+    return publicFilters
+        .map((filter) => {
+            const restriction = restrictionMap.get(filter.Alias);
+            if (!restriction) {
+                return filter;
+            }
+            if (restriction.length === 1) {
+                return null;
+            }
+            if (filter.AutoFillValues) {
+                return {
+                    ...filter,
+                    AutoFillValues: false,
+                    Items: restriction.map((value) => ({
+                        DisplayName: value,
+                        Value: value,
+                    })),
+                };
+            }
+            return {
+                ...filter,
+                Items: filter.Items.filter((item) => restriction.includes(item.Value)),
+            };
+        })
+        .filter((filter): filter is OverviewFilterModel => filter !== null);
 }

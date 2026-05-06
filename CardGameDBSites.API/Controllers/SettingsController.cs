@@ -219,6 +219,22 @@ namespace CardGameDBSites.API.Controllers
             return GetDeckBuilderSettings(content);
         }
 
+        [HttpGet("squadSettingsOptions")]
+        [ProducesResponseType(typeof(IEnumerable<SquadSettingsOptionApiModel>), 200)]
+        public IActionResult GetSquadSettingsOptions()
+        {
+            var allSettings = _settingsService.GetAllSquadSettings();
+            var options = allSettings.Select(it => new SquadSettingsOptionApiModel
+            {
+                Id = it.Key,
+                TypeId = it.TypeID,
+                Name = it.TypeDisplayName.IfNullOrWhiteSpace(it.Name!),
+                Description = it.Description,
+                ImageUrl = it.Image?.Url(mode: UrlMode.Absolute)
+            });
+            return Ok(options);
+        }
+
         private DeckBuilderDeckCardGroupApiModel[] GetGroupsForSlot(SquadSlotConfig slot)
         {
             var groups = slot.Groupings.ToItems<DeckCardGroup>().ToArray();

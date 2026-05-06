@@ -1,5 +1,5 @@
 import type NavigationModel from "~/components/navigation/NavigationModel";
-import { type SetOverviewSettingsApiModel, type DeckBuilderApiModel, type DeckBuilderSlotAmountApiModel, type DeckTypeSettingsApiModel, type SiteSettingsApiModel } from "~/api/default";
+import { type SetOverviewSettingsApiModel, type DeckBuilderApiModel, type DeckBuilderSlotAmountApiModel, type DeckTypeSettingsApiModel, type SiteSettingsApiModel, type SquadSettingsOptionApiModel } from "~/api/default";
 import type NavigationItem from "~/components/navigation/NavigationItemModel";
 import CreateDeckGroup from "~/components/decks/deckBuilder/models/CreateDeckGroup";
 import CreateDeckSlot from "~/components/decks/deckBuilder/models/CreateDeckSlot";
@@ -178,12 +178,20 @@ export function useSite() {
     return new FixedDeckAmountConfig(0);
   };
 
+  const getSquadSettingsOptions = async (): Promise<SquadSettingsOptionApiModel[]> => {
+    const { data } = await useAsyncData("squad-settings-options", () =>
+      DoFetch<SquadSettingsOptionApiModel[]>("/api/settings/squadSettingsOptions")
+    );
+    return data.value ?? [];
+  };
+
   return {
     getSettings,
     getNavigation,
     getDeckTypeSettings,
     getSetOverviewSettings,
     getDeckBuilderSettings,
+    getSquadSettingsOptions,
   };
 }
 

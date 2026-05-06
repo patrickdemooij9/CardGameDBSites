@@ -15,11 +15,8 @@ const route = useRoute();
 const filters = ToOverviewModel(props.content.properties?.filters?.items ?? []);
 
 // Determine if we are editing an existing deck
-let deckId: number | undefined = undefined;
 const idQuery = route.query["id"];
-if (idQuery && !Array.isArray(idQuery)) {
-  deckId = parseInt(idQuery);
-}
+const deckId: number | undefined = (idQuery && !Array.isArray(idQuery)) ? parseInt(idQuery) : undefined;
 
 // Resolve which squad settings GUID to use
 const selectedTypeId = ref<string | null>(null);
@@ -52,7 +49,7 @@ function onSelectOption(option: SquadSettingsOptionApiModel) {
   selectedTypeId.value = option.id;
 }
 
-const resolvedTypeId = computed(() => selectedTypeId.value as string);
+const resolvedTypeId = computed(() => selectedTypeId.value ?? '');
 </script>
 
 <template>

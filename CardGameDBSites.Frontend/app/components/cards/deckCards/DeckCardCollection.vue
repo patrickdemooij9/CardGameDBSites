@@ -13,7 +13,7 @@ const props = defineProps<{
 
 const { loadMembersByIds } = useMembers();
 const { loadCardsByIds } = useCards();
-const { getDeckTypeSettings } = useSite();
+const { getDeckTypeSettings, getSettings } = useSite();
 
 const members = ref<Record<number, MemberApiModel>>({});
 const cards = ref<Record<number, CardDetailApiModel>>({});

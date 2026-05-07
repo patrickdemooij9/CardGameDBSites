@@ -10,8 +10,10 @@ function makeCard(
   id: number,
   attributes: Record<string, Array<string>> = {},
   nonLegalDeckTypes: number[] = [],
+  allowedChildren: number[] = [],
+  maxChildren: number = 0,
 ): CardDetailApiModel {
-  return { baseId: id, displayName: `Card ${id}`, attributes, nonLegalDeckTypes };
+  return { baseId: id, displayName: `Card ${id}`, attributes, nonLegalDeckTypes, allowedChildren, maxChildren };
 }
 
 function makeGroupWithSlot(
@@ -327,6 +329,62 @@ describe("CreateDeckModel", () => {
       expect(allCards).toHaveLength(2);
       expect(allCards.map(c => c.card)).toContain(card1);
       expect(allCards.map(c => c.card)).toContain(card2);
+    });
+  });
+
+  describe("getSlotsForCard with child slots", () => {
+    it("includes a child slot when the card is in the parent's allowedChildren", () => {
+      const deck = new CreateDeckModel();
+      const group = new CreateDeckGroup();
+      const slot = new CreateDeckSlot(1, "Heroes");
+      slot.maxCardAmount = new FixedDeckAmountConfig(4);
+      slot.requirements = [];
+      const cardGroup = new CreateDeckCardGroup("Default");
+      slot.cardGroups.push(cardGroup);
+      group.slots.push(slot);
+      deck.groups.push(group);
+
+      // Add a parent card with allowedChildren [20]
+      const parentCard = makeCard(1, {}, [], [20], 1);
+      slot.addCard(parentCard);
+
+      // The child slot should now exist on the parent's DeckCard
+      const deckCard = cardGroup.cards[0];
+      expect(deckCard.children).toHaveLength(1);
+      const childSlot = deckCard.children[0];
+
+      // A valid child card (id=20) should be in the child slot
+      const validChild = makeCard(20);
+      const slots = deck.getSlotsForCard(validChild);
+      expect(slots).toContain(childSlot);
+
+      // An invalid child card (id=99, not in allowedChildren) should not be in the child slot
+      const invalidChild = makeCard(99);
+      const slotsForInvalid = deck.getSlotsForCard(invalidChild);
+      expect(slotsForInvalid).not.toContain(childSlot);
+    });
+  });
+
+  describe("getTotalCardAmount with child slots", () => {
+    it("counts cards in child slots towards the total", () => {
+      const deck = new CreateDeckModel();
+      const group = new CreateDeckGroup();
+      const slot = new CreateDeckSlot(1, "Heroes");
+      slot.maxCardAmount = new FixedDeckAmountConfig(4);
+      slot.requirements = [];
+      const cardGroup = new CreateDeckCardGroup("Default");
+      slot.cardGroups.push(cardGroup);
+      group.slots.push(slot);
+      deck.groups.push(group);
+
+      const parentCard = makeCard(1, {}, [], [20], 2);
+      slot.addCard(parentCard);
+
+      const childCard = makeCard(20);
+      const childSlot = cardGroup.cards[0].children[0];
+      childSlot.addCard(childCard);
+
+      expect(deck.getTotalCardAmount(childCard)).toBe(1);
     });
   });
 });

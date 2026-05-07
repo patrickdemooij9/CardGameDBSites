@@ -1,6 +1,6 @@
 import type { CardDetailApiModel, RequirementApiModel } from "~/api/default";
-import { DisplaySize, type DeckAmount } from "../DeckBuilderModels";
-import type CreateDeckCardGroup from "./CreateDeckCardGroup";
+import { DisplaySize, RequirementType, type DeckAmount } from "../DeckBuilderModels";
+import CreateDeckCardGroup from "./CreateDeckCardGroup";
 import { FixedDeckAmountConfig, type CreateDeckSlotAmount } from "./CreateDeckSlotAmount";
 import { GetInvalidRequirements, IsValid } from "~/services/requirements/RequirementService";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
@@ -128,9 +128,10 @@ export default class CreateDeckSlot {
     if (currentSize) {
       currentSize.amount++;
     } else {
+      const childSlots = this._createChildSlots(card);
       const groupToAdd = this.cardGroups.find((group) => IsValid([card], group.requirements, true));
       if (groupToAdd){
-        groupToAdd.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
+        groupToAdd.cards.push({ card, amount: 1, allowRemoval: true, children: childSlots });
       }
     }
   }
@@ -143,8 +144,42 @@ export default class CreateDeckSlot {
     if (currentSize) {
       currentSize.amount--;
       if (currentSize.amount <= 0 && group) {
+        // Clean up child slots before removing the parent card
+        currentSize.children.forEach((childSlot) => childSlot._clearAllCards());
         group.cards = group.cards.filter((c) => c.card.baseId !== card.baseId);
       }
     }
+  }
+
+  /** @internal Removes all cards from this slot (used for child slot cleanup). */
+  _clearAllCards() {
+    this.cardGroups.forEach((group) => {
+      group.cards = [];
+    });
+  }
+
+  private _createChildSlots(card: CardDetailApiModel): CreateDeckSlot[] {
+    const allowedChildren = card.allowedChildren ?? [];
+    const maxChildren = card.maxChildren ?? 0;
+    if (maxChildren === 0 || allowedChildren.length === 0) {
+      return [];
+    }
+
+    const childSlot = new CreateDeckSlot(-1, "Battle Tactics");
+    childSlot.maxCardAmount = new FixedDeckAmountConfig(maxChildren);
+    childSlot.displaySize = DisplaySize.Small;
+    childSlot.disableRemoval = false;
+    childSlot.numberMode = false;
+    childSlot.requirements = [
+      {
+        alias: RequirementType.ChildOf,
+        config: { allowedChildIds: allowedChildren },
+      } as RequirementApiModel,
+    ];
+
+    const childGroup = new CreateDeckCardGroup("");
+    childSlot.cardGroups.push(childGroup);
+
+    return [childSlot];
   }
 }

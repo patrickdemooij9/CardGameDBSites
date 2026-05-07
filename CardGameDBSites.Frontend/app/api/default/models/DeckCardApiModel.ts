@@ -7,5 +7,6 @@ export type DeckCardApiModel = {
     groupId?: number;
     slotId?: number;
     amount?: number;
+    children?: Array<number>;
 };
 

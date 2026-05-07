@@ -127,12 +127,17 @@ export function useSite() {
     if (deckId) {
       const deck = await new DeckService().get(deckId);
       if (deck) {
-        const cards = await useCards().loadCardsByIds([... deck.cards!.map((deckCard) => deckCard.cardId!)]);
+        // Collect all card IDs: parent cards and their children
+        const allCardIds = [
+          ...deck.cards!.map((deckCard) => deckCard.cardId!),
+          ...deck.cards!.flatMap((deckCard) => deckCard.children ?? []),
+        ];
+        const cards = await useCards().loadCardsByIds([...new Set(allCardIds)]);
         model.id = deckId;
         model.name = deck.name;
         model.description = deck.description ?? "";
-        deck.cards?.forEach(async (deckCard) => {
-          const card = cards.find((cardId) => cardId.baseId === deckCard.cardId);
+        deck.cards?.forEach((deckCard) => {
+          const card = cards.find((c) => c.baseId === deckCard.cardId);
           if (!card) {
             return;
           }
@@ -142,6 +147,23 @@ export function useSite() {
 
           for (var i = 0; i < deckCard.amount!; i++){
             slot?.addCard(card);
+          }
+
+          // Populate child slots with saved child cards
+          const childIds = deckCard.children ?? [];
+          if (childIds.length > 0 && slot) {
+            const deckCardEntry = slot.cardGroups
+              .flatMap((cg) => cg.cards)
+              .find((c) => c.card.baseId === card.baseId);
+            if (deckCardEntry && deckCardEntry.children.length > 0) {
+              const childSlot = deckCardEntry.children[0];
+              childIds.forEach((childId) => {
+                const childCard = cards.find((c) => c.baseId === childId);
+                if (childCard) {
+                  childSlot.addCard(childCard);
+                }
+              });
+            }
           }
         });
       }

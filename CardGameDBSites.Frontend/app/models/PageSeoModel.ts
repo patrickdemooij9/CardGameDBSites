@@ -3,7 +3,7 @@ export interface PageSeoModel {
     metaFields: PageSeoMetaField;
 }
 
-interface PageSeoMetaField {
+export interface PageSeoMetaField {
     canonicalUrl: string | null;
     facebookId: string | null;
     metaDescription: string | null;

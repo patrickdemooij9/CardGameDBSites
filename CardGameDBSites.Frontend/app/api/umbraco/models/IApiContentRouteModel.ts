@@ -5,6 +5,7 @@
 import type { IApiContentStartItemModel } from './IApiContentStartItemModel';
 export type IApiContentRouteModel = {
     readonly path?: string;
+    queryString?: string | null;
     startItem?: IApiContentStartItemModel;
 };
 

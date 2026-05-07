@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Filters;
+using System.Security.Claims;
+using Umbraco.Extensions;
 
 namespace CardGameDBSites.API.Attributes
 {
@@ -17,7 +20,12 @@ namespace CardGameDBSites.API.Attributes
             var result = await httpContext.AuthenticateAsync("Jwt");
             if (result?.Succeeded == true)
             {
-                httpContext.User = result.Principal;
+                var identity = new ClaimsIdentity(
+                    result.Principal.Claims,
+                    IdentityConstants.ApplicationScheme
+                    );
+
+                httpContext.User = new ClaimsPrincipal(identity);
             }
         }
     }

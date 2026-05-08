@@ -1,6 +1,24 @@
 import type { NitroFetchOptions } from "nitropack";
 import { useAccountStore } from "~/stores/AccountStore";
 
+function handleUnauthorized(error: unknown) {
+  if (!import.meta.client) {
+    return;
+  }
+
+  const status = (error as { statusCode?: number; status?: number; response?: { status?: number } })?.response?.status
+    ?? (error as { statusCode?: number })?.statusCode
+    ?? (error as { status?: number })?.status;
+
+  if (status !== 401) {
+    return;
+  }
+
+  const accountStore = useAccountStore();
+  accountStore.member = undefined;
+  accountStore.validatedLogin = false;
+}
+
 export function DoFetch<T>(
   url: string,
   options?: NitroFetchOptions<string>
@@ -9,7 +27,10 @@ export function DoFetch<T>(
   options.headers = options.headers ?? {};
 
   const config = useRuntimeConfig();
-  return $fetch<T>(`${config.public.API_BASE_URL}${url}`, options);
+  return $fetch<T>(`${config.public.API_BASE_URL}${url}`, options).catch((error) => {
+    handleUnauthorized(error);
+    throw error;
+  });
 }
 
 export async function DoFetch2<T>(
@@ -37,7 +58,10 @@ export async function DoServerFetch<T>(
     return data.value as T;
   }
 
-  return $fetch<T>(url, options);
+  return $fetch<T>(url, options).catch((error) => {
+    handleUnauthorized(error);
+    throw error;
+  });
 }
 
 export async function DoOptionalServerFetch<T>(

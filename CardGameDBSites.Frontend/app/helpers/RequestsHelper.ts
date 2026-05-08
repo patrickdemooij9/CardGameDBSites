@@ -1,4 +1,5 @@
 import type { NitroFetchOptions } from "nitropack";
+import { useAppToast } from "~/composables/useAppToast";
 import { useAccountStore } from "~/stores/AccountStore";
 
 type FetchStatusError = {
@@ -9,6 +10,9 @@ type FetchStatusError = {
   };
 };
 
+/**
+ * Clears client-side auth state when an API request reports the session as unauthorized.
+ */
 function handleUnauthorized(error: unknown) {
   if (!import.meta.client) {
     return;
@@ -23,8 +27,13 @@ function handleUnauthorized(error: unknown) {
   }
 
   const accountStore = useAccountStore();
+  const wasLoggedIn = accountStore.isLoggedIn;
   accountStore.member = undefined;
   accountStore.validatedLogin = false;
+
+  if (wasLoggedIn) {
+    useAppToast().info("Your session expired, so you were logged out.");
+  }
 }
 
 export function DoFetch<T>(

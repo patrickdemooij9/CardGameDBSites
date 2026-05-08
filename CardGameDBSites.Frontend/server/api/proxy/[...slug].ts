@@ -1,4 +1,4 @@
-import { defineEventHandler, getCookie, proxyRequest, sendProxy } from "h3";
+import { defineEventHandler, getCookie, deleteCookie, setResponseStatus, setResponseHeader } from "h3";
 import { URLSearchParams } from "url";
 
 //TODO: Clean this shit up
@@ -32,8 +32,19 @@ export default defineEventHandler(async (event) => {
 
   const contentType = getRequestHeader(event, "Content-Type") || "application/json";
 
+  const method = event.req.method as
+    | "GET"
+    | "HEAD"
+    | "PATCH"
+    | "POST"
+    | "PUT"
+    | "DELETE"
+    | "CONNECT"
+    | "OPTIONS"
+    | "TRACE"
+    | undefined;
+
   try {
-    // Use $fetch to call backend API and get raw response
     const headers: Record<string, string> = {
       "Content-Type": contentType,
     };
@@ -41,23 +52,28 @@ export default defineEventHandler(async (event) => {
     if (jwt) {
       headers.Authorization = `Bearer ${jwt}`;
     }
-    const method = event.req.method as
-      | "GET"
-      | "HEAD"
-      | "PATCH"
-      | "POST"
-      | "PUT"
-      | "DELETE"
-      | "CONNECT"
-      | "OPTIONS"
-      | "TRACE"
-      | undefined;
+
     const body =
       method !== "GET" && method !== "HEAD" ? await readBody(event) : undefined;
 
- return await proxyRequest(event, backendUrl, {
-     headers: { Authorization: `Bearer ${jwt}` }
-   });
+    const response = await $fetch.raw(backendUrl, {
+      method,
+      headers,
+      body,
+      ignoreResponseError: true,
+    });
+
+    if (response.status === 401 && jwt) {
+      deleteCookie(event, "cardgamesdb");
+    }
+
+    setResponseStatus(event, response.status);
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() !== "set-cookie") {
+        setResponseHeader(event, key, value);
+      }
+    });
+    return response._data;
   } catch (error) {
     console.error("Proxy fetch error:", error);
     throw error;

@@ -114,11 +114,11 @@ onMounted(async () => {
       "/api/collection/summary",
     );
     sets.value = await DoServerFetch<SetViewModel[]>("/api/sets/getAll");
+    presets.value = await collectionComposable.getPresets();
   }
   variantTypes.value = await DoServerFetch<CardVariantTypeApiModel[]>(
     "/api/cards/variantTypes",
   );
-  presets.value = await collectionComposable.getPresets();
   isLoading.value = false;
 });
 

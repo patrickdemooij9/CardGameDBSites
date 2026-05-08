@@ -1,14 +1,22 @@
 import type { NitroFetchOptions } from "nitropack";
 import { useAccountStore } from "~/stores/AccountStore";
 
+type FetchStatusError = {
+  statusCode?: number;
+  status?: number;
+  response?: {
+    status?: number;
+  };
+};
+
 function handleUnauthorized(error: unknown) {
   if (!import.meta.client) {
     return;
   }
 
-  const status = (error as { statusCode?: number; status?: number; response?: { status?: number } })?.response?.status
-    ?? (error as { statusCode?: number })?.statusCode
-    ?? (error as { status?: number })?.status;
+  const fetchError = error as FetchStatusError;
+  const status =
+    fetchError.response?.status ?? fetchError.statusCode ?? fetchError.status;
 
   if (status !== 401) {
     return;

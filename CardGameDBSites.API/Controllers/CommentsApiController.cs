@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Umbraco.Cms.Core.Security;
 using SkytearHorde.Entities.Models;
+using CardGameDBSites.API.Attributes;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -51,7 +52,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost("addDeckComment")]
-        [Authorize(AuthenticationSchemes = "Jwt")]
+        [JwtAuthorization]
         [ProducesResponseType(typeof(CommentViewModel), 200)]
         public async Task<IActionResult> AddDeckComment(CreateCommentPostModel model)
         {
@@ -67,7 +68,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpDelete("deleteDeckComment")]
-        [Authorize(AuthenticationSchemes = "Jwt")]
+        [JwtAuthorization]
         public async Task<IActionResult> DeleteDeckComment(int commentId)
         {
             var comment = _commentService.GetDeckComment(commentId);
@@ -95,7 +96,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost("addCardComment")]
-        [Authorize(AuthenticationSchemes = "Jwt")]
+        [JwtAuthorization]
         [ProducesResponseType(typeof(CommentViewModel), 200)]
         public async Task<IActionResult> AddCardComment(CreateCommentPostModel model)
         {
@@ -111,7 +112,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpDelete("deleteCardComment")]
-        [Authorize(AuthenticationSchemes = "Jwt")]
+        [JwtAuthorization]
         public async Task<IActionResult> DeleteCardComment(int commentId)
         {
             var comment = _commentService.GetCardComment(commentId);

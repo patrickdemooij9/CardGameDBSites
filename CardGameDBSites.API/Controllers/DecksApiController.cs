@@ -140,7 +140,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpDelete("deleteDeck")]
-        [Authorize(AuthenticationSchemes = "Jwt")]
+        [JwtAuthorization]
         public async Task<IActionResult> DeleteDeck(int deckId)
         {
             var currentUser = await _memberManager.GetCurrentMemberAsync();

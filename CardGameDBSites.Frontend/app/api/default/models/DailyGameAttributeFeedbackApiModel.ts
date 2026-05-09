@@ -2,8 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type SetPriceHistoryItemApiModel = {
-    date: string;
-    price: number;
+export type DailyGameAttributeFeedbackApiModel = {
+    name: string;
+    matchType: string;
+    guessValues?: Array<string>;
 };
 

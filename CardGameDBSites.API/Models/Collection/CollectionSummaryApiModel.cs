@@ -6,5 +6,6 @@
         public int TotalCards { get; set; }
         public int PacksOpened { get; set; }
         public double MarketPrice { get; set; }
+        public double CollectionProgress { get; set; }
     }
 }

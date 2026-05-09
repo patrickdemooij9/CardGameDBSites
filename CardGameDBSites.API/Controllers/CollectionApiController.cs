@@ -68,7 +68,8 @@ public class CollectionApiController : Controller
                 PacksOpened = _collectionService.GetPackCount(),
                 UniqueCards = cards.Select(it => it.CardId).Distinct().Count(),
                 TotalCards = cards.Sum(it => it.Amount),
-                MarketPrice = marketPrice
+                MarketPrice = marketPrice,
+                CollectionProgress = _collectionService.CalculateCollectionProgress()
             });
         }
 

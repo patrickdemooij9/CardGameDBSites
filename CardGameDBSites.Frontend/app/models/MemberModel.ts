@@ -3,5 +3,5 @@ export default interface MemberModel {
     name?: string;
     likedDecks?: number[];
     isAdmin?: boolean;
-    impersonatedBy?: number;
+    impersonatedBy?: number | null;
 }

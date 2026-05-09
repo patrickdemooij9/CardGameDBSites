@@ -50,14 +50,22 @@ namespace CardGameDBSites.API.Controllers
             var collectionPageContent = _contentService.GetById(collectionPage.Id);
             if (collectionPageContent is null) return NotFound();
 
-            var presetItemBlocks = deck.Cards
+            var groupedDeckCards = deck.Cards
                 .Where(it => it.Amount > 0)
                 .GroupBy(it => it.CardId)
                 .Select(group => new { CardId = group.Key, Amount = group.Sum(it => it.Amount) })
+                .ToArray();
+
+            var cardContentById = _contentService.GetByIds(groupedDeckCards.Select(it => it.CardId))
+                .ToDictionary(it => it.Id, it => it);
+
+            var presetItemBlocks = groupedDeckCards
                 .Select(group =>
                 {
-                    var cardContent = _contentService.GetById(group.CardId);
-                    if (cardContent is null) return null;
+                    if (!cardContentById.TryGetValue(group.CardId, out var cardContent))
+                    {
+                        return null;
+                    }
 
                     return new Dictionary<string, string>
                     {
@@ -75,9 +83,15 @@ namespace CardGameDBSites.API.Controllers
             var itemBlockListJson = BlockListCreatorHelper.GetBlockListJsonFor(presetItemBlocks, CardsPresetItemElementTypeKey);
 
             var currentPresetJson = collectionPageContent.GetValue("presets")?.ToString();
-            var currentPresetBlocks = string.IsNullOrWhiteSpace(currentPresetJson)
-                ? []
-                : JsonConvert.DeserializeObject<BlockListCreatorHelper.Blocklist>(currentPresetJson!)?.ContentData ?? [];
+            var currentPresetBlocks = new List<Dictionary<string, string>>();
+            if (!string.IsNullOrWhiteSpace(currentPresetJson))
+            {
+                var deserializedBlockList = JsonConvert.DeserializeObject<BlockListCreatorHelper.Blocklist>(currentPresetJson!);
+                if (deserializedBlockList?.ContentData is not null)
+                {
+                    currentPresetBlocks.AddRange(deserializedBlockList.ContentData);
+                }
+            }
 
             currentPresetBlocks.Add(new Dictionary<string, string>
             {

@@ -23,7 +23,7 @@ const isLoggedIn = await accountStore.checkLogin();
 const appToast = useAppToast();
 const collectionComposable = useCollection();
 const showProgressBar = true;
-const progressPercent = 44.5;
+const progressPercent = ref(0);
 const isLoading = ref(true);
 const showExportPopup = ref(false);
 const showImportPopup = ref(false);
@@ -109,17 +109,22 @@ async function handleImport() {
 }
 
 onMounted(async () => {
-  if (isLoggedIn) {
-    summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
-      "/api/collection/summary",
+  try {
+    if (isLoggedIn) {
+      summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
+        "/api/collection/summary",
+      );
+      sets.value = await DoServerFetch<SetViewModel[]>("/api/sets/getAll");
+      progressPercent.value = summaryData.value.collectionProgress ?? 0;
+      presets.value = await collectionComposable.getPresets();
+    }
+    variantTypes.value = await DoServerFetch<CardVariantTypeApiModel[]>(
+      "/api/cards/variantTypes",
     );
-    sets.value = await DoServerFetch<SetViewModel[]>("/api/sets/getAll");
-    presets.value = await collectionComposable.getPresets();
+    isLoading.value = false;
+  } catch {
+    isLoading.value = false;
   }
-  variantTypes.value = await DoServerFetch<CardVariantTypeApiModel[]>(
-    "/api/cards/variantTypes",
-  );
-  isLoading.value = false;
 });
 
 async function handleCollectionUpdated() {
@@ -143,7 +148,13 @@ async function handleCollectionUpdated() {
           <small>Your progress towards a full collection.</small>
         </div>
         <div class="flex gap-4" v-if="accountStore.isLoggedIn">
-          <button v-if="presets.length > 0" class="btn" @click="showPresetPopup = true">Add preset</button>
+          <button
+            v-if="presets.length > 0"
+            class="btn"
+            @click="showPresetPopup = true"
+          >
+            Add preset
+          </button>
           <button class="btn" @click="showPackPopup = true">Add pack</button>
           <button class="btn" @click="showExportPopup = true">Export</button>
           <button class="btn" @click="showImportPopup = true">Import</button>

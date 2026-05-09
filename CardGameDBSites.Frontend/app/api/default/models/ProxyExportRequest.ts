@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type SetPriceHistoryItemApiModel = {
-    date: string;
-    price: number;
+import type { ProxyExportCard } from './ProxyExportCard';
+export type ProxyExportRequest = {
+    cards?: Array<ProxyExportCard>;
 };
 

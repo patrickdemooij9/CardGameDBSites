@@ -31,6 +31,12 @@ export type { CreateSquadPostModel } from './models/CreateSquadPostModel';
 export type { CreateSquadSlotPostModel } from './models/CreateSquadSlotPostModel';
 export type { CreateSquadSquadPostModel } from './models/CreateSquadSquadPostModel';
 export type { CurrentMemberApiModel } from './models/CurrentMemberApiModel';
+export type { DailyGameAttemptApiModel } from './models/DailyGameAttemptApiModel';
+export type { DailyGameAttributeFeedbackApiModel } from './models/DailyGameAttributeFeedbackApiModel';
+export type { DailyGameBootstrapApiModel } from './models/DailyGameBootstrapApiModel';
+export type { DailyGameGuessPostApiModel } from './models/DailyGameGuessPostApiModel';
+export type { DailyGameGuessResultApiModel } from './models/DailyGameGuessResultApiModel';
+export type { DailyGameLeaderboardEntryApiModel } from './models/DailyGameLeaderboardEntryApiModel';
 export type { DeckActionApiModel } from './models/DeckActionApiModel';
 export type { DeckApiModel } from './models/DeckApiModel';
 export type { DeckBuilderApiModel } from './models/DeckBuilderApiModel';
@@ -69,12 +75,14 @@ export type { PagedCommunityBlogPostsApiModel } from './models/PagedCommunityBlo
 export type { PagedResultCardDetailApiModel } from './models/PagedResultCardDetailApiModel';
 export type { PagedResultDeckApiModel } from './models/PagedResultDeckApiModel';
 export type { PresetApiModel } from './models/PresetApiModel';
+export type { ProxyExportCard } from './models/ProxyExportCard';
+export type { ProxyExportRequest } from './models/ProxyExportRequest';
 export type { RegisterPostModel } from './models/RegisterPostModel';
 export type { RequirementApiModel } from './models/RequirementApiModel';
 export { RestrictionType } from './models/RestrictionType';
 export type { SetOverviewSettingsApiModel } from './models/SetOverviewSettingsApiModel';
-export type { SetProgressApiModel } from './models/SetProgressApiModel';
 export type { SetPriceHistoryItemApiModel } from './models/SetPriceHistoryItemApiModel';
+export type { SetProgressApiModel } from './models/SetProgressApiModel';
 export type { SetViewModel } from './models/SetViewModel';
 export type { SiteSettingsApiModel } from './models/SiteSettingsApiModel';
 

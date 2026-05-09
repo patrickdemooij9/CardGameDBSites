@@ -116,11 +116,11 @@ onMounted(async () => {
       );
       sets.value = await DoServerFetch<SetViewModel[]>("/api/sets/getAll");
       progressPercent.value = summaryData.value.collectionProgress ?? 0;
+      presets.value = await collectionComposable.getPresets();
     }
     variantTypes.value = await DoServerFetch<CardVariantTypeApiModel[]>(
       "/api/cards/variantTypes",
     );
-    presets.value = await collectionComposable.getPresets();
     isLoading.value = false;
   } catch {
     isLoading.value = false;

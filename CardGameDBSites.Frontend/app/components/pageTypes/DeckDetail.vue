@@ -16,6 +16,7 @@ import { useCards } from "~/composables/useCards";
 import { useCollection } from "~/composables/useCollection";
 import { useMembers } from "~/composables/useMembers";
 import { useSite } from "~/composables/useSite";
+import { useAppToast } from "~/composables/useAppToast";
 import { GetCardValue } from "~/helpers/CardHelper";
 import CommentSection from "../comments/CommentSection.vue";
 import { PhDotsThree } from "@phosphor-icons/vue";
@@ -46,6 +47,7 @@ if (!deck || deck === null) {
 console.time('fetch-related-data');
 const accountService = useAccountStore();
 const collectionService = useCollection();
+const appToast = useAppToast();
 const deckSettings = await useSite().getDeckTypeSettings(deck.typeId!);
 const comments = ref(await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(
@@ -79,8 +81,10 @@ console.timeEnd("member");
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
+const isCreatingPreset = ref(false);
 const showActionsDropdown = ref(false);
 const selectedCardIndex = ref<number | undefined>(undefined);
+const isAdmin = computed(() => accountService.member?.isAdmin === true);
 const isOwner = computed(() => {
   const member = accountService.member;
   return member && deck.createdBy && member.id === deck.createdBy;
@@ -209,6 +213,20 @@ async function handleDeleteDeck() {
   router.push("/account/decks");
 }
 
+async function handleCreatePresetFromDeck() {
+  if (!deck.id || isCreatingPreset.value) return;
+
+  isCreatingPreset.value = true;
+  try {
+    await collectionService.createPresetFromDeck(deck.id);
+    appToast.success("Preset created from decklist.");
+  } catch {
+    appToast.error("Could not create a preset from this deck.");
+  } finally {
+    isCreatingPreset.value = false;
+  }
+}
+
 function openCardPopup(card: CardDetailApiModel) {
   const cardIndex = groupedDeckCards.value.findIndex((item) => item.baseId === card.baseId);
   if (cardIndex < 0) {
@@ -253,6 +271,14 @@ console.timeEnd('page-render');
         </div>
 
         <div class="shrink-0 flex gap-2 items-start">
+          <button
+            v-if="isAdmin"
+            class="border rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isCreatingPreset"
+            @click="handleCreatePresetFromDeck"
+          >
+            {{ isCreatingPreset ? "Creating..." : "Create preset" }}
+          </button>
           <div v-if="isOwner" class="relative actions-dropdown">
             <button
               class="border rounded px-2 py-1 hover:bg-gray-100"

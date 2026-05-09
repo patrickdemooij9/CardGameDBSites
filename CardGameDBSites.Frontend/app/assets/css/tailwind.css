@@ -91,16 +91,18 @@ nav + .container{
     @apply inline-block;
 }
 
-#squad-panel {
-    height: calc(100vh - 56px);
+@media (min-width: 768px) {
+    #squad-panel {
+        height: calc(100vh - 56px);
+    }
+
+    #squad-panel.scrolled {
+        height: 100vh;
+    }
 }
 
 .full-without-header {
     height: calc(100vh - 56px);
-}
-
-#squad-panel.scrolled {
-    height: 100vh;
 }
 
 @layer components {

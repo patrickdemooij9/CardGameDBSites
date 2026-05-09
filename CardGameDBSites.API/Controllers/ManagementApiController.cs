@@ -6,8 +6,11 @@ using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
+using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Web;
+using Umbraco.Extensions;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -23,12 +26,14 @@ namespace CardGameDBSites.API.Controllers
         private readonly DeckService _deckService;
         private readonly ISiteService _siteService;
         private readonly IContentService _contentService;
+        private readonly IUmbracoContextFactory _umbracoContextFactory;
 
-        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService)
+        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory)
         {
             _deckService = deckService;
             _siteService = siteService;
             _contentService = contentService;
+            _umbracoContextFactory = umbracoContextFactory;
         }
 
         [HttpPost("decks/{deckId}/createPreset")]
@@ -59,6 +64,9 @@ namespace CardGameDBSites.API.Controllers
             var cardContentById = _contentService.GetByIds(groupedDeckCards.Select(it => it.CardId))
                 .ToDictionary(it => it.Id, it => it);
 
+            using var umbracoContextReference = _umbracoContextFactory.EnsureUmbracoContext();
+            var publishedContentCache = umbracoContextReference.UmbracoContext.Content;
+
             var presetItemBlocks = groupedDeckCards
                 .Select(group =>
                 {
@@ -67,9 +75,22 @@ namespace CardGameDBSites.API.Controllers
                         return null;
                     }
 
+                    var selectedCardKey = cardContent.Key;
+                    if (publishedContentCache?.GetById(group.CardId) is Card publishedCard)
+                    {
+                        var baseVariants = publishedCard.Children<CardVariant>()
+                            .Where(it => it.VariantType is null)
+                            .ToArray();
+
+                        if (baseVariants.Length == 1)
+                        {
+                            selectedCardKey = baseVariants[0].Key;
+                        }
+                    }
+
                     return new Dictionary<string, string>
                     {
-                        ["card"] = Udi.Create(Constants.UdiEntityType.Document, cardContent.Key).ToString(),
+                        ["card"] = Udi.Create(Constants.UdiEntityType.Document, selectedCardKey).ToString(),
                         ["amount"] = group.Amount.ToString()
                     };
                 })

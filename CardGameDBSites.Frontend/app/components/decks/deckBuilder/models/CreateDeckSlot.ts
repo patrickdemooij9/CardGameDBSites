@@ -13,6 +13,7 @@ export default class CreateDeckSlot {
 
   minCards: number;
   maxCardAmount: CreateDeckSlotAmount;
+  overwriteAmount?: number;
   displaySize: DisplaySize;
   disableRemoval: boolean;
   numberMode: boolean;
@@ -50,6 +51,9 @@ export default class CreateDeckSlot {
   }
 
   getCardMaxAmount(card: CardDetailApiModel) {
+    if (this.overwriteAmount && this.overwriteAmount > 0) {
+      return this.overwriteAmount;
+    }
     return GetCardValue<number>(card, "Amount") ?? 0;
   }
 

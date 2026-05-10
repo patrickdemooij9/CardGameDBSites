@@ -3,6 +3,7 @@ using AdServer.Repositories.AdRepository;
 using AdServer.Repositories.CampaignRepository;
 using AdServer.Repositories.MetricDataRepository;
 using AdServer.Repositories.MetricRepository;
+using Lucene.Net.Search;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using SkytearHorde.Business.BackgroundRunners;
@@ -124,6 +125,8 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddHostedService<DeckViewCleanupTask>();
 
             builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();
+
+            BooleanQuery.MaxClauseCount = Int32.MaxValue;
 
             builder.Services.Configure<UmbracoPipelineOptions>(options =>
             {

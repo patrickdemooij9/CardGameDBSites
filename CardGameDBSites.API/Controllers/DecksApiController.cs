@@ -108,12 +108,13 @@ namespace CardGameDBSites.API.Controllers
                 DateTo = query.DateTo,
                 UseUserCollectionId = useUserCollection
             });
-            return Ok(new PagedResult<DeckApiModel>(decks.TotalItems, query.Page, query.Take)
+
+            var allowPricing = _settingsService.GetSiteSettings().AllowPricing;
+                return Ok(new PagedResult<DeckApiModel>(decks.TotalItems, query.Page, query.Take)
             {
                 Items = decks.Items?.Select(deck =>
                 {
-                    var price = _cardPriceService.GetPriceByDeck(deck); //TODO: Bundle this
-                    return new DeckApiModel(deck, new DeckPriceApiModel { MarketPrice = price });
+                    return new DeckApiModel(deck, !allowPricing ? null : new DeckPriceApiModel { MarketPrice = _cardPriceService.GetPriceByDeck(deck) });
                  }).ToArray() ?? []
             });
         }
@@ -139,7 +140,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpDelete("deleteDeck")]
-        [Authorize(AuthenticationSchemes = "Jwt")]
+        [JwtAuthorization]
         public async Task<IActionResult> DeleteDeck(int deckId)
         {
             var currentUser = await _memberManager.GetCurrentMemberAsync();

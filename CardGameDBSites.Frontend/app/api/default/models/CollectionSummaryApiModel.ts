@@ -7,5 +7,6 @@ export type CollectionSummaryApiModel = {
     totalCards?: number;
     packsOpened?: number;
     marketPrice?: number;
+    collectionProgress?: number;
 };
 

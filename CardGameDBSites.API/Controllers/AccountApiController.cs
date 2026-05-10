@@ -4,12 +4,14 @@ using DeviceDetectorNET.Class.Device;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
@@ -185,8 +187,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpGet("IsLoggedIn")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [OptionalJwtAuthorization]
+        [JwtAuthorization]
         public IActionResult IsLoggedIn()
         {
             var test = _memberManager.GetCurrentMemberAsync().Result;
@@ -219,7 +220,7 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpPost("impersonate/{memberId}")]
         [ProducesResponseType(typeof(string), 200)]
-        [OptionalJwtAuthorization]
+        [JwtAuthorization]
         public async Task<IActionResult> Impersonate(int memberId)
         {
             var isAdminClaim = HttpContext.User.FindFirst("isAdmin");

@@ -102,6 +102,16 @@ export function useCollection() {
     );
   };
 
+  const createPresetFromDeck = async (deckId: number): Promise<void> => {
+    await DoServerFetch(
+      `/api/management/decks/${deckId}/createPreset`,
+      true,
+      {
+        method: "POST",
+      }
+    );
+  };
+
   const getCards = (cardId: number) => store.getCards(cardId);
   const getAmountForSet = (card: CardDetailApiModel) => {
     const collectionCards = store.getCards(card.baseId!);
@@ -119,6 +129,7 @@ export function useCollection() {
     addPack,
     getPresets,
     applyPreset,
+    createPresetFromDeck,
     getCards,
     getAmountForSet,
     getAmount

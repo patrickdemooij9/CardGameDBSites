@@ -188,6 +188,7 @@ namespace CardGameDBSites.API.Controllers
             {
                 Id = deckTypeSettings.TypeID,
                 DefaultNames = [.. deckTypeSettings.DefaultNames ?? []],
+                OverwriteAmount = deckTypeSettings.OverwriteAmount > 0 ? deckTypeSettings.OverwriteAmount : null,
                 Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel
                 {
                     Id = it.SquadId,

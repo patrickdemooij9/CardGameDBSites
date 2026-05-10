@@ -87,10 +87,10 @@ export function useSite() {
     return data.value!;
   };
 
-  const getDeckBuilderSettings = async (typeId: string, deckId?: number): Promise<CreateDeckModel> => {
+  const getDeckBuilderSettings = async (typeId: number, deckId?: number): Promise<CreateDeckModel> => {
     const { data } = await useAsyncData(`deck-builder-settings-${typeId}`, () =>
-      DoFetch<DeckBuilderApiModel>("/api/settings/deckBuilderByGuid", {
-        query: { typeGuid: typeId }
+      DoFetch<DeckBuilderApiModel>("/api/settings/deckbuilder", {
+        query: { typeId }
       })
     );
 

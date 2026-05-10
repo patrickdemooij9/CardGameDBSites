@@ -210,16 +210,6 @@ namespace CardGameDBSites.API.Controllers
             });
         }
 
-        [HttpGet("deckBuilderByGuid")]
-        [ProducesResponseType(typeof(DeckBuilderApiModel), 200)]
-        public IActionResult GetDeckBuilderSettings(Guid typeGuid) //TODO: Eventually clean up this endpoint
-        {
-            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var content = (ctx.UmbracoContext.Content!.GetById(typeGuid) as SquadSettings).TypeID;
-
-            return GetDeckBuilderSettings(content);
-        }
-
         [HttpGet("squadSettingsOptions")]
         [ProducesResponseType(typeof(IEnumerable<SquadSettingsOptionApiModel>), 200)]
         public IActionResult GetSquadSettingsOptions()
@@ -230,8 +220,8 @@ namespace CardGameDBSites.API.Controllers
                 Id = it.Key,
                 TypeId = it.TypeID,
                 Name = it.TypeDisplayName.IfNullOrWhiteSpace(it.Name!),
-                Description = it.Description,
-                ImageUrl = it.Image?.Url(mode: UrlMode.Absolute)
+                Description = it.TypeDescription,
+                ImageUrl = it.TypeImage?.GetCropUrl("icon", urlMode: UrlMode.Absolute)
             });
             return Ok(options);
         }

@@ -12,7 +12,7 @@ import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import type { OverviewFilterModel } from "~/components/overviews/OverviewFilterModel";
 
 const props = defineProps<{
-  typeId: string
+  typeId: number
   filters: OverviewFilterModel[]
 }>();
 

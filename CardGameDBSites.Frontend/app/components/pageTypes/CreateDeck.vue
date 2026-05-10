@@ -19,49 +19,39 @@ const idQuery = route.query["id"];
 const deckId: number | undefined = (idQuery && !Array.isArray(idQuery)) ? parseInt(idQuery) : undefined;
 
 // Resolve which squad settings GUID to use
-const selectedTypeId = ref<string | null>(null);
+const selectedTypeId = ref<number | null>(null);
 
 if (deckId) {
-  // Editing: get the deck to find its typeId, then find the matching squad settings option
   const deck = await new DeckService().get(deckId);
   if (deck?.typeId) {
-    const options = await useSite().getSquadSettingsOptions();
-    const match = options.find((o) => o.typeId === deck.typeId);
-    if (match) {
-      selectedTypeId.value = match.id;
-    }
-  }
-} else {
-  // Creating: check if the page has a pre-configured settingType
-  const pageSettingType = props.content.properties?.settingType?.[0] as SquadSettingsContentModel | undefined;
-  if (pageSettingType?.id) {
-    selectedTypeId.value = pageSettingType.id;
+    selectedTypeId.value = deck!.typeId!;
   }
 }
 
-// Squad settings options for the selector (only loaded when needed)
 const squadOptions = ref<SquadSettingsOptionApiModel[]>([]);
 if (!selectedTypeId.value) {
   squadOptions.value = await useSite().getSquadSettingsOptions();
+  if (squadOptions.value.length === 1) {
+    // If there's only one option, select it by default
+    selectedTypeId.value = squadOptions.value[0]!.typeId;
+  }
 }
 
 function onSelectOption(option: SquadSettingsOptionApiModel) {
-  selectedTypeId.value = option.id;
+  selectedTypeId.value = option.typeId;
 }
-
-const resolvedTypeId = computed(() => selectedTypeId.value ?? '');
 </script>
 
 <template>
-  <ClientOnly>
-    <DeckTypeSelector
+  <DeckTypeSelector
       v-if="!selectedTypeId"
       :options="squadOptions"
       @select="onSelectOption"
     />
+  <ClientOnly>
     <DeckBuilder
-      v-else
-      :typeId="resolvedTypeId"
+      v-if="selectedTypeId"
+      :typeId="selectedTypeId"
       :filters="filters"
     />
   </ClientOnly>

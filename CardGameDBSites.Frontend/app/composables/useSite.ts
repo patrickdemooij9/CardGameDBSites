@@ -97,6 +97,7 @@ export function useSite() {
     const result = data.value;
     const model = new CreateDeckModel();
     model.typeId = result?.id;
+    model.overwriteAmount = result?.overwriteAmount ?? undefined;
     model.pickDefaultName(result?.defaultNames);
     model.groups = result?.groups?.map<CreateDeckGroup>((group) => {
       const deckGroup = new CreateDeckGroup();
@@ -114,6 +115,7 @@ export function useSite() {
         }) ?? [];
         deckSlot.minCards = slot.minCards ?? 0;
         deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
+        deckSlot.overwriteAmount = model.overwriteAmount;
         deckSlot.disableRemoval = slot.disableRemoval!;
         deckSlot.displaySize = slot.displaySize! as DisplaySize;
         deckSlot.numberMode = slot.numberMode!;

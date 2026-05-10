@@ -51,6 +51,19 @@ describe("CreateDeckSlot", () => {
     });
   });
 
+  describe("getCardMaxAmount", () => {
+    it("returns the card amount when no overwrite amount is configured", () => {
+      const { slot } = makeSlotWithGroup(4);
+      expect(slot.getCardMaxAmount(makeCard(1, { Amount: ["3"] }))).toBe(3);
+    });
+
+    it("returns the overwrite amount when configured", () => {
+      const { slot } = makeSlotWithGroup(4);
+      slot.overwriteAmount = 5;
+      expect(slot.getCardMaxAmount(makeCard(1, { Amount: ["1"] }))).toBe(5);
+    });
+  });
+
   describe("isFull", () => {
     it("returns false when the slot is empty", () => {
       const { slot } = makeSlotWithGroup(4);
@@ -150,6 +163,15 @@ describe("CreateDeckSlot", () => {
       // 1 copy in this slot + 1 in other slots = 2 < max(3)
       group.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
       expect(slot.canAddCard(card, 1)).toBe(true);
+    });
+
+    it("uses overwrite amount instead of card amount when configured", () => {
+      const { slot, group } = makeSlotWithGroup(10);
+      slot.overwriteAmount = 4;
+      const card = makeCard(1, { Amount: ["1"] });
+      group.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
+      expect(slot.canAddCard(card, 2)).toBe(true);
+      expect(slot.canAddCard(card, 3)).toBe(false);
     });
 
     it("defaults existingAmountInOtherSlots to 0 for backward compatibility", () => {

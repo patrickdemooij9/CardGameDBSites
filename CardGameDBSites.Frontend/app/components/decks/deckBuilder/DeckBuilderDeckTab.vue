@@ -167,7 +167,7 @@ const hasPassiveRequirements = computed(() => {
     class="md:flex md:flex-col md:w-1/3 w-full shrink-0 bg-white"
     :class="currentTab !== DeckBuilderTab.Deck ? 'hidden' : 'block'"
   >
-    <div class="sticky top-0">
+    <div class="md:sticky md:top-0">
       <div
         class="md:overflow-auto px-4 md:px-8 py-4 tooltip-container"
         id="squad-panel"

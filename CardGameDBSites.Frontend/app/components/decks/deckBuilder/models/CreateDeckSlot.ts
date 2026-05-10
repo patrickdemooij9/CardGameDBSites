@@ -54,7 +54,12 @@ export default class CreateDeckSlot {
     if (this.overwriteAmount && this.overwriteAmount > 0) {
       return this.overwriteAmount;
     }
-    return GetCardValue<number>(card, "Amount") ?? 0;
+    const amount = GetCardValue<string | number>(card, "Amount");
+    if (amount === null || amount === undefined || amount === "") {
+      return 0;
+    }
+    const parsedAmount = typeof amount === "number" ? amount : Number(amount);
+    return Number.isFinite(parsedAmount) ? parsedAmount : 0;
   }
 
   getMaxAmount() {

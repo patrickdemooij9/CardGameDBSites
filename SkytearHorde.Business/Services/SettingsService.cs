@@ -91,6 +91,12 @@ namespace SkytearHorde.Business.Services
             return _siteService.GetRoot().FirstChild<Settings>().FirstChild<SquadSettings>(it => it.TypeID == typeId);
         }
 
+        public IEnumerable<SquadSettings> GetAllSquadSettings()
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            return _siteService.GetSettings().Children<SquadSettings>()?.ToArray() ?? Array.Empty<SquadSettings>();
+        }
+
         public CardSettings GetCardSettings()
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();

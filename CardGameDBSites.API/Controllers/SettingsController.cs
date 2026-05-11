@@ -210,14 +210,20 @@ namespace CardGameDBSites.API.Controllers
             });
         }
 
-        [HttpGet("deckBuilderByGuid")]
-        [ProducesResponseType(typeof(DeckBuilderApiModel), 200)]
-        public IActionResult GetDeckBuilderSettings(Guid typeGuid) //TODO: Eventually clean up this endpoint
+        [HttpGet("squadSettingsOptions")]
+        [ProducesResponseType(typeof(IEnumerable<SquadSettingsOptionApiModel>), 200)]
+        public IActionResult GetSquadSettingsOptions()
         {
-            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var content = (ctx.UmbracoContext.Content!.GetById(typeGuid) as SquadSettings).TypeID;
-
-            return GetDeckBuilderSettings(content);
+            var allSettings = _settingsService.GetAllSquadSettings();
+            var options = allSettings.Select(it => new SquadSettingsOptionApiModel
+            {
+                Id = it.Key,
+                TypeId = it.TypeID,
+                Name = it.TypeDisplayName.IfNullOrWhiteSpace(it.Name!),
+                Description = it.TypeDescription,
+                ImageUrl = it.TypeImage?.GetCropUrl("icon", urlMode: UrlMode.Absolute)
+            });
+            return Ok(options);
         }
 
         private DeckBuilderDeckCardGroupApiModel[] GetGroupsForSlot(SquadSlotConfig slot)

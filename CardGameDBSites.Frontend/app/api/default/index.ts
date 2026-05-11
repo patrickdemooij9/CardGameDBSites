@@ -85,5 +85,6 @@ export type { SetPriceHistoryItemApiModel } from './models/SetPriceHistoryItemAp
 export type { SetProgressApiModel } from './models/SetProgressApiModel';
 export type { SetViewModel } from './models/SetViewModel';
 export type { SiteSettingsApiModel } from './models/SiteSettingsApiModel';
+export type { SquadSettingsOptionApiModel } from './models/SquadSettingsOptionApiModel';
 
 export { V1Resource } from './services/V1Resource';

@@ -1,4 +1,9 @@
-import type { CardDetailApiModel, CardsQueryFilterClauseApiModel } from "~/api/default";
+import {
+  CardSearchFilterClauseType,
+  CardSearchFilterMode,
+  type CardDetailApiModel,
+  type CardsQueryFilterClauseApiModel,
+} from "~/api/default";
 import type { IRequirement } from "./IRequirement";
 import RequirementType from "./RequirementType";
 
@@ -10,8 +15,22 @@ export default class ChildOfRequirement implements IRequirement {
     return cards.every((card) => card.baseId !== undefined && allowedChildIds.includes(card.baseId));
   }
 
-  ToFilters(_cards: CardDetailApiModel[], _config: Record<string, any>): CardsQueryFilterClauseApiModel[] | undefined {
-    // ChildOf filtering is performed client-side via IsValid; no server-side filter clause needed.
-    return undefined;
+  ToFilters(_cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel[] | undefined {
+    const allowedChildIds: number[] = config.allowedChildIds ?? [];
+    if (allowedChildIds.length === 0) {
+      return undefined;
+    }
+    return [
+      {
+        clauseType: CardSearchFilterClauseType.AND,
+        filters: [
+          {
+            alias: "baseId",
+            values: allowedChildIds.map(String),
+            mode: CardSearchFilterMode.CONTAINS,
+          },
+        ],
+      },
+    ];
   }
 }

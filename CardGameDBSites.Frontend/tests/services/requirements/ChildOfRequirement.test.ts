@@ -52,9 +52,23 @@ describe("ChildOfRequirement", () => {
   });
 
   describe("ToFilters", () => {
-    it("returns undefined (no server-side filter for ChildOf)", () => {
+    it("returns an AND clause filtering by baseId for each allowedChildId", () => {
       const card = makeCard(10);
-      expect(requirement.ToFilters([card], { allowedChildIds: [10, 20] })).toBeUndefined();
+      const filters = requirement.ToFilters([card], { allowedChildIds: [10, 20] });
+      expect(filters).toHaveLength(1);
+      expect(filters![0].clauseType).toBe("AND");
+      expect(filters![0].filters).toHaveLength(1);
+      expect(filters![0].filters![0].alias).toBe("baseId");
+      expect(filters![0].filters![0].values).toEqual(["10", "20"]);
+      expect(filters![0].filters![0].mode).toBe("Contains");
+    });
+
+    it("returns undefined when allowedChildIds is empty", () => {
+      expect(requirement.ToFilters([], { allowedChildIds: [] })).toBeUndefined();
+    });
+
+    it("returns undefined when allowedChildIds is missing", () => {
+      expect(requirement.ToFilters([], {})).toBeUndefined();
     });
   });
 });

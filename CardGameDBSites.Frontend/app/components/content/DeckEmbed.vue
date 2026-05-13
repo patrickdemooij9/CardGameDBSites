@@ -203,10 +203,5 @@ function getImagesForCard(card: CardDetailApiModel) {
         <p class="mt-2 font-semibold">{{ totalCards }} Cards Total</p>
       </div>
     </div>
-    <div
-      id="cursor-image"
-      class="pointer-events-none absolute h-72 w-48 bg-contain bg-no-repeat"
-      style="display: none"
-    ></div>
   </div>
 </template>

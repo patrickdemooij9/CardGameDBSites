@@ -103,6 +103,15 @@ export const useAccountStore = defineStore("accountStore", {
         },
       });
     },
+    async resetPassword(code: string, newPassword: string) {
+      return await DoServerFetch("/api/account/resetpassword", true, {
+        method: "POST",
+        body: {
+          code,
+          newPassword,
+        },
+      });
+    },
     async impersonate(memberId: number) {
       const result = await DoServerFetch<CurrentMemberApiModel>(
         "/api/account/impersonate",

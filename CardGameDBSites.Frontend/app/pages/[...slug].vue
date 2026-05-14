@@ -3,6 +3,7 @@ import { onMounted, type Component } from 'vue';
 import { useRoute } from 'vue-router';
 import type { IApiContentModelBase } from '~/api/umbraco';
 import { DoFetch } from '~/helpers/RequestsHelper';
+import type { ApiContentModel } from '~/models/ApiContentModel';
 import type { PageSeoModel } from '~/models/PageSeoModel';
 import { useAccountStore } from '~/stores/AccountStore';
 
@@ -13,27 +14,23 @@ if (Array.isArray(slug)){
 }
 
 console.time("fetching content");
-const { data } = await useAsyncData('mainContentFetch-' + slug, () => DoFetch<IApiContentModelBase>("/umbraco/delivery/api/v2/content/item/" + slug));
+const { data } = await useAsyncData('mainContentFetch-' + slug, () => DoFetch<ApiContentModel>("/umbraco/delivery/api/v2/content/item/" + slug));
 console.timeEnd("fetching content");
-
-console.time("fetching seo");
-const { data: seo } = await useAsyncData('seoFetch-' + slug, () => DoFetch<PageSeoModel>("/api/seo?contentGuid=" + data.value!.id));
-console.timeEnd("fetching seo");
 
 const config = useRuntimeConfig();
 
 useHead({
-    title: seo.value!.metaFields.title,
+    title: data.value!.seoToolkit.title,
     meta: [
-        { name: 'description', content: seo.value!.metaFields.metaDescription },
-        { property: 'og:title', content: seo.value!.metaFields.openGraphTitle || seo.value!.metaFields.title },
-        { property: 'og:description', content: seo.value!.metaFields.metaDescription },
-        { property: 'og:image', content: seo.value!.metaFields.openGraphImage },
-        { property: 'og:url', content: seo.value!.metaFields.canonicalUrl }
+        { name: 'description', content: data.value!.seoToolkit.metaDescription },
+        { property: 'og:title', content: data.value!.seoToolkit.openGraphTitle || data.value!.seoToolkit.title },
+        { property: 'og:description', content: data.value!.seoToolkit.metaDescription },
+        { property: 'og:image', content: data.value!.seoToolkit.openGraphImage },
+        { property: 'og:url', content: data.value!.seoToolkit.canonicalUrl }
     ],
     link: [
         { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` },
-        { rel: 'canonical', href: seo.value!.metaFields.canonicalUrl }
+        { rel: 'canonical', href: data.value!.seoToolkit.canonicalUrl }
     ]
 });
 

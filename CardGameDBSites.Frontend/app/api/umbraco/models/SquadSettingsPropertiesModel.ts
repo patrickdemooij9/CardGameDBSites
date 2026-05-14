@@ -19,6 +19,7 @@ export type SquadSettingsPropertiesModel = {
     useCompactDeckDisplay?: boolean | null;
     showDeckColors?: boolean | null;
     amountOfSquadCards?: number | null;
+    deckDisplayType?: ApiBlockListModel;
     colorLogic?: ApiBlockListModel;
     costIcon?: Array<IApiMediaWithCropsModel> | null;
     renderCostInIcon?: boolean | null;

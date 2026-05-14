@@ -6,3 +6,4 @@ export type SetPriceHistoryItemApiModel = {
     date: string;
     price: number;
 };
+

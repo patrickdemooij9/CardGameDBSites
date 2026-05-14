@@ -1,4 +1,4 @@
-import type { CollectionCardApiModel, DeckProgressApiModel } from "~/api/default";
+import type { CardDetailApiModel, CollectionCardApiModel, DeckProgressApiModel } from "~/api/default";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
 import type { PackPostApiModel, PackVerifySuccessApiModel, PackVerifyErrorApiModel } from "~/models/PackApiModel";
 import type { PresetApiModel } from "~/models/PresetApiModel";
@@ -102,7 +102,23 @@ export function useCollection() {
     );
   };
 
+  const createPresetFromDeck = async (deckId: number): Promise<void> => {
+    await DoServerFetch(
+      `/api/management/decks/${deckId}/createPreset`,
+      true,
+      {
+        method: "POST",
+      }
+    );
+  };
+
   const getCards = (cardId: number) => store.getCards(cardId);
+  const getAmountForSet = (card: CardDetailApiModel) => {
+    const collectionCards = store.getCards(card.baseId!);
+    const setVariantIds = card.variants?.filter((v) => v.setId === card.setId).map(v => v.cardVariantId!) ?? [];
+    const amount = collectionCards?.filter(c => setVariantIds.includes(c.variantId!)).reduce((sum, c) => sum + (c.amount ?? 0), 0) ?? 0;
+    return amount;
+  };
   const getAmount = (cardId: number) => store.amount(cardId);
 
   return {
@@ -113,7 +129,9 @@ export function useCollection() {
     addPack,
     getPresets,
     applyPreset,
+    createPresetFromDeck,
     getCards,
-    getAmount,
+    getAmountForSet,
+    getAmount
   };
 }

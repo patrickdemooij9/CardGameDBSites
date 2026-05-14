@@ -14,6 +14,10 @@ import type { CommentViewModel } from '../models/CommentViewModel';
 import type { CreateCommentPostModel } from '../models/CreateCommentPostModel';
 import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
+import type { DailyGameBootstrapApiModel } from '../models/DailyGameBootstrapApiModel';
+import type { DailyGameGuessPostApiModel } from '../models/DailyGameGuessPostApiModel';
+import type { DailyGameGuessResultApiModel } from '../models/DailyGameGuessResultApiModel';
+import type { DailyGameLeaderboardEntryApiModel } from '../models/DailyGameLeaderboardEntryApiModel';
 import type { DeckApiModel } from '../models/DeckApiModel';
 import type { DeckBuilderApiModel } from '../models/DeckBuilderApiModel';
 import type { DeckProgressApiModel } from '../models/DeckProgressApiModel';
@@ -29,8 +33,10 @@ import type { PagedCommunityBlogPostsApiModel } from '../models/PagedCommunityBl
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
 import type { PresetApiModel } from '../models/PresetApiModel';
+import type { ProxyExportRequest } from '../models/ProxyExportRequest';
 import type { RegisterPostModel } from '../models/RegisterPostModel';
 import type { SetOverviewSettingsApiModel } from '../models/SetOverviewSettingsApiModel';
+import type { SetPriceHistoryItemApiModel } from '../models/SetPriceHistoryItemApiModel';
 import type { SetProgressApiModel } from '../models/SetProgressApiModel';
 import type { SetViewModel } from '../models/SetViewModel';
 import type { SiteSettingsApiModel } from '../models/SiteSettingsApiModel';
@@ -62,6 +68,23 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/account/GetCurrentMember',
+        });
+    }
+    /**
+     * @returns string OK
+     * @throws ApiError
+     */
+    public static postApiAccountImpersonate({
+        memberId,
+    }: {
+        memberId: number,
+    }): CancelablePromise<string> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/account/impersonate/{memberId}',
+            path: {
+                'memberId': memberId,
+            },
         });
     }
     /**
@@ -558,6 +581,56 @@ export class V1Resource {
         });
     }
     /**
+     * @returns DailyGameBootstrapApiModel OK
+     * @throws ApiError
+     */
+    public static getApiDailygameBootstrap({
+        guestSessionToken,
+    }: {
+        guestSessionToken?: string,
+    }): CancelablePromise<DailyGameBootstrapApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/dailygame/bootstrap',
+            query: {
+                'guestSessionToken': guestSessionToken,
+            },
+        });
+    }
+    /**
+     * @returns DailyGameGuessResultApiModel OK
+     * @throws ApiError
+     */
+    public static postApiDailygameGuess({
+        requestBody,
+    }: {
+        requestBody?: DailyGameGuessPostApiModel,
+    }): CancelablePromise<DailyGameGuessResultApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/dailygame/guess',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns DailyGameLeaderboardEntryApiModel OK
+     * @throws ApiError
+     */
+    public static getApiDailygameLeaderboard({
+        take = 50,
+    }: {
+        take?: number,
+    }): CancelablePromise<Array<DailyGameLeaderboardEntryApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/dailygame/leaderboard',
+            query: {
+                'take': take,
+            },
+        });
+    }
+    /**
      * @returns number OK
      * @throws ApiError
      */
@@ -672,6 +745,75 @@ export class V1Resource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiExport({
+        requestBody,
+    }: {
+        requestBody?: ProxyExportRequest,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/export',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiExportExport({
+        deckId,
+        exportId,
+    }: {
+        deckId?: number,
+        exportId?: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/export/export',
+            query: {
+                'deckId': deckId,
+                'exportId': exportId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiExportExportForceTable({
+        deckId,
+    }: {
+        deckId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/export/exportForceTable',
+            query: {
+                'deckId': deckId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiExportProxyExport({
+        requestBody,
+    }: {
+        requestBody?: ProxyExportRequest,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/export/proxyExport',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * @returns MemberApiModel OK
      * @throws ApiError
      */
@@ -781,6 +923,23 @@ export class V1Resource {
             url: '/api/sets/getByKey',
             query: {
                 'key': key,
+            },
+        });
+    }
+    /**
+     * @returns SetPriceHistoryItemApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSetsPriceHistory({
+        setId,
+    }: {
+        setId?: number,
+    }): CancelablePromise<Array<SetPriceHistoryItemApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/priceHistory',
+            query: {
+                'setId': setId,
             },
         });
     }

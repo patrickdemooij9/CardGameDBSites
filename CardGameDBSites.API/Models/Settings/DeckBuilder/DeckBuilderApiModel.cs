@@ -4,6 +4,7 @@
     {
         public required int Id { get; set; }
         public string[] DefaultNames { get; set; }
+        public int? OverwriteAmount { get; set; }
         public DeckBuilderGroupApiModel[] Groups { get; set; }
 
         public DeckBuilderApiModel()

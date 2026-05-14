@@ -1,3 +1,4 @@
+using CardGameDBSites.API.Attributes;
 using CardGameDBSites.API.Models.Collection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -18,7 +19,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/collection")]
-    [Authorize(AuthenticationSchemes = "Jwt")]
+    [JwtAuthorization]
 public class CollectionApiController : Controller
     {
         private readonly CollectionService _collectionService;
@@ -67,7 +68,8 @@ public class CollectionApiController : Controller
                 PacksOpened = _collectionService.GetPackCount(),
                 UniqueCards = cards.Select(it => it.CardId).Distinct().Count(),
                 TotalCards = cards.Sum(it => it.Amount),
-                MarketPrice = marketPrice
+                MarketPrice = marketPrice,
+                CollectionProgress = _collectionService.CalculateCollectionProgress()
             });
         }
 

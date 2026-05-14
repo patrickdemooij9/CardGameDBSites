@@ -4,12 +4,14 @@ using DeviceDetectorNET.Class.Device;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
@@ -159,6 +161,38 @@ namespace CardGameDBSites.API.Controllers
             return Ok();
         }
 
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ForgotPasswordResetPostModel model)
+        {
+            var memberByCode = _memberService.GetAllMembers()
+                .FirstOrDefault(it => it.GetValue<string>("resetCode")?.Equals(model.Code) is true);
+
+            if (memberByCode is null || memberByCode.GetValue<DateTime>("resetTimestamp") < DateTime.UtcNow)
+            {
+                return BadRequest("This password reset link is invalid or expired.");
+            }
+
+            var user = await _memberManager.FindByIdAsync(memberByCode.Id.ToString());
+            if (user is null)
+            {
+                return BadRequest("This password reset link is invalid.");
+            }
+
+            var resetToken = await _memberManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _memberManager.ResetPasswordAsync(user, resetToken, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errorMessage = result.Errors.FirstOrDefault()?.Description ?? "Could not reset password.";
+                return BadRequest(errorMessage);
+            }
+
+            memberByCode.SetValue("resetCode", null);
+            memberByCode.SetValue("resetTimestamp", null);
+            _memberService.Save(memberByCode);
+
+            return Ok();
+        }
+
         [HttpPost("Login")]
         [ProducesResponseType(typeof(string), 200)]
         public async Task<IActionResult> Login(LoginPostModel model)
@@ -185,8 +219,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpGet("IsLoggedIn")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [OptionalJwtAuthorization]
+        [JwtAuthorization]
         public IActionResult IsLoggedIn()
         {
             var test = _memberManager.GetCurrentMemberAsync().Result;
@@ -201,29 +234,81 @@ namespace CardGameDBSites.API.Controllers
             var member = _memberInfoService.GetMemberInfo();
             if (member is null) return Unauthorized("You need to be logged in to see this information.");
 
+            var isAdmin = HttpContext.User.FindFirst("isAdmin")?.Value == "true";
+            var impersonatedByStr = HttpContext.User.FindFirst("impersonatedBy")?.Value;
+            int? impersonatedBy = impersonatedByStr != null && int.TryParse(impersonatedByStr, out var parsedId)
+                ? parsedId
+                : null;
+
             return Ok(new CurrentMemberApiModel
             {
                 Id = member.Id,
                 DisplayName = member.DisplayName,
-                LikedDecks = member.LikedDecks
+                LikedDecks = member.LikedDecks,
+                IsAdmin = isAdmin,
+                ImpersonatedBy = impersonatedBy
             });
+        }
+
+        [HttpPost("impersonate/{memberId}")]
+        [ProducesResponseType(typeof(string), 200)]
+        [JwtAuthorization]
+        public async Task<IActionResult> Impersonate(int memberId)
+        {
+            var isAdminClaim = HttpContext.User.FindFirst("isAdmin");
+            if (isAdminClaim?.Value != "true")
+                return Forbid();
+
+            var callerIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (callerIdClaim is null)
+                return Forbid();
+
+            var targetMember = await _memberManager.FindByIdAsync(memberId.ToString());
+            if (targetMember is null)
+                return NotFound();
+
+            var token = GetImpersonationJwtToken(targetMember, callerIdClaim.Value);
+            return Ok(new JwtSecurityTokenHandler().WriteToken(token));
         }
 
         private JwtSecurityToken GetJwtToken(MemberIdentityUser user, bool rememberMe)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var isAdmin = _config.AdminMembers.Contains(user.Id);
 
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, user.Name!)
+            };
+
+            if (isAdmin)
+                claims.Add(new Claim("isAdmin", "true"));
+
+            return GetJwtTokenByClaims(claims, DateTime.Now.AddDays(rememberMe ? 30 : 1));
+        }
+
+        private JwtSecurityToken GetImpersonationJwtToken(MemberIdentityUser user, string impersonatedByMemberId)
+        {
             var claims = new[]
             {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(ClaimTypes.Name, user.Name!)
-                };
-            return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
-                null,
-                claims,
-                expires: DateTime.Now.AddDays(rememberMe ? 30 : 1),
-                signingCredentials: credentials);
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.Name!),
+                new Claim("impersonatedBy", impersonatedByMemberId)
+            };
+            return GetJwtTokenByClaims(claims, DateTime.Now.AddHours(1));
+        }
+
+        private JwtSecurityToken GetJwtTokenByClaims(IEnumerable<Claim> claims, DateTime? expires)
+        {
+            {
+                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_globalConfig["Jwt:Key"]));
+                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+                return new JwtSecurityToken(_globalConfig["Jwt:Issuer"],
+                    null,
+                    claims,
+                    expires: expires,
+                    signingCredentials: credentials);
+            }
         }
     }
 }

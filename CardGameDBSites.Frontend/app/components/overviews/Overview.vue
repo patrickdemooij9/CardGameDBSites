@@ -56,6 +56,7 @@ const search = ref(route.query.search?.toString() ?? "");
 
 const selectedFilters = ref<Map<OverviewFilterModel, string[]>>(new Map());
 const isLoading = ref(false);
+const hasLoadedOnce = ref(false);
 const page = ref(1);
 const pageNumberString = route.query["page"];
 if (pageNumberString) {
@@ -171,6 +172,7 @@ function reloadData() {
     SortBy: selectedSort.value || undefined,
     LoadedCallback: () => {
       isLoading.value = false;
+      hasLoadedOnce.value = true;
     },
   });
 }
@@ -473,13 +475,20 @@ init();
       </div>
     </form>
     <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative">
-      <div id="card-overview" v-show="!isLoading">
+      <div
+        id="card-overview"
+        :class="{ 'min-h-[40rem]': isLoading && !hasLoadedOnce }"
+        :aria-busy="isLoading"
+      >
         <slot :viewMode="viewMode"></slot>
       </div>
-      <div class="h-20" v-show="isLoading">
+      <div
+        class="pointer-events-none absolute inset-0 flex items-center justify-center"
+        v-show="isLoading"
+      >
         <div
           role="status"
-          class="flex flex-col gap-4 items-center absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2"
+          class="flex flex-col gap-4 items-center bg-white/90 rounded px-4 py-3"
         >
           <svg
             aria-hidden="true"

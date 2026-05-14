@@ -44,13 +44,24 @@ const ignorePassiveFilters = ref(false);
 const collectionOnlyMode = ref(false);
 let isSubmitting = false;
 
-if (true) {
-  //TODO: Depending on SelectFirstSlot
-  selectedArea.value = {
-    group: deckSettings.groups[0]!,
-    slot: deckSettings.groups[0]!.slots[0]!,
-  };
+// Preselect the first slot that still has room; fall back to the very first slot.
+let selectedGroup = deckSettings.groups[0]!;
+let selectedSlot = selectedGroup.slots[0]!;
+
+outerLoop: for (const group of deckSettings.groups) {
+  for (const slot of group.slots) {
+    if (!slot.isFull()) {
+      selectedGroup = group;
+      selectedSlot = slot;
+      break outerLoop;
+    }
+  }
 }
+
+selectedArea.value = {
+  group: selectedGroup,
+  slot: selectedSlot,
+};
 
 function clickTab(tab: DeckBuilderTab) {
   currentTab.value = tab;

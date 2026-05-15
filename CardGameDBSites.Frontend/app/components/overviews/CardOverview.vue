@@ -91,7 +91,6 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
 });
 
 const showPrices = false;
-const showCollection = ref(false);
 const variantTypes = ref<CardVariantTypeApiModel[]>([]);
 const mainVariants = computed(() => variantTypes.value.filter((item) => item.hasPage));
 const collectionColumns = computed<CollectionColumn[]>(() => [
@@ -112,7 +111,6 @@ const updatingCollectionKeys = ref(new Set<string>());
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
-  showCollection.value = isLoggedIn.value; //Eventually also check for collection settings
   variantTypes.value = await cards.loadVariantTypes();
   isLoading.value = false;
 });
@@ -294,7 +292,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
             <p>$ {{ card.price.marketPrice }}</p>
           </a>
         </div>
-        <div v-if="showCollection">
+        <div v-if="isLoggedIn">
           <hr class="mt-2" />
           <div class="flex mt-2 gap-2 items-center justify-between">
             <p class="relative w-4 h-6" :style="{'width': (mainVariants.length * 8) + 'px'}">
@@ -347,7 +345,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     </div>
 
     <div
-      v-else-if="viewMode === 'collection' && setId && showCollection"
+      v-else-if="viewMode === 'collection' && setId && isLoggedIn"
       class="container px-4 md:px-8 overflow-x-auto"
     >
       <table class="w-full min-w-max text-left border-collapse">
@@ -434,7 +432,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
             >
               {{ col.displayName }}
             </th>
-            <th v-if="showCollection" class="py-2 pr-4 font-semibold">Collection</th>
+            <th v-if="isLoggedIn" class="py-2 pr-4 font-semibold">Collection</th>
           </tr>
         </thead>
         <tbody>
@@ -455,7 +453,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
             >
               {{ card.attributes?.[col.alias]?.join(", ") ?? "-" }}
             </td>
-            <td v-if="showCollection" class="py-2 pr-4">
+            <td v-if="isLoggedIn" class="py-2 pr-4">
               <div class="flex items-center gap-2">
                 <span :aria-label="`${collectionService.getAmountForSet(card)} copies`">
                   {{ collectionService.getAmountForSet(card) }}

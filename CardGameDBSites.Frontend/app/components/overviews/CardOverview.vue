@@ -34,6 +34,17 @@ export type CardOverviewTableColumn = {
   displayName: string;
 };
 
+type CollectionColumn = {
+  variantTypeId: number | null;
+  displayName: string;
+};
+
+type CollectionCell = CollectionColumn & {
+  key: string;
+  amount: number | null;
+  isUpdating: boolean;
+};
+
 const props = defineProps<{
   filters: OverviewFilterModel[];
   sortings?: OverviewSortModel[];
@@ -76,13 +87,19 @@ const showPrices = false;
 const showCollection = ref(false);
 const variantTypes = ref<CardVariantTypeApiModel[]>([]);
 const mainVariants = computed(() => variantTypes.value.filter((item) => item.hasPage));
-const collectionVariantTypeIds = computed<(number | null)[]>(() => [
-  null,
-  ...variantTypes.value.map((item) => item.id),
+const collectionColumns = computed<CollectionColumn[]>(() => [
+  {
+    variantTypeId: null,
+    displayName: "Normal",
+  },
+  ...variantTypes.value.map((item) => ({
+    variantTypeId: item.id,
+    displayName: item.displayName,
+  })),
 ]);
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
 const isLoading = ref(true);
-let isLoggedIn = ref(false);
+const isLoggedIn = ref(false);
 const collectionStore = useCollectionStore();
 const updatingCollectionKeys = ref(new Set<string>());
 
@@ -122,14 +139,6 @@ function getCollectionSetVariants(card: CardDetailApiModel) {
     .sort((a, b) => (a.variantTypeId ?? 0) - (b.variantTypeId ?? 0));
 }
 
-function getVariantTypeName(variantTypeId: number | null) {
-  if (variantTypeId === null) {
-    return "Normal";
-  }
-
-  return variantTypes.value.find((item) => item.id === variantTypeId)?.displayName ?? "Unknown";
-}
-
 function getVariantAmount(card: CardDetailApiModel, variantTypeId: number | null) {
   const variant = getCollectionSetVariants(card).find(
     (item) => (item.variantTypeId ?? null) === variantTypeId,
@@ -139,10 +148,9 @@ function getVariantAmount(card: CardDetailApiModel, variantTypeId: number | null
     return null;
   }
 
+  const cardCollectionEntries = collectionStore.getCards(card.baseId!);
   return (
-    collectionStore
-      .getCards(card.baseId!)
-      .find((item) => item.variantId === variant.cardVariantId)?.amount ?? 0
+    cardCollectionEntries.find((item) => item.variantId === variant.cardVariantId)?.amount ?? 0
   );
 }
 
@@ -152,6 +160,15 @@ function getCollectionCellKey(card: CardDetailApiModel, variantTypeId: number | 
 
 function isCollectionCellUpdating(card: CardDetailApiModel, variantTypeId: number | null) {
   return updatingCollectionKeys.value.has(getCollectionCellKey(card, variantTypeId));
+}
+
+function getCollectionCells(card: CardDetailApiModel): CollectionCell[] {
+  return collectionColumns.value.map((collectionColumn) => ({
+    ...collectionColumn,
+    key: getCollectionCellKey(card, collectionColumn.variantTypeId),
+    amount: getVariantAmount(card, collectionColumn.variantTypeId),
+    isUpdating: isCollectionCellUpdating(card, collectionColumn.variantTypeId),
+  }));
 }
 
 async function updateCollectionAmount(
@@ -180,14 +197,13 @@ async function updateCollectionAmount(
   const collectionKey = getCollectionCellKey(card, variantTypeId);
   updatingCollectionKeys.value.add(collectionKey);
 
+  const cardCollectionEntries = collectionStore.getCards(card.baseId);
   const variantAmounts = Object.fromEntries(
     getCollectionSetVariants(card)
       .filter((item) => item.cardVariantId)
       .map((item) => [
         item.cardVariantId!,
-        collectionStore
-          .getCards(card.baseId!)
-          .find((entry) => entry.variantId === item.cardVariantId)?.amount ?? 0,
+        cardCollectionEntries.find((entry) => entry.variantId === item.cardVariantId)?.amount ?? 0,
       ]),
   ) as Record<number, number>;
   variantAmounts[variant.cardVariantId] = nextValue;
@@ -331,13 +347,12 @@ function getCardIdentifier(card: CardDetailApiModel) {
         <thead>
           <tr class="border-b-2 border-gray-300">
             <th class="py-2 pr-4 font-semibold">Name</th>
-            <th class="py-2 pr-4 font-semibold">Normal</th>
             <th
-              v-for="variantType in variantTypes"
-              :key="variantType.id"
+              v-for="collectionColumn in collectionColumns"
+              :key="collectionColumn.variantTypeId ?? 'normal'"
               class="py-2 pr-4 font-semibold"
             >
-              {{ variantType.displayName }}
+              {{ collectionColumn.displayName }}
             </th>
           </tr>
         </thead>
@@ -353,38 +368,38 @@ function getCardIdentifier(card: CardDetailApiModel) {
               </NuxtLink>
             </td>
             <td
-              v-for="variantTypeId in collectionVariantTypeIds"
-              :key="`${card.baseId}-${variantTypeId ?? 'normal'}`"
+              v-for="collectionCell in getCollectionCells(card)"
+              :key="collectionCell.key"
               class="py-2 pr-4"
             >
               <div
-                v-if="getVariantAmount(card, variantTypeId) !== null"
+                v-if="collectionCell.amount !== null"
                 class="flex items-center gap-2"
               >
                 <button
                   type="button"
                   class="border rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400"
-                  :aria-label="`Decrease ${getVariantTypeName(variantTypeId)} amount for ${card.displayName}`"
+                  :aria-label="`Decrease ${collectionCell.displayName} amount for ${card.displayName}`"
                   :disabled="
-                    isCollectionCellUpdating(card, variantTypeId) ||
-                    (getVariantAmount(card, variantTypeId) ?? 0) === 0
+                    collectionCell.isUpdating ||
+                    collectionCell.amount === 0
                   "
-                  @click="updateCollectionAmount(card, variantTypeId, -1)"
+                  @click="updateCollectionAmount(card, collectionCell.variantTypeId, -1)"
                 >
                   <PhMinus :size="12" />
                 </button>
                 <span
                   class="min-w-6 text-center text-sm font-semibold"
-                  :aria-label="`${getVariantAmount(card, variantTypeId)} ${getVariantTypeName(variantTypeId)} copies`"
+                  :aria-label="`${collectionCell.amount} ${collectionCell.displayName} copies`"
                 >
-                  {{ getVariantAmount(card, variantTypeId) }}
+                  {{ collectionCell.amount }}
                 </span>
                 <button
                   type="button"
                   class="border rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400"
-                  :aria-label="`Increase ${getVariantTypeName(variantTypeId)} amount for ${card.displayName}`"
-                  :disabled="isCollectionCellUpdating(card, variantTypeId)"
-                  @click="updateCollectionAmount(card, variantTypeId, 1)"
+                  :aria-label="`Increase ${collectionCell.displayName} amount for ${card.displayName}`"
+                  :disabled="collectionCell.isUpdating"
+                  @click="updateCollectionAmount(card, collectionCell.variantTypeId, 1)"
                 >
                   <PhPlus :size="12" />
                 </button>

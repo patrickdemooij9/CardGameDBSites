@@ -108,6 +108,8 @@ const isLoading = ref(true);
 const isLoggedIn = ref(false);
 const collectionStore = useCollectionStore();
 const updatingCollectionKeys = ref(new Set<string>());
+const collectionVariantBadgeWidth = 8;
+const collectionVariantBadgeOffset = 10;
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
@@ -203,12 +205,15 @@ async function updateCollectionAmount(
   updatingCollectionKeys.value.add(collectionKey);
 
   const cardCollectionEntries = collectionStore.getCards(card.baseId);
+  const cardCollectionEntryMap = new Map(
+    cardCollectionEntries.map((entry) => [entry.variantId, entry.amount ?? 0]),
+  );
   const variantAmounts = Object.fromEntries(
     getCollectionSetVariants(card)
       .filter((item) => item.cardVariantId)
       .map((item) => [
         item.cardVariantId!,
-        cardCollectionEntries.find((entry) => entry.variantId === item.cardVariantId)?.amount ?? 0,
+        cardCollectionEntryMap.get(item.cardVariantId) ?? 0,
       ]),
   ) as Record<number, number>;
   variantAmounts[variant.cardVariantId] = nextValue;
@@ -295,7 +300,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
         <div v-if="isLoggedIn">
           <hr class="mt-2" />
           <div class="flex mt-2 gap-2 items-center justify-between">
-            <p class="relative w-4 h-6" :style="{'width': (mainVariants.length * 8) + 'px'}">
+            <p class="relative w-4 h-6" :style="{ width: `${mainVariants.length * collectionVariantBadgeWidth}px` }">
                 <span
                   :class="[
                     ownsVariant(card, null)
@@ -316,7 +321,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                     'background-color': ownsVariant(card, variant.id)
                       ? variant.color!
                       : '#cfcfcf',
-                    left: 10 + index * 10 + 'px',
+                     left: `${collectionVariantBadgeOffset + index * collectionVariantBadgeOffset}px`,
                     'z-index': mainVariants.length - index,
                   }"
                 >

@@ -88,7 +88,8 @@ export const useAccountStore = defineStore("accountStore", {
         likedDecks: result.likedDecks || [],
         isAdmin: result.isAdmin ?? false,
       };
-    },(email: string) {
+    },
+    async forgotPassword(email: string) {
       return await DoServerFetch("/api/account/forgotpassword", true, {
         method: "POST",
         body: {

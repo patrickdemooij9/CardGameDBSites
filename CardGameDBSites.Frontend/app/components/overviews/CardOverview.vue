@@ -108,8 +108,8 @@ const isLoading = ref(true);
 const isLoggedIn = ref(false);
 const collectionStore = useCollectionStore();
 const updatingCollectionKeys = ref(new Set<string>());
-const collectionVariantBadgeWidth = 8;
-const collectionVariantBadgeOffset = 10;
+const collectionVariantBadgeWidthStep = 8;
+const collectionVariantBadgeLeftOffset = 10;
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
@@ -300,7 +300,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
         <div v-if="isLoggedIn">
           <hr class="mt-2" />
           <div class="flex mt-2 gap-2 items-center justify-between">
-            <p class="relative w-4 h-6" :style="{ width: `${mainVariants.length * collectionVariantBadgeWidth}px` }">
+            <p class="relative w-4 h-6" :style="{ width: `${mainVariants.length * collectionVariantBadgeWidthStep}px` }">
                 <span
                   :class="[
                     ownsVariant(card, null)
@@ -321,7 +321,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                     'background-color': ownsVariant(card, variant.id)
                       ? variant.color!
                       : '#cfcfcf',
-                     left: `${collectionVariantBadgeOffset + index * collectionVariantBadgeOffset}px`,
+                     left: `${collectionVariantBadgeLeftOffset + index * collectionVariantBadgeLeftOffset}px`,
                     'z-index': mainVariants.length - index,
                   }"
                 >
@@ -398,10 +398,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                 >
                   <PhMinus :size="12" />
                 </button>
-                <span
-                  class="min-w-6 text-center text-sm font-semibold"
-                  :aria-label="`${collectionCell.amount} ${collectionCell.displayName} copies`"
-                >
+                <span class="min-w-6 text-center text-sm font-semibold">
                   {{ collectionCell.amount }}
                 </span>
                 <button

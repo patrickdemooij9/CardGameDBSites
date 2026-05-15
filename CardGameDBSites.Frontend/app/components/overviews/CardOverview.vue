@@ -2,6 +2,7 @@
 import type { OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import {
+  CardSearchCollectionMode,
   CardSearchFilterClauseType,
   type CardDetailApiModel,
   type CardsQueryFilterClauseApiModel,
@@ -40,6 +41,7 @@ const props = defineProps<{
   setId?: number;
   tableColumns?: CardOverviewTableColumn[];
   pageSize?: number;
+  collectionMode?: CardSearchCollectionMode;
 }>();
 
 const availableViews = computed(() =>
@@ -153,6 +155,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :enable-query-string-sync="true"
     :available-views="availableViews"
     :page-size="pageSize"
+    :collection-mode="collectionMode"
     v-slot="{ cards, viewMode }"
     @reloaded="loadCollectionCards"
   >

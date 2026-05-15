@@ -53,12 +53,19 @@ const props = defineProps<{
   pageSize?: number;
 }>();
 
-const availableViews = computed(() => [
-  ...(props.tableColumns && props.tableColumns.length > 0
-    ? ["images", "rows"]
-    : ["images"]),
-  ...(props.setId && isLoggedIn.value ? ["collection"] : []),
-]);
+const availableViews = computed(() => {
+  const views = ["images"];
+
+  if (props.tableColumns && props.tableColumns.length > 0) {
+    views.push("rows");
+  }
+
+  if (props.setId && isLoggedIn.value) {
+    views.push("collection");
+  }
+
+  return views;
+});
 
 const pageNumber = ref(1);
 const pageNumberString = route.query["page"];
@@ -340,7 +347,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     </div>
 
     <div
-      v-else-if="viewMode === 'collection' && setId && isLoggedIn"
+      v-else-if="viewMode === 'collection' && setId && showCollection"
       class="container px-4 md:px-8 overflow-x-auto"
     >
       <table class="w-full min-w-max text-left border-collapse">

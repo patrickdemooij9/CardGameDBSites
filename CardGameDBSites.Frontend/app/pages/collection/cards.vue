@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { CardSearchCollectionMode } from "~/api/default";
 import CardOverview from "~/components/overviews/CardOverview.vue";
-import type { OverviewFilterModel } from "~/components/overviews/OverviewFilterModel";
 import { useAccountStore } from "~/stores/AccountStore";
 
 const accountStore = useAccountStore();
-const isLoggedIn = await accountStore.checkLogin();
-const filters: OverviewFilterModel[] = [];
+const isLoading = ref(true);
+const isLoggedIn = ref(false);
+
+onMounted(async () => {
+  isLoggedIn.value = await accountStore.checkLogin();
+  isLoading.value = false;
+});
 </script>
 
 <template>
@@ -15,9 +19,13 @@ const filters: OverviewFilterModel[] = [];
     <span>All cards currently in your collection.</span>
   </div>
 
+  <div v-if="isLoading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+
   <CardOverview
-    v-if="isLoggedIn"
-    :filters="filters"
+    v-else-if="isLoggedIn"
+    :filters="[]"
     :collection-mode="CardSearchCollectionMode.IN_COLLECTION"
   />
 

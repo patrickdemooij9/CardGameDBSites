@@ -73,9 +73,13 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
 });
 
 const showPrices = false;
-let showCollection = false;
-let variantTypes: CardVariantTypeApiModel[] = [];
-let mainVariants: CardVariantTypeApiModel[] = [];
+const showCollection = ref(false);
+const variantTypes = ref<CardVariantTypeApiModel[]>([]);
+const mainVariants = computed(() => variantTypes.value.filter((item) => item.hasPage));
+const collectionVariantTypeIds = computed<(number | null)[]>(() => [
+  null,
+  ...variantTypes.value.map((item) => item.id),
+]);
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
 const isLoading = ref(true);
 let isLoggedIn = ref(false);
@@ -84,9 +88,8 @@ const updatingCollectionKeys = ref(new Set<string>());
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
-  showCollection = isLoggedIn.value; //Eventually also check for collection settings
-  variantTypes = await cards.loadVariantTypes();
-  mainVariants = variantTypes.filter(item => item.hasPage);
+  showCollection.value = isLoggedIn.value; //Eventually also check for collection settings
+  variantTypes.value = await cards.loadVariantTypes();
   isLoading.value = false;
 });
 
@@ -110,7 +113,7 @@ function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
 
 function getMainVariants(card: CardDetailApiModel){
   const cardSetVariants = card.variants?.filter(v => v.setId == card.setId) ?? [];
-  return mainVariants.filter((item) => cardSetVariants.some((v) => v.variantTypeId == item.id));
+  return mainVariants.value.filter((item) => cardSetVariants.some((v) => v.variantTypeId == item.id));
 }
 
 function getCollectionSetVariants(card: CardDetailApiModel) {
@@ -124,7 +127,7 @@ function getVariantTypeName(variantTypeId: number | null) {
     return "Normal";
   }
 
-  return variantTypes.find((item) => item.id === variantTypeId)?.displayName ?? "Unknown";
+  return variantTypes.value.find((item) => item.id === variantTypeId)?.displayName ?? "Unknown";
 }
 
 function getVariantAmount(card: CardDetailApiModel, variantTypeId: number | null) {
@@ -175,7 +178,7 @@ async function updateCollectionAmount(
   }
 
   const collectionKey = getCollectionCellKey(card, variantTypeId);
-  updatingCollectionKeys.value = new Set(updatingCollectionKeys.value).add(collectionKey);
+  updatingCollectionKeys.value.add(collectionKey);
 
   const variantAmounts = Object.fromEntries(
     getCollectionSetVariants(card)
@@ -192,9 +195,7 @@ async function updateCollectionAmount(
   try {
     await collectionService.saveCards(card.baseId, variantAmounts);
   } finally {
-    const nextUpdatingKeys = new Set(updatingCollectionKeys.value);
-    nextUpdatingKeys.delete(collectionKey);
-    updatingCollectionKeys.value = nextUpdatingKeys;
+    updatingCollectionKeys.value.delete(collectionKey);
   }
 }
 
@@ -352,7 +353,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
               </NuxtLink>
             </td>
             <td
-              v-for="variantTypeId in [null, ...variantTypes.map((item) => item.id)]"
+              v-for="variantTypeId in collectionVariantTypeIds"
               :key="`${card.baseId}-${variantTypeId ?? 'normal'}`"
               class="py-2 pr-4"
             >

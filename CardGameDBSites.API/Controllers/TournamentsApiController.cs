@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Middleware;
@@ -15,15 +17,21 @@ namespace CardGameDBSites.API.Controllers
         private readonly TournamentService _tournamentService;
         private readonly EntrantService _entrantService;
         private readonly ISiteAccessor _siteAccessor;
+        private readonly MemberInfoService _memberInfoService;
+        private readonly DeckTextParser _deckTextParser;
 
         public TournamentsApiController(
             TournamentService tournamentService,
             EntrantService entrantService,
-            ISiteAccessor siteAccessor)
+            ISiteAccessor siteAccessor,
+            MemberInfoService memberInfoService,
+            DeckTextParser deckTextParser)
         {
             _tournamentService = tournamentService;
             _entrantService = entrantService;
             _siteAccessor = siteAccessor;
+            _memberInfoService = memberInfoService;
+            _deckTextParser = deckTextParser;
         }
 
         [HttpGet]
@@ -43,8 +51,12 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult Create([FromBody] CreateTournamentDto dto)
         {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
             try
             {
                 var id = _tournamentService.CreateTournament(dto);
@@ -56,9 +68,27 @@ namespace CardGameDBSites.API.Controllers
             }
         }
 
+        [HttpDelete("{id:guid}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult Delete(Guid id)
+        {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
+            var tournament = _tournamentService.GetTournament(id);
+            if (tournament is null) return NotFound();
+
+            _tournamentService.DeleteTournament(id);
+            return Ok();
+        }
+
         [HttpPost("{id:guid}/entrants")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult AddEntrant(Guid id, [FromBody] AddEntrantDto dto)
         {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
             try
             {
                 var entrantId = _entrantService.AddEntrant(id, dto);
@@ -71,11 +101,33 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPatch("entrants/{entrantId:guid}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult UpdateEntrant(Guid entrantId, [FromBody] UpdateEntrantDto dto)
         {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
             try
             {
                 _entrantService.UpdateEntrant(entrantId, dto);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpDelete("entrants/{entrantId:guid}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult DeleteEntrant(Guid entrantId)
+        {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
+            try
+            {
+                _entrantService.DeleteEntrant(entrantId);
                 return Ok();
             }
             catch (ArgumentException ex)
@@ -91,11 +143,22 @@ namespace CardGameDBSites.API.Controllers
             if (entrant is null) return NotFound();
             return Ok(entrant);
         }
+
         [HttpGet("deck/{deckId:int}")]
         public IActionResult GetByDeck(int deckId)
         {
             var results = _tournamentService.GetTournamentsForDeck(deckId);
             return Ok(results);
+        }
+
+        [HttpPost("parse-deck")]
+        public IActionResult ParseDeck([FromBody] ParseDeckTextRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Text))
+                return BadRequest(new { Error = "Text is required." });
+
+            var result = _deckTextParser.Parse(request.Text);
+            return Ok(result);
         }
     }
 }

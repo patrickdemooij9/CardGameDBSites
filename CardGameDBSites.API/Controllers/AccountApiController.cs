@@ -205,7 +205,8 @@ namespace CardGameDBSites.API.Controllers
             {
                 Id = member.Id,
                 DisplayName = member.DisplayName,
-                LikedDecks = member.LikedDecks
+                LikedDecks = member.LikedDecks,
+                IsAdmin = _memberInfoService.IsAdmin()
             });
         }
 

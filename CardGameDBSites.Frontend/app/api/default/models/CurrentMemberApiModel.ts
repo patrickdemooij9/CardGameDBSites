@@ -6,5 +6,6 @@ export type CurrentMemberApiModel = {
     id: number;
     displayName: string;
     likedDecks?: Array<number>;
+    isAdmin?: boolean;
 };
 

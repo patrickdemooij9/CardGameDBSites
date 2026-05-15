@@ -12,7 +12,6 @@ using SkytearHorde.Business.CustomCardMaker;
 using SkytearHorde.Business.DataSources.Overview;
 using SkytearHorde.Business.Discord;
 using SkytearHorde.Business.Helpers;
-using SkytearHorde.Business.Integrations.MeleeGg;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Processors;
 using SkytearHorde.Business.Repositories;
@@ -130,12 +129,8 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddHostedService<CardPriceSyncTask>();
             builder.Services.AddHostedService<RedditDailyCardTask>();
             builder.Services.AddHostedService<RedditBotTask>();
+            builder.Services.AddSingleton<DeckTextParser>();
             builder.Services.AddHostedService<DeckViewCleanupTask>();
-
-            // melee.gg tournament sync
-            builder.Services.AddHttpClient<MeleeGgApiClient>();
-            builder.Services.AddSingleton<MeleeGgTournamentSyncService>();
-            builder.Services.AddHostedService<MeleeSyncTask>();
 
             builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();
 

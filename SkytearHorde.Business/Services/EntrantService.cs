@@ -52,6 +52,15 @@ namespace SkytearHorde.Business.Services
             _entrantRepository.Update(entrant);
         }
 
+        public void DeleteEntrant(Guid entrantId)
+        {
+            var entrant = _entrantRepository.Get(entrantId);
+            if (entrant is null)
+                throw new ArgumentException($"Entrant {entrantId} not found.");
+
+            _entrantRepository.Delete(entrantId);
+        }
+
         public TournamentEntrant? GetEntrant(Guid entrantId)
         {
             return _entrantRepository.Get(entrantId);

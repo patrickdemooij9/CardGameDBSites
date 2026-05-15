@@ -130,6 +130,20 @@ namespace SkytearHorde.Business.Repositories
             return model is null ? null : Map(model);
         }
 
+        public void Delete(Guid id)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            scope.Database.Execute("DELETE FROM TournamentEntrant WHERE Id = @0", id);
+            scope.Complete();
+        }
+
+        public void DeleteByTournament(Guid tournamentEventId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            scope.Database.Execute("DELETE FROM TournamentEntrant WHERE TournamentEventId = @0", tournamentEventId);
+            scope.Complete();
+        }
+
         private static TournamentEntrant Map(TournamentEntrantDBModel model) => new TournamentEntrant
         {
             Id = model.Id,

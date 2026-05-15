@@ -29,10 +29,8 @@ export const useAccountStore = defineStore("accountStore", {
           id: member.id,
           name: member.displayName,
           likedDecks: member.likedDecks || [],
+          isAdmin: member.isAdmin ?? false,
         };
-        this.validatedLogin = true;
-      } catch (error) {
-        throw "Incorrect email/password";
       }
     },
     async logout(){
@@ -57,6 +55,7 @@ export const useAccountStore = defineStore("accountStore", {
             id: result.id,
             name: result.displayName,
             likedDecks: result.likedDecks || [],
+            isAdmin: result.isAdmin ?? false,
           };
         } catch (error) {
           this.member = undefined;
@@ -87,9 +86,9 @@ export const useAccountStore = defineStore("accountStore", {
         id: result.id,
         name: result.displayName,
         likedDecks: result.likedDecks || [],
+        isAdmin: result.isAdmin ?? false,
       };
-    },
-    async forgotPassword(email: string) {
+    },(email: string) {
       return await DoServerFetch("/api/account/forgotpassword", true, {
         method: "POST",
         body: {

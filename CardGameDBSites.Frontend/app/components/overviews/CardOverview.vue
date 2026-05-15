@@ -11,7 +11,7 @@ import {
 } from "~/api/default";
 import BaseCardOverview from "./BaseCardOverview.vue";
 import { GetCrop } from "~/helpers/CropUrlHelper";
-import { PhBooks } from "@phosphor-icons/vue";
+import { PhBooks, PhMinus, PhPlus } from "@phosphor-icons/vue";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import CollectionCardVariantPopup from "../popups/CollectionCardVariantPopup.vue";
@@ -42,13 +42,12 @@ const props = defineProps<{
   pageSize?: number;
 }>();
 
-const availableViews = computed(() =>
-  props.tableColumns && props.tableColumns.length > 0
+const availableViews = computed(() => [
+  ...(props.tableColumns && props.tableColumns.length > 0
     ? ["images", "rows"]
-    : ["images"],
-);
-
-const viewMode = ref("images");
+    : ["images"]),
+  ...(props.setId && isLoggedIn.value ? ["collection"] : []),
+]);
 
 const pageNumber = ref(1);
 const pageNumberString = route.query["page"];
@@ -75,15 +74,19 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
 
 const showPrices = false;
 let showCollection = false;
+let variantTypes: CardVariantTypeApiModel[] = [];
 let mainVariants: CardVariantTypeApiModel[] = [];
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
 const isLoading = ref(true);
 let isLoggedIn = ref(false);
+const collectionStore = useCollectionStore();
+const updatingCollectionKeys = ref(new Set<string>());
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
   showCollection = isLoggedIn.value; //Eventually also check for collection settings
-  mainVariants = (await cards.loadVariantTypes()).filter(item => item.hasPage);
+  variantTypes = await cards.loadVariantTypes();
+  mainVariants = variantTypes.filter(item => item.hasPage);
   isLoading.value = false;
 });
 
@@ -110,13 +113,98 @@ function getMainVariants(card: CardDetailApiModel){
   return mainVariants.filter((item) => cardSetVariants.some((v) => v.variantTypeId == item.id));
 }
 
+function getCollectionSetVariants(card: CardDetailApiModel) {
+  return (card.variants ?? [])
+    .filter((variant) => variant.setId === card.setId)
+    .sort((a, b) => (a.variantTypeId ?? 0) - (b.variantTypeId ?? 0));
+}
+
+function getVariantTypeName(variantTypeId: number | null) {
+  if (variantTypeId === null) {
+    return "Normal";
+  }
+
+  return variantTypes.find((item) => item.id === variantTypeId)?.displayName ?? "Unknown";
+}
+
+function getVariantAmount(card: CardDetailApiModel, variantTypeId: number | null) {
+  const variant = getCollectionSetVariants(card).find(
+    (item) => (item.variantTypeId ?? null) === variantTypeId,
+  );
+
+  if (!variant?.cardVariantId) {
+    return null;
+  }
+
+  return (
+    collectionStore
+      .getCards(card.baseId!)
+      .find((item) => item.variantId === variant.cardVariantId)?.amount ?? 0
+  );
+}
+
+function getCollectionCellKey(card: CardDetailApiModel, variantTypeId: number | null) {
+  return `${card.baseId}-${variantTypeId ?? "normal"}`;
+}
+
+function isCollectionCellUpdating(card: CardDetailApiModel, variantTypeId: number | null) {
+  return updatingCollectionKeys.value.has(getCollectionCellKey(card, variantTypeId));
+}
+
+async function updateCollectionAmount(
+  card: CardDetailApiModel,
+  variantTypeId: number | null,
+  delta: number,
+) {
+  const variant = getCollectionSetVariants(card).find(
+    (item) => (item.variantTypeId ?? null) === variantTypeId,
+  );
+
+  if (!variant?.cardVariantId || !card.baseId) {
+    return;
+  }
+
+  const currentValue = getVariantAmount(card, variantTypeId);
+  if (currentValue === null) {
+    return;
+  }
+
+  const nextValue = Math.max(0, currentValue + delta);
+  if (nextValue === currentValue) {
+    return;
+  }
+
+  const collectionKey = getCollectionCellKey(card, variantTypeId);
+  updatingCollectionKeys.value = new Set(updatingCollectionKeys.value).add(collectionKey);
+
+  const variantAmounts = Object.fromEntries(
+    getCollectionSetVariants(card)
+      .filter((item) => item.cardVariantId)
+      .map((item) => [
+        item.cardVariantId!,
+        collectionStore
+          .getCards(card.baseId!)
+          .find((entry) => entry.variantId === item.cardVariantId)?.amount ?? 0,
+      ]),
+  ) as Record<number, number>;
+  variantAmounts[variant.cardVariantId] = nextValue;
+
+  try {
+    await collectionService.saveCards(card.baseId, variantAmounts);
+  } finally {
+    const nextUpdatingKeys = new Set(updatingCollectionKeys.value);
+    nextUpdatingKeys.delete(collectionKey);
+    updatingCollectionKeys.value = nextUpdatingKeys;
+  }
+}
+
 function ownsVariant(card: CardDetailApiModel, variantTypeId: number | null) {
   const variant = card.variants?.find(
     (item) => item.variantTypeId == variantTypeId && item.setId == card.setId,
   );
   
   return (
-    (useCollectionStore()
+    (collectionStore
       .getCards(card.baseId!)
       .find((item) => variant?.cardVariantId == item.variantId)?.amount ?? 0) > 0
   );
@@ -232,6 +320,79 @@ function getCardIdentifier(card: CardDetailApiModel) {
           </div>
         </div>
       </div>
+    </div>
+
+    <div
+      v-else-if="viewMode === 'collection' && setId && isLoggedIn"
+      class="container px-4 md:px-8 overflow-x-auto"
+    >
+      <table class="w-full min-w-max text-left border-collapse">
+        <thead>
+          <tr class="border-b-2 border-gray-300">
+            <th class="py-2 pr-4 font-semibold">Name</th>
+            <th class="py-2 pr-4 font-semibold">Normal</th>
+            <th
+              v-for="variantType in variantTypes"
+              :key="variantType.id"
+              class="py-2 pr-4 font-semibold"
+            >
+              {{ variantType.displayName }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="card in cards.items"
+            :key="card.baseId"
+            class="border-b border-gray-200 hover:bg-gray-50"
+          >
+            <td class="py-2 pr-4">
+              <NuxtLink :href="card.urlSegment" class="no-underline font-medium hover:underline">
+                {{ card.displayName }}
+              </NuxtLink>
+            </td>
+            <td
+              v-for="variantTypeId in [null, ...variantTypes.map((item) => item.id)]"
+              :key="`${card.baseId}-${variantTypeId ?? 'normal'}`"
+              class="py-2 pr-4"
+            >
+              <div
+                v-if="getVariantAmount(card, variantTypeId) !== null"
+                class="flex items-center gap-2"
+              >
+                <button
+                  type="button"
+                  class="border rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400"
+                  :aria-label="`Decrease ${getVariantTypeName(variantTypeId)} amount for ${card.displayName}`"
+                  :disabled="
+                    isCollectionCellUpdating(card, variantTypeId) ||
+                    (getVariantAmount(card, variantTypeId) ?? 0) === 0
+                  "
+                  @click="updateCollectionAmount(card, variantTypeId, -1)"
+                >
+                  <PhMinus :size="12" />
+                </button>
+                <span
+                  class="min-w-6 text-center text-sm font-semibold"
+                  :aria-label="`${getVariantAmount(card, variantTypeId)} ${getVariantTypeName(variantTypeId)} copies`"
+                >
+                  {{ getVariantAmount(card, variantTypeId) }}
+                </span>
+                <button
+                  type="button"
+                  class="border rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400"
+                  :aria-label="`Increase ${getVariantTypeName(variantTypeId)} amount for ${card.displayName}`"
+                  :disabled="isCollectionCellUpdating(card, variantTypeId)"
+                  @click="updateCollectionAmount(card, variantTypeId, 1)"
+                >
+                  <PhPlus :size="12" />
+                </button>
+              </div>
+              <span v-else class="text-sm text-gray-400">-</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Table / rows view -->

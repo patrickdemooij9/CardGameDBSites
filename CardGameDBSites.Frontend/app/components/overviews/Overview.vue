@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  PhBooks,
   PhCaretDown,
   PhFaders,
   PhList,
@@ -452,6 +453,21 @@ init();
               @click="setViewMode('rows')"
             >
               <PhList aria-hidden="true" />
+            </button>
+            <button
+              v-if="availableViews.includes('collection')"
+              type="button"
+              class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
+              :class="
+                viewMode === 'collection'
+                  ? 'bg-main-color text-white'
+                  : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'
+              "
+              aria-label="Collection view"
+              :aria-pressed="viewMode === 'collection'"
+              @click="setViewMode('collection')"
+            >
+              <PhBooks aria-hidden="true" />
             </button>
             <button
               v-if="availableViews.includes('images')"

@@ -108,8 +108,8 @@ const isLoading = ref(true);
 const isLoggedIn = ref(false);
 const collectionStore = useCollectionStore();
 const updatingCollectionKeys = ref(new Set<string>());
-const collectionVariantBadgeWidthStep = 8;
-const collectionVariantBadgeLeftOffset = 10;
+const collectionVariantBadgeBaseWidth = 16;
+const collectionVariantBadgeStep = 10;
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
@@ -300,7 +300,10 @@ function getCardIdentifier(card: CardDetailApiModel) {
         <div v-if="isLoggedIn">
           <hr class="mt-2" />
           <div class="flex mt-2 gap-2 items-center justify-between">
-            <p class="relative w-4 h-6" :style="{ width: `${mainVariants.length * collectionVariantBadgeWidthStep}px` }">
+            <p
+              class="relative w-4 h-6"
+              :style="{ width: `${collectionVariantBadgeBaseWidth + mainVariants.length * collectionVariantBadgeStep}px` }"
+            >
                 <span
                   :class="[
                     ownsVariant(card, null)
@@ -321,7 +324,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
                     'background-color': ownsVariant(card, variant.id)
                       ? variant.color!
                       : '#cfcfcf',
-                     left: `${collectionVariantBadgeLeftOffset + index * collectionVariantBadgeLeftOffset}px`,
+                     left: `${collectionVariantBadgeStep + index * collectionVariantBadgeStep}px`,
                     'z-index': mainVariants.length - index,
                   }"
                 >

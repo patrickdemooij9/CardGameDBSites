@@ -55,7 +55,10 @@ export type { DeckQueryPostModel } from './models/DeckQueryPostModel';
 export { DeckStatus } from './models/DeckStatus';
 export type { DeckTypeSettingsApiModel } from './models/DeckTypeSettingsApiModel';
 export type { ForgotPasswordPostModel } from './models/ForgotPasswordPostModel';
+export type { ForgotPasswordResetPostModel } from './models/ForgotPasswordResetPostModel';
+export type { HttpValidationProblemDetails } from './models/HttpValidationProblemDetails';
 export type { IActionResult } from './models/IActionResult';
+export type { IDeckDisplayApiModel } from './models/IDeckDisplayApiModel';
 export type { ImageCropApiModel } from './models/ImageCropApiModel';
 export type { ImageCropsApiModel } from './models/ImageCropsApiModel';
 export type { KeywordImageApiModel } from './models/KeywordImageApiModel';
@@ -75,6 +78,7 @@ export type { PagedCommunityBlogPostsApiModel } from './models/PagedCommunityBlo
 export type { PagedResultCardDetailApiModel } from './models/PagedResultCardDetailApiModel';
 export type { PagedResultDeckApiModel } from './models/PagedResultDeckApiModel';
 export type { PresetApiModel } from './models/PresetApiModel';
+export type { ProblemDetails } from './models/ProblemDetails';
 export type { ProxyExportCard } from './models/ProxyExportCard';
 export type { ProxyExportRequest } from './models/ProxyExportRequest';
 export type { RegisterPostModel } from './models/RegisterPostModel';

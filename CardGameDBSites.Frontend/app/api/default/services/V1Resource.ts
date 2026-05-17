@@ -24,6 +24,7 @@ import type { DeckProgressApiModel } from '../models/DeckProgressApiModel';
 import type { DeckQueryPostModel } from '../models/DeckQueryPostModel';
 import type { DeckTypeSettingsApiModel } from '../models/DeckTypeSettingsApiModel';
 import type { ForgotPasswordPostModel } from '../models/ForgotPasswordPostModel';
+import type { ForgotPasswordResetPostModel } from '../models/ForgotPasswordResetPostModel';
 import type { IActionResult } from '../models/IActionResult';
 import type { LoginPostModel } from '../models/LoginPostModel';
 import type { MemberApiModel } from '../models/MemberApiModel';
@@ -40,6 +41,7 @@ import type { SetPriceHistoryItemApiModel } from '../models/SetPriceHistoryItemA
 import type { SetProgressApiModel } from '../models/SetProgressApiModel';
 import type { SetViewModel } from '../models/SetViewModel';
 import type { SiteSettingsApiModel } from '../models/SiteSettingsApiModel';
+import type { SquadSettingsOptionApiModel } from '../models/SquadSettingsOptionApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -125,6 +127,22 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/account/Register',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAccountResetPassword({
+        requestBody,
+    }: {
+        requestBody?: ForgotPasswordResetPostModel,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/account/ResetPassword',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -814,6 +832,28 @@ export class V1Resource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiManagementDecksCreatePreset({
+        deckId,
+    }: {
+        deckId: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/management/decks/{deckId}/createPreset',
+            path: {
+                'deckId': deckId,
+            },
+            errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
      * @returns MemberApiModel OK
      * @throws ApiError
      */
@@ -961,23 +1001,6 @@ export class V1Resource {
         });
     }
     /**
-     * @returns DeckBuilderApiModel OK
-     * @throws ApiError
-     */
-    public static getApiSettingsDeckBuilderByGuid({
-        typeGuid,
-    }: {
-        typeGuid?: string,
-    }): CancelablePromise<DeckBuilderApiModel> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/settings/deckBuilderByGuid',
-            query: {
-                'typeGuid': typeGuid,
-            },
-        });
-    }
-    /**
      * @returns DeckTypeSettingsApiModel OK
      * @throws ApiError
      */
@@ -1012,6 +1035,16 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/settings/site',
+        });
+    }
+    /**
+     * @returns SquadSettingsOptionApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSettingsSquadSettingsOptions(): CancelablePromise<Array<SquadSettingsOptionApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/settings/squadSettingsOptions',
         });
     }
 }

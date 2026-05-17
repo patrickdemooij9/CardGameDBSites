@@ -5,6 +5,7 @@
 import type { DeckActionApiModel } from './DeckActionApiModel';
 import type { DeckCardGroupApiModel } from './DeckCardGroupApiModel';
 import type { DeckCardImageRuleApiModel } from './DeckCardImageRuleApiModel';
+import type { IDeckDisplayApiModel } from './IDeckDisplayApiModel';
 import type { RequirementApiModel } from './RequirementApiModel';
 export type DeckTypeSettingsApiModel = {
     overviewUrl: string;
@@ -14,6 +15,7 @@ export type DeckTypeSettingsApiModel = {
     actions?: Array<DeckActionApiModel>;
     imageRules?: Array<DeckCardImageRuleApiModel>;
     mainCardRequirements?: Array<RequirementApiModel>;
+    deckDisplay: IDeckDisplayApiModel;
     costImageUrl?: string | null;
     renderCostOnImage?: boolean;
 };

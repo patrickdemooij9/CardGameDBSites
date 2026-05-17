@@ -1,4 +1,5 @@
-﻿using CardGameDBSites.API.Models.Requirements;
+﻿using CardGameDBSites.API.Models.Decks;
+using CardGameDBSites.API.Models.Requirements;
 using CardGameDBSites.API.Models.Settings;
 
 namespace CardGameDBSites.API.Models
@@ -13,6 +14,7 @@ namespace CardGameDBSites.API.Models
         public DeckActionApiModel[] Actions { get; set; } = [];
         public DeckCardImageRuleApiModel[] ImageRules { get; set; } = [];
         public RequirementApiModel[] MainCardRequirements { get; set; } = [];
+        public required IDeckDisplayApiModel DeckDisplay { get; set; }
 
         public string? CostImageUrl { get; set; }
         public bool RenderCostOnImage { get; set; }

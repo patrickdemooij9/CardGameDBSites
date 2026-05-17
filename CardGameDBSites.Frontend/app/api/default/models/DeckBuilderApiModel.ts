@@ -9,3 +9,4 @@ export type DeckBuilderApiModel = {
     overwriteAmount?: number | null;
     groups?: Array<DeckBuilderGroupApiModel>;
 };
+

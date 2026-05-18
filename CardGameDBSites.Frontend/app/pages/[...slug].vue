@@ -59,6 +59,7 @@ const pageComponents: {[key: string]: Component} = {
     'blogDetail': defineAsyncComponent(() => import('~/components/pageTypes/BlogDetailPage.vue')),
     'dailyGame': defineAsyncComponent(() => import('~/components/pageTypes/DailyGamePage.vue')),
     'proxyCards': defineAsyncComponent(() => import('~/components/pageTypes/ProxyCardsPage.vue')),
+    'accountCards': defineAsyncComponent(() => import('~/components/pageTypes/AccountCards.vue'))
 }
 const pageComponent = pageComponents[componentName];
 </script>

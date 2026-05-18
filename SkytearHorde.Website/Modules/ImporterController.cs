@@ -112,6 +112,7 @@ namespace SkytearHorde.Modules
                     }
 
                     IMedia? media = null;
+                    IMedia? backMedia = null;
                     Dictionary<string, string> properties = new Dictionary<string, string>();
                     if (!string.IsNullOrWhiteSpace(item.ImageBase64))
                     {
@@ -131,6 +132,25 @@ namespace SkytearHorde.Modules
                         _mediaService.Save(media);
                     }
 
+                    // This is probably the worst code ever
+                    if (!string.IsNullOrWhiteSpace(item.BackImageBase64))
+                    {
+                        var name = $"{item.Name}_back";
+                        if (item.Id.HasValue)
+                        {
+                            var card = _cardService.Get(item.Id.Value);
+                            backMedia = _mediaService.GetById(card!.BackImage!.Id) ?? _mediaService.CreateMediaWithIdentity(name, cardImageParentId, Image.ModelTypeAlias);
+                        }
+                        else
+                        {
+                            backMedia = _mediaService.CreateMediaWithIdentity(name, cardImageParentId, Image.ModelTypeAlias);
+                        }
+
+                        using var mediaItemStream = new MemoryStream(Convert.FromBase64String(item.BackImageBase64));
+                        backMedia.SetValue(_mediaFileManager, _mediaUrlGenerators, _shortStringHelper, _contentTypeBaseServiceProvider, "umbracoFile", name + ".png", mediaItemStream);
+                        _mediaService.Save(backMedia);
+                    }
+
                     var ignoredProperties = new string[] { "Name", "image", "image_base64", "Id", "ParentId", "VariantTypeId" };
                     foreach (var entry in item.Where(it => !ignoredProperties.Contains(it.Key, StringComparer.InvariantCultureIgnoreCase)))
                     {
@@ -142,6 +162,7 @@ namespace SkytearHorde.Modules
                         ParentId = item.ParentId,
                         VariantTypeId = item.VariantTypeId,
                         ImageId = media?.Id,
+                        BackImageId = backMedia?.Id,
                         Properties = properties
                     });
                 }
@@ -624,6 +645,14 @@ namespace SkytearHorde.Modules
                     if (mediaItem != null)
                     {
                         card.SetValue("image", Udi.Create(Constants.UdiEntityType.Media, mediaItem.Key).ToString());
+                    }
+                }
+                if (model.BackImageId.HasValue)
+                {
+                    var mediaItem = ctx.UmbracoContext.Media?.GetById(model.BackImageId.Value);
+                    if (mediaItem != null)
+                    {
+                        card.SetValue("backImage", Udi.Create(Constants.UdiEntityType.Media, mediaItem.Key).ToString());
                     }
                 }
 

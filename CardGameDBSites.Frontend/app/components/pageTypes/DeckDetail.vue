@@ -438,11 +438,7 @@ console.timeEnd('page-render');
         ></CommentSection>
       </div>
     </div>
-    <div
-      id="cursor-image"
-      class="absolute bg-contain bg-no-repeat pointer-events-none w-48 h-72"
-      style="display: none"
-    ></div>
+
     <DeckDetailCardModal
       v-if="selectedCard"
       :selected-card="selectedCard"

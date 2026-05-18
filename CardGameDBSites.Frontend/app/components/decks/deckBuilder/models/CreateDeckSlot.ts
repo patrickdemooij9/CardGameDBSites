@@ -158,7 +158,8 @@ export default class CreateDeckSlot {
     });
   }
 
-  private _createChildSlots(card: CardDetailApiModel): CreateDeckSlot[] {
+  /** @internal Creates child slots for a card when it is first added. */
+  _createChildSlots(card: CardDetailApiModel): CreateDeckSlot[] {
     const allowedChildren = card.allowedChildren ?? [];
     const maxChildren = card.maxChildren ?? 0;
     if (maxChildren === 0 || allowedChildren.length === 0) {

@@ -157,12 +157,14 @@ export function useSite() {
               .find((c) => c.card.baseId === card.baseId);
             if (deckCardEntry && deckCardEntry.children.length > 0) {
               const childSlot = deckCardEntry.children[0];
-              childIds.forEach((childId) => {
-                const childCard = cards.find((c) => c.baseId === childId);
-                if (childCard) {
-                  childSlot.addCard(childCard);
-                }
-              });
+              if (childSlot) {
+                childIds.forEach((childId) => {
+                  const childCard = cards.find((c) => c.baseId === childId);
+                  if (childCard) {
+                    childSlot.addCard(childCard);
+                  }
+                });
+              }
             }
           }
         });

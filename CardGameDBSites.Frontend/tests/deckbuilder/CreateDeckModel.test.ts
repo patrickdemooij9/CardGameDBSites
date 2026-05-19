@@ -366,7 +366,7 @@ describe("CreateDeckModel", () => {
   });
 
   describe("getTotalCardAmount with child slots", () => {
-    it("counts cards in child slots towards the total", () => {
+    it("does count cards in child slots towards the total", () => {
       const deck = new CreateDeckModel();
       const group = new CreateDeckGroup();
       const slot = new CreateDeckSlot(1, "Heroes");

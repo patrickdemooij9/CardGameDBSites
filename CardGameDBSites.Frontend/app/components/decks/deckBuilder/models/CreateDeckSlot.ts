@@ -52,9 +52,14 @@ export default class CreateDeckSlot {
   }
 
   getCardAmount(card: CardDetailApiModel) {
+    const allMainCards = this.cardGroups.flatMap((group) => group.cards);
+    const childCards = allMainCards
+      .flatMap((deckCard) => deckCard.children)
+      .flatMap((slot) => slot.cardGroups)
+      .flatMap((group) => group.cards);
+
     return (
-      this.cardGroups
-        .flatMap((group) => group.cards)
+      [...allMainCards, ...childCards]
         .find((c) => c.card.baseId === card.baseId)?.amount ?? 0
     );
   }

@@ -13,6 +13,7 @@ export default class CreateDeckSlot {
 
   minCards: number;
   maxCardAmount: CreateDeckSlotAmount;
+  overwriteAmount?: number;
   displaySize: DisplaySize;
   disableRemoval: boolean;
   numberMode: boolean;
@@ -50,7 +51,15 @@ export default class CreateDeckSlot {
   }
 
   getCardMaxAmount(card: CardDetailApiModel) {
-    return GetCardValue<number>(card, "Amount") ?? 0;
+    if (this.overwriteAmount && this.overwriteAmount > 0) {
+      return this.overwriteAmount;
+    }
+    const amount = GetCardValue<string | number>(card, "Amount");
+    if (amount === null || amount === undefined || amount === "") {
+      return 0;
+    }
+    const parsedAmount = typeof amount === "number" ? amount : Number(amount);
+    return Number.isFinite(parsedAmount) ? parsedAmount : 0;
   }
 
   getMaxAmount() {

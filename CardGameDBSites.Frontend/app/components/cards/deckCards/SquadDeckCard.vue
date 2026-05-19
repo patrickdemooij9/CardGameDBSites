@@ -1,13 +1,35 @@
 <script setup lang="ts">
-import type { DeckTypeSettingsApiModel, DeckApiModel } from "~/api/default";
+import { PhNotepad } from "@phosphor-icons/vue";
+import type { DeckTypeSettingsApiModel, DeckApiModel, MemberApiModel, CardDetailApiModel, IDeckDisplayApiModel } from "~/api/default";
+import DeckLike from "~/components/decks/DeckLike.vue";
 import { useCards } from "~/composables/useCards";
+import { GetCrop } from "~/helpers/CropUrlHelper";
+import { ParseToHumanReadableText } from "~/helpers/DateHelper";
+import { GetValidCards } from "~/services/requirements/RequirementService";
+
+interface SquadDisplay extends IDeckDisplayApiModel {
+  type: "squadDeckDisplay";
+  amountOfSquadCards: number;
+}
 
 const props = defineProps<{
   deck: DeckApiModel;
-  settings: DeckTypeSettingsApiModel
+  settings: DeckTypeSettingsApiModel;
+  member?: MemberApiModel;
+  cards?: Record<number, CardDetailApiModel>;
 }>();
 
-const cards = await useCards().loadCardsByIds(props.deck.cards?.map((card) => card.cardId!) ?? []);
+const deckCards = computed(
+  () =>
+    (props.deck.cards
+      ?.map((c) => props.cards?.[c.cardId!])
+      .filter(Boolean) as CardDetailApiModel[]) ?? [],
+);
+const mainCards = computed(() =>
+  GetValidCards(deckCards.value, props.settings.mainCardRequirements ?? []),
+);
+const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
+const groupsOf = computed(() => (props.settings.deckDisplay as SquadDisplay)?.amountOfSquadCards ?? 1);
 </script>
 
 <template>
@@ -22,30 +44,28 @@ const cards = await useCards().loadCardsByIds(props.deck.cards?.map((card) => ca
         <div class="flex justify-between align-center pb-1">
           <h5>{{ deck.name }}</h5>
           <div class="flex gap-2 shrink-0">
-            <div id="deck-like-@Model.Id">
-              <span>Like here</span>
-            </div>
+            <DeckLike :deck="deck"></DeckLike>
             <p
               v-if="deck.description"
               class="shrink-0 flex align-center"
               title="Has a description"
             >
-              <i class="ph ph-notepad"></i>
+              <PhNotepad />
             </p>
           </div>
         </div>
         <div class="text-xs">
-          <p>Created by {{ deck.createdBy }}</p>
-          <p>{{ deck.createdDate }}</p>
+          <p>Created by {{ createdBy }}</p>
+          <p>{{ ParseToHumanReadableText(deck.createdDate!) }}</p>
         </div>
       </div>
       <div class="grid grid-row-2 gap-2 mt-2">
-        <p>Main cards here...</p>
-        <div class="grid grid-cols-@squadSettings.AmountOfSquadCards gap-2">
+        <div class="grid gap-2" v-for="groupIndex in Math.ceil(mainCards.length / groupsOf)" :style="{ gridTemplateColumns: `repeat(${groupsOf}, 1fr)` }">
+          <img
+            v-for="card in mainCards.slice((groupIndex - 1) * groupsOf, groupIndex * groupsOf)"
+            :src="card.imageUrl?.url!"
+          />
         </div>
-        <p v-for="card in cards">
-            {{ card.displayName }}
-        </p>
       </div>
     </div>
   </NuxtLink>

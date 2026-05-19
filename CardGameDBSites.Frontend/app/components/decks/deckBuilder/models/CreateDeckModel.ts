@@ -11,6 +11,7 @@ export class CreateDeckModel {
   name?: string;
   description?: string;
   typeId?: number;
+  overwriteAmount?: number;
   groups: CreateDeckGroup[] = [];
 
   hasSideboard: boolean = false;

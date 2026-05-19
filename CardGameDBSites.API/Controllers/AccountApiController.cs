@@ -4,12 +4,14 @@ using DeviceDetectorNET.Class.Device;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
@@ -159,6 +161,38 @@ namespace CardGameDBSites.API.Controllers
             return Ok();
         }
 
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ForgotPasswordResetPostModel model)
+        {
+            var memberByCode = _memberService.GetAllMembers()
+                .FirstOrDefault(it => it.GetValue<string>("resetCode")?.Equals(model.Code) is true);
+
+            if (memberByCode is null || memberByCode.GetValue<DateTime>("resetTimestamp") < DateTime.UtcNow)
+            {
+                return BadRequest("This password reset link is invalid or expired.");
+            }
+
+            var user = await _memberManager.FindByIdAsync(memberByCode.Id.ToString());
+            if (user is null)
+            {
+                return BadRequest("This password reset link is invalid.");
+            }
+
+            var resetToken = await _memberManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _memberManager.ResetPasswordAsync(user, resetToken, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errorMessage = result.Errors.FirstOrDefault()?.Description ?? "Could not reset password.";
+                return BadRequest(errorMessage);
+            }
+
+            memberByCode.SetValue("resetCode", null);
+            memberByCode.SetValue("resetTimestamp", null);
+            _memberService.Save(memberByCode);
+
+            return Ok();
+        }
+
         [HttpPost("Login")]
         [ProducesResponseType(typeof(string), 200)]
         public async Task<IActionResult> Login(LoginPostModel model)
@@ -185,8 +219,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpGet("IsLoggedIn")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [OptionalJwtAuthorization]
+        [JwtAuthorization]
         public IActionResult IsLoggedIn()
         {
             var test = _memberManager.GetCurrentMemberAsync().Result;
@@ -219,7 +252,7 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpPost("impersonate/{memberId}")]
         [ProducesResponseType(typeof(string), 200)]
-        [OptionalJwtAuthorization]
+        [JwtAuthorization]
         public async Task<IActionResult> Impersonate(int memberId)
         {
             var isAdminClaim = HttpContext.User.FindFirst("isAdmin");

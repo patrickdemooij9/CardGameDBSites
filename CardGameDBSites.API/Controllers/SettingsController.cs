@@ -1,4 +1,5 @@
 ﻿using CardGameDBSites.API.Models;
+using CardGameDBSites.API.Models.Decks;
 using CardGameDBSites.API.Models.Requirements;
 using CardGameDBSites.API.Models.Settings;
 using CardGameDBSites.API.Models.Settings.DeckBuilder;
@@ -119,6 +120,15 @@ namespace CardGameDBSites.API.Controllers
 
                 actions.Add(deckAction);
             }
+
+            var umbracoDeckDisplayType = deckTypeSettings.DeckDisplayType?.FirstOrDefault();
+            IDeckDisplayApiModel deckDisplay = umbracoDeckDisplayType?.Content switch
+            {
+                IconDeckCard => new IconDeckDisplayApiModel(),
+                SquadDeckCard config => new SquadDeckDisplayApiModel(config),
+                _ => new IconDeckDisplayApiModel() // Default to IconDeckDisplay if type is unknown
+            };
+
             return Ok(new DeckTypeSettingsApiModel
             {
                 OverviewUrl = deckOverview.Url(mode: UrlMode.Relative),
@@ -142,6 +152,7 @@ namespace CardGameDBSites.API.Controllers
                     })],
                 MainCardRequirements = [.. deckTypeSettings.MainCard.ToItems<ISquadRequirementConfig>()
                     .Select(it => new RequirementApiModel(it))],
+                DeckDisplay = deckDisplay,
                 CostImageUrl = deckTypeSettings.CostIcon?.Url(mode: UrlMode.Absolute),
                 RenderCostOnImage = deckTypeSettings.RenderCostInIcon
             });
@@ -188,6 +199,7 @@ namespace CardGameDBSites.API.Controllers
             {
                 Id = deckTypeSettings.TypeID,
                 DefaultNames = [.. deckTypeSettings.DefaultNames ?? []],
+                OverwriteAmount = deckTypeSettings.OverwriteAmount > 0 ? deckTypeSettings.OverwriteAmount : null,
                 Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel
                 {
                     Id = it.SquadId,
@@ -209,14 +221,20 @@ namespace CardGameDBSites.API.Controllers
             });
         }
 
-        [HttpGet("deckBuilderByGuid")]
-        [ProducesResponseType(typeof(DeckBuilderApiModel), 200)]
-        public IActionResult GetDeckBuilderSettings(Guid typeGuid) //TODO: Eventually clean up this endpoint
+        [HttpGet("squadSettingsOptions")]
+        [ProducesResponseType(typeof(IEnumerable<SquadSettingsOptionApiModel>), 200)]
+        public IActionResult GetSquadSettingsOptions()
         {
-            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var content = (ctx.UmbracoContext.Content!.GetById(typeGuid) as SquadSettings).TypeID;
-
-            return GetDeckBuilderSettings(content);
+            var allSettings = _settingsService.GetAllSquadSettings();
+            var options = allSettings.Select(it => new SquadSettingsOptionApiModel
+            {
+                Id = it.Key,
+                TypeId = it.TypeID,
+                Name = it.TypeDisplayName.IfNullOrWhiteSpace(it.Name!),
+                Description = it.TypeDescription,
+                ImageUrl = it.TypeImage?.GetCropUrl("icon", urlMode: UrlMode.Absolute)
+            });
+            return Ok(options);
         }
 
         private DeckBuilderDeckCardGroupApiModel[] GetGroupsForSlot(SquadSlotConfig slot)

@@ -1,5 +1,40 @@
 import type { NitroFetchOptions } from "nitropack";
+import { useAppToast } from "~/composables/useAppToast";
 import { useAccountStore } from "~/stores/AccountStore";
+
+type FetchStatusError = {
+  statusCode?: number;
+  status?: number;
+  response?: {
+    status?: number;
+  };
+};
+
+/**
+ * Clears client-side auth state when an API request reports the session as unauthorized.
+ */
+function handleUnauthorized(error: unknown) {
+  if (!import.meta.client) {
+    return;
+  }
+
+  const fetchError = error as FetchStatusError;
+  const status =
+    fetchError.response?.status ?? fetchError.statusCode ?? fetchError.status;
+
+  if (status !== 401) {
+    return;
+  }
+
+  const accountStore = useAccountStore();
+  const wasLoggedIn = accountStore.isLoggedIn;
+  accountStore.member = undefined;
+  accountStore.validatedLogin = false;
+
+  if (wasLoggedIn) {
+    useAppToast().info("Your session expired, so you were logged out.");
+  }
+}
 
 export function DoFetch<T>(
   url: string,
@@ -9,7 +44,10 @@ export function DoFetch<T>(
   options.headers = options.headers ?? {};
 
   const config = useRuntimeConfig();
-  return $fetch<T>(`${config.public.API_BASE_URL}${url}`, options);
+  return $fetch<T>(`${config.public.API_BASE_URL}${url}`, options).catch((error) => {
+    handleUnauthorized(error);
+    throw error;
+  });
 }
 
 export async function DoFetch2<T>(
@@ -37,7 +75,10 @@ export async function DoServerFetch<T>(
     return data.value as T;
   }
 
-  return $fetch<T>(url, options);
+  return $fetch<T>(url, options).catch((error) => {
+    handleUnauthorized(error);
+    throw error;
+  });
 }
 
 export async function DoOptionalServerFetch<T>(

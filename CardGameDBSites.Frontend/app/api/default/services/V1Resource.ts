@@ -14,12 +14,17 @@ import type { CommentViewModel } from '../models/CommentViewModel';
 import type { CreateCommentPostModel } from '../models/CreateCommentPostModel';
 import type { CreateSquadPostModel } from '../models/CreateSquadPostModel';
 import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
+import type { DailyGameBootstrapApiModel } from '../models/DailyGameBootstrapApiModel';
+import type { DailyGameGuessPostApiModel } from '../models/DailyGameGuessPostApiModel';
+import type { DailyGameGuessResultApiModel } from '../models/DailyGameGuessResultApiModel';
+import type { DailyGameLeaderboardEntryApiModel } from '../models/DailyGameLeaderboardEntryApiModel';
 import type { DeckApiModel } from '../models/DeckApiModel';
 import type { DeckBuilderApiModel } from '../models/DeckBuilderApiModel';
 import type { DeckProgressApiModel } from '../models/DeckProgressApiModel';
 import type { DeckQueryPostModel } from '../models/DeckQueryPostModel';
 import type { DeckTypeSettingsApiModel } from '../models/DeckTypeSettingsApiModel';
 import type { ForgotPasswordPostModel } from '../models/ForgotPasswordPostModel';
+import type { ForgotPasswordResetPostModel } from '../models/ForgotPasswordResetPostModel';
 import type { IActionResult } from '../models/IActionResult';
 import type { LoginPostModel } from '../models/LoginPostModel';
 import type { MemberApiModel } from '../models/MemberApiModel';
@@ -29,11 +34,14 @@ import type { PagedCommunityBlogPostsApiModel } from '../models/PagedCommunityBl
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
 import type { PresetApiModel } from '../models/PresetApiModel';
+import type { ProxyExportRequest } from '../models/ProxyExportRequest';
 import type { RegisterPostModel } from '../models/RegisterPostModel';
 import type { SetOverviewSettingsApiModel } from '../models/SetOverviewSettingsApiModel';
+import type { SetPriceHistoryItemApiModel } from '../models/SetPriceHistoryItemApiModel';
 import type { SetProgressApiModel } from '../models/SetProgressApiModel';
 import type { SetViewModel } from '../models/SetViewModel';
 import type { SiteSettingsApiModel } from '../models/SiteSettingsApiModel';
+import type { SquadSettingsOptionApiModel } from '../models/SquadSettingsOptionApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -62,6 +70,23 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/account/GetCurrentMember',
+        });
+    }
+    /**
+     * @returns string OK
+     * @throws ApiError
+     */
+    public static postApiAccountImpersonate({
+        memberId,
+    }: {
+        memberId: number,
+    }): CancelablePromise<string> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/account/impersonate/{memberId}',
+            path: {
+                'memberId': memberId,
+            },
         });
     }
     /**
@@ -102,6 +127,22 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/account/Register',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiAccountResetPassword({
+        requestBody,
+    }: {
+        requestBody?: ForgotPasswordResetPostModel,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/account/ResetPassword',
             body: requestBody,
             mediaType: 'application/json',
         });
@@ -558,6 +599,56 @@ export class V1Resource {
         });
     }
     /**
+     * @returns DailyGameBootstrapApiModel OK
+     * @throws ApiError
+     */
+    public static getApiDailygameBootstrap({
+        guestSessionToken,
+    }: {
+        guestSessionToken?: string,
+    }): CancelablePromise<DailyGameBootstrapApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/dailygame/bootstrap',
+            query: {
+                'guestSessionToken': guestSessionToken,
+            },
+        });
+    }
+    /**
+     * @returns DailyGameGuessResultApiModel OK
+     * @throws ApiError
+     */
+    public static postApiDailygameGuess({
+        requestBody,
+    }: {
+        requestBody?: DailyGameGuessPostApiModel,
+    }): CancelablePromise<DailyGameGuessResultApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/dailygame/guess',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns DailyGameLeaderboardEntryApiModel OK
+     * @throws ApiError
+     */
+    public static getApiDailygameLeaderboard({
+        take = 50,
+    }: {
+        take?: number,
+    }): CancelablePromise<Array<DailyGameLeaderboardEntryApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/dailygame/leaderboard',
+            query: {
+                'take': take,
+            },
+        });
+    }
+    /**
      * @returns number OK
      * @throws ApiError
      */
@@ -669,6 +760,97 @@ export class V1Resource {
             url: '/api/decks/viewDeck',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiExport({
+        requestBody,
+    }: {
+        requestBody?: ProxyExportRequest,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/export',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiExportExport({
+        deckId,
+        exportId,
+    }: {
+        deckId?: number,
+        exportId?: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/export/export',
+            query: {
+                'deckId': deckId,
+                'exportId': exportId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiExportExportForceTable({
+        deckId,
+    }: {
+        deckId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/export/exportForceTable',
+            query: {
+                'deckId': deckId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static getApiExportProxyExport({
+        requestBody,
+    }: {
+        requestBody?: ProxyExportRequest,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/export/proxyExport',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiManagementDecksCreatePreset({
+        deckId,
+    }: {
+        deckId: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/management/decks/{deckId}/createPreset',
+            path: {
+                'deckId': deckId,
+            },
+            errors: {
+                400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
+            },
         });
     }
     /**
@@ -785,6 +967,23 @@ export class V1Resource {
         });
     }
     /**
+     * @returns SetPriceHistoryItemApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSetsPriceHistory({
+        setId,
+    }: {
+        setId?: number,
+    }): CancelablePromise<Array<SetPriceHistoryItemApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/priceHistory',
+            query: {
+                'setId': setId,
+            },
+        });
+    }
+    /**
      * @returns DeckBuilderApiModel OK
      * @throws ApiError
      */
@@ -798,23 +997,6 @@ export class V1Resource {
             url: '/api/settings/deckBuilder',
             query: {
                 'typeId': typeId,
-            },
-        });
-    }
-    /**
-     * @returns DeckBuilderApiModel OK
-     * @throws ApiError
-     */
-    public static getApiSettingsDeckBuilderByGuid({
-        typeGuid,
-    }: {
-        typeGuid?: string,
-    }): CancelablePromise<DeckBuilderApiModel> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/settings/deckBuilderByGuid',
-            query: {
-                'typeGuid': typeGuid,
             },
         });
     }
@@ -853,6 +1035,16 @@ export class V1Resource {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/settings/site',
+        });
+    }
+    /**
+     * @returns SquadSettingsOptionApiModel OK
+     * @throws ApiError
+     */
+    public static getApiSettingsSquadSettingsOptions(): CancelablePromise<Array<SquadSettingsOptionApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/settings/squadSettingsOptions',
         });
     }
 }

@@ -1,5 +1,5 @@
 import type NavigationModel from "~/components/navigation/NavigationModel";
-import { type SetOverviewSettingsApiModel, type DeckBuilderApiModel, type DeckBuilderSlotAmountApiModel, type DeckTypeSettingsApiModel, type SiteSettingsApiModel } from "~/api/default";
+import { type SetOverviewSettingsApiModel, type DeckBuilderApiModel, type DeckBuilderSlotAmountApiModel, type DeckTypeSettingsApiModel, type SiteSettingsApiModel, type SquadSettingsOptionApiModel } from "~/api/default";
 import type NavigationItem from "~/components/navigation/NavigationItemModel";
 import CreateDeckGroup from "~/components/decks/deckBuilder/models/CreateDeckGroup";
 import CreateDeckSlot from "~/components/decks/deckBuilder/models/CreateDeckSlot";
@@ -87,16 +87,17 @@ export function useSite() {
     return data.value!;
   };
 
-  const getDeckBuilderSettings = async (typeId: string, deckId?: number): Promise<CreateDeckModel> => {
+  const getDeckBuilderSettings = async (typeId: number, deckId?: number): Promise<CreateDeckModel> => {
     const { data } = await useAsyncData(`deck-builder-settings-${typeId}`, () =>
-      DoFetch<DeckBuilderApiModel>("/api/settings/deckBuilderByGuid", {
-        query: { typeGuid: typeId }
+      DoFetch<DeckBuilderApiModel>("/api/settings/deckbuilder", {
+        query: { typeId }
       })
     );
 
     const result = data.value;
     const model = new CreateDeckModel();
     model.typeId = result?.id;
+    model.overwriteAmount = result?.overwriteAmount ?? undefined;
     model.pickDefaultName(result?.defaultNames);
     model.groups = result?.groups?.map<CreateDeckGroup>((group) => {
       const deckGroup = new CreateDeckGroup();
@@ -114,6 +115,7 @@ export function useSite() {
         }) ?? [];
         deckSlot.minCards = slot.minCards ?? 0;
         deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
+        deckSlot.overwriteAmount = model.overwriteAmount;
         deckSlot.disableRemoval = slot.disableRemoval!;
         deckSlot.displaySize = slot.displaySize! as DisplaySize;
         deckSlot.numberMode = slot.numberMode!;
@@ -202,12 +204,20 @@ export function useSite() {
     return new FixedDeckAmountConfig(0);
   };
 
+  const getSquadSettingsOptions = async (): Promise<SquadSettingsOptionApiModel[]> => {
+    const { data } = await useAsyncData("squad-settings-options", () =>
+      DoFetch<SquadSettingsOptionApiModel[]>("/api/settings/squadSettingsOptions")
+    );
+    return data.value ?? [];
+  };
+
   return {
     getSettings,
     getNavigation,
     getDeckTypeSettings,
     getSetOverviewSettings,
     getDeckBuilderSettings,
+    getSquadSettingsOptions,
   };
 }
 

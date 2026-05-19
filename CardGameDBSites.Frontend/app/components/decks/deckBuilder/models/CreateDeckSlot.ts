@@ -1,8 +1,18 @@
 import type { CardDetailApiModel, RequirementApiModel } from "~/api/default";
-import { DisplaySize, RequirementType, type DeckAmount } from "../DeckBuilderModels";
+import {
+  DisplaySize,
+  RequirementType,
+  type DeckAmount,
+} from "../DeckBuilderModels";
 import CreateDeckCardGroup from "./CreateDeckCardGroup";
-import { FixedDeckAmountConfig, type CreateDeckSlotAmount } from "./CreateDeckSlotAmount";
-import { GetInvalidRequirements, IsValid } from "~/services/requirements/RequirementService";
+import {
+  FixedDeckAmountConfig,
+  type CreateDeckSlotAmount,
+} from "./CreateDeckSlotAmount";
+import {
+  GetInvalidRequirements,
+  IsValid,
+} from "~/services/requirements/RequirementService";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
 import { GetCardValue } from "~/helpers/CardHelper";
 
@@ -20,6 +30,7 @@ export default class CreateDeckSlot {
   showIfTargetSlotIsFilled: number | undefined;
 
   requirements: RequirementApiModel[] = [];
+  useGroupRequirements: boolean = true;
 
   constructor(id: number, label: string) {
     this.id = id;
@@ -40,14 +51,18 @@ export default class CreateDeckSlot {
       .reduce((a, b) => a + b, 0);
   }
 
-  getCardAmount(card: CardDetailApiModel){
-    return this.cardGroups
-      .flatMap((group) => group.cards)
-      .find((c) => c.card.baseId === card.baseId)?.amount ?? 0;
+  getCardAmount(card: CardDetailApiModel) {
+    return (
+      this.cardGroups
+        .flatMap((group) => group.cards)
+        .find((c) => c.card.baseId === card.baseId)?.amount ?? 0
+    );
   }
 
   getCards() {
-    return this.cardGroups.flatMap((group) => group.cards).map((deckCard) => deckCard.card);
+    return this.cardGroups
+      .flatMap((group) => group.cards)
+      .map((deckCard) => deckCard.card);
   }
 
   getCardMaxAmount(card: CardDetailApiModel) {
@@ -68,33 +83,45 @@ export default class CreateDeckSlot {
 
   isFull() {
     const maxAmount = this.getMaxAmount();
-    if (maxAmount === undefined) { // Unlimited amount
+    if (maxAmount === undefined) {
+      // Unlimited amount
       return false;
     }
     return this.getAmount() >= maxAmount;
   }
 
   validate(): CreateDeckValidationItem[] | undefined {
-    const invalidRequirements = GetInvalidRequirements(this.getCards(), this.requirements, false);
-    if (invalidRequirements.length > 0){
+    const invalidRequirements = GetInvalidRequirements(
+      this.getCards(),
+      this.requirements,
+      false,
+    );
+    if (invalidRequirements.length > 0) {
       return invalidRequirements.map((requirement) => ({
         errorMessage: requirement.errorMessage ?? "Not valid requirement",
-        showMessage: true
-      }))
+        showMessage: true,
+      }));
     }
-    
+
     const amount = this.getAmount();
     const maxAmount = this.getMaxAmount();
-    return amount >= this.minCards && (maxAmount === undefined || amount <= maxAmount) ? undefined : [{
-      errorMessage: "Not valid amount",
-      showMessage: false,
-    }];
+    return amount >= this.minCards &&
+      (maxAmount === undefined || amount <= maxAmount)
+      ? undefined
+      : [
+          {
+            errorMessage: "Not valid amount",
+            showMessage: false,
+          },
+        ];
   }
 
   isInsideSlot(card: CardDetailApiModel) {
-    return this.cardGroups
-      .flatMap((group) => group.cards)
-      .find((c) => c.card.baseId === card.baseId) !== undefined;
+    return (
+      this.cardGroups
+        .flatMap((group) => group.cards)
+        .find((c) => c.card.baseId === card.baseId) !== undefined
+    );
   }
 
   isCardAllowedToRemove(card: CardDetailApiModel) {
@@ -105,14 +132,14 @@ export default class CreateDeckSlot {
     const deckCard = this.cardGroups
       .flatMap((group) => group.cards)
       .find((c) => c.card.baseId === card.baseId);
-    if (!deckCard){
+    if (!deckCard) {
       return false;
     }
     return deckCard.allowRemoval;
   }
 
   canAddCard(card: CardDetailApiModel, existingAmountInOtherSlots: number = 0) {
-    if (this.isFull()){
+    if (this.isFull()) {
       return false;
     }
 
@@ -121,34 +148,47 @@ export default class CreateDeckSlot {
       .find((c) => c.card.baseId === card.baseId);
 
     const amountInThisSlot = currentSize?.amount ?? 0;
-    if ((currentSize !== undefined || existingAmountInOtherSlots > 0) &&
-        amountInThisSlot + existingAmountInOtherSlots >= this.getCardMaxAmount(card)) {
+    if (
+      (currentSize !== undefined || existingAmountInOtherSlots > 0) &&
+      amountInThisSlot + existingAmountInOtherSlots >=
+        this.getCardMaxAmount(card)
+    ) {
       return false;
     }
 
     return true;
   }
 
-  addCard(card: CardDetailApiModel) {
+  addCard(card: CardDetailApiModel, amount: number = 1) {
     const currentSize = this.cardGroups
       .flatMap((group) => group.cards)
       .find((c) => c.card.baseId === card.baseId);
 
     if (currentSize) {
-      currentSize.amount++;
-    } else {
-      const childSlots = this._createChildSlots(card);
-      const groupToAdd = this.cardGroups.find((group) => IsValid([card], group.requirements, true));
-      if (groupToAdd){
-        groupToAdd.cards.push({ card, amount: 1, allowRemoval: true, children: childSlots });
-      }
+      currentSize.amount += amount;
+      return currentSize;
+    }
+    const childSlots = this._createChildSlots(card);
+    const groupToAdd = this.cardGroups.find((group) =>
+      IsValid([card], group.requirements, true),
+    );
+    if (groupToAdd) {
+      const deckCard = {
+        card,
+        amount: amount,
+        allowRemoval: true,
+        children: childSlots,
+      };
+      groupToAdd.cards.push(deckCard);
+      return deckCard;
     }
   }
 
   removeCard(card: CardDetailApiModel) {
-    const group = this.cardGroups.find((group) => group.cards.some((c) => c.card.baseId === card.baseId));
-    const currentSize = group?.cards
-      .find((c) => c.card.baseId === card.baseId);
+    const group = this.cardGroups.find((group) =>
+      group.cards.some((c) => c.card.baseId === card.baseId),
+    );
+    const currentSize = group?.cards.find((c) => c.card.baseId === card.baseId);
 
     if (currentSize) {
       currentSize.amount--;
@@ -186,6 +226,7 @@ export default class CreateDeckSlot {
         config: { allowedChildIds: allowedChildren },
       } as RequirementApiModel,
     ];
+    childSlot.useGroupRequirements = false; // Child slot should not inherit parent group requirements
 
     const childGroup = new CreateDeckCardGroup("");
     childSlot.cardGroups.push(childGroup);

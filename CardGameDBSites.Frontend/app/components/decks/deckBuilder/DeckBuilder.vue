@@ -74,7 +74,7 @@ function selectCard(card: CardDetailApiModel) {
 function selectSlot(
   value: CreateDeckSelectedArea
 ) {
-  selectedArea.value = value;;
+  selectedArea.value = value;
   clickTab(DeckBuilderTab.Cards);
 }
 

@@ -78,14 +78,19 @@ function getInternalFilters() {
     return [];
   }
   const cards = props.currentArea.group.getCards();
-  return [
-    ...GetFilters(
+  const filters = [];
+  if (props.currentArea.slot.useGroupRequirements){
+    filters.push(...GetFilters(
       cards,
       props.currentArea.group.requirements.filter(
         (req) => req.restrictionType !== RestrictionType.FILTER,
       ),
       props.ignorePassiveFilters,
-    ),
+    ));
+  }
+
+  return [
+    ...filters,
     ...GetFilters(
       cards,
       props.currentArea.slot.requirements.filter(

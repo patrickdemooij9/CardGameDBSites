@@ -339,7 +339,7 @@ const hasPassiveRequirements = computed(() => {
                       <div v-for="child in childGroup.getOrderedCards()">
                         <div
                           class="flex items-center border rounded ml-4 mb-2 cursor-pointer tooltip-starter"
-                          :class="getDisplayClassesForItem(slot)"
+                          :class="getDisplayClassesForItem(childSlot)"
                           v-on:click.prevent="emit('selectCard', child.card)"
                         >
                           <div class="flex grow justify-between px-4">
@@ -365,14 +365,14 @@ const hasPassiveRequirements = computed(() => {
                             </div>
                             <a
                               v-if="
-                                !slot.numberMode &&
-                                !slot.disableRemoval &&
-                                item.allowRemoval
+                                !childSlot.numberMode &&
+                                !childSlot.disableRemoval &&
+                                child.allowRemoval
                               "
                               href="#"
                               class="flex items-center justify-center ml-2 no-underline"
                               v-on:click.prevent.stop="
-                                slot.removeCard(item.card)
+                                childSlot.removeCard(child.card)
                               "
                             >
                               <PhTrash />

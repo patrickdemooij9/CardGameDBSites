@@ -34,6 +34,16 @@ export class CreateDeckModel {
         if (IsValid([card], slot.requirements, true)){
           slots.push(slot);
         }
+        // Also check child slots of cards already in this slot
+        slot.cardGroups.forEach((cardGroup) => {
+          cardGroup.cards.forEach((deckCard) => {
+            deckCard.children.forEach((childSlot) => {
+              if (IsValid([card], childSlot.requirements, true)) {
+                slots.push(childSlot);
+              }
+            });
+          });
+        });
       });
     });
     if (this.hasSideboard && this.sideboardSlot) {

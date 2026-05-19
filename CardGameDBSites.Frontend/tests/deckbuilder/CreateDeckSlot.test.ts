@@ -7,8 +7,10 @@ import type { CardDetailApiModel } from "~/api/default";
 function makeCard(
   id: number,
   attributes: Record<string, Array<string>> = {},
+  allowedChildren: number[] = [],
+  maxChildren: number = 0,
 ): CardDetailApiModel {
-  return { baseId: id, displayName: `Card ${id}`, attributes };
+  return { baseId: id, displayName: `Card ${id}`, attributes, allowedChildren, maxChildren };
 }
 
 function makeSlotWithGroup(maxAmount: number = 4): {
@@ -219,6 +221,79 @@ describe("CreateDeckSlot", () => {
     it("returns undefined when max amount is unlimited", () => {
       const { slot } = makeSlotWithGroup(0);
       expect(slot.getMaxAmount()).toBeUndefined();
+    });
+  });
+
+  describe("child slots", () => {
+    it("creates no child slots for a card without allowedChildren", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1);
+      slot.addCard(card);
+      expect(group.cards[0].children).toHaveLength(0);
+    });
+
+    it("creates no child slots for a card with allowedChildren but maxChildren 0", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1, {}, [10, 11], 0);
+      slot.addCard(card);
+      expect(group.cards[0].children).toHaveLength(0);
+    });
+
+    it("creates a child slot when the card has allowedChildren and maxChildren > 0", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1, {}, [10, 11], 2);
+      slot.addCard(card);
+      expect(group.cards[0].children).toHaveLength(1);
+      const childSlot = group.cards[0].children[0];
+      expect(childSlot.label).toBe("Battle Tactics");
+      expect(childSlot.getMaxAmount()).toBe(2);
+    });
+
+    it("child slot has a ChildOf requirement with the parent's allowedChildren", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1, {}, [10, 11], 2);
+      slot.addCard(card);
+      const childSlot = group.cards[0].children[0];
+      expect(childSlot.requirements).toHaveLength(1);
+      expect(childSlot.requirements[0].alias).toBe("ChildOf");
+      expect(childSlot.requirements[0].config!["allowedChildIds"]).toEqual([10, 11]);
+    });
+
+    it("does not create a new child slot when the same card is added again (amount increment)", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1, { Amount: ["2"] }, [10, 11], 2);
+      slot.addCard(card);
+      slot.addCard(card);
+      expect(group.cards).toHaveLength(1);
+      expect(group.cards[0].amount).toBe(2);
+      expect(group.cards[0].children).toHaveLength(1);
+    });
+
+    it("clears child slot cards when parent card is fully removed", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const parent = makeCard(1, {}, [10, 11], 2);
+      slot.addCard(parent);
+      const childSlot = group.cards[0].children[0];
+      // Manually add a child card to the child slot
+      const childCard = makeCard(10);
+      const childGroup = new CreateDeckCardGroup("");
+      childGroup.cards.push({ card: childCard, amount: 1, allowRemoval: true, children: [] });
+      childSlot.cardGroups[0].cards.push({ card: childCard, amount: 1, allowRemoval: true, children: [] });
+      slot.removeCard(parent);
+      // Parent card removed, child slot cleared
+      expect(group.cards).toHaveLength(0);
+      expect(childSlot.getAmount()).toBe(0);
+    });
+
+    it("keeps child slots intact when parent card amount is reduced but not to zero", () => {
+      const { slot, group } = makeSlotWithGroup(4);
+      const card = makeCard(1, { Amount: ["2"] }, [10, 11], 2);
+      slot.addCard(card);
+      slot.addCard(card);
+      slot.removeCard(card);
+      expect(group.cards).toHaveLength(1);
+      expect(group.cards[0].amount).toBe(1);
+      expect(group.cards[0].children).toHaveLength(1);
     });
   });
 });

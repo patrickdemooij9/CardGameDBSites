@@ -1,11 +1,21 @@
 import type NavigationModel from "~/components/navigation/NavigationModel";
-import { type SetOverviewSettingsApiModel, type DeckBuilderApiModel, type DeckBuilderSlotAmountApiModel, type DeckTypeSettingsApiModel, type SiteSettingsApiModel, type SquadSettingsOptionApiModel } from "~/api/default";
+import {
+  type SetOverviewSettingsApiModel,
+  type DeckBuilderApiModel,
+  type DeckBuilderSlotAmountApiModel,
+  type DeckTypeSettingsApiModel,
+  type SiteSettingsApiModel,
+  type SquadSettingsOptionApiModel,
+} from "~/api/default";
 import type NavigationItem from "~/components/navigation/NavigationItemModel";
 import CreateDeckGroup from "~/components/decks/deckBuilder/models/CreateDeckGroup";
 import CreateDeckSlot from "~/components/decks/deckBuilder/models/CreateDeckSlot";
 import { CreateDeckModel } from "~/components/decks/deckBuilder/models/CreateDeckModel";
 import CreateDeckCardGroup from "~/components/decks/deckBuilder/models/CreateDeckCardGroup";
-import { DynamicDeckAmountConfig, FixedDeckAmountConfig } from "~/components/decks/deckBuilder/models/CreateDeckSlotAmount";
+import {
+  DynamicDeckAmountConfig,
+  FixedDeckAmountConfig,
+} from "~/components/decks/deckBuilder/models/CreateDeckSlotAmount";
 import { DoFetch } from "~/helpers/RequestsHelper";
 import DeckService from "~/services/DeckService";
 import { useCards } from "~/composables/useCards";
@@ -21,7 +31,7 @@ export function useSite() {
     }
 
     const { data } = await useAsyncData("site-settings", () =>
-      DoFetch<SiteSettingsApiModel>("/api/settings/site")
+      DoFetch<SiteSettingsApiModel>("/api/settings/site"),
     );
     if (data.value) {
       store.setSiteSettings(data.value);
@@ -37,11 +47,12 @@ export function useSite() {
       homepageMode: false,
       navigationLogoUrl: settings.navigationLogoUrl,
       loginPageUrl: settings.loginPageUrl!,
-      accountItems: settings.accountNavigation?.map((item) => ({
-        name: item.name,
-        url: item.url,
-        children: []
-      })) ?? [],
+      accountItems:
+        settings.accountNavigation?.map((item) => ({
+          name: item.name,
+          url: item.url,
+          children: [],
+        })) ?? [],
       items:
         settings.navigation?.map<NavigationItem>((item) => ({
           name: item.name,
@@ -64,8 +75,8 @@ export function useSite() {
 
     const { data } = await useAsyncData(`deck-type-settings-${typeId}`, () =>
       DoFetch<DeckTypeSettingsApiModel>("/api/settings/deckType", {
-        query: { typeId }
-      })
+        query: { typeId },
+      }),
     );
     if (data.value) {
       store.setDeckTypeSettings(typeId, data.value);
@@ -79,7 +90,7 @@ export function useSite() {
     }
 
     const { data } = await useAsyncData("set-overview-settings", () =>
-      DoFetch<SetOverviewSettingsApiModel>("/api/settings/setOverview")
+      DoFetch<SetOverviewSettingsApiModel>("/api/settings/setOverview"),
     );
     if (data.value) {
       store.setSetOverviewSettings(data.value);
@@ -87,11 +98,14 @@ export function useSite() {
     return data.value!;
   };
 
-  const getDeckBuilderSettings = async (typeId: number, deckId?: number): Promise<CreateDeckModel> => {
+  const getDeckBuilderSettings = async (
+    typeId: number,
+    deckId?: number,
+  ): Promise<CreateDeckModel> => {
     const { data } = await useAsyncData(`deck-builder-settings-${typeId}`, () =>
       DoFetch<DeckBuilderApiModel>("/api/settings/deckbuilder", {
-        query: { typeId }
-      })
+        query: { typeId },
+      }),
     );
 
     const result = data.value;
@@ -99,32 +113,37 @@ export function useSite() {
     model.typeId = result?.id;
     model.overwriteAmount = result?.overwriteAmount ?? undefined;
     model.pickDefaultName(result?.defaultNames);
-    model.groups = result?.groups?.map<CreateDeckGroup>((group) => {
-      const deckGroup = new CreateDeckGroup();
-      deckGroup.id = group.id;
-      deckGroup.name = group.name!;
-      deckGroup.requirements = group.requirements!;
-      deckGroup.slots = group.slots?.map((slot) => {
-        const deckSlot = new CreateDeckSlot(slot.id, slot.name);
-        deckSlot.cardGroups = slot.cardGroups?.map((cardGroup) => {
-          const deckCardGroup = new CreateDeckCardGroup(cardGroup.displayName);
-          deckCardGroup.sortBy = cardGroup.sortBy!;
-          deckCardGroup.cards = [];
-          deckCardGroup.requirements = cardGroup.requirements ?? [];
-          return deckCardGroup;
-        }) ?? [];
-        deckSlot.minCards = slot.minCards ?? 0;
-        deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
-        deckSlot.overwriteAmount = model.overwriteAmount;
-        deckSlot.disableRemoval = slot.disableRemoval!;
-        deckSlot.displaySize = slot.displaySize! as DisplaySize;
-        deckSlot.numberMode = slot.numberMode!;
-        deckSlot.showIfTargetSlotIsFilled = slot.showIfTargetSlotIsFilled!;
-        deckSlot.requirements = slot.requirements ?? [];
-        return deckSlot;
+    model.groups =
+      result?.groups?.map<CreateDeckGroup>((group) => {
+        const deckGroup = new CreateDeckGroup();
+        deckGroup.id = group.id;
+        deckGroup.name = group.name!;
+        deckGroup.requirements = group.requirements!;
+        deckGroup.slots =
+          group.slots?.map((slot) => {
+            const deckSlot = new CreateDeckSlot(slot.id, slot.name);
+            deckSlot.cardGroups =
+              slot.cardGroups?.map((cardGroup) => {
+                const deckCardGroup = new CreateDeckCardGroup(
+                  cardGroup.displayName,
+                );
+                deckCardGroup.sortBy = cardGroup.sortBy!;
+                deckCardGroup.cards = [];
+                deckCardGroup.requirements = cardGroup.requirements ?? [];
+                return deckCardGroup;
+              }) ?? [];
+            deckSlot.minCards = slot.minCards ?? 0;
+            deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
+            deckSlot.overwriteAmount = model.overwriteAmount;
+            deckSlot.disableRemoval = slot.disableRemoval!;
+            deckSlot.displaySize = slot.displaySize! as DisplaySize;
+            deckSlot.numberMode = slot.numberMode!;
+            deckSlot.showIfTargetSlotIsFilled = slot.showIfTargetSlotIsFilled!;
+            deckSlot.requirements = slot.requirements ?? [];
+            return deckSlot;
+          }) ?? [];
+        return deckGroup;
       }) ?? [];
-      return deckGroup;
-    }) ?? [];
 
     if (deckId) {
       const deck = await new DeckService().get(deckId);
@@ -144,30 +163,30 @@ export function useSite() {
             return;
           }
 
-          const group = model.groups.find((group) => group.id === deckCard.groupId);
+          const group = model.groups.find(
+            (group) => group.id === deckCard.groupId,
+          );
           const slot = group?.slots.find((slot) => slot.id === deckCard.slotId);
+          if (!slot) {
+            return;
+          }
 
-          for (var i = 0; i < deckCard.amount!; i++){
-            slot?.addCard(card);
+          const actualDeckCard = slot.addCard(card, deckCard.amount ?? 1);
+          if (!actualDeckCard) {
+            return;
           }
 
           // Populate child slots with saved child cards
           const childIds = deckCard.children ?? [];
-          if (childIds.length > 0 && slot) {
-            const deckCardEntry = slot.cardGroups
-              .flatMap((cg) => cg.cards)
-              .find((c) => c.card.baseId === card.baseId);
-            if (deckCardEntry && deckCardEntry.children.length > 0) {
-              const childSlot = deckCardEntry.children[0];
-              if (childSlot) {
-                childIds.forEach((childId) => {
-                  const childCard = cards.find((c) => c.baseId === childId);
-                  if (childCard) {
-                    childSlot.addCard(childCard);
-                  }
-                });
+          if (childIds.length > 0 && actualDeckCard.children.length > 0) {
+            const childSlot = actualDeckCard.children[0];
+
+            childIds.forEach((childId) => {
+              const childCard = cards.find((c) => c.baseId === childId);
+              if (childCard) {
+                childSlot!.addCard(childCard);
               }
-            }
+            });
           }
         });
       }
@@ -204,9 +223,13 @@ export function useSite() {
     return new FixedDeckAmountConfig(0);
   };
 
-  const getSquadSettingsOptions = async (): Promise<SquadSettingsOptionApiModel[]> => {
+  const getSquadSettingsOptions = async (): Promise<
+    SquadSettingsOptionApiModel[]
+  > => {
     const { data } = await useAsyncData("squad-settings-options", () =>
-      DoFetch<SquadSettingsOptionApiModel[]>("/api/settings/squadSettingsOptions")
+      DoFetch<SquadSettingsOptionApiModel[]>(
+        "/api/settings/squadSettingsOptions",
+      ),
     );
     return data.value ?? [];
   };

@@ -43,14 +43,22 @@
             get => this["Name"]?.ToString();
         }
 
-        public string Image
-        {
-            get => this["image"]?.ToString()!;
-        }
         public string? ImageBase64
         {
             get {
                 if (TryGetValue("image_base64", out var image)){
+                    return image?.ToString();
+                }
+                return null;
+            }
+        }
+
+        public string? BackImageBase64
+        {
+            get
+            {
+                if (TryGetValue("back_image_base64", out var image))
+                {
                     return image?.ToString();
                 }
                 return null;

@@ -1,4 +1,5 @@
 ﻿using CardGameDBSites.API.Models;
+using CardGameDBSites.API.Models.Decks;
 using CardGameDBSites.API.Models.Requirements;
 using CardGameDBSites.API.Models.Settings;
 using CardGameDBSites.API.Models.Settings.DeckBuilder;
@@ -124,6 +125,15 @@ namespace CardGameDBSites.API.Controllers
 
                 actions.Add(deckAction);
             }
+
+            var umbracoDeckDisplayType = deckTypeSettings.DeckDisplayType?.FirstOrDefault();
+            IDeckDisplayApiModel deckDisplay = umbracoDeckDisplayType?.Content switch
+            {
+                IconDeckCard => new IconDeckDisplayApiModel(),
+                SquadDeckCard config => new SquadDeckDisplayApiModel(config),
+                _ => new IconDeckDisplayApiModel() // Default to IconDeckDisplay if type is unknown
+            };
+
             return Ok(new DeckTypeSettingsApiModel
             {
                 OverviewUrl = deckOverview.Url(mode: UrlMode.Relative),
@@ -147,6 +157,7 @@ namespace CardGameDBSites.API.Controllers
                     })],
                 MainCardRequirements = [.. deckTypeSettings.MainCard.ToItems<ISquadRequirementConfig>()
                     .Select(it => new RequirementApiModel(it))],
+                DeckDisplay = deckDisplay,
                 CostImageUrl = deckTypeSettings.CostIcon?.Url(mode: UrlMode.Absolute),
                 RenderCostOnImage = deckTypeSettings.RenderCostInIcon
             });

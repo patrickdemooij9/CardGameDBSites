@@ -9,6 +9,9 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { AbilityValueElementModel } from './models/AbilityValueElementModel';
 export type { AbilityValuePropertiesModel } from './models/AbilityValuePropertiesModel';
+export type { AccountCardsContentModel } from './models/AccountCardsContentModel';
+export type { AccountCardsContentResponseModel } from './models/AccountCardsContentResponseModel';
+export type { AccountCardsPropertiesModel } from './models/AccountCardsPropertiesModel';
 export type { AccountDecksContentModel } from './models/AccountDecksContentModel';
 export type { AccountDecksContentResponseModel } from './models/AccountDecksContentResponseModel';
 export type { AccountDecksPropertiesModel } from './models/AccountDecksPropertiesModel';

@@ -6,6 +6,7 @@ import ResourceRequirement from "./ResourceRequirement";
 import type { IRequirement } from "./IRequirement";
 import ConditionalRequirement from "./ConditionalRequirement";
 import SameValueRequirement from "./SameValueRequirement";
+import ChildOfRequirement from "./ChildOfRequirement";
 
 const requirementHandlers: IRequirement[] = [
     new EqualValueRequirement(),
@@ -13,6 +14,7 @@ const requirementHandlers: IRequirement[] = [
     new ResourceRequirement(),
     new ConditionalRequirement(),
     new SameValueRequirement(),
+    new ChildOfRequirement(),
 ]
 
 export function GetValidCards(cards: CardDetailApiModel[], requirements: RequirementApiModel[])

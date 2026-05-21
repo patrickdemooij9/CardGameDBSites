@@ -35,7 +35,8 @@ namespace SkytearHorde.Entities.Models.ViewModels
                 CardId = it.CardId,
                 GroupId = it.GroupId,
                 SlotId = it.SlotId,
-                Amount = it.Amount
+                Amount = it.Amount,
+                Children = it.Children.Select(c => c.CardId).ToArray()
             }).ToArray();
             Price = price;
         }

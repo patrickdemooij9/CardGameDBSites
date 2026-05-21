@@ -33,12 +33,12 @@ if (!selectedTypeId.value) {
   squadOptions.value = await useSite().getSquadSettingsOptions();
   if (squadOptions.value.length === 1) {
     // If there's only one option, select it by default
-    selectedTypeId.value = squadOptions.value[0]!.typeId;
+    selectedTypeId.value = squadOptions.value[0]!.typeId!;
   }
 }
 
 function onSelectOption(option: SquadSettingsOptionApiModel) {
-  selectedTypeId.value = option.typeId;
+  selectedTypeId.value = option.typeId!;
 }
 </script>
 

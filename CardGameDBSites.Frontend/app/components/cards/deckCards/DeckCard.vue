@@ -5,8 +5,8 @@ import type {
   DeckTypeSettingsApiModel,
   MemberApiModel,
 } from "~/api/default";
-import FullHeaderDeckCard from "./FullHeaderDeckCard.vue";
-import CompactDeckCard from "./CompactDeckCard.vue";
+import CompactDeckCard from "./IconDeckCard.vue";
+import SquadDeckCard from "./SquadDeckCard.vue";
 
 const props = defineProps<{
   deck: DeckApiModel;
@@ -24,5 +24,13 @@ const props = defineProps<{
     :member="member"
     :cards="cards"
     :progress="progress"
+    v-if="settings?.deckDisplay.type === 'iconDeckDisplay'"
   ></CompactDeckCard>
+  <SquadDeckCard
+    :deck="deck"
+    :settings="settings!"
+    :member="member"
+    :cards="cards"
+    v-else-if="settings?.deckDisplay.type === 'squadDeckDisplay'"
+  ></SquadDeckCard>
 </template>

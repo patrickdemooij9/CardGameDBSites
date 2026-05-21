@@ -7,6 +7,8 @@ import type { IApiMediaWithCropsModel } from './IApiMediaWithCropsModel';
 export type SquadSettingsPropertiesModel = {
     typeID?: number | null;
     typeDisplayName?: string | null;
+    typeDescription?: string | null;
+    typeImage?: Array<IApiMediaWithCropsModel> | null;
     squads?: ApiBlockListModel;
     restrictions?: ApiBlockListModel;
     defaultNames?: Array<string> | null;

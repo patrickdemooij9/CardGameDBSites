@@ -169,12 +169,13 @@ async function handleCollectionUpdated() {
           <p class="font-bold text-lg">{{ summaryData.uniqueCards }}</p>
           <p>Unique cards</p>
         </div>
-        <div
-          class="flex flex-col items-center px-4 py-2 w-full bg-blue-600 rounded-md"
+        <NuxtLink
+          to="/collection/my-cards"
+          class="flex flex-col items-center px-4 py-2 w-full bg-blue-600 rounded-md text-white no-underline hover:opacity-90 transition-opacity"
         >
           <p class="font-bold text-lg">{{ summaryData.totalCards }}</p>
           <p>Total cards</p>
-        </div>
+        </NuxtLink>
         <div
           class="flex flex-col items-center px-4 py-2 w-full bg-green-600 rounded-md"
         >

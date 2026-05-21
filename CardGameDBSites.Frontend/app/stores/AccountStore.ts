@@ -16,8 +16,7 @@ export const useAccountStore = defineStore("accountStore", {
   },
   actions: {
     async login(email: string, password: string, rememberMe: boolean) {
-      try {
-        const member = await DoServerFetch<CurrentMemberApiModel>(
+      const member = await DoServerFetch<CurrentMemberApiModel>(
           `/api/account/login`,
           false,
           {
@@ -32,7 +31,6 @@ export const useAccountStore = defineStore("accountStore", {
           isAdmin: member.isAdmin ?? false,
           impersonatedBy: member.impersonatedBy,
         };
-      }
     },
     async logout(){
       await DoServerFetch("/api/account/logout", false, {

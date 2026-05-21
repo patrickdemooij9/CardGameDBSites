@@ -1,4 +1,6 @@
-﻿using SkytearHorde.Business.Repositories;
+﻿using Microsoft.Extensions.Options;
+using SkytearHorde.Business.Config;
+using SkytearHorde.Business.Repositories;
 using SkytearHorde.Entities.Models.Business;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Security;
@@ -15,13 +17,19 @@ namespace SkytearHorde.Business.Services
         private readonly IMemberManager _memberManager;
         private readonly IMemberService _memberService;
         private readonly IAppPolicyCache _cache;
+        private readonly CardGameSettingsConfig _config;
 
-        public MemberInfoService(DeckLikeRepository deckLikeRepository, AppCaches appCaches, IMemberManager memberManager, IMemberService memberService)
+        public MemberInfoService(DeckLikeRepository deckLikeRepository,
+            AppCaches appCaches,
+            IMemberManager memberManager,
+            IMemberService memberService,
+            IOptions<CardGameSettingsConfig> config)
         {
             _deckLikeRepository = deckLikeRepository;
             _memberManager = memberManager;
             _memberService = memberService;
             _cache = appCaches.RuntimeCache;
+            _config = config.Value;
         }
 
         public string? GetName(int memberId)
@@ -49,8 +57,7 @@ namespace SkytearHorde.Business.Services
             var member = _memberManager.GetCurrentMemberAsync().Result;
             if (member is null) return false;
 
-            var roles = _memberManager.GetRolesAsync(member).Result;
-            return roles.Any(r => r.Equals("admin", StringComparison.OrdinalIgnoreCase));
+            return _config.AdminMembers.Contains(member.Id);
         }
 
         public CurrentMemberModel? GetMemberInfo()

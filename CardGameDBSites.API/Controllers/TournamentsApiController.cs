@@ -1,3 +1,4 @@
+using CardGameDBSites.API.Attributes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -11,7 +12,6 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/tournaments")]
-    [IgnoreAntiforgeryToken]
     public class TournamentsApiController : Controller
     {
         private readonly TournamentService _tournamentService;
@@ -51,7 +51,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [JwtAuthorization]
         public IActionResult Create([FromBody] CreateTournamentDto dto)
         {
             if (!_memberInfoService.IsAdmin())
@@ -69,7 +69,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpDelete("{id:guid}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [JwtAuthorization]
         public IActionResult Delete(Guid id)
         {
             if (!_memberInfoService.IsAdmin())
@@ -83,7 +83,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost("{id:guid}/entrants")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [JwtAuthorization]
         public IActionResult AddEntrant(Guid id, [FromBody] AddEntrantDto dto)
         {
             if (!_memberInfoService.IsAdmin())
@@ -101,7 +101,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPatch("entrants/{entrantId:guid}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [JwtAuthorization]
         public IActionResult UpdateEntrant(Guid entrantId, [FromBody] UpdateEntrantDto dto)
         {
             if (!_memberInfoService.IsAdmin())
@@ -119,7 +119,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpDelete("entrants/{entrantId:guid}")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [JwtAuthorization]
         public IActionResult DeleteEntrant(Guid entrantId)
         {
             if (!_memberInfoService.IsAdmin())

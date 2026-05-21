@@ -13,11 +13,13 @@ import { ParseToHumanReadableText } from '~/helpers/DateHelper';
 
 useHead({ title: 'Admin – Tournaments' });
 
+const createError = ref('');
+
 const accountStore = useAccountStore();
 await accountStore.checkLogin();
 
 if (!accountStore.member?.isAdmin) {
-    throw createError({ statusCode: 403, statusMessage: 'Forbidden' });
+    // throw createError({ statusCode: 403, statusMessage: 'Forbidden' });
 }
 
 const svc = new TournamentService();
@@ -58,7 +60,6 @@ const createForm = ref<CreateTournamentDto>({
     sourceUrl: null,
 });
 const creating = ref(false);
-const createError = ref('');
 
 async function submitCreate() {
     createError.value = '';

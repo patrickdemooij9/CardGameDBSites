@@ -234,7 +234,7 @@ namespace CardGameDBSites.API.Controllers
             var member = _memberInfoService.GetMemberInfo();
             if (member is null) return Unauthorized("You need to be logged in to see this information.");
 
-            var isAdmin = HttpContext.User.FindFirst("isAdmin")?.Value == "true";
+            var isAdmin = _memberInfoService.IsAdmin();
             var impersonatedByStr = HttpContext.User.FindFirst("impersonatedBy")?.Value;
             int? impersonatedBy = impersonatedByStr != null && int.TryParse(impersonatedByStr, out var parsedId)
                 ? parsedId
@@ -255,8 +255,8 @@ namespace CardGameDBSites.API.Controllers
         [JwtAuthorization]
         public async Task<IActionResult> Impersonate(int memberId)
         {
-            var isAdminClaim = HttpContext.User.FindFirst("isAdmin");
-            if (isAdminClaim?.Value != "true")
+            var isAdmin = _memberInfoService.IsAdmin();
+            if (!isAdmin)
                 return Forbid();
 
             var callerIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -273,7 +273,7 @@ namespace CardGameDBSites.API.Controllers
 
         private JwtSecurityToken GetJwtToken(MemberIdentityUser user, bool rememberMe)
         {
-            var isAdmin = _config.AdminMembers.Contains(user.Id);
+            var isAdmin = _memberInfoService.IsAdmin();
 
             var claims = new List<Claim>
             {

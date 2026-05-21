@@ -11,10 +11,6 @@ import {
   type SetViewModel,
 } from "~/api/default";
 import BaseCardOverview from "./BaseCardOverview.vue";
-import { GetCrop } from "~/helpers/CropUrlHelper";
-import { PhBooks } from "@phosphor-icons/vue";
-import Button from "../shared/Button.vue";
-import ButtonType from "../shared/ButtonType";
 import CollectionCardVariantPopup from "../popups/CollectionCardVariantPopup.vue";
 import { useCards } from "~/composables/useCards";
 import { useCollection } from "~/composables/useCollection";
@@ -22,6 +18,9 @@ import { GetCardValue } from "~/helpers/CardHelper";
 import SetService from "~/services/SetService";
 import { useAccountStore } from "~/stores/AccountStore";
 import { useCollectionStore } from "~/stores/CollectionStore";
+import CardOverviewImageView from "./views/CardOverviewImageView.vue";
+import CardOverviewRowsView from "./views/CardOverviewRowsView.vue";
+import CardOverviewCollectionView from "./views/CardOverviewCollectionView.vue";
 
 const route = useRoute();
 const accountService = useAccountStore();
@@ -35,6 +34,17 @@ export type CardOverviewTableColumn = {
   displayName: string;
 };
 
+type CollectionColumn = {
+  variantTypeId: number | null;
+  displayName: string;
+};
+
+type CollectionCell = CollectionColumn & {
+  key: string;
+  amount: number | null;
+  isUpdating: boolean;
+};
+
 const props = defineProps<{
   filters: OverviewFilterModel[];
   sortings?: OverviewSortModel[];
@@ -44,13 +54,19 @@ const props = defineProps<{
   collectionMode?: CardSearchCollectionMode;
 }>();
 
-const availableViews = computed(() =>
-  props.tableColumns && props.tableColumns.length > 0
-    ? ["images", "rows"]
-    : ["images"],
-);
+const availableViews = computed(() => {
+  const views = ["images"];
 
-const viewMode = ref("images");
+  if (props.tableColumns && props.tableColumns.length > 0) {
+    views.push("rows");
+  }
+
+  if (props.setId && isLoggedIn.value) {
+    views.push("collection");
+  }
+
+  return views;
+});
 
 const pageNumber = ref(1);
 const pageNumberString = route.query["page"];
@@ -76,20 +92,41 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
 });
 
 const showPrices = false;
-let showCollection = false;
-let mainVariants: CardVariantTypeApiModel[] = [];
+const variantTypes = ref<CardVariantTypeApiModel[]>([]);
+const mainVariants = computed(() => variantTypes.value.filter((item) => item.hasPage));
+const currentCards = ref<PagedResultCardDetailApiModel | null>(null);
+const collectionColumns = computed<CollectionColumn[]>(() => [
+  {
+    variantTypeId: null,
+    displayName: "Normal",
+  },
+  ...variantTypes.value
+    .filter((item) => {
+      return currentCards.value?.items?.some((card) =>
+        getCollectionSetVariants(card).some((variant) => variant.variantTypeId === item.id),
+      );
+    })
+    .map((item) => ({
+      variantTypeId: item.id,
+      displayName: item.displayName,
+    })),
+]);
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
 const isLoading = ref(true);
-let isLoggedIn = ref(false);
+const isLoggedIn = ref(false);
+const collectionStore = useCollectionStore();
+const updatingCollectionKeys = ref(new Set<string>());
+const collectionVariantBadgeBaseWidth = 16;
+const collectionVariantBadgeStep = 10;
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
-  showCollection = isLoggedIn.value; //Eventually also check for collection settings
-  mainVariants = (await cards.loadVariantTypes()).filter(item => item.hasPage);
+  variantTypes.value = await cards.loadVariantTypes();
   isLoading.value = false;
 });
 
 function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
+  currentCards.value = cards;
   sets.value = [];
 
   //TODO: Rewrite this so we cache the sets instead of loading them every time we load cards, otherwise we end up with a lot of requests when loading multiple pages or changing filters
@@ -109,7 +146,92 @@ function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
 
 function getMainVariants(card: CardDetailApiModel){
   const cardSetVariants = card.variants?.filter(v => v.setId == card.setId) ?? [];
-  return mainVariants.filter((item) => cardSetVariants.some((v) => v.variantTypeId == item.id));
+  return mainVariants.value.filter((item) => cardSetVariants.some((v) => v.variantTypeId == item.id));
+}
+
+function getCollectionSetVariants(card: CardDetailApiModel) {
+  return (card.variants ?? [])
+    .filter((variant) => variant.setId === card.setId)
+    .sort((a, b) => (a.variantTypeId ?? 0) - (b.variantTypeId ?? 0));
+}
+
+function getVariantAmount(card: CardDetailApiModel, variantTypeId: number | null) {
+  const variant = getCollectionSetVariants(card).find(
+    (item) => (item.variantTypeId ?? null) === variantTypeId,
+  );
+
+  if (!variant?.cardVariantId) {
+    return null;
+  }
+
+  const cardCollectionEntries = collectionStore.getCards(card.baseId!);
+  return (
+    cardCollectionEntries.find((item) => item.variantId === variant.cardVariantId)?.amount ?? 0
+  );
+}
+
+function getCollectionCellKey(card: CardDetailApiModel, variantTypeId: number | null) {
+  return `${card.baseId}-${variantTypeId ?? "normal"}`;
+}
+
+function isCollectionCellUpdating(card: CardDetailApiModel, variantTypeId: number | null) {
+  return updatingCollectionKeys.value.has(getCollectionCellKey(card, variantTypeId));
+}
+
+function getCollectionCells(card: CardDetailApiModel): CollectionCell[] {
+  return collectionColumns.value.map((collectionColumn) => ({
+    ...collectionColumn,
+    key: getCollectionCellKey(card, collectionColumn.variantTypeId),
+    amount: getVariantAmount(card, collectionColumn.variantTypeId),
+    isUpdating: isCollectionCellUpdating(card, collectionColumn.variantTypeId),
+  }));
+}
+
+async function updateCollectionAmount(
+  card: CardDetailApiModel,
+  variantTypeId: number | null,
+  delta: number,
+) {
+  const variant = getCollectionSetVariants(card).find(
+    (item) => (item.variantTypeId ?? null) === variantTypeId,
+  );
+
+  if (!variant?.cardVariantId || !card.baseId) {
+    return;
+  }
+
+  const currentValue = getVariantAmount(card, variantTypeId);
+  if (currentValue === null) {
+    return;
+  }
+
+  const nextValue = Math.max(0, currentValue + delta);
+  if (nextValue === currentValue) {
+    return;
+  }
+
+  const collectionKey = getCollectionCellKey(card, variantTypeId);
+  updatingCollectionKeys.value.add(collectionKey);
+
+  const cardCollectionEntries = collectionStore.getCards(card.baseId);
+  const cardCollectionEntryMap = new Map(
+    cardCollectionEntries.map((entry) => [entry.variantId, entry.amount ?? 0]),
+  );
+  const variantAmounts = Object.fromEntries(
+    getCollectionSetVariants(card)
+      .filter((item) => item.cardVariantId)
+      .map((item) => [
+        item.cardVariantId!,
+        cardCollectionEntryMap.get(item.cardVariantId) ?? 0,
+      ]),
+  ) as Record<number, number>;
+  variantAmounts[variant.cardVariantId] = nextValue;
+
+  try {
+    await collectionService.saveCards(card.baseId, variantAmounts);
+  } finally {
+    updatingCollectionKeys.value.delete(collectionKey);
+  }
 }
 
 function ownsVariant(card: CardDetailApiModel, variantTypeId: number | null) {
@@ -118,7 +240,7 @@ function ownsVariant(card: CardDetailApiModel, variantTypeId: number | null) {
   );
   
   return (
-    (useCollectionStore()
+    (collectionStore
       .getCards(card.baseId!)
       .find((item) => variant?.cardVariantId == item.variantId)?.amount ?? 0) > 0
   );
@@ -160,139 +282,37 @@ function getCardIdentifier(card: CardDetailApiModel) {
     @reloaded="loadCollectionCards"
   >
     <!-- Image grid view -->
-    <div
+    <CardOverviewImageView
       v-if="viewMode === 'images'"
-      class="container px-4 md:px-8 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6"
-    >
-      <div class="relative" v-for="card in cards.items">
-        <NuxtLink :href="card.urlSegment" class="no-underline">
-          <div class="missing-card-image" v-if="!card.imageUrl">
-            <h2>{{ card.displayName }}</h2>
-            <p>No image yet</p>
-          </div>
-          <img v-else :src="GetCrop(card.imageUrl, undefined)" loading="lazy" />
-        </NuxtLink>
-        <div class="flex justify-between items-center mt-2">
-          <p>
-            <span v-if="siteSettings.cardOverviewIdentifier">{{ getCardIdentifier(card) }}</span>
-          </p>
-          <a
-            v-if="card.price"
-            :href="card.price.referenceUrl"
-            target="_blank"
-            class="block bg-green-600 px-2.5 py-1 rounded-md text-white no-underline"
-          >
-            <p>$ {{ card.price.marketPrice }}</p>
-          </a>
-        </div>
-        <div v-if="showCollection">
-          <hr class="mt-2" />
-          <div class="flex mt-2 gap-2 items-center justify-between">
-            <p class="relative w-4 h-6" :style="{'width': (mainVariants.length * 8) + 'px'}">
-                <span
-                  :class="[
-                    ownsVariant(card, null)
-                      ? 'bg-red-600'
-                      : 'bg-[#cfcfcf]',
-                  ]"
-                  class="absolute top-0 flex justify-center border border-white rounded h-6 w-4 pt-1 z-10"
-                  title="Base card"
-                >
-                  <span class="bg-white rounded-full w-2 h-2"></span>
-                </span>
-                <span
-                  v-for="(variant, index) in getMainVariants(card)"
-                  :key="variant.id"
-                  class="absolute top-0 flex justify-center border border-white rounded h-6 w-4 pt-1"
-                  :title="variant.displayName"
-                  :style="{
-                    'background-color': ownsVariant(card, variant.id)
-                      ? variant.color!
-                      : '#cfcfcf',
-                    left: 10 + index * 10 + 'px',
-                    'z-index': mainVariants.length - index,
-                  }"
-                >
-                  <span
-                    v-if="variant.initial"
-                    class="text-white text-xs font-bold text-center"
-                    >{{ variant.initial }}</span
-                  >
-                  <span v-else class="bg-white rounded-full w-2 h-2"></span>
-                </span>
-              </p>
-            <span class="ml-2"
-              >{{ collectionService.getAmountForSet(card) }}
-              <span class="md:inline hidden">copies</span></span
-            >
-            <Button
-              :button-type="ButtonType.Outline"
-              class="flex justify-center"
-              @click="collectionSelectedCard = card"
-            >
-              <PhBooks />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      :cards="cards.items ?? []"
+      :is-logged-in="isLoggedIn"
+      :show-card-identifier="Boolean(siteSettings.cardOverviewIdentifier)"
+      :get-card-identifier="getCardIdentifier"
+      :get-main-variants="getMainVariants"
+      :owns-variant="ownsVariant"
+      :get-amount-for-set="collectionService.getAmountForSet"
+      :collection-variant-badge-base-width="collectionVariantBadgeBaseWidth"
+      :collection-variant-badge-step="collectionVariantBadgeStep"
+      @open-collection="collectionSelectedCard = $event"
+    />
+
+    <CardOverviewCollectionView
+      v-else-if="viewMode === 'collection' && setId && isLoggedIn"
+      :cards="cards.items ?? []"
+      :columns="collectionColumns"
+      :get-collection-cells="getCollectionCells"
+      @update-collection-amount="updateCollectionAmount"
+    />
 
     <!-- Table / rows view -->
-    <div
+    <CardOverviewRowsView
       v-else-if="viewMode === 'rows' && tableColumns && tableColumns.length > 0"
-      class="container px-4 md:px-8 overflow-x-auto"
-    >
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="border-b-2 border-gray-300">
-            <th class="py-2 pr-4 font-semibold">Name</th>
-            <th
-              v-for="col in tableColumns"
-              :key="col.alias"
-              class="py-2 pr-4 font-semibold"
-            >
-              {{ col.displayName }}
-            </th>
-            <th v-if="showCollection" class="py-2 pr-4 font-semibold">Collection</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="card in cards.items"
-            :key="card.baseId"
-            class="border-b border-gray-200 hover:bg-gray-50"
-          >
-            <td class="py-2 pr-4">
-              <NuxtLink :href="card.urlSegment" class="no-underline font-medium hover:underline">
-                {{ card.displayName }}
-              </NuxtLink>
-            </td>
-            <td
-              v-for="col in tableColumns"
-              :key="col.alias"
-              class="py-2 pr-4 text-sm text-gray-700"
-            >
-              {{ card.attributes?.[col.alias]?.join(", ") ?? "-" }}
-            </td>
-            <td v-if="showCollection" class="py-2 pr-4">
-              <div class="flex items-center gap-2">
-                <span :aria-label="`${collectionService.getAmountForSet(card)} copies`">
-                  {{ collectionService.getAmountForSet(card) }}
-                  <span class="md:inline hidden" aria-hidden="true">copies</span>
-                </span>
-                <Button
-                  :button-type="ButtonType.Outline"
-                  class="flex justify-center"
-                  @click="collectionSelectedCard = card"
-                >
-                  <PhBooks />
-                </Button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      :cards="cards.items ?? []"
+      :table-columns="tableColumns"
+      :is-logged-in="isLoggedIn"
+      :get-amount-for-set="collectionService.getAmountForSet"
+      @open-collection="collectionSelectedCard = $event"
+    />
   </BaseCardOverview>
   <CollectionCardVariantPopup
     v-if="collectionSelectedCard"

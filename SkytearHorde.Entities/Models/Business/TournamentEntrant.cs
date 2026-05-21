@@ -11,5 +11,6 @@ namespace SkytearHorde.Entities.Models.Business
         public int? Draws { get; set; }
         public int? DeckId { get; set; }
         public string? ExternalId { get; set; }
+        public List<TournamentMatch> Matches { get; set; } = new();
     }
 }

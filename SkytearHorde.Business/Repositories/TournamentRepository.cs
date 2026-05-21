@@ -27,6 +27,7 @@ namespace SkytearHorde.Business.Repositories
                 FormatId = tournament.FormatId,
                 PlayerCount = tournament.PlayerCount,
                 SourceUrl = tournament.SourceUrl,
+                SourceType = tournament.SourceType,
                 CreatedAt = DateTime.UtcNow,
                 ExternalId = tournament.ExternalId
             };
@@ -97,6 +98,7 @@ namespace SkytearHorde.Business.Repositories
             FormatId = model.FormatId,
             PlayerCount = model.PlayerCount,
             SourceUrl = model.SourceUrl,
+            SourceType = model.SourceType,
             CreatedAt = model.CreatedAt,
             ExternalId = model.ExternalId
         };

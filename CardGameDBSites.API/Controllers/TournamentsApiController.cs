@@ -16,6 +16,7 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly TournamentService _tournamentService;
         private readonly EntrantService _entrantService;
+        private readonly TournamentMatchService _matchService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly MemberInfoService _memberInfoService;
         private readonly DeckTextParser _deckTextParser;
@@ -23,12 +24,14 @@ namespace CardGameDBSites.API.Controllers
         public TournamentsApiController(
             TournamentService tournamentService,
             EntrantService entrantService,
+            TournamentMatchService matchService,
             ISiteAccessor siteAccessor,
             MemberInfoService memberInfoService,
             DeckTextParser deckTextParser)
         {
             _tournamentService = tournamentService;
             _entrantService = entrantService;
+            _matchService = matchService;
             _siteAccessor = siteAccessor;
             _memberInfoService = memberInfoService;
             _deckTextParser = deckTextParser;
@@ -128,6 +131,60 @@ namespace CardGameDBSites.API.Controllers
             try
             {
                 _entrantService.DeleteEntrant(entrantId);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpPost("entrants/{entrantId:guid}/matches")]
+        [JwtAuthorization]
+        public IActionResult AddMatch(Guid entrantId, [FromBody] AddTournamentMatchDto dto)
+        {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
+            try
+            {
+                var matchId = _matchService.AddMatch(entrantId, dto);
+                return Ok(new { Id = matchId });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpPatch("matches/{matchId:guid}")]
+        [JwtAuthorization]
+        public IActionResult UpdateMatch(Guid matchId, [FromBody] UpdateTournamentMatchDto dto)
+        {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
+            try
+            {
+                _matchService.UpdateMatch(matchId, dto);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpDelete("matches/{matchId:guid}")]
+        [JwtAuthorization]
+        public IActionResult DeleteMatch(Guid matchId)
+        {
+            if (!_memberInfoService.IsAdmin())
+                return Forbid();
+
+            try
+            {
+                _matchService.DeleteMatch(matchId);
                 return Ok();
             }
             catch (ArgumentException ex)

@@ -76,7 +76,8 @@ namespace SkytearHorde.Business.Startup.Migrations
                 .To<DailyCardGameMigration>("v37")
                 .To<SetPriceMigration>("v38")
                 .To<TournamentMigration>("v39")
-                .To<MeleeSyncMigration>("v40");
+                .To<MeleeSyncMigration>("v40")
+                .To<TournamentSourceTypeAndMatchMigration>("v41");
 
             var upgrader = new Upgrader(migrationPlan);
             upgrader.Execute(_migrationPlanExecutor, _coreScopeProvider, _keyValueService);

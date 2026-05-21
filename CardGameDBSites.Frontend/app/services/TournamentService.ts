@@ -9,6 +9,19 @@ export type TournamentEntrant = {
     losses?: number | null;
     draws?: number | null;
     deckId?: number | null;
+    matches?: TournamentMatch[];
+};
+
+export type TournamentMatch = {
+    id: string;
+    tournamentEventId: string;
+    tournamentEntrantId: string;
+    roundNumber?: number | null;
+    opponentName?: string | null;
+    wins: number;
+    losses: number;
+    draws: number;
+    createdAt: string;
 };
 
 export type TournamentEvent = {
@@ -20,6 +33,7 @@ export type TournamentEvent = {
     formatDisplayName?: string | null;
     playerCount?: number | null;
     sourceUrl?: string | null;
+    sourceType?: string | null;
     createdAt: string;
     entrants: TournamentEntrant[];
 };
@@ -31,6 +45,7 @@ export type DeckTournamentResult = {
     formatDisplayName?: string | null;
     playerCount?: number | null;
     sourceUrl?: string | null;
+    sourceType?: string | null;
     placement?: number | null;
     wins?: number | null;
     losses?: number | null;
@@ -43,24 +58,36 @@ export type CreateTournamentDto = {
     formatId: number;
     playerCount?: number | null;
     sourceUrl?: string | null;
+    sourceType?: string | null;
 };
 
 export type AddEntrantDto = {
     playerName: string;
     placement?: number | null;
-    wins?: number | null;
-    losses?: number | null;
-    draws?: number | null;
     deckId?: number | null;
+    matches?: AddTournamentMatchDto[];
 };
 
 export type UpdateEntrantDto = {
     playerName?: string | null;
     placement?: number | null;
+    deckId?: number | null;
+};
+
+export type AddTournamentMatchDto = {
+    roundNumber?: number | null;
+    opponentName?: string | null;
+    wins: number;
+    losses: number;
+    draws: number;
+};
+
+export type UpdateTournamentMatchDto = {
+    roundNumber?: number | null;
+    opponentName?: string | null;
     wins?: number | null;
     losses?: number | null;
     draws?: number | null;
-    deckId?: number | null;
 };
 
 export type ParsedDeckCard = {
@@ -124,6 +151,26 @@ export default class TournamentService {
 
     async deleteEntrant(entrantId: string): Promise<void> {
         await DoServerFetch('/api/tournaments/entrants/' + entrantId, true, {
+            method: 'DELETE',
+        });
+    }
+
+    async addMatch(entrantId: string, dto: AddTournamentMatchDto): Promise<{ id: string }> {
+        return DoServerFetch<{ id: string }>(`/api/tournaments/entrants/${entrantId}/matches`, true, {
+            method: 'POST',
+            body: dto,
+        });
+    }
+
+    async updateMatch(matchId: string, dto: UpdateTournamentMatchDto): Promise<void> {
+        await DoServerFetch(`/api/tournaments/matches/${matchId}`, true, {
+            method: 'PATCH',
+            body: dto,
+        });
+    }
+
+    async deleteMatch(matchId: string): Promise<void> {
+        await DoServerFetch(`/api/tournaments/matches/${matchId}`, true, {
             method: 'DELETE',
         });
     }

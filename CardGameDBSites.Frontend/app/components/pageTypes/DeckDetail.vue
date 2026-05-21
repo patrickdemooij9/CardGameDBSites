@@ -500,6 +500,9 @@ console.timeEnd('page-render');
                   <span v-if="result.formatDisplayName" class="text-xs text-gray-500 ml-1">
                     ({{ result.formatDisplayName }})
                   </span>
+                  <span v-if="result.sourceType" class="text-xs text-gray-500 ml-1">
+                    [{{ result.sourceType }}]
+                  </span>
                 </td>
                 <td class="px-3 py-2 border border-gray-200 text-gray-600">
                   {{ ParseToHumanReadableText(result.date) }}

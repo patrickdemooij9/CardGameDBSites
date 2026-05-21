@@ -41,6 +41,7 @@ useHead({ title: tournament.value?.name ?? 'Tournament' });
                     <span>📅 {{ ParseToHumanReadableText(tournament.date) }}</span>
                     <span v-if="tournament.formatDisplayName">🎮 {{ tournament.formatDisplayName }}</span>
                     <span v-if="tournament.playerCount">👥 {{ tournament.playerCount }} players</span>
+                    <span v-if="tournament.sourceType">🗂️ {{ tournament.sourceType }}</span>
                     <a
                         v-if="tournament.sourceUrl"
                         :href="tournament.sourceUrl"

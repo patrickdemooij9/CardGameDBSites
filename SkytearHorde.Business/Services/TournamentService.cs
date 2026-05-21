@@ -9,17 +9,20 @@ namespace SkytearHorde.Business.Services
     {
         private readonly TournamentRepository _tournamentRepository;
         private readonly TournamentEntrantRepository _entrantRepository;
+        private readonly TournamentMatchRepository _matchRepository;
         private readonly SettingsService _settingsService;
         private readonly ISiteAccessor _siteAccessor;
 
         public TournamentService(
             TournamentRepository tournamentRepository,
             TournamentEntrantRepository entrantRepository,
+            TournamentMatchRepository matchRepository,
             SettingsService settingsService,
             ISiteAccessor siteAccessor)
         {
             _tournamentRepository = tournamentRepository;
             _entrantRepository = entrantRepository;
+            _matchRepository = matchRepository;
             _settingsService = settingsService;
             _siteAccessor = siteAccessor;
         }
@@ -40,7 +43,8 @@ namespace SkytearHorde.Business.Services
                 Date = dto.Date,
                 FormatId = dto.FormatId,
                 PlayerCount = dto.PlayerCount,
-                SourceUrl = dto.SourceUrl
+                SourceUrl = dto.SourceUrl,
+                SourceType = string.IsNullOrWhiteSpace(dto.SourceType) ? "Manual" : dto.SourceType.Trim()
             };
 
             return _tournamentRepository.Create(tournament);
@@ -55,6 +59,22 @@ namespace SkytearHorde.Business.Services
             var format = types.FirstOrDefault(t => t.Id == tournament.FormatId);
             tournament.FormatDisplayName = format?.DisplayName;
             tournament.Entrants = _entrantRepository.GetByTournament(id);
+            var entrantIds = tournament.Entrants.Select(e => e.Id).ToArray();
+            var matches = _matchRepository.GetByEntrants(entrantIds);
+            foreach (var entrant in tournament.Entrants)
+            {
+                entrant.Matches = matches
+                    .Where(m => m.TournamentEntrantId == entrant.Id)
+                    .OrderBy(m => m.RoundNumber ?? int.MaxValue)
+                    .ThenBy(m => m.CreatedAt)
+                    .ToList();
+                if (entrant.Matches.Count > 0)
+                {
+                    entrant.Wins = entrant.Matches.Sum(m => m.Wins);
+                    entrant.Losses = entrant.Matches.Sum(m => m.Losses);
+                    entrant.Draws = entrant.Matches.Sum(m => m.Draws);
+                }
+            }
 
             return tournament;
         }
@@ -74,6 +94,7 @@ namespace SkytearHorde.Business.Services
         }
         public void DeleteTournament(Guid id)
         {
+            _matchRepository.DeleteByTournament(id);
             _entrantRepository.DeleteByTournament(id);
             _tournamentRepository.Delete(id);
         }
@@ -82,6 +103,10 @@ namespace SkytearHorde.Business.Services
         {
             var entrants = _entrantRepository.GetByDeck(deckId);
             var types = _settingsService.GetTypes();
+            var matchesByEntrant = _matchRepository
+                .GetByEntrants(entrants.Select(e => e.Id))
+                .GroupBy(m => m.TournamentEntrantId)
+                .ToDictionary(g => g.Key, g => g.ToArray());
             var results = new List<DeckTournamentResult>();
 
             foreach (var entrant in entrants)
@@ -90,6 +115,11 @@ namespace SkytearHorde.Business.Services
                 if (tournament is null) continue;
 
                 var format = types.FirstOrDefault(t => t.Id == tournament.FormatId);
+                matchesByEntrant.TryGetValue(entrant.Id, out var entrantMatches);
+                entrantMatches ??= [];
+                var wins = entrantMatches.Length > 0 ? entrantMatches.Sum(m => m.Wins) : entrant.Wins;
+                var losses = entrantMatches.Length > 0 ? entrantMatches.Sum(m => m.Losses) : entrant.Losses;
+                var draws = entrantMatches.Length > 0 ? entrantMatches.Sum(m => m.Draws) : entrant.Draws;
                 results.Add(new DeckTournamentResult
                 {
                     TournamentId = tournament.Id,
@@ -98,10 +128,11 @@ namespace SkytearHorde.Business.Services
                     FormatDisplayName = format?.DisplayName,
                     PlayerCount = tournament.PlayerCount,
                     SourceUrl = tournament.SourceUrl,
+                    SourceType = tournament.SourceType,
                     Placement = entrant.Placement,
-                    Wins = entrant.Wins,
-                    Losses = entrant.Losses,
-                    Draws = entrant.Draws
+                    Wins = wins,
+                    Losses = losses,
+                    Draws = draws
                 });
             }
 
@@ -117,6 +148,7 @@ namespace SkytearHorde.Business.Services
         public string? FormatDisplayName { get; set; }
         public int? PlayerCount { get; set; }
         public string? SourceUrl { get; set; }
+        public string? SourceType { get; set; }
         public int? Placement { get; set; }
         public int? Wins { get; set; }
         public int? Losses { get; set; }

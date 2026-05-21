@@ -31,6 +31,10 @@ namespace SkytearHorde.Entities.Models.Database
         [NullSetting(NullSetting = NullSettings.Null)]
         public string? SourceUrl { get; set; }
 
+        [Column("SourceType")]
+        [NullSetting(NullSetting = NullSettings.Null)]
+        public string? SourceType { get; set; }
+
         [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; }
 

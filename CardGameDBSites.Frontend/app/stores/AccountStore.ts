@@ -32,9 +32,6 @@ export const useAccountStore = defineStore("accountStore", {
           isAdmin: member.isAdmin ?? false,
           impersonatedBy: member.impersonatedBy,
         };
-        this.validatedLogin = true;
-      } catch (error) {
-        throw "Incorrect email/password";
       }
     },
     async logout(){

@@ -72,6 +72,12 @@ namespace SkytearHorde.Business.Services
 
             return tournaments;
         }
+        public void DeleteTournament(Guid id)
+        {
+            _entrantRepository.DeleteByTournament(id);
+            _tournamentRepository.Delete(id);
+        }
+
         public List<DeckTournamentResult> GetTournamentsForDeck(int deckId)
         {
             var entrants = _entrantRepository.GetByDeck(deckId);

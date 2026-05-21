@@ -1,4 +1,4 @@
-﻿namespace SkytearHorde.Business.Config
+namespace SkytearHorde.Business.Config
 {
     public class CardGameSettingsConfig
     {

@@ -44,6 +44,15 @@ namespace SkytearHorde.Business.Services
             });
         }
 
+        public bool IsAdmin()
+        {
+            var member = _memberManager.GetCurrentMemberAsync().Result;
+            if (member is null) return false;
+
+            var roles = _memberManager.GetRolesAsync(member).Result;
+            return roles.Any(r => r.Equals("admin", StringComparison.OrdinalIgnoreCase));
+        }
+
         public CurrentMemberModel? GetMemberInfo()
         {
             var member = _memberManager.GetCurrentMemberAsync().Result;

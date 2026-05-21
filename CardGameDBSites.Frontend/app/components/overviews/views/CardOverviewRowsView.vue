@@ -22,7 +22,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="container px-4 md:px-8 overflow-x-auto">
+  <div class="container px-4 md:px-8 overflow-x-auto md:overflow-visible">
     <table class="w-full text-left border-collapse">
       <thead>
         <tr class="border-b-2 border-gray-300">

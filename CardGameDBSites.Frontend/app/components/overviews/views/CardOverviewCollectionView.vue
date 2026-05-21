@@ -25,8 +25,8 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="container px-4 md:px-8 overflow-x-auto">
-    <table class="w-full min-w-max text-left border-collapse">
+  <div class="container px-4 md:px-8 overflow-x-auto md:overflow-visible">
+    <table class="w-full relative border-collapse">
       <thead>
         <tr class="border-b-2 border-gray-300">
           <th class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10">Name</th>
@@ -88,7 +88,6 @@ const emit = defineEmits<{
                 <PhPlus :size="12" />
               </button>
             </div>
-            <span v-else class="text-sm text-gray-400">-</span>
           </td>
         </tr>
       </tbody>

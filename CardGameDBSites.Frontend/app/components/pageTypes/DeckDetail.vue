@@ -81,6 +81,7 @@ console.timeEnd("member");
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
+const deckDisplayMode = ref<"text" | "images">("text");
 const isCreatingPreset = ref(false);
 const showActionsDropdown = ref(false);
 const selectedCardIndex = ref<number | undefined>(undefined);
@@ -334,13 +335,26 @@ console.timeEnd('page-render');
         <div class="md:w-2/3 shrink-0">
           <div class="flex align-center justify-between gap-4">
             <h2 class="text-lg">Decklist</h2>
-            <div v-if="isLoggedIn" class="flex gap-2 items-center">
-              <input
-                type="checkbox"
-                id="compare-collection"
-                v-model="collectionMode"
-              />
-              <label for="compare-collection">Compare with collection</label>
+            <div class="flex gap-4 items-center">
+              <div class="flex gap-2 items-center">
+                <label for="deck-display-mode">Display</label>
+                <select
+                  id="deck-display-mode"
+                  v-model="deckDisplayMode"
+                  class="border rounded px-2 py-1"
+                >
+                  <option value="text">Text</option>
+                  <option value="images">Images</option>
+                </select>
+              </div>
+              <div v-if="isLoggedIn && deckDisplayMode === 'text'" class="flex gap-2 items-center">
+                <input
+                  type="checkbox"
+                  id="compare-collection"
+                  v-model="collectionMode"
+                />
+                <label for="compare-collection">Compare with collection</label>
+              </div>
             </div>
           </div>
           <hr class="my-2" />
@@ -356,6 +370,7 @@ console.timeEnd('page-render');
             <div v-if="getCardsInGroup(group).length > 0">
               <h3 class="text-sm mt-4 mb-2">{{ group.header }}</h3>
               <div
+                v-if="deckDisplayMode === 'text'"
                 class="md:grid grid-flow-col grid-cols-2 gap-2"
                 :style="{
                   'grid-template-rows': `repeat(${Math.ceil(
@@ -417,6 +432,26 @@ console.timeEnd('page-render');
                     </div>
                   </div>
                   <span>{{ card.displayName }}</span>
+                </div>
+              </div>
+              <div
+                v-else
+                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2"
+              >
+                <div
+                  v-for="card in getCardsInGroup(group)"
+                  class="flex flex-col items-center text-center gap-1 cursor-pointer"
+                  v-cursor-image="card.imageUrl?.url"
+                  @click="openCardPopup(card)"
+                >
+                  <img
+                    class="w-28 rounded"
+                    :src="GetCrop(card.imageUrl, undefined) ?? '#'"
+                    :alt="card.displayName ?? ''"
+                  />
+                  <span class="text-xs font-semibold">
+                    {{ getDeckCard(card.baseId!)?.amount }} x
+                  </span>
                 </div>
               </div>
             </div>

@@ -18,6 +18,7 @@ using System.Reflection;
 using SkytearHorde.Business.Config;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.OpenApi.Models;
 using System.Threading.RateLimiting;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -40,6 +41,41 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 {
     // serialize enums as strings in api responses (e.g. Role)
     x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CardGameDBSites Public API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 var config = new CardGameSettingsConfig();
@@ -65,6 +101,12 @@ ConfigureServices(builder.Services, !builder.Environment.IsDevelopment());
 WebApplication app = builder.Build();
 
 await app.BootUmbracoAsync();
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "CardGameDBSites Public API v1");
+});
 
 if (app.Environment.IsDevelopment())
 {

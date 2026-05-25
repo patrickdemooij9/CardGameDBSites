@@ -37,11 +37,13 @@ builder.CreateUmbracoBuilder()
     .AddSlimsy()
     .Build();
 
-builder.Services.AddControllers().AddJsonOptions(x =>
-{
-    // serialize enums as strings in api responses (e.g. Role)
-    x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
+builder.Services.AddControllers()
+    .AddApplicationPart(typeof(CardGameDBSites.API.Controllers.CardApiController).Assembly)
+    .AddJsonOptions(x =>
+    {
+        // serialize enums as strings in api responses (e.g. Role)
+        x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -128,6 +130,8 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 //app.MapRazorComponents<App>()
 //.AddInteractiveServerRenderMode();
 app.MapBlazorHub();
+
+app.MapControllers();
 
 app.UseUmbraco()
     .WithMiddleware(u =>

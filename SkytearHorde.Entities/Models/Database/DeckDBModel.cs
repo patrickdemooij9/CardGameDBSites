@@ -39,5 +39,8 @@ namespace SkytearHorde.Entities.Models.Database
 
         [Column("TotalViews")]
         public int TotalViews { get; set; }
+
+        [Column("TotalLikes")]
+        public int TotalLikes { get; set; }
     }
 }

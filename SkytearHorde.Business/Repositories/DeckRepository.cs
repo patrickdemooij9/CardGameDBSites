@@ -486,6 +486,12 @@ namespace SkytearHorde.Business.Repositories
             _unpublishedCachePolicy.ClearCache(id);
         }
 
+        public void ClearEntityCache(int id)
+        {
+            _publishedCachePolicy.ClearEntityOnly(id);
+            _unpublishedCachePolicy.ClearEntityOnly(id);
+        }
+
         private Deck ToModel(DeckFetchModel deck, DeckCardDBModel[] cards, DeckCardChildDBModel[] cardChildren)
         {
             return new Deck(deck.Id, deck.Name)
@@ -516,7 +522,7 @@ namespace SkytearHorde.Business.Repositories
         private Sql<ISqlContext> BaseQuery(ISqlContext sqlContext, bool isPublished)
         {
             return sqlContext.Sql()
-                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, (SELECT COUNT(*) FROM DeckLike WHERE DeckId = d.Id) as 'AmountOfLikes'")
+                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, d.TotalLikes as 'AmountOfLikes'")
                 .From<DeckDBModel>("d")
                 .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
         }

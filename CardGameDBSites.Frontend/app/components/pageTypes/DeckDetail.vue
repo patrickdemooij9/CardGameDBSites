@@ -347,7 +347,7 @@ console.timeEnd('page-render');
                   <option value="images">Images</option>
                 </select>
               </div>
-              <div v-if="isLoggedIn && deckDisplayMode === 'text'" class="flex gap-2 items-center">
+              <div v-if="isLoggedIn" class="flex gap-2 items-center">
                 <input
                   type="checkbox"
                   id="compare-collection"
@@ -449,7 +449,22 @@ console.timeEnd('page-render');
                     :src="GetCrop(card.imageUrl, undefined) ?? '#'"
                     :alt="card.displayName ?? ''"
                   />
-                  <span class="text-xs font-semibold">
+                  <span
+                    class="flex gap-0.5 text-xs font-semibold js-collection-info"
+                    v-if="collectionMode"
+                  >
+                    <span
+                      :class="[
+                        getCollectionCount(card.baseId!) >=
+                        (getDeckCard(card.baseId!)?.amount ?? 0)
+                          ? 'text-green-600'
+                          : 'text-red-600',
+                      ]"
+                    >{{ getCollectionCount(card.baseId!) }}</span>
+                    <span>/</span>
+                    <span>{{ getDeckCard(card.baseId!)?.amount }}</span>
+                  </span>
+                  <span class="text-xs font-semibold js-collection-info" v-else>
                     {{ getDeckCard(card.baseId!)?.amount }} x
                   </span>
                 </div>

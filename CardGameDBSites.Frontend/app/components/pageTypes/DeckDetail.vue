@@ -333,9 +333,9 @@ console.timeEnd('page-render');
 
       <div class="flex flex-col md:flex-row gap-8 mt-8">
         <div class="md:w-2/3 shrink-0">
-          <div class="flex align-center justify-between gap-4">
+          <div class="flex flex-col md:flex-row align-center justify-between gap-4">
             <h2 class="text-lg">Decklist</h2>
-            <div class="flex gap-4 items-center">
+            <div class="flex gap-4 flex-col md:flex-row md:items-center">
               <div class="flex gap-2 items-center">
                 <label for="deck-display-mode">Display</label>
                 <select
@@ -436,7 +436,7 @@ console.timeEnd('page-render');
               </div>
               <div
                 v-else
-                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2"
+                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2"
               >
                 <div
                   v-for="card in getCardsInGroup(group)"
@@ -445,7 +445,7 @@ console.timeEnd('page-render');
                   @click="openCardPopup(card)"
                 >
                   <img
-                    class="w-28 rounded"
+                    class="rounded"
                     :src="GetCrop(card.imageUrl, undefined) ?? '#'"
                     :alt="card.displayName ?? ''"
                   />

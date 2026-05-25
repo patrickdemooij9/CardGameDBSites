@@ -32,10 +32,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 
         if (rect.height + event.clientY >= window.innerHeight) {
           cursorImageElem.style.top = `${
-            event.pageY - rect.height
+            event.clientY - rect.height + 20
           }px`;
         } else {
-          cursorImageElem.style.top = `${event.pageY - 20}px`;
+          cursorImageElem.style.top = `${event.clientY - 20}px`;
         }
 
         if (
@@ -43,10 +43,10 @@ export default defineNuxtPlugin((nuxtApp) => {
           window.innerWidth
         ) {
           cursorImageElem.style.left = `${
-            event.pageX - rect.width - 20
+            event.clientX - rect.width - 20
           }px`;
         } else {
-          cursorImageElem.style.left = `${event.pageX + 20}px`;
+          cursorImageElem.style.left = `${event.clientX + 20}px`;
         }
       }
     },

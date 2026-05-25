@@ -21,6 +21,7 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Search;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Business.Startup.Migrations;
+using SkytearHorde.Business.Tournaments;
 using SkytearHorde.Entities.Interfaces;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DeliveryApi;
@@ -58,6 +59,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddScoped<CollectionService>();
             builder.Services.AddSingleton<CardPriceService>();
             builder.Services.AddScoped<RandomizeService>();
+            builder.Services.AddScoped<TournamentService>();
             builder.Services.AddSingleton<CardSearchFieldsFinder>();
 
             builder.Services.AddSingleton<DeckRepository>();
@@ -79,6 +81,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<DailyCardChallengeRepository>();
             builder.Services.AddSingleton<DailyCardGameSessionRepository>();
             builder.Services.AddSingleton<DailyCardGameGuessRepository>();
+            builder.Services.AddSingleton<TournamentRepository>();
 
             builder.Services.AddSingleton<IAdRepository, AdRepository>();
             builder.Services.AddSingleton<IMetricRawDataRepository, MetricRawDataRepository>();
@@ -100,6 +103,9 @@ namespace SkytearHorde.Business.Startup
                 .AddScoped<IOverviewDataSource, CardOverviewDataSource>()
                 .AddScoped<IOverviewDataSource, CollectionSetDetailDataSource>()
                 .AddScoped<IOverviewDataSource, DeckOverviewDataSource>();
+
+            builder.Services
+                .AddScoped<ITournamentConnector, MeleeGGTournamentConnector>();
 
             builder.ContentFinders().Append<CardPageContentFinder>();
             builder.ContentFinders().Append<DeckContentFinder>();

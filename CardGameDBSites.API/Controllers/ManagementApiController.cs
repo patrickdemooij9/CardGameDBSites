@@ -7,6 +7,7 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
+using SkytearHorde.Entities.Models.Business.Tournament;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
@@ -27,13 +28,15 @@ namespace CardGameDBSites.API.Controllers
         private readonly ISiteService _siteService;
         private readonly IContentService _contentService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
+        private readonly TournamentService _tournamentService;
 
-        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory)
+        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService)
         {
             _deckService = deckService;
             _siteService = siteService;
             _contentService = contentService;
             _umbracoContextFactory = umbracoContextFactory;
+            _tournamentService = tournamentService;
         }
 
         [HttpPost("decks/{deckId}/createPreset")]
@@ -124,6 +127,14 @@ namespace CardGameDBSites.API.Controllers
             collectionPageContent.SetValue("presets", updatedPresetJson);
             _contentService.SaveAndPublish(collectionPageContent);
 
+            return Ok();
+        }
+
+        [HttpPost]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> ImportTournament(ImportTournament model)
+        {
+            await _tournamentService.ImportTournament(model);
             return Ok();
         }
     }

@@ -42,5 +42,19 @@ namespace SkytearHorde.Business.Repositories
             scope.Database.Delete(like);
             scope.Complete();
         }
+
+        public void IncrementTotalLikes(int deckId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            scope.Database.Execute("UPDATE Deck SET TotalLikes = TotalLikes + 1 WHERE Id = @0", deckId);
+            scope.Complete();
+        }
+
+        public void DecrementTotalLikes(int deckId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            scope.Database.Execute("UPDATE Deck SET TotalLikes = CASE WHEN TotalLikes > 0 THEN TotalLikes - 1 ELSE 0 END WHERE Id = @0", deckId);
+            scope.Complete();
+        }
     }
 }

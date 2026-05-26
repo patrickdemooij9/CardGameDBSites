@@ -54,6 +54,15 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1"
     });
 
+    // Include all controllers that have no GroupName or belong to "v1" in this doc.
+    // This prevents Umbraco's Delivery API Swagger docs from filtering out our controllers.
+    options.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        if (docName == "v1")
+            return apiDesc.GroupName == null || apiDesc.GroupName == "v1";
+        return apiDesc.GroupName == docName;
+    });
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",

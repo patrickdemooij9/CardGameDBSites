@@ -313,13 +313,19 @@ namespace SkytearHorde.Business.Services
             var currentLikes = _deckLikeRepository.GetLikedDecks(userId);
             var addedLike = !currentLikes.Contains(deck.Id);
             if (currentLikes.Contains(deck.Id))
+            {
                 _deckLikeRepository.DeleteLike(userId, deck.Id);
+                _deckLikeRepository.DecrementTotalLikes(deck.Id);
+            }
             else
+            {
                 _deckLikeRepository.AddLike(userId, deck.Id);
+                _deckLikeRepository.IncrementTotalLikes(deck.Id);
+            }
 
             _deckCalculateScoreRepository.ScheduleDeckCalculate(deck.Id, DateTime.UtcNow);
 
-            _deckRepository.ClearCache(deck.Id);
+            _deckRepository.ClearEntityCache(deck.Id);
             _cache.ClearByKey(MemberInfoService.CacheKey);
 
             return addedLike;

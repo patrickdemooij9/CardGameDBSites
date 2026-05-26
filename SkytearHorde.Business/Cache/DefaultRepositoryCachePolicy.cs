@@ -235,6 +235,11 @@ namespace SkytearHorde.Business.Cache
 			ClearBaseCache();
 		}
 
+		public void ClearEntityOnly(TId id)
+		{
+			_cache.Clear(GetEntityCacheKey(id));
+		}
+
 		protected virtual void ClearBaseCache()
 		{
             _cache.Clear(_entityTypeCacheKey);

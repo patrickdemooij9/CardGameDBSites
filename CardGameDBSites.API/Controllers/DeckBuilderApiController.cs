@@ -12,6 +12,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/deckbuilder")]
+    [ApiExplorerSettings(GroupName = "Deckbuilder")]
     public class DeckBuilderApiController : Controller
     {
         private readonly DeckService _deckService;

@@ -12,6 +12,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/sets")]
+    [ApiExplorerSettings(GroupName = "Sets")]
     public class SetsApiController : Controller
     {
         private readonly CardService _cardService;

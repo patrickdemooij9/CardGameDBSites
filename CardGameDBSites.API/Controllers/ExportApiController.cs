@@ -24,6 +24,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/export")]
+    [ApiExplorerSettings(GroupName = "Export")]
     public class ExportApiController : Controller
     {
         private readonly DeckService _deckService;

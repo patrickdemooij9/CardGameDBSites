@@ -19,6 +19,7 @@ namespace CardGameDBSites.API.Controllers
     [EnableCors("api")]
     [Route("/api/management")]
     [JwtAuthorization]
+    [ApiExplorerSettings(GroupName = "Management")]
     public class ManagementApiController : Controller
     {
         private static readonly Guid CardsPresetElementTypeKey = new("c05466aa-127d-41d1-a42f-256fa02a6db8");

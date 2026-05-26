@@ -20,7 +20,8 @@ namespace CardGameDBSites.API.Controllers
     [EnableCors("api")]
     [Route("/api/collection")]
     [JwtAuthorization]
-public class CollectionApiController : Controller
+    [ApiExplorerSettings(GroupName = "Collection")]
+    public class CollectionApiController : Controller
     {
         private readonly CollectionService _collectionService;
         private readonly CardPriceService _cardPriceService;

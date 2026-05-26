@@ -22,6 +22,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/settings")]
+    [ApiExplorerSettings(GroupName = "Settings")]
     public class SettingsController : Controller
     {
         private readonly SettingsService _settingsService;

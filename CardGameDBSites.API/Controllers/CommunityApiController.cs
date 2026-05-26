@@ -12,6 +12,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/community")]
+    [ApiExplorerSettings(GroupName = "Community")]
     public class CommunityApiController : Controller
     {
         private readonly ContentCreatorService _contentCreatorService;

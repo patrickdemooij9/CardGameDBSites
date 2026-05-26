@@ -41,6 +41,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/account")]
+    [ApiExplorerSettings(GroupName = "Account")]
     public class AccountApiController : Controller
     {
         private readonly ISiteAccessor _siteAccessor;

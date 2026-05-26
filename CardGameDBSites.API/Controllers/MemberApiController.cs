@@ -13,6 +13,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/member")]
+    [ApiExplorerSettings(GroupName = "Members")]
     public class MemberApiController : Controller
     {
         private readonly MemberInfoService _memberInfoService;

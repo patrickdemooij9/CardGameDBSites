@@ -19,6 +19,7 @@ namespace CardGameDBSites.API.Controllers
     [ApiController]
     [EnableCors("api")]
     [Route("/api/comments")]
+    [ApiExplorerSettings(GroupName = "Comments")]
     public class CommentsApiController : Controller
     {
         private readonly CommentService _commentService;

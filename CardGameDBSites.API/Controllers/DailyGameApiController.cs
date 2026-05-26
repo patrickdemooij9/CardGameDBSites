@@ -15,6 +15,7 @@ namespace CardGameDBSites.API.Controllers
     [EnableCors("api")]
     [Route("/api/dailygame")]
     [OptionalJwtAuthorization]
+    [ApiExplorerSettings(GroupName = "Daily Game")]
     public class DailyGameApiController : Controller
     {
         private readonly DailyGameService _dailyGameService;

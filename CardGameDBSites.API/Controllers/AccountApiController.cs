@@ -39,6 +39,7 @@ using Umbraco.Extensions;
 namespace CardGameDBSites.API.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(GroupName = "v1")]
     [EnableCors("api")]
     [Route("/api/account")]
     public class AccountApiController : Controller

@@ -10,6 +10,7 @@ namespace CardGameDBSites.API.Controllers
 {
     [Route("api/cardreader")]
     [ApiController]
+    [ApiExplorerSettings(GroupName = "v1")]
     public class CardReaderApiController : Controller
     {
         private readonly string _uploadDir = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "uploads");

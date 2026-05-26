@@ -15,6 +15,7 @@ using Umbraco.Extensions;
 namespace CardGameDBSites.API.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(GroupName = "v1")]
     [EnableCors("api")]
     [Route("/api/management")]
     [JwtAuthorization]

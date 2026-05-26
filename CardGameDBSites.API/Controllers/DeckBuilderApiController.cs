@@ -10,6 +10,7 @@ using Umbraco.Cms.Core.Security;
 namespace CardGameDBSites.API.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(GroupName = "v1")]
     [EnableCors("api")]
     [Route("/api/deckbuilder")]
     public class DeckBuilderApiController : Controller

@@ -17,6 +17,7 @@ using CardGameDBSites.API.Attributes;
 namespace CardGameDBSites.API.Controllers
 {
     [ApiController]
+    [ApiExplorerSettings(GroupName = "v1")]
     [EnableCors("api")]
     [Route("/api/comments")]
     public class CommentsApiController : Controller

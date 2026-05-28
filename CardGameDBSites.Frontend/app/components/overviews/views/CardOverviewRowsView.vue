@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CardDetailApiModel } from "~/api/default";
-import { PhBooks } from "@phosphor-icons/vue";
+import { PhBooks, PhListPlus } from "@phosphor-icons/vue";
 import Button from "~/components/shared/Button.vue";
 import ButtonType from "~/components/shared/ButtonType";
 
@@ -18,6 +18,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: "openCollection", card: CardDetailApiModel): void;
+  (e: "openCardList", card: CardDetailApiModel): void;
 }>();
 </script>
 
@@ -71,6 +72,13 @@ const emit = defineEmits<{
                 @click="emit('openCollection', card)"
               >
                 <PhBooks />
+              </Button>
+              <Button
+                :button-type="ButtonType.Outline"
+                class="flex justify-center"
+                @click="emit('openCardList', card)"
+              >
+                <PhListPlus />
               </Button>
             </div>
           </td>

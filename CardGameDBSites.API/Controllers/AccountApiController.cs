@@ -55,7 +55,9 @@ namespace CardGameDBSites.API.Controllers
         private readonly IConfiguration _globalConfig;
         private readonly CardGameSettingsConfig _config;
 
-        public AccountApiController(ISiteAccessor siteAccessor, IMemberSignInManager memberSignInManager, MemberInfoService memberInfoService, IOptions<CardGameSettingsConfig> config, IMemberManager memberManager, IMemberService memberService, ILogger<AccountApiController> logger, ISiteService siteService, IEmailSender emailSender, IConfiguration globalConfig)
+        private readonly CardListService _cardListService;
+
+        public AccountApiController(ISiteAccessor siteAccessor, IMemberSignInManager memberSignInManager, MemberInfoService memberInfoService, IOptions<CardGameSettingsConfig> config, IMemberManager memberManager, IMemberService memberService, ILogger<AccountApiController> logger, ISiteService siteService, IEmailSender emailSender, IConfiguration globalConfig, CardListService cardListService)
         {
             _siteAccessor = siteAccessor;
             _memberSignInManager = memberSignInManager;
@@ -67,6 +69,7 @@ namespace CardGameDBSites.API.Controllers
             _emailSender = emailSender;
             _globalConfig = globalConfig;
             _config = config.Value;
+            _cardListService = cardListService;
         }
 
         /*[HttpPost("Login")]
@@ -128,6 +131,8 @@ namespace CardGameDBSites.API.Controllers
                 var newMember = _memberService.GetById(int.Parse(user.Id));
                 newMember.SetValue("siteID", _siteAccessor.GetSiteId());
                 _memberService.Save(newMember);
+
+                _cardListService.EnsureDefaultListExists(int.Parse(user.Id));
 
                 var token = GetJwtToken(user, false);
 

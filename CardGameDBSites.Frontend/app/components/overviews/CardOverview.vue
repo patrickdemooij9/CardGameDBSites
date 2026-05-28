@@ -12,6 +12,7 @@ import {
 } from "~/api/default";
 import BaseCardOverview from "./BaseCardOverview.vue";
 import CollectionCardVariantPopup from "../popups/CollectionCardVariantPopup.vue";
+import CardListPopup from "../popups/CardListPopup.vue";
 import { useCards } from "~/composables/useCards";
 import { useCollection } from "~/composables/useCollection";
 import { GetCardValue } from "~/helpers/CardHelper";
@@ -113,6 +114,7 @@ const collectionColumns = computed<CollectionColumn[]>(() => [
     })),
 ]);
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
+const cardListSelectedCard = ref<CardDetailApiModel | null>(null);
 const isLoading = ref(true);
 const isLoggedIn = ref(false);
 const collectionStore = useCollectionStore();
@@ -296,6 +298,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
       :collection-variant-badge-base-width="collectionVariantBadgeBaseWidth"
       :collection-variant-badge-step="collectionVariantBadgeStep"
       @open-collection="collectionSelectedCard = $event"
+      @open-card-list="cardListSelectedCard = $event"
     />
 
     <CardOverviewCollectionView
@@ -314,6 +317,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
       :is-logged-in="isLoggedIn"
       :get-amount-for-set="collectionService.getAmountForSet"
       @open-collection="collectionSelectedCard = $event"
+      @open-card-list="cardListSelectedCard = $event"
     />
   </BaseCardOverview>
   <CollectionCardVariantPopup
@@ -322,4 +326,9 @@ function getCardIdentifier(card: CardDetailApiModel) {
     @close="collectionSelectedCard = null"
   >
   </CollectionCardVariantPopup>
+  <CardListPopup
+    v-if="cardListSelectedCard"
+    :card="cardListSelectedCard"
+    @close="cardListSelectedCard = null"
+  />
 </template>

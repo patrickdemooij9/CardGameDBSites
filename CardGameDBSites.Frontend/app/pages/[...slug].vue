@@ -58,7 +58,10 @@ const pageComponents: {[key: string]: Component} = {
     'blogDetail': defineAsyncComponent(() => import('~/components/pageTypes/BlogDetailPage.vue')),
     'dailyGame': defineAsyncComponent(() => import('~/components/pageTypes/DailyGamePage.vue')),
     'proxyCards': defineAsyncComponent(() => import('~/components/pageTypes/ProxyCardsPage.vue')),
-    'accountCards': defineAsyncComponent(() => import('~/components/pageTypes/AccountCards.vue'))
+    'accountCards': defineAsyncComponent(() => import('~/components/pageTypes/AccountCards.vue')),
+    'cardLists': defineAsyncComponent(() => import('~/components/pageTypes/CardListsPage.vue')),
+    'cardListDetail': defineAsyncComponent(() => import('~/components/pageTypes/CardListDetailPage.vue')),
+    'cardListPublic': defineAsyncComponent(() => import('~/components/pageTypes/CardListPublicPage.vue'))
 }
 const pageComponent = pageComponents[componentName];
 </script>

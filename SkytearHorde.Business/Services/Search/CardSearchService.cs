@@ -117,9 +117,9 @@ namespace SkytearHorde.Business.Services.Search
             {
                 searcher.And().Field("CustomField.SetId", query.SetId.Value.ToString());
             }
-            if (query.VariantTypeId.HasValue)
+            if (query.VariantTypeIds.Length > 0)
             {
-                searcher.And().Field("VariantType", query.VariantTypeId.Value.ToString());
+                searcher.And().GroupedOr(["VariantType"], query.VariantTypeIds.Select(id => id.ToString()).ToArray());
             }
             if (!query.IncludeHideFromDeck)
             {

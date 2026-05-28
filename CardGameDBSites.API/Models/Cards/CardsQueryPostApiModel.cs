@@ -8,7 +8,7 @@ namespace CardGameDBSites.API.Models.Cards
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public int? SetId { get; set; }
-        public int? VariantTypeId { get; set; }
+        public int[] VariantTypeIds { get; set; }
         public CardsQueryFilterClauseApiModel[] FilterClauses { get; set; }
         public CardSearchCollectionMode CollectionMode { get; set; }
         public string? SortBy { get; set; }
@@ -17,6 +17,7 @@ namespace CardGameDBSites.API.Models.Cards
 
         public CardsQueryPostApiModel()
         {
+            VariantTypeIds = [];
             FilterClauses = [];
         }
     }

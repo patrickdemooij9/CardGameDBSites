@@ -21,6 +21,7 @@ const props = defineProps<{
   legalForDeckTypeId?: number;
   availableViews?: string[];
   pageSize?: number;
+  variantTypeIds?: number[];
 }>();
 
 const emit = defineEmits<{
@@ -79,7 +80,7 @@ async function loadData(value: OverviewRefreshModel) {
     pageNumber: value.PageNumber,
     pageSize: props.pageSize ?? 30,
     filterClauses: filters,
-    variantTypeId: 0,
+    variantTypeIds: props.variantTypeIds ?? [0],
     collectionMode: props.collectionMode ?? CardSearchCollectionMode.IGNORE,
     sortBy: value.SortBy,
     includeReprintedCards: props.hideReprintedCards ? false : undefined,

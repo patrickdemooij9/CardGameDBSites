@@ -9,7 +9,7 @@ export type CardsQueryPostApiModel = {
     pageNumber?: number;
     pageSize?: number;
     setId?: number | null;
-    variantTypeId?: number | null;
+    variantTypeIds?: Array<number>;
     filterClauses?: Array<CardsQueryFilterClauseApiModel>;
     collectionMode?: CardSearchCollectionMode;
     sortBy?: string | null;

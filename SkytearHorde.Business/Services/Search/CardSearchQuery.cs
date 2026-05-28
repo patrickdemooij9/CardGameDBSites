@@ -9,7 +9,7 @@
         public int SiteId { get; set; }
         public int? SetId { get; set; }
         public List<CardSorting> OrderBy { get; set; }
-        public int? VariantTypeId { get; set; }
+        public int[] VariantTypeIds { get; set; }
         public bool IncludeHideFromDeck { get; set; } = true;
         public CardSearchCollectionMode CollectionMode { get; set; }
         public int? MemberId { get; set; }
@@ -23,6 +23,7 @@
 
             FilterClauses = [];
             OrderBy = [];
+            VariantTypeIds = [];
 
             CollectionMode = CardSearchCollectionMode.Ignore;
         }

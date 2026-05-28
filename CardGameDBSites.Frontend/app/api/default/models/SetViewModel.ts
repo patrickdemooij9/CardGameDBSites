@@ -10,5 +10,6 @@ export type SetViewModel = {
     code?: string | null;
     category?: string | null;
     extraInformation?: Array<string>;
+    mainVariants?: Array<number> | null;
 };
 

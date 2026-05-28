@@ -9,6 +9,7 @@
         public string? Code { get; set; }
         public string? Category { get; set; }
         public string[] ExtraInformation { get; set; }
+        public int[]? MainVariants { get; set; }
 
         public SetViewModel()
         {

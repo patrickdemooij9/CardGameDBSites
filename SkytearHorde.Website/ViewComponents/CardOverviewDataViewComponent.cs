@@ -179,7 +179,7 @@ namespace SkytearHorde.ViewComponents
                 totalCards = cards.Length;
                 return cards;
             }
-            var query = new CardSearchQuery(pageSize, _siteAccessor.GetSiteId()) { Query = searchQuery, VariantTypeId = variantTypeId, Skip = pageSize * (pageNumber - 1) };
+            var query = new CardSearchQuery(pageSize, _siteAccessor.GetSiteId()) { Query = searchQuery, VariantTypeIds = [variantTypeId], Skip = pageSize * (pageNumber - 1) };
             if (orderby.Length > 0)
             {
                 query.OrderBy.AddRange(orderby);

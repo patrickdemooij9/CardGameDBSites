@@ -52,6 +52,7 @@ const props = defineProps<{
   tableColumns?: CardOverviewTableColumn[];
   pageSize?: number;
   collectionMode?: CardSearchCollectionMode;
+  variantTypeIds?: number[];
 }>();
 
 const availableViews = computed(() => {
@@ -278,6 +279,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :available-views="availableViews"
     :page-size="pageSize"
     :collection-mode="collectionMode"
+    :variant-type-ids="variantTypeIds"
     v-slot="{ cards, viewMode }"
     @reloaded="loadCollectionCards"
   >

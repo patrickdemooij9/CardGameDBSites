@@ -29,8 +29,7 @@ useHead({
         { property: 'og:url', content: data.value!.seoToolkit.canonicalUrl }
     ],
     link: [
-        { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` },
-        { rel: 'canonical', href: data.value!.seoToolkit.canonicalUrl }
+        { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` }
     ]
 });
 

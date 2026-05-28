@@ -157,7 +157,7 @@ namespace CardGameDBSites.API.Controllers
                     })]
                 })],
                 OrderBy = sorting,
-                VariantTypeId = model.VariantTypeId,
+                VariantTypeIds = model.VariantTypeIds,
                 CollectionMode = model.CollectionMode,
                 MemberId = memberId,
                 IncludeReprintedCards = model.IncludeReprintedCards,

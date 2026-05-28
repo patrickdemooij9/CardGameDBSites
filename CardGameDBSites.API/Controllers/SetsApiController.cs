@@ -88,7 +88,8 @@ namespace CardGameDBSites.API.Controllers
                 ImageUrl = set.DisplayImage?.Url(mode: UrlMode.Absolute),
                 Code = set.SetCode,
                 Category = set.CategoryName,
-                ExtraInformation = set.ExtraInformation?.ToArray() ?? []
+                ExtraInformation = set.ExtraInformation?.ToArray() ?? [],
+                MainVariants = set.MainVariantType?.OfType<Variant>().Select(it => it.InternalID).ToArray()
             };
         }
     }

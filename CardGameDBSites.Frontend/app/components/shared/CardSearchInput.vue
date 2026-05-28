@@ -26,7 +26,7 @@ async function searchCards(query: string) {
       pageNumber: 1,
       pageSize: 5,
       filterClauses: [],
-      variantTypeId: 0,
+      variantTypeIds: [0],
     });
     searchResults.value = result.items ?? [];
     showDropdown.value = searchResults.value.length > 0;

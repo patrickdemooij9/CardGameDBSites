@@ -39,6 +39,9 @@ const sortings = settings.sortOptions?.map((sort) => {
     Value: sort.value,
   };
 }) ?? [];
+const baseVariantTypeIds = (set.mainVariants?.length ?? 0) > 0
+  ? set.mainVariants!
+  : undefined;
 
 onMounted(async () => {
   const accountStore = useAccountStore();
@@ -84,12 +87,12 @@ onMounted(async () => {
           </div>
           <div v-if="currentPrice !== null" class="mt-4">
             <p>Current set value: <span class="text-green-700">${{ currentPrice.toFixed(2) }}</span></p>
+            <SetPriceHistoryChart v-if="priceHistory && priceHistory.length > 1" :set-id="set.id" />
           </div>
         </div>
       </div>
-      <SetPriceHistoryChart v-if="priceHistory && priceHistory.length > 1" :set-id="set.id" />
     </div>
-    <CardOverview :filters="filters" :sortings="sortings" :set-id="set.id" :page-size="1000"></CardOverview>
+    <CardOverview :filters="filters" :sortings="sortings" :set-id="set.id" :page-size="1000" :variant-type-ids="baseVariantTypeIds"></CardOverview>
   </div>
 </template>
 

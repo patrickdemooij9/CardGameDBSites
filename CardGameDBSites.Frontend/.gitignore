@@ -23,3 +23,14 @@ logs
 .env
 .env.*
 !.env.example
+
+# Capacitor native platforms (generated, can be large)
+# Keep these tracked if you customize native code; ignore if using defaults.
+# Uncomment the lines below to ignore platform folders:
+# ios/
+# android/
+
+# Capacitor build artifacts
+ios/App/App/public
+android/app/src/main/assets/public
+

@@ -8,6 +8,9 @@ const int DefaultMaxDecks = 200;
 const int PageSize = 50;
 const int MinClusterSize = 3;
 const int MinPoints = 2;
+const int StandardDeckTypeId = 1;
+const int MainGroupId = -1;
+const double LeaderBaseWeightMultiplier = 3.0;
 
 Console.WriteLine("=== Deck Archetype Clustering (HDBSCAN) ===");
 Console.WriteLine();
@@ -17,7 +20,7 @@ Console.Write($"Enter maximum number of decks to fetch (default: {DefaultMaxDeck
 var input = Console.ReadLine();
 int maxDecks = int.TryParse(input, out var parsed) && parsed > 0 ? parsed : DefaultMaxDecks;
 
-Console.WriteLine($"Fetching up to {maxDecks} decks from {ApiBaseUrl}...");
+Console.WriteLine($"Fetching up to {maxDecks} standard decks from {ApiBaseUrl}...");
 Console.WriteLine();
 
 // Fetch decks from the API
@@ -28,12 +31,12 @@ if (decks.Count == 0)
     return;
 }
 
-Console.WriteLine($"Successfully fetched {decks.Count} decks.");
+Console.WriteLine($"Successfully fetched {decks.Count} standard decks.");
 Console.WriteLine();
 
-// Build feature vectors (card composition as a sparse vector)
-Console.WriteLine("Building feature vectors from deck card compositions...");
-var (featureVectors, cardIdIndex) = BuildFeatureVectors(decks);
+// Build feature vectors with TF-IDF weighting and leader/base emphasis
+Console.WriteLine("Building feature vectors (TF-IDF weighted, leader/base emphasized)...");
+var (featureVectors, cardIdIndex, idfWeights, cardGroupMap) = BuildFeatureVectors(decks);
 Console.WriteLine($"Feature vector dimension: {cardIdIndex.Count} unique cards");
 Console.WriteLine();
 
@@ -115,31 +118,51 @@ while (true)
     Console.WriteLine();
     Console.WriteLine($"=== {clusterLabel} ({deckIndices.Count} decks) ===");
 
-    // Find common cards in this cluster
-    var cardCounts = new Dictionary<int, int>();
+    // Find core cards that define this archetype
+    // Core cards = cards that appear frequently in this cluster but rarely in other clusters (high TF-IDF relevance)
+    var cardClusterFrequency = new Dictionary<int, int>();
+    var cardClusterTotalAmount = new Dictionary<int, int>();
     foreach (var idx in deckIndices)
     {
         foreach (var card in decks[idx].Cards)
         {
-            if (!cardCounts.ContainsKey(card.CardId))
-                cardCounts[card.CardId] = 0;
-            cardCounts[card.CardId]++;
+            if (!cardClusterFrequency.ContainsKey(card.CardId))
+            {
+                cardClusterFrequency[card.CardId] = 0;
+                cardClusterTotalAmount[card.CardId] = 0;
+            }
+            cardClusterFrequency[card.CardId]++;
+            cardClusterTotalAmount[card.CardId] += card.Amount;
         }
     }
 
-    var commonCards = cardCounts
-        .Where(c => c.Value >= deckIndices.Count * 0.5)
-        .OrderByDescending(c => c.Value)
-        .Take(10)
+    // Calculate a "defining score" for each card: frequency in cluster * IDF weight
+    // This highlights cards that are common in this archetype but rare globally
+    var reverseCardIndex = cardIdIndex.ToDictionary(kv => kv.Value, kv => kv.Key);
+    var coreCards = cardClusterFrequency
+        .Select(kv =>
+        {
+            var cardId = kv.Key;
+            var clusterFreq = (double)kv.Value / deckIndices.Count;
+            var idfWeight = cardIdIndex.ContainsKey(cardId) ? idfWeights[cardIdIndex[cardId]] : 1.0;
+            var isLeaderBase = cardGroupMap.ContainsKey(cardId) && cardGroupMap[cardId] != MainGroupId;
+            var definingScore = clusterFreq * idfWeight * (isLeaderBase ? LeaderBaseWeightMultiplier : 1.0);
+            return new { CardId = cardId, ClusterFreq = clusterFreq, DefiningScore = definingScore, IsLeaderBase = isLeaderBase, Count = kv.Value };
+        })
+        .Where(c => c.ClusterFreq >= 0.4) // Present in at least 40% of decks in this archetype
+        .OrderByDescending(c => c.DefiningScore)
+        .Take(15)
         .ToList();
 
-    if (commonCards.Count > 0)
+    if (coreCards.Count > 0)
     {
-        Console.WriteLine($"  Most common cards (in 50%+ of decks):");
-        foreach (var card in commonCards)
+        Console.WriteLine();
+        Console.WriteLine($"  Core cards defining this archetype:");
+        foreach (var card in coreCards)
         {
-            var percentage = (double)card.Value / deckIndices.Count * 100;
-            Console.WriteLine($"    Card ID {card.Key}: in {card.Value}/{deckIndices.Count} decks ({percentage:F0}%)");
+            var percentage = card.ClusterFreq * 100;
+            var tag = card.IsLeaderBase ? " [LEADER/BASE]" : "";
+            Console.WriteLine($"    Card ID {card.CardId}{tag}: in {card.Count}/{deckIndices.Count} decks ({percentage:F0}%), defining score: {card.DefiningScore:F2}");
         }
         Console.WriteLine();
     }
@@ -173,7 +196,8 @@ static async Task<List<DeckApiModel>> FetchDecksAsync(int maxDecks)
         {
             Take = take,
             Page = page,
-            OrderBy = "newest"
+            OrderBy = "newest",
+            TypeId = StandardDeckTypeId
         };
 
         try
@@ -205,7 +229,7 @@ static async Task<List<DeckApiModel>> FetchDecksAsync(int maxDecks)
     return allDecks.Take(maxDecks).ToList();
 }
 
-static (double[][] featureVectors, Dictionary<int, int> cardIdIndex) BuildFeatureVectors(List<DeckApiModel> decks)
+static (double[][] featureVectors, Dictionary<int, int> cardIdIndex, double[] idfWeights, Dictionary<int, int> cardGroupMap) BuildFeatureVectors(List<DeckApiModel> decks)
 {
     // Build an index of all unique card IDs
     var allCardIds = decks
@@ -218,7 +242,40 @@ static (double[][] featureVectors, Dictionary<int, int> cardIdIndex) BuildFeatur
     for (int i = 0; i < allCardIds.Count; i++)
         cardIdIndex[allCardIds[i]] = i;
 
-    // Build feature vectors (card amounts as features)
+    // Build a map of cardId -> groupId (use the first occurrence)
+    var cardGroupMap = new Dictionary<int, int>();
+    foreach (var deck in decks)
+    {
+        foreach (var card in deck.Cards)
+        {
+            if (!cardGroupMap.ContainsKey(card.CardId))
+                cardGroupMap[card.CardId] = card.GroupId;
+        }
+    }
+
+    // Calculate IDF (Inverse Document Frequency) for each card
+    // IDF = log(totalDecks / numberOfDecksContainingCard)
+    int totalDecks = decks.Count;
+    var documentFrequency = new int[allCardIds.Count];
+    for (int i = 0; i < decks.Count; i++)
+    {
+        var cardsInDeck = decks[i].Cards.Select(c => c.CardId).Distinct();
+        foreach (var cardId in cardsInDeck)
+        {
+            if (cardIdIndex.TryGetValue(cardId, out var idx))
+                documentFrequency[idx]++;
+        }
+    }
+
+    var idfWeights = new double[allCardIds.Count];
+    for (int i = 0; i < allCardIds.Count; i++)
+    {
+        idfWeights[i] = documentFrequency[i] > 0
+            ? Math.Log((double)totalDecks / documentFrequency[i])
+            : 0;
+    }
+
+    // Build feature vectors with TF-IDF weighting and leader/base weight multiplier
     var vectors = new double[decks.Count][];
     for (int i = 0; i < decks.Count; i++)
     {
@@ -226,17 +283,32 @@ static (double[][] featureVectors, Dictionary<int, int> cardIdIndex) BuildFeatur
         foreach (var card in decks[i].Cards)
         {
             if (cardIdIndex.TryGetValue(card.CardId, out var idx))
-                vectors[i][idx] = card.Amount;
+            {
+                // TF = card amount (term frequency in this deck)
+                double tf = card.Amount;
+
+                // Apply TF-IDF weighting
+                double tfidf = tf * idfWeights[idx];
+
+                // Apply higher weight for leader/base cards (non-main-group)
+                if (card.GroupId != MainGroupId)
+                    tfidf *= LeaderBaseWeightMultiplier;
+
+                vectors[i][idx] = tfidf;
+            }
         }
     }
 
-    return (vectors, cardIdIndex);
+    return (vectors, cardIdIndex, idfWeights, cardGroupMap);
 }
 
 // --- Models ---
 
 public class DeckQueryRequest
 {
+    [JsonPropertyName("typeId")]
+    public int? TypeId { get; set; }
+
     [JsonPropertyName("take")]
     public int Take { get; set; }
 

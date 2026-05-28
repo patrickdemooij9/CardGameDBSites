@@ -9,7 +9,7 @@ const int PageSize = 50;
 const int MinClusterSize = 3;
 const int MinPoints = 2;
 const int StandardDeckTypeId = 1;
-const int LeaderSlotId = 1;
+const int LeaderSlotId = 0;
 
 Console.WriteLine("=== Deck Archetype Clustering (HDBSCAN) ===");
 Console.WriteLine("Approach: Binary vectors (1/0), clustered per leader");

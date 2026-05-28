@@ -8,8 +8,10 @@ using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Processors;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Business.Utils;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Models.Business;
+using SkytearHorde.Entities.Models.Business.DeckExport;
 using SkytearHorde.Entities.Models.Business.Repository;
 using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
@@ -27,6 +29,7 @@ namespace CardGameDBSites.API.Controllers
     public class DecksApiController : Controller
     {
         private readonly DeckService _deckService;
+        private readonly CardService _cardService;
         private readonly ISiteAccessor _siteAccessor;
         private readonly IMemberManager _memberManager;
         private readonly CardPriceService _cardPriceService;
@@ -35,6 +38,7 @@ namespace CardGameDBSites.API.Controllers
 
         public DecksApiController(
             DeckService deckService,
+            CardService cardService,
             ISiteAccessor siteAccessor,
             IMemberManager memberManager,
             CardPriceService cardPriceService,
@@ -42,6 +46,7 @@ namespace CardGameDBSites.API.Controllers
             SettingsService settingsService)
         {
             _deckService = deckService;
+            _cardService = cardService;
             _siteAccessor = siteAccessor;
             _memberManager = memberManager;
             _cardPriceService = cardPriceService;
@@ -155,6 +160,18 @@ namespace CardGameDBSites.API.Controllers
 
             _deckService.DeleteDeck(deck);
             return Ok();
+        }
+
+        [HttpGet("getAsJsonModel")]
+        [OptionalJwtAuthorization]
+        [ProducesResponseType(typeof(DeckJsonFile), 200)]
+        public IActionResult GetAsJsonModel(int id)
+        {
+            var deck = _deckService.Get(id);
+            if (deck is null) return NotFound();
+
+            var jsonModel = DeckJsonFileHelper.ToJsonModel(deck, _cardService);
+            return Ok(jsonModel);
         }
     }
 }

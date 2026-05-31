@@ -2,6 +2,9 @@ import type NavigationModel from "~/components/navigation/NavigationModel";
 import {
   type SetOverviewSettingsApiModel,
   type DeckBuilderApiModel,
+  type DeckBuilderDeckCardGroupApiModel,
+  type DeckBuilderGroupApiModel,
+  type DeckBuilderSlotApiModel,
   type DeckBuilderSlotAmountApiModel,
   type DeckTypeSettingsApiModel,
   type SiteSettingsApiModel,
@@ -113,37 +116,46 @@ export function useSite() {
     model.typeId = result?.id;
     model.overwriteAmount = result?.overwriteAmount ?? undefined;
     model.pickDefaultName(result?.defaultNames);
-    model.groups =
-      result?.groups?.map<CreateDeckGroup>((group) => {
-        const deckGroup = new CreateDeckGroup();
-        deckGroup.id = group.id;
-        deckGroup.name = group.name!;
-        deckGroup.requirements = group.requirements!;
-        deckGroup.slots =
-          group.slots?.map((slot) => {
-            const deckSlot = new CreateDeckSlot(slot.id, slot.name);
-            deckSlot.cardGroups =
-              slot.cardGroups?.map((cardGroup) => {
-                const deckCardGroup = new CreateDeckCardGroup(
-                  cardGroup.displayName,
-                );
-                deckCardGroup.sortBy = cardGroup.sortBy!;
-                deckCardGroup.cards = [];
-                deckCardGroup.requirements = cardGroup.requirements ?? [];
-                return deckCardGroup;
-              }) ?? [];
-            deckSlot.minCards = slot.minCards ?? 0;
-            deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
-            deckSlot.overwriteAmount = model.overwriteAmount;
-            deckSlot.disableRemoval = slot.disableRemoval!;
-            deckSlot.displaySize = slot.displaySize! as DisplaySize;
-            deckSlot.numberMode = slot.numberMode!;
-            deckSlot.showIfTargetSlotIsFilled = slot.showIfTargetSlotIsFilled!;
-            deckSlot.requirements = slot.requirements ?? [];
-            return deckSlot;
-          }) ?? [];
-        return deckGroup;
-      }) ?? [];
+    const mapDeckCardGroup = (
+      cardGroup: DeckBuilderDeckCardGroupApiModel,
+    ): CreateDeckCardGroup => {
+      const deckCardGroup = new CreateDeckCardGroup(cardGroup.displayName);
+      deckCardGroup.sortBy = cardGroup.sortBy!;
+      deckCardGroup.cards = [];
+      deckCardGroup.requirements = cardGroup.requirements ?? [];
+      return deckCardGroup;
+    };
+
+    const mapDeckSlot = (slot: DeckBuilderSlotApiModel): CreateDeckSlot => {
+      const deckSlot = new CreateDeckSlot(slot.id, slot.name);
+      deckSlot.cardGroups = slot.cardGroups?.map(mapDeckCardGroup) ?? [];
+      deckSlot.minCards = slot.minCards ?? 0;
+      deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
+      deckSlot.overwriteAmount = model.overwriteAmount;
+      deckSlot.disableRemoval = slot.disableRemoval!;
+      deckSlot.displaySize = slot.displaySize! as DisplaySize;
+      deckSlot.numberMode = slot.numberMode!;
+      deckSlot.allowMovingToSideboard = slot.allowMovingToSideboard ?? false;
+      deckSlot.showIfTargetSlotIsFilled = slot.showIfTargetSlotIsFilled!;
+      deckSlot.requirements = slot.requirements ?? [];
+      return deckSlot;
+    };
+
+    const mapDeckGroup = (group: DeckBuilderGroupApiModel): CreateDeckGroup => {
+      const deckGroup = new CreateDeckGroup();
+      deckGroup.id = group.id;
+      deckGroup.name = group.name!;
+      deckGroup.requirements = group.requirements!;
+      deckGroup.slots = group.slots?.map(mapDeckSlot) ?? [];
+      return deckGroup;
+    };
+
+    model.groups = result?.groups?.map(mapDeckGroup) ?? [];
+    model.sideboardGroup = result?.sideboardGroup
+      ? mapDeckGroup(result.sideboardGroup)
+      : undefined;
+    model.sideboardSlot = model.sideboardGroup?.slots?.[0];
+    model.hasSideboard = !!model.sideboardSlot;
 
     if (deckId) {
       const deck = await new DeckService().get(deckId);
@@ -152,6 +164,8 @@ export function useSite() {
         const allCardIds = [
           ...deck.cards!.map((deckCard) => deckCard.cardId!),
           ...deck.cards!.flatMap((deckCard) => deckCard.children ?? []),
+          ...deck.sideboard?.map((deckCard) => deckCard.cardId!) ?? [],
+          ...deck.sideboard?.flatMap((deckCard) => deckCard.children ?? []) ?? [],
         ];
         const cards = await useCards().loadCardsByIds([...new Set(allCardIds)]);
         model.id = deckId;
@@ -189,26 +203,32 @@ export function useSite() {
             });
           }
         });
+
+        if (deck.sideboard) {
+          deck.sideboard.forEach((deckCard) => {
+            const card = cards.find((c) => c.baseId === deckCard.cardId);
+            if (!card || !model.sideboardSlot) {
+              return;
+            }
+            const actualDeckCard = model.sideboardSlot.addCard(card, deckCard.amount ?? 1);
+            if (!actualDeckCard) {
+              return;
+            }
+            // Populate child slots with saved child cards
+            const childIds = deckCard.children ?? [];
+            if (childIds.length > 0 && actualDeckCard.children.length > 0) {
+              const childSlot = actualDeckCard.children[0];
+              childIds.forEach((childId) => {
+                const childCard = cards.find((c) => c.baseId === childId);
+                if (childCard) {
+                  childSlot!.addCard(childCard);
+                }
+              });
+            }
+          });
+        }
       }
     }
-
-    // Hardcoded sideboard settings (eventually from backend)
-    /*model.hasSideboard = true;
-    model.sideboardMaxCards = 15;
-    const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
-    sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(
-      model.sideboardMaxCards,
-    );
-    sideboardSlot.numberMode = true;
-    sideboardSlot.disableRemoval = false;
-    const sideboardCardGroup = new CreateDeckCardGroup("");
-    sideboardSlot.cardGroups.push(sideboardCardGroup);
-    model.sideboardSlot = sideboardSlot;
-
-    const sideboardGroup = new CreateDeckGroup();
-    sideboardGroup.name = "Sideboard";
-    sideboardGroup.slots = [sideboardSlot];
-    model.sideboardGroup = sideboardGroup;*/
 
     return model;
   };

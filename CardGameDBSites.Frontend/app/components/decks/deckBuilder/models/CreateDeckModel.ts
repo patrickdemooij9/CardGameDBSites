@@ -15,7 +15,6 @@ export class CreateDeckModel {
   groups: CreateDeckGroup[] = [];
 
   hasSideboard: boolean = false;
-  sideboardMaxCards: number = 15;
   sideboardSlot: CreateDeckSlot | undefined;
   sideboardGroup: CreateDeckGroup | undefined;
 
@@ -25,6 +24,15 @@ export class CreateDeckModel {
     }
     const index = Math.floor(random() * defaultNames.length);
     this.name = defaultNames[index];
+  }
+
+  moveCard(fromSlot: CreateDeckSlot, toSlot: CreateDeckSlot, card: CardDetailApiModel) {
+    if (!toSlot || !fromSlot) {
+      return;
+    }
+
+    fromSlot.removeCard(card);
+    toSlot.addCard(card);
   }
 
   getSlotsForCard(card: CardDetailApiModel) {

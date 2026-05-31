@@ -4,16 +4,16 @@ import type { DeckTypeSettingsApiModel } from "~/api/default";
 import { RestrictionType } from "~/api/default";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
-import { PhCaretRight, PhCheckCircle, PhGear, PhMinus, PhPlus, PhTrash, PhWarning } from "@phosphor-icons/vue";
+import { PhCaretDown, PhCaretRight, PhCheckCircle, PhGear, PhWarning } from "@phosphor-icons/vue";
 import DeckBuilderTab from "./DeckBuilderTab";
 import Button from "~/components/shared/Button.vue";
 import CreateDeckGroup from "./models/CreateDeckGroup";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import ButtonType from "~/components/shared/ButtonType";
-import { GetCrop } from "~/helpers/CropUrlHelper";
-import { GetValidCards, IsValid } from "~/services/requirements/RequirementService";
+import { GetValidCards } from "~/services/requirements/RequirementService";
 import { useCollection } from "~/composables/useCollection";
 import { useAccountStore } from "~/stores/AccountStore";
+import DeckBuilderSlot from "./DeckBuilderSlot.vue";
 
 const name = defineModel<string>("name");
 
@@ -35,31 +35,6 @@ const props = defineProps<{
 }>();
 
 const accountStore = useAccountStore();
-const collectionMode = ref<boolean>(false); //TODO: get from deck
-
-function getImagesForCard(card: CardDetailApiModel): string[] {
-  const images: string[] = [];
-  props.deckTypeSettings?.imageRules?.forEach((rule) => {
-    if (GetValidCards([card], rule.requirements ?? []).includes(card)) {
-      images.push(rule.imageUrl);
-    }
-  });
-  return images;
-}
-
-function getDisplayClassesForItem(slot: CreateDeckSlot) {
-  const classes = [];
-  if (slot.displaySize === "Small") {
-    classes.push("py-1");
-  }
-
-  /*if (item && !this.hasEnoughInCollection(item.card.id, item.amount)) {
-        classes.push('border-red-300')
-      } else {
-        classes.push('border-gray-300')
-      }*/
-  return classes;
-}
 
 function clickSlot(
   group: CreateDeckGroup,
@@ -72,32 +47,8 @@ function clickSlot(
   });
 }
 
-function getAbilityValueByType<T>(card: CardDetailApiModel, ability: string) {
-  return (
-    (Object.entries(card.attributes!).find(
-      (entry) => entry[0] === ability
-    )?.[1] as T[]) ?? []
-  );
-}
-
-function isCardIllegal(card: CardDetailApiModel): boolean {
-  return !props.deck.isLegalCard(card);
-}
-
-function canAddCardToSlot(slot: CreateDeckSlot, card: CardDetailApiModel): boolean {
-  const existingInOtherSlots = props.deck.getCardAmountInOtherSlots(slot, card);
-  return slot.canAddCard(card, existingInOtherSlots);
-}
-
-function clickSideboardSlot() {
-  if (!props.deck.sideboardSlot || !props.deck.sideboardGroup) return;
-  emit("selectSlot", {
-    slot: props.deck.sideboardSlot,
-    group: props.deck.sideboardGroup,
-  });
-}
-
 const collectionService = useCollection();
+const isSideboardOpen = ref(false);
 
 function getAllDeckCardIds(): number[] {
   const cardIds = new Set<number>();
@@ -128,28 +79,18 @@ watch(() => props.collectionOnlyMode, (newValue) => {
   }
 });
 
-function getOwnedAmount(cardBaseId: number | undefined): number {
-  if (cardBaseId === undefined) return 0;
-  return collectionService.getAmount(cardBaseId);
-}
-
-function getNeededAmount(card: CardDetailApiModel): number {
-  let totalNeeded = 0;
-  if (!card.baseId) return 0;
-
-  props.deck.getCards().forEach((deckCard) => {
-    if (deckCard.card.baseId === card.baseId) {
-      totalNeeded += deckCard.amount;
+watch(
+  () => props.deck.getSideboardAmount(),
+  (amount, previousAmount) => {
+    if (amount > 0 && (previousAmount === undefined || amount > previousAmount)) {
+      isSideboardOpen.value = true;
     }
-  });
-  return totalNeeded;
-}
+  },
+  { immediate: true },
+);
 
-function hasEnoughInCollection(card: CardDetailApiModel): boolean {
-  if (!card.baseId) return false;
-  const owned = getOwnedAmount(card.baseId);
-  const needed = getNeededAmount(card);
-  return owned >= needed;
+function toggleSideboard() {
+  isSideboardOpen.value = !isSideboardOpen.value;
 }
 
 const hasPassiveRequirements = computed(() => {
@@ -227,183 +168,16 @@ const hasPassiveRequirements = computed(() => {
           </div>
           <hr />
           <div class="mt-2" v-for="slot in group.slots" :key="slot.id">
-            <div v-for="cardGroup in slot.cardGroups">
-              <div v-if="cardGroup.cards.length > 0">
-                <h2 class="text-sm mb-1" v-if="cardGroup.displayName">
-                  {{ cardGroup.displayName }}
-                </h2>
-                <div
-                  v-for="item in cardGroup.getOrderedCards()"
-                  :key="item.card.baseId"
-                >
-                  <div
-                    class="flex items-center border rounded mb-2 cursor-pointer tooltip-starter"
-                    :class="[...getDisplayClassesForItem(slot), isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300']"
-                    v-on:click.prevent="emit('selectCard', item.card)"
-                  >
-                    <template v-for="imageUrl in getImagesForCard(item.card)">
-                      <img
-                        :src="imageUrl"
-                        class="rounded-md"
-                        :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
-                      />
-                    </template>
-                    <img
-                      v-if="getImagesForCard(item.card).length === 0"
-                      :src="GetCrop(item.card.imageUrl, 'icon')!"
-                      class="rounded-md"
-                      :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
-                    />
-                    <!--<img
-                      v-for="iconUrl in item.card.iconUrls"
-                      class="rounded-md"
-                      :class="
-                        slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'
-                      "
-                      :src="iconUrl"
-                    />-->
-                    <div class="flex grow justify-between px-4">
-                      <div
-                        class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
-                        v-cursor-image="item.card.imageUrl?.url"
-                      >
-                        <span class="name">{{ item.card.displayName }}</span>
-                        <span
-                          v-if="
-                            getAbilityValueByType(item.card, 'Points').length >
-                            0
-                          "
-                          >({{
-                            Math.abs(
-                              getAbilityValueByType<number>(item.card, "Points")[0]!
-                            )
-                          }})</span>
-                        <span
-                          class="shrink-0"
-                          v-if="slot.numberMode && !collectionOnlyMode"
-                          >{{ item.amount }} x</span
-                        >
-                        <span
-                          class="shrink-0 font-bold"
-                          :class="
-                            hasEnoughInCollection(item.card)
-                              ? 'text-green-600'
-                              : 'text-red-500'
-                          "
-                          v-if="collectionOnlyMode && item.card.baseId"
-                          >{{ getOwnedAmount(item.card.baseId) }}/{{
-                            getNeededAmount(item.card)
-                          }}</span
-                        >
-                      </div>
-                      <a
-                        v-if="
-                          !slot.numberMode &&
-                          !slot.disableRemoval &&
-                          item.allowRemoval
-                        "
-                        href="#"
-                        class="flex items-center justify-center ml-2 no-underline"
-                        v-on:click.prevent.stop="slot.removeCard(item.card)"
-                      >
-                        <PhTrash />
-                      </a>
-                      <div
-                        v-if="
-                          slot.numberMode &&
-                          !slot.disableRemoval &&
-                          item.allowRemoval
-                        "
-                        class="flex items-center gap-2"
-                      >
-                        <button
-                          href="#"
-                          class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline"
-                          v-on:click.prevent.stop="slot.removeCard(item.card)"
-                        >
-                          <PhMinus />
-                        </button>
-                        <button
-                          class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          :disabled="!canAddCardToSlot(slot, item.card)"
-                          v-on:click.prevent.stop="slot.addCard(item.card)"
-                        >
-                          <PhPlus />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-for="childSlot in item.children">
-                    <div v-for="childGroup in childSlot.cardGroups">
-                      <div v-for="child in childGroup.getOrderedCards()">
-                        <div
-                          class="flex items-center border rounded ml-4 mb-2 cursor-pointer tooltip-starter"
-                          :class="getDisplayClassesForItem(childSlot)"
-                          v-on:click.prevent="emit('selectCard', child.card)"
-                        >
-                          <div class="flex grow justify-between px-4">
-                            <div
-                              class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
-                              v-cursor-image="child.card.imageUrl?.url"
-                            >
-                              <span class="name">{{
-                                child.card.displayName
-                              }}</span>
-                              <span
-                                class="shrink-0 font-bold"
-                                :class="
-                                  hasEnoughInCollection(child.card)
-                                    ? 'text-green-600'
-                                    : 'text-red-500'
-                                "
-                                v-if="collectionOnlyMode && child.card.baseId"
-                                >{{ getOwnedAmount(child.card.baseId) }}/{{
-                                  getNeededAmount(child.card)
-                                }}</span
-                              >
-                            </div>
-                            <a
-                              v-if="
-                                !childSlot.numberMode &&
-                                !childSlot.disableRemoval &&
-                                child.allowRemoval
-                              "
-                              href="#"
-                              class="flex items-center justify-center ml-2 no-underline"
-                              v-on:click.prevent.stop="
-                                childSlot.removeCard(child.card)
-                              "
-                            >
-                              <PhTrash />
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      v-if="!childSlot.isFull()"
-                      class="flex items-center justify-center border border-dashed border-gray-300 bg-gray-100 hover:bg-gray-300 cursor-pointer ml-4 px-4 rounded"
-                      v-on:click="clickSlot(group, childSlot, true)"
-                    >
-                      <span>{{ childSlot.label }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              v-if="!slot.isFull()"
-              class="flex items-center justify-center w-full h-12 border bg-gray-100 hover:bg-gray-300 cursor-pointer px-4 py-2 rounded"
-              :class="[
-                selectedArea?.slot === slot
-                  ? 'bg-gray-200 border-gray-500'
-                  : 'border-dashed border-gray-300',
-              ]"
-              v-on:click="clickSlot(group, slot, true)"
-            >
-              <span>{{ slot.label }}</span>
-            </div>
+            <DeckBuilderSlot
+            :deck="deck"
+              :group="group"
+              :slot="slot"
+              :deck-type-settings="deckTypeSettings!"
+              :selected-area="selectedArea"
+              :collection-only-mode="collectionOnlyMode"
+              :allow-move-to-sideboard="true"
+              @select-card="$emit('selectCard', $event)"
+              @click-slot="clickSlot"/>
           </div>
           <!--<div class="deck-rules">
             <p v-if="!hasEnoughPoints(squad)" class="invalid">
@@ -418,81 +192,39 @@ const hasPassiveRequirements = computed(() => {
 
         <!-- Sideboard section -->
         <div class="squad-column mt-4" v-if="deck.hasSideboard && deck.sideboardSlot">
-          <div class="flex items-center justify-between">
-            <h3 class="text-base">Sideboard</h3>
-            <p>{{ deck.getSideboardAmount() }} / {{ deck.sideboardMaxCards }}</p>
-          </div>
+          <button
+            type="button"
+            class="w-full flex items-center justify-between text-left"
+            @click="toggleSideboard"
+          >
+            <h3 class="text-base flex items-center gap-1">
+              <PhCaretDown
+                v-if="isSideboardOpen"
+                class="transition-transform duration-150"
+              />
+              <PhCaretRight
+                v-else
+                class="transition-transform duration-150"
+              />
+              Sideboard
+            </h3>
+            <div class="flex items-center gap-2">
+              <p>{{ deck.getSideboardAmount() }} / {{ deck.sideboardGroup?.getMaxAmount() }}</p>
+            </div>
+          </button>
           <hr />
-          <div class="mt-2">
-            <div v-for="(cardGroup, cardGroupIndex) in deck.sideboardSlot.cardGroups" :key="cardGroupIndex">
-              <div v-if="cardGroup.cards.length > 0">
-                <div
-                  v-for="item in cardGroup.getOrderedCards()"
-                  :key="item.card.baseId"
-                >
-                  <div
-                    class="flex items-center border rounded mb-2 cursor-pointer tooltip-starter"
-                    :class="[getDisplayClassesForItem(deck.sideboardSlot), isCardIllegal(item.card) ? 'border-red-500' : 'border-gray-300']"
-                    v-on:click.prevent="emit('selectCard', item.card)"
-                  >
-                    <img
-                      :src="GetCrop(item.card.imageUrl, 'icon')!"
-                      class="rounded-md"
-                      :class="deck.sideboardSlot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
-                    />
-                    <div class="flex grow justify-between px-4">
-                      <div
-                        class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
-                        v-cursor-image="item.card.imageUrl?.url"
-                      >
-                        <span class="name">{{ item.card.displayName }}</span>
-                        <span
-                          class="shrink-0 font-bold"
-                          :class="
-                            hasEnoughInCollection(item.card)
-                              ? 'text-green-600'
-                              : 'text-red-500'
-                          "
-                          v-if="collectionOnlyMode && item.card.baseId"
-                          >{{ getOwnedAmount(item.card.baseId) }}/{{
-                            getNeededAmount(item.card)
-                          }}</span
-                        >
-                      </div>
-                      <div
-                        class="flex items-center gap-2"
-                      >
-                        <button
-                          class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline"
-                          v-on:click.prevent.stop="deck.sideboardSlot!.removeCard(item.card)"
-                        >
-                          <PhMinus />
-                        </button>
-                        <span class="text-sm">{{ item.amount }}</span>
-                        <button
-                          class="border border-gray-300 rounded-lg p-1 flex h-fit no-underline disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          :disabled="!canAddCardToSlot(deck.sideboardSlot, item.card)"
-                          v-on:click.prevent.stop="deck.sideboardSlot!.addCard(item.card)"
-                        >
-                          <PhPlus />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              class="flex items-center justify-center w-full h-12 border bg-gray-100 hover:bg-gray-300 cursor-pointer px-4 py-2 rounded"
-              :class="[
-                selectedArea?.slot === deck.sideboardSlot
-                  ? 'bg-gray-200 border-gray-500'
-                  : 'border-dashed border-gray-300',
-              ]"
-              v-on:click="clickSideboardSlot()"
-            >
-              <span>Add to Sideboard</span>
-            </div>
+          <div class="mt-2" v-if="isSideboardOpen">
+            <DeckBuilderSlot
+              :deck="deck"
+              :group="deck.sideboardGroup!"
+              :slot="deck.sideboardSlot"
+              :deck-type-settings="deckTypeSettings!"
+              :selected-area="selectedArea"
+              :collection-only-mode="collectionOnlyMode"
+              :allow-move-from-sideboard="true"
+              @select-card="$emit('selectCard', $event)"
+              @click-slot="clickSlot"
+            />
           </div>
         </div>
 

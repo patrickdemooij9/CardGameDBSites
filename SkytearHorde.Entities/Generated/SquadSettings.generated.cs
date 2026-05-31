@@ -133,6 +133,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool ShowDeckColors => this.Value<bool>(_publishedValueFallback, "showDeckColors");
 
 		///<summary>
+		/// Sideboard group
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("sideboardGroup")]
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel SideboardGroup => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "sideboardGroup");
+
+		///<summary>
 		/// Slot only mode
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]

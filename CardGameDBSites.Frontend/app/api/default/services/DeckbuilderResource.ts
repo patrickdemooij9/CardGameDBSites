@@ -23,20 +23,4 @@ export class DeckbuilderResource {
             mediaType: 'application/json',
         });
     }
-    /**
-     * @returns number OK
-     * @throws ApiError
-     */
-    public static postApiDeckbuilderSubmitLoggedIn({
-        requestBody,
-    }: {
-        requestBody?: CreateSquadPostModel,
-    }): CancelablePromise<number> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/deckbuilder/submitLoggedIn',
-            body: requestBody,
-            mediaType: 'application/json',
-        });
-    }
 }

@@ -58,6 +58,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel AdditionalRequirementFilters => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "additionalRequirementFilters");
 
 		///<summary>
+		/// Allow moving to sideboard
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[ImplementPropertyType("allowMovingToSideboard")]
+		public virtual bool AllowMovingToSideboard => this.Value<bool>(_publishedValueFallback, "allowMovingToSideboard");
+
+		///<summary>
 		/// Default value
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]

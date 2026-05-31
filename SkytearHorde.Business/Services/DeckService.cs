@@ -1,4 +1,5 @@
 ﻿using SixLabors.ImageSharp;
+using SkytearHorde.Business.CustomCardMaker;
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
@@ -11,6 +12,7 @@ using SkytearHorde.Entities.Models.PostModels;
 using SkytearHorde.Entities.Models.ViewModels;
 using SkytearHorde.Entities.Requirements;
 using System.Diagnostics;
+using System.Security.Policy;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Models;
@@ -78,119 +80,38 @@ namespace SkytearHorde.Business.Services
                 if (!teamRequirement.GetRequirement().IsValid(teamCharacters))
                     throw new InvalidOperationException("Not valid");
             }
+            
+            if (postModel.Sideboard != null)
+            {
+                var sideboardCharacterIds = postModel.Sideboard.Slots.SelectMany(s => s.Cards.Select(c => c.CardId)).ToArray();
+                if (sideboardCharacterIds.Any(c => !allCards.ContainsKey(c))) throw new InvalidOperationException("Could not find card.");
+            }
 
             var isLegal = true;
             var filledChildSlots = 0;
             foreach (var squadConfig in squadSettings.Squads.ToItems<SquadConfig>())
             {
-                var postSquad = postModel.Squads.FirstOrDefault(it => it.Id == squadConfig.SquadId);
-                if (postSquad is null) throw new InvalidOperationException($"Could not find squad with given id: {squadConfig.SquadId}");
+                var postSquad = postModel.Squads.FirstOrDefault(it => it.Id == squadConfig.SquadId) ?? throw new InvalidOperationException($"Could not find squad with given id: {squadConfig.SquadId}");
 
-                var postCharacters = postSquad.Slots.SelectMany(it => it.Cards.Select(c => c.CardId)).ToArray();
-
-                // Check if all selected cards in the squad are valid
-                if (postCharacters.Any(it => !allCards.ContainsKey(it))) throw new InvalidOperationException("Could not find card.");
-                if (postCharacters.Any(it => allCards[it].NonLegalDeckTypes.Contains(postModel.TypeId)))
+                ValidateSquad(squadConfig, postSquad, allCards, postModel.TypeId, squadSettings, publish, out var isLegalLocal, out var filledChildSlotsInSquad);
+                if (!isLegalLocal)
                 {
                     isLegal = false;
                 }
+                filledChildSlots += filledChildSlotsInSquad;
+            }
 
-                var characters = postCharacters.Where(it => it != null).Select(it => allCards[it]).ToArray();
+            var sideboardGroup = squadSettings.SideboardGroup.ToItems<SquadConfig>().FirstOrDefault();
+            if (sideboardGroup != null && postModel.Sideboard != null)
+            {
+                if (postModel.Sideboard.Id != 99) throw new InvalidOperationException("Sideboard should have id 99");
 
-                var squadRequirements = squadConfig.Requirements.ToItems<ISquadRequirementConfig>().ToList();
-                squadRequirements.AddRange(characters?.SelectMany(it => it.SquadRequirements) ?? Enumerable.Empty<ISquadRequirementConfig>());
-                foreach (var requirement in squadRequirements.Where(it => it.RestrictionType != "Filter"))
+                ValidateSquad(sideboardGroup, postModel.Sideboard, allCards, postModel.TypeId, squadSettings, publish, out var isLegalLocal, out var filledChildSlotsInSquad);
+                if (!isLegalLocal)
                 {
-                    if (!requirement.GetRequirement().IsValid(characters))
-                        throw new InvalidOperationException("Not valid");
+                    isLegal = false;
                 }
-
-                var overwriteAmount = squadSettings.OverwriteAmount > 0;
-                var additionalSquadRequirements = new Dictionary<int, List<ISquadRequirementConfig>>();
-
-                var squadSlotConfigs = squadConfig.Slots.ToItems<SquadSlotConfig>().ToArray();
-                var minCardsSlots = squadSlotConfigs.ToDictionary(it => it, it => it.MinCards);
-                for (var i = 0; i < squadSlotConfigs.Length; i++)
-                {
-                    var postedSlot = postSquad.Slots.FirstOrDefault(it => it.Id == i);
-                    if (postedSlot is null) throw new InvalidOperationException("Slot not found in post model");
-
-                    var slotConfig = squadSlotConfigs[i];
-                    var cards = postedSlot.Cards.Select(it => allCards[it.CardId]).ToArray();
-
-                    if (publish)
-                    {
-                        var maxCards = 0;
-                        var maxCardsConfig = slotConfig.MaxCards?.FirstOrDefault()?.Content;
-                        if (maxCardsConfig is FixedSquadSlotAmount fixedSquadSlotAmount)
-                        {
-                            maxCards = fixedSquadSlotAmount.Amount;
-                        }
-                        else if (maxCardsConfig is DynamicSquadSlotAmount dynamicSquadSlotAmount)
-                        {
-                            var requirements = dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>()
-                                .Where(it => it.RestrictionType != "Filter")
-                                .Select(it => it.GetRequirement()).ToArray();
-                            maxCards = cards.Where(it => requirements.All(r => r.IsValid([it]))).Count();
-                        }
-
-                        if (maxCards > 0 && maxCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
-
-                        foreach(var mutation in cards.SelectMany(it => it.Mutations))
-                        {
-                            var slotIdToChange = mutation.SlotId == 0 ? i : mutation.SlotId;
-                            var slot = squadSlotConfigs[slotIdToChange];
-                            if (mutation.Alias == "minCards")
-                            {
-                                minCardsSlots[slot] += mutation.Change;
-                            }
-                        }
-
-                        var minCards = minCardsSlots[slotConfig];
-                        if (minCards > 0 && minCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not min cards given");
-                        if (postedSlot.Cards.Any(it => it.Amount > (overwriteAmount ? squadSettings.OverwriteAmount : int.Parse(allCards[it.CardId].GetMultipleCardAttributeValue("Amount")?.First() ?? "1")))) throw new InvalidOperationException("Too many cards of one type");
-                    }
-
-                    foreach (var postedCard in postedSlot.Cards)
-                    {
-                        var card = allCards[postedCard.CardId];
-                        var children = postedCard.Children.Select(it => allCards[it]).ToArray();
-                        if (children.Length > 0)
-                        {
-                            filledChildSlots++;
-                            if (children.Length > card.MaxChildren)
-                            {
-                                throw new InvalidOperationException("Not enough children");
-                            }
-                        }
-                        if (card.MaxChildren != 0 && !new ChildOfSquadRequirement(card).IsValid(children))
-                            throw new InvalidOperationException("Not valid");
-
-                        foreach (var additionalRequirement in card.SlotTargetRequirements)
-                        {
-                            var key = additionalRequirement.TargetSlotId;
-                            if (additionalSquadRequirements.ContainsKey(key))
-                            {
-                                additionalSquadRequirements[key].AddRange(additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>());
-                            }
-                            else
-                            {
-                                additionalSquadRequirements.Add(key, additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>().ToList());
-                            }
-                        }
-                    }
-
-                    var slotRequirements = slotConfig.Requirements.ToItems<ISquadRequirementConfig>().ToList();
-                    if (additionalSquadRequirements.ContainsKey(i))
-                    {
-                        slotRequirements.AddRange(additionalSquadRequirements[i]);
-                    }
-                    foreach (var requirement in slotRequirements.Where(it => it.RestrictionType != "Filter"))
-                    {
-                        if (!requirement.GetRequirement().IsValid(cards))
-                            throw new InvalidOperationException("Slot not valid");
-                    }
-                }
+                filledChildSlots += filledChildSlotsInSquad;
             }
 
             if (filledChildSlots > squadSettings.MaxDynamicSlots)
@@ -206,13 +127,21 @@ namespace SkytearHorde.Business.Services
                 {
                     return c.Cards.Select(it => new DeckCard(it.CardId, squad.Id, index, it.Amount)
                     {
-                        Children = it.Children.Select(c => new DeckCardChild
+                        Children = [.. it.Children.Select(c => new DeckCardChild
                         {
                             CardId = c,
                             Amount = 1
-                        }).ToList()
+                        })]
                     });
                 })).WhereNotNull().ToList(),
+                Sideboard = postModel.Sideboard?.Slots.SelectMany((slot) => slot.Cards.Select(it => new DeckCard(it.CardId, postModel.Sideboard.Id, 0, it.Amount)
+                {
+                    Children = [.. it.Children.Select(c => new DeckCardChild
+                    {
+                        CardId = c,
+                        Amount = 1
+                    })]
+                })).WhereNotNull().ToList() ?? [],
                 CreatedDate = createdDate,
                 IsPublished = publish,
                 SiteId = _siteAccessor.GetSiteId(),
@@ -415,6 +344,117 @@ namespace SkytearHorde.Business.Services
                 }
             }
             return images.ToArray();
+        }
+
+        private void ValidateSquad(SquadConfig squadConfig, CreateSquadSquadPostModel postSquad, Dictionary<int, Card> allCards, int typeId, SquadSettings squadSettings, bool publish, out bool isLegal, out int filledChildSlots)
+        {
+            filledChildSlots = 0;
+            isLegal = true;
+            var postCharacters = postSquad.Slots.SelectMany(it => it.Cards.Select(c => c.CardId)).ToArray();
+
+            // Check if all selected cards in the squad are valid
+            if (postCharacters.Any(it => !allCards.ContainsKey(it))) throw new InvalidOperationException("Could not find card.");
+            if (postCharacters.Any(it => allCards[it].NonLegalDeckTypes.Contains(typeId)))
+            {
+                isLegal = false;
+            }
+
+            var characters = postCharacters.Where(it => it != null).Select(it => allCards[it]).ToArray();
+
+            var squadRequirements = squadConfig.Requirements.ToItems<ISquadRequirementConfig>().ToList();
+            squadRequirements.AddRange(characters?.SelectMany(it => it.SquadRequirements) ?? Enumerable.Empty<ISquadRequirementConfig>());
+            foreach (var requirement in squadRequirements.Where(it => it.RestrictionType != "Filter"))
+            {
+                if (!requirement.GetRequirement().IsValid(characters))
+                    throw new InvalidOperationException("Not valid");
+            }
+
+            var overwriteAmount = squadSettings.OverwriteAmount > 0;
+            var additionalSquadRequirements = new Dictionary<int, List<ISquadRequirementConfig>>();
+
+            var squadSlotConfigs = squadConfig.Slots.ToItems<SquadSlotConfig>().ToArray();
+            var minCardsSlots = squadSlotConfigs.ToDictionary(it => it, it => it.MinCards);
+            for (var i = 0; i < squadSlotConfigs.Length; i++)
+            {
+                var postedSlot = postSquad.Slots.FirstOrDefault(it => it.Id == i);
+                if (postedSlot is null) throw new InvalidOperationException("Slot not found in post model");
+
+                var slotConfig = squadSlotConfigs[i];
+                var cards = postedSlot.Cards.Select(it => allCards[it.CardId]).ToArray();
+
+                if (publish)
+                {
+                    var maxCards = 0;
+                    var maxCardsConfig = slotConfig.MaxCards?.FirstOrDefault()?.Content;
+                    if (maxCardsConfig is FixedSquadSlotAmount fixedSquadSlotAmount)
+                    {
+                        maxCards = fixedSquadSlotAmount.Amount;
+                    }
+                    else if (maxCardsConfig is DynamicSquadSlotAmount dynamicSquadSlotAmount)
+                    {
+                        var requirements = dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>()
+                            .Where(it => it.RestrictionType != "Filter")
+                            .Select(it => it.GetRequirement()).ToArray();
+                        maxCards = cards.Where(it => requirements.All(r => r.IsValid([it]))).Count();
+                    }
+
+                    if (maxCards > 0 && maxCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
+
+                    foreach (var mutation in cards.SelectMany(it => it.Mutations))
+                    {
+                        var slotIdToChange = mutation.SlotId == 0 ? i : mutation.SlotId;
+                        var slot = squadSlotConfigs[slotIdToChange];
+                        if (mutation.Alias == "minCards")
+                        {
+                            minCardsSlots[slot] += mutation.Change;
+                        }
+                    }
+
+                    var minCards = minCardsSlots[slotConfig];
+                    if (minCards > 0 && minCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not min cards given");
+                    if (postedSlot.Cards.Any(it => it.Amount > (overwriteAmount ? squadSettings.OverwriteAmount : int.Parse(allCards[it.CardId].GetMultipleCardAttributeValue("Amount")?.First() ?? "1")))) throw new InvalidOperationException("Too many cards of one type");
+                }
+
+                foreach (var postedCard in postedSlot.Cards)
+                {
+                    var card = allCards[postedCard.CardId];
+                    var children = postedCard.Children.Select(it => allCards[it]).ToArray();
+                    if (children.Length > 0)
+                    {
+                        filledChildSlots++;
+                        if (children.Length > card.MaxChildren)
+                        {
+                            throw new InvalidOperationException("Not enough children");
+                        }
+                    }
+                    if (card.MaxChildren != 0 && !new ChildOfSquadRequirement(card).IsValid(children))
+                        throw new InvalidOperationException("Not valid");
+
+                    foreach (var additionalRequirement in card.SlotTargetRequirements)
+                    {
+                        var key = additionalRequirement.TargetSlotId;
+                        if (additionalSquadRequirements.ContainsKey(key))
+                        {
+                            additionalSquadRequirements[key].AddRange(additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>());
+                        }
+                        else
+                        {
+                            additionalSquadRequirements.Add(key, additionalRequirement.Requirements.ToItems<ISquadRequirementConfig>().ToList());
+                        }
+                    }
+                }
+
+                var slotRequirements = slotConfig.Requirements.ToItems<ISquadRequirementConfig>().ToList();
+                if (additionalSquadRequirements.ContainsKey(i))
+                {
+                    slotRequirements.AddRange(additionalSquadRequirements[i]);
+                }
+                foreach (var requirement in slotRequirements.Where(it => it.RestrictionType != "Filter"))
+                {
+                    if (!requirement.GetRequirement().IsValid(cards))
+                        throw new InvalidOperationException("Slot not valid");
+                }
+            }
         }
     }
 }

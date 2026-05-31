@@ -16,6 +16,7 @@ namespace SkytearHorde.Entities.Models.ViewModels
         public int AmountOfLikes { get; set; }
         public int Score { get; set; }
         public DeckCardApiModel[] Cards { get; set; }
+        public DeckCardApiModel[] Sideboard { get; set; }
         public DeckPriceApiModel? Price { get; set; }
 
         public DeckApiModel(Deck deck, DeckPriceApiModel? price)
@@ -30,14 +31,22 @@ namespace SkytearHorde.Entities.Models.ViewModels
             TypeId = deck.TypeId;
             AmountOfLikes = deck.AmountOfLikes;
             Score = deck.Score;
-            Cards = deck.Cards.Select(it => new DeckCardApiModel
+            Cards = [.. deck.Cards.Select(it => new DeckCardApiModel
             {
                 CardId = it.CardId,
                 GroupId = it.GroupId,
                 SlotId = it.SlotId,
                 Amount = it.Amount,
                 Children = it.Children.Select(c => c.CardId).ToArray()
-            }).ToArray();
+            })];
+            Sideboard = [.. deck.Sideboard.Select(it => new DeckCardApiModel
+            {
+                CardId = it.CardId,
+                GroupId = it.GroupId,
+                SlotId = it.SlotId,
+                Amount = it.Amount,
+                Children = it.Children.Select(c => c.CardId).ToArray()
+            })];
             Price = price;
         }
     }

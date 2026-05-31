@@ -13,6 +13,7 @@ namespace CardGameDBSites.API.Models.Settings.DeckBuilder
         public string DisplaySize { get; set; } = "Small";
         public bool DisableRemoval { get; set; }
         public bool NumberMode { get; set; }
+        public bool AllowMovingToSideboard { get; set; }
         public int? ShowIfTargetSlotIsFilled { get; set; }
         public RequirementApiModel[] Requirements { get; set; }
 

@@ -196,29 +196,14 @@ namespace CardGameDBSites.API.Controllers
             var deckTypeSettings = _settingsService.GetSquadSettings(typeId);
             if (deckTypeSettings is null) return NotFound();
 
+            var sideboardGroup = deckTypeSettings.SideboardGroup.ToItems<SquadConfig>().FirstOrDefault();
             return Ok(new DeckBuilderApiModel
             {
                 Id = deckTypeSettings.TypeID,
                 DefaultNames = [.. deckTypeSettings.DefaultNames ?? []],
                 OverwriteAmount = deckTypeSettings.OverwriteAmount > 0 ? deckTypeSettings.OverwriteAmount : null,
-                Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel
-                {
-                    Id = it.SquadId,
-                    Name = it.Label,
-                    Requirements = [.. it.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))],
-                    Slots = [.. it.Slots.ToItems<SquadSlotConfig>().Select((slot, index) => new DeckBuilderSlotApiModel {
-                        Id = index,
-                        Name = slot.Label!,
-                        CardGroups = GetGroupsForSlot(slot),
-                        MinCards = slot.MinCards,
-                        MaxCardAmount = GetSlotAmount(slot.MaxCards),
-                        DisplaySize = slot.DisplaySize ?? "Small",
-                        DisableRemoval = slot.DisableRemoval,
-                        NumberMode = slot.NumberMode,
-                        ShowIfTargetSlotIsFilled = slot.ShowIfTargetSlotIsFilled == 0 ? null : slot.ShowIfTargetSlotIsFilled - 1,
-                        Requirements = [.. slot.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))]
-                    })]
-                })]
+                Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel(it, false))],
+                SideboardGroup = sideboardGroup is null ? null : new DeckBuilderGroupApiModel(sideboardGroup, true)
             });
         }
 
@@ -236,39 +221,6 @@ namespace CardGameDBSites.API.Controllers
                 ImageUrl = it.TypeImage?.GetCropUrl("icon", urlMode: UrlMode.Absolute)
             });
             return Ok(options);
-        }
-
-        private DeckBuilderDeckCardGroupApiModel[] GetGroupsForSlot(SquadSlotConfig slot)
-        {
-            var groups = slot.Groupings.ToItems<DeckCardGroup>().ToArray();
-            if (groups.Length == 0) // Always have a group to put items in
-            {
-                return [new DeckBuilderDeckCardGroupApiModel() { DisplayName = string.Empty }];
-            }
-
-            return groups.Select(it => new DeckBuilderDeckCardGroupApiModel
-            {
-                DisplayName = it.Header!,
-                SortBy = "Cost",
-                Requirements = [.. it.Conditions.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))]
-            }).ToArray();
-        }
-
-        private DeckBuilderSlotAmountApiModel GetSlotAmount(BlockListModel? item)
-        {
-            var firstItem = item?.FirstOrDefault();
-            if (firstItem is null) return new DeckBuilderFixedAmountViewModel(0);
-
-            if (firstItem.Content is FixedSquadSlotAmount fixedSquadSlotAmount)
-            {
-                return new DeckBuilderFixedAmountViewModel(fixedSquadSlotAmount.Amount);
-            }
-            else if (firstItem.Content is DynamicSquadSlotAmount dynamicSquadSlotAmount)
-            {
-                return new DeckBuilderDynamicAmountViewModel(dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>().Select(sr => new CreateSquadRequirement(sr)).ToArray());
-            }
-
-            return new DeckBuilderFixedAmountViewModel(0);
         }
 
         private NavigationItemApiModel MapNavigationItem(NavigationItem item)

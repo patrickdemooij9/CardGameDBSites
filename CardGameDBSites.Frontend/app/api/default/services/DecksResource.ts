@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { DeckApiModel } from '../models/DeckApiModel';
+import type { DeckJsonFile } from '../models/DeckJsonFile';
 import type { DeckQueryPostModel } from '../models/DeckQueryPostModel';
 import type { PagedResultDeckApiModel } from '../models/PagedResultDeckApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -38,6 +39,23 @@ export class DecksResource {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/decks/get',
+            query: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns DeckJsonFile OK
+     * @throws ApiError
+     */
+    public static getApiDecksGetAsJsonModel({
+        id,
+    }: {
+        id?: number,
+    }): CancelablePromise<DeckJsonFile> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/decks/getAsJsonModel',
             query: {
                 'id': id,
             },

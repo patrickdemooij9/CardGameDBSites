@@ -16,6 +16,7 @@ export type DeckApiModel = {
     amountOfLikes?: number;
     score?: number;
     cards?: Array<DeckCardApiModel>;
+    sideboard?: Array<DeckCardApiModel>;
     price?: DeckPriceApiModel;
 };
 

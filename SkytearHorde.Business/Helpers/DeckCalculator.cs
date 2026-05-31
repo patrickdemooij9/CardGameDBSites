@@ -56,6 +56,9 @@ namespace SkytearHorde.Business.Helpers
             if (deck.CreatedBy != null)
                 score += 5;
 
+            if (deck.Sideboard.Count > 0)
+                score += 5;
+
             return (int)Math.Ceiling(score);
         }
     }

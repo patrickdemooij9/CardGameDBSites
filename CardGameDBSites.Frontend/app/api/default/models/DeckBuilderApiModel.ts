@@ -8,5 +8,6 @@ export type DeckBuilderApiModel = {
     defaultNames?: Array<string>;
     overwriteAmount?: number | null;
     groups?: Array<DeckBuilderGroupApiModel>;
+    sideboardGroup?: DeckBuilderGroupApiModel;
 };
 

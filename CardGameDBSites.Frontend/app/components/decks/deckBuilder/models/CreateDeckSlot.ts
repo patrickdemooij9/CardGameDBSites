@@ -27,6 +27,7 @@ export default class CreateDeckSlot {
   displaySize: DisplaySize;
   disableRemoval: boolean;
   numberMode: boolean;
+  allowMovingToSideboard: boolean;
   showIfTargetSlotIsFilled: number | undefined;
 
   requirements: RequirementApiModel[] = [];
@@ -42,6 +43,7 @@ export default class CreateDeckSlot {
     this.displaySize = DisplaySize.Small;
     this.disableRemoval = false;
     this.numberMode = false;
+    this.allowMovingToSideboard = false;
     this.showIfTargetSlotIsFilled = undefined;
   }
 

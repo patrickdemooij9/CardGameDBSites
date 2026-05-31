@@ -15,6 +15,7 @@ namespace SkytearHorde.Entities.Models.Business
         public required int SiteId { get; set; }
         public required int TypeId { get; set; }
         public List<DeckCard> Cards { get; set; }
+        public List<DeckCard> Sideboard { get; set; }
         public int AmountOfLikes { get; set; }
         public int Score { get; set; }
         public bool IsLegal { get; set; }

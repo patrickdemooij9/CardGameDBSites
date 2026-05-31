@@ -16,6 +16,7 @@ export type DeckBuilderSlotApiModel = {
     displaySize?: string;
     disableRemoval?: boolean;
     numberMode?: boolean;
+    allowMovingToSideboard?: boolean;
     showIfTargetSlotIsFilled?: number | null;
     requirements?: Array<RequirementApiModel>;
 };

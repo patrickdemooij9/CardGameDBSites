@@ -5,7 +5,7 @@
 import type { DeckBuilderSlotApiModel } from './DeckBuilderSlotApiModel';
 import type { RequirementApiModel } from './RequirementApiModel';
 export type DeckBuilderGroupApiModel = {
-    id: number;
+    id?: number;
     name?: string | null;
     requirements?: Array<RequirementApiModel>;
     slots?: Array<DeckBuilderSlotApiModel>;

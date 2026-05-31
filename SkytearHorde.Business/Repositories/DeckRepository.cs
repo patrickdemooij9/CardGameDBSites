@@ -8,6 +8,7 @@ using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Extensions;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace SkytearHorde.Business.Repositories
 {
@@ -69,29 +70,11 @@ namespace SkytearHorde.Business.Repositories
             };
             scope.Database.Insert(versionModel);
 
-            foreach (var card in deck.Cards)
-            {
-                var deckCardDB = new DeckCardDBModel
-                {
-                    VersionId = versionModel.Id,
-                    CardId = card.CardId,
-                    Amount = card.Amount,
-                    GroupId = card.GroupId,
-                    SlotId = card.SlotId
-                };
-                scope.Database.Insert(deckCardDB);
+            var (cards, children) = MapToDBCards(deck.Cards, versionModel.Id);
+            var (sideboardCards, sideboardChildren) = MapToDBCards(deck.Sideboard, versionModel.Id);
 
-                foreach (var child in card.Children)
-                {
-                    scope.Database.Insert(new DeckCardChildDBModel
-                    {
-                        VersionId = versionModel.Id,
-                        CardId = child.CardId,
-                        Amount = child.Amount,
-                        ParentId = deckCardDB.Id
-                    });
-                }
-            }
+            scope.Database.InsertBulk(cards.Concat(sideboardCards));
+            scope.Database.InsertBulk(children.Concat(sideboardChildren));
 
             scope.Complete();
 
@@ -139,29 +122,11 @@ namespace SkytearHorde.Business.Repositories
             };
             scope.Database.Insert(versionModel);
 
-            foreach (var card in deck.Cards)
-            {
-                var deckCardDB = new DeckCardDBModel
-                {
-                    VersionId = versionModel.Id,
-                    CardId = card.CardId,
-                    Amount = card.Amount,
-                    GroupId = card.GroupId,
-                    SlotId = card.SlotId
-                };
-                scope.Database.Insert(deckCardDB);
+            var (cards, children) = MapToDBCards(deck.Cards, versionModel.Id);
+            var (sideboardCards, sideboardChildren) = MapToDBCards(deck.Sideboard, versionModel.Id);
 
-                foreach (var child in card.Children)
-                {
-                    scope.Database.Insert(new DeckCardChildDBModel
-                    {
-                        VersionId = versionModel.Id,
-                        CardId = child.CardId,
-                        Amount = child.Amount,
-                        ParentId = deckCardDB.Id
-                    });
-                }
-            }
+            scope.Database.InsertBulk(cards.Concat(sideboardCards));
+            scope.Database.InsertBulk(children.Concat(sideboardChildren));
 
             scope.Complete();
         }
@@ -494,6 +459,8 @@ namespace SkytearHorde.Business.Repositories
 
         private Deck ToModel(DeckFetchModel deck, DeckCardDBModel[] cards, DeckCardChildDBModel[] cardChildren)
         {
+            var normalCards = cards.Where(it => it.GroupId != 99).ToArray();
+            var sideboardCards = cards.Where(it => it.GroupId == 99).ToArray();
             return new Deck(deck.Id, deck.Name)
             {
                 Description = deck.Description,
@@ -507,15 +474,24 @@ namespace SkytearHorde.Business.Repositories
                 IsLegal = deck.IsLegal,
                 Score = deck.Score,
                 TotalViews = deck.TotalViews,
-                Cards = cards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)
+                Cards = [.. normalCards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)
                 {
-                    Children = cardChildren.Where(c => c.ParentId == it.Id).Select(c => new DeckCardChild
+                    Children = [.. cardChildren.Where(c => c.ParentId == it.Id).Select(c => new DeckCardChild
                     {
                         Id = c.Id,
                         CardId = c.CardId,
                         Amount = c.Amount
-                    }).ToList()
-                }).ToList()
+                    })]
+                })],
+                Sideboard = [.. sideboardCards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)
+                {
+                    Children = [.. cardChildren.Where(c => c.ParentId == it.Id).Select(c => new DeckCardChild
+                    {
+                        Id = c.Id,
+                        CardId = c.CardId,
+                        Amount = c.Amount
+                    })]
+                })]
             };
         }
 
@@ -525,6 +501,36 @@ namespace SkytearHorde.Business.Repositories
                 .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, d.TotalLikes as 'AmountOfLikes'")
                 .From<DeckDBModel>("d")
                 .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
+        }
+
+        private (DeckCardDBModel[] cards, DeckCardChildDBModel[] children) MapToDBCards(List<DeckCard> deckCards, int versionId)
+        {
+            var cards = new List<DeckCardDBModel>();
+            var children = new List<DeckCardChildDBModel>();
+            foreach (var card in deckCards)
+            {
+                var deckCardDB = new DeckCardDBModel
+                {
+                    VersionId = versionId,
+                    CardId = card.CardId,
+                    Amount = card.Amount,
+                    GroupId = card.GroupId,
+                    SlotId = card.SlotId
+                };
+                cards.Add(deckCardDB);
+
+                foreach (var child in card.Children)
+                {
+                    children.Add(new DeckCardChildDBModel
+                    {
+                        VersionId = versionId,
+                        CardId = child.CardId,
+                        Amount = child.Amount,
+                        ParentId = deckCardDB.Id
+                    });
+                }
+            }
+            return (cards.ToArray(), children.ToArray());
         }
     }
 }

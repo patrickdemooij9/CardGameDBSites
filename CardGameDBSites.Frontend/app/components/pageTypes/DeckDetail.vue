@@ -21,9 +21,10 @@ import { GetCardValue } from "~/helpers/CardHelper";
 import CommentSection from "../comments/CommentSection.vue";
 import { PhDotsThree } from "@phosphor-icons/vue";
 import DeckDetailCardModal from "../decks/DeckDetailCardModal.vue";
+import DeckCardGroup from "../decks/DeckCardGroup.vue";
 import { useAccountStore } from "~/stores/AccountStore";
 
-console.time('page-render')
+console.time("page-render");
 
 defineProps<{
   content: DeckDetailContentModel;
@@ -34,9 +35,9 @@ const router = useRouter();
 let slug = route.params.slug as string[];
 const deckId = Number.parseInt(slug[slug.length - 1]!);
 
-console.time('fetch-deck');
+console.time("fetch-deck");
 const deck = await new DeckService().get(deckId);
-console.timeEnd('fetch-deck');
+console.timeEnd("fetch-deck");
 if (!deck || deck === null) {
   throw createError({
     statusCode: 404,
@@ -44,14 +45,21 @@ if (!deck || deck === null) {
   });
 }
 
-console.time('fetch-related-data');
+console.time("fetch-related-data");
 const accountService = useAccountStore();
 const collectionService = useCollection();
 const appToast = useAppToast();
 const deckSettings = await useSite().getDeckTypeSettings(deck.typeId!);
 const comments = ref(await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(
-  deck.cards?.sort((a, b) => (a.slotId ?? 0) - (b.slotId ?? 0)).map((card) => card.cardId!) ?? [],
+  deck.cards
+    ?.sort((a, b) => (a.slotId ?? 0) - (b.slotId ?? 0))
+    .map((card) => card.cardId!) ?? [],
+);
+const sideboardCards = await useCards().loadCardsByIds(
+  deck.sideboard
+    ?.sort((a, b) => (a.slotId ?? 0) - (b.slotId ?? 0))
+    .map((card) => card.cardId!) ?? [],
 );
 const mainCards = GetValidCards(
   cards,
@@ -60,7 +68,11 @@ const mainCards = GetValidCards(
 
 const sets = ref<SetViewModel[]>([]);
 const setService = new SetService();
-const uniqueSetIds = [...new Set(cards.map((c) => c.setId).filter((id): id is number => id != null))];
+const uniqueSetIds = [
+  ...new Set(
+    cards.map((c) => c.setId).filter((id): id is number => id != null),
+  ),
+];
 await Promise.all(
   uniqueSetIds.map((setId) =>
     setService.getById(setId).then((set) => {
@@ -69,7 +81,7 @@ await Promise.all(
   ),
 );
 
-console.timeEnd('fetch-related-data');
+console.timeEnd("fetch-related-data");
 
 console.time("member");
 let createdBy = "Anonymous";
@@ -91,7 +103,9 @@ const isOwner = computed(() => {
   return member && deck.createdBy && member.id === deck.createdBy;
 });
 const groupedDeckCards = computed(() =>
-  (deckSettings?.groupings ?? []).flatMap((group) => getCardsInGroup(group)),
+  (deckSettings?.groupings ?? []).flatMap((group) =>
+    getCardsInGroup(group, cards),
+  ),
 );
 const selectedCard = computed(() =>
   selectedCardIndex.value === undefined
@@ -102,8 +116,10 @@ function canNavigatePrevious() {
   return selectedCardIndex.value !== undefined && selectedCardIndex.value > 0;
 }
 function canNavigateNext() {
-  return selectedCardIndex.value !== undefined
-    && selectedCardIndex.value < groupedDeckCards.value.length - 1;
+  return (
+    selectedCardIndex.value !== undefined &&
+    selectedCardIndex.value < groupedDeckCards.value.length - 1
+  );
 }
 const previousCardName = computed(() => {
   if (!canNavigatePrevious()) {
@@ -127,26 +143,26 @@ onMounted(async () => {
   }
 
   new DeckService().viewDeck(deckId);
-  
-  document.addEventListener('click', handleOutsideClick);
+
+  document.addEventListener("click", handleOutsideClick);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleOutsideClick);
+  document.removeEventListener("click", handleOutsideClick);
 });
 
 function handleOutsideClick(event: MouseEvent) {
   const target = event.target as HTMLElement;
-  if (!target.closest('.actions-dropdown')) {
+  if (!target.closest(".actions-dropdown")) {
     showActionsDropdown.value = false;
   }
 }
 
-function getDeckCard(cardId: number) {
-  return deck.cards?.find((card) => card.cardId === cardId);
-}
-function getCardsInGroup(group: DeckCardGroupApiModel) {
-  const groupCards = GetValidCards(cards, group.requirements ?? []);
+function getCardsInGroup(
+  group: DeckCardGroupApiModel,
+  cardsList: CardDetailApiModel[],
+): CardDetailApiModel[] {
+  const groupCards = GetValidCards(cardsList, group.requirements ?? []);
   if (group.sorting && group.sorting.length > 0) {
     return groupCards.sort((a, b) => {
       const aValue = GetCardValue<string>(a, group.sorting![0]!);
@@ -160,15 +176,7 @@ function getCardsInGroup(group: DeckCardGroupApiModel) {
   }
   return groupCards;
 }
-function getImagesForCard(card: CardDetailApiModel) {
-  const images: string[] = [];
-  deckSettings?.imageRules?.forEach((rule) => {
-    if (GetValidCards([card], rule.requirements ?? []).includes(card)) {
-      images.push(rule.imageUrl);
-    }
-  });
-  return images;
-}
+
 function getCollectionCount(cardId: number) {
   return (
     collectionService
@@ -208,8 +216,9 @@ function handleCommentDeleted(comment: CommentViewModel) {
 }
 
 async function handleDeleteDeck() {
-  if (!deck.id || !confirm("Are you sure you want to delete this deck?")) return;
-  
+  if (!deck.id || !confirm("Are you sure you want to delete this deck?"))
+    return;
+
   await new DeckService().deleteDeck(deck.id);
   router.push("/account/decks");
 }
@@ -229,9 +238,13 @@ async function handleCreatePresetFromDeck() {
 }
 
 function openCardPopup(card: CardDetailApiModel) {
-  const cardIndex = groupedDeckCards.value.findIndex((item) => item.baseId === card.baseId);
+  const cardIndex = groupedDeckCards.value.findIndex(
+    (item) => item.baseId === card.baseId,
+  );
   if (cardIndex < 0) {
-    console.warn(`Could not find card with base id ${card.baseId} in grouped deck cards.`);
+    console.warn(
+      `Could not find card with base id ${card.baseId} in grouped deck cards.`,
+    );
     return;
   }
   selectedCardIndex.value = cardIndex;
@@ -251,7 +264,7 @@ function goToNextCard() {
   selectedCardIndex.value = selectedCardIndex.value! + 1;
 }
 
-console.timeEnd('page-render');
+console.timeEnd("page-render");
 </script>
 
 <template>
@@ -293,13 +306,19 @@ console.timeEnd('page-render');
             >
               <button
                 class="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                @click="router.push(`/create-deck?id=${deck.id}`); showActionsDropdown = false"
+                @click="
+                  router.push(`/create-deck?id=${deck.id}`);
+                  showActionsDropdown = false;
+                "
               >
                 Edit
               </button>
               <button
                 class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-                @click="showActionsDropdown = false; handleDeleteDeck()"
+                @click="
+                  showActionsDropdown = false;
+                  handleDeleteDeck();
+                "
               >
                 Delete
               </button>
@@ -333,7 +352,9 @@ console.timeEnd('page-render');
 
       <div class="flex flex-col md:flex-row gap-8 mt-8">
         <div class="md:w-2/3 shrink-0">
-          <div class="flex flex-col md:flex-row align-center justify-between gap-4">
+          <div
+            class="flex flex-col md:flex-row align-center justify-between gap-4"
+          >
             <h2 class="text-lg">Decklist</h2>
             <div class="flex gap-4 flex-col md:flex-row md:items-center">
               <div class="flex gap-2 items-center">
@@ -363,114 +384,49 @@ console.timeEnd('page-render');
               v-for="action in deckSettings?.actions"
               :deck="deck"
               :action="action"
-              :missing-cards-string="action.type === 'DeckMissingCardsExport' ? missingCardsString : undefined"
+              :missing-cards-string="
+                action.type === 'DeckMissingCardsExport'
+                  ? missingCardsString
+                  : undefined
+              "
             ></DeckAction>
           </div>
-          <template v-for="group in deckSettings?.groupings">
-            <div v-if="getCardsInGroup(group).length > 0">
-              <h3 class="text-sm mt-4 mb-2">{{ group.header }}</h3>
-              <div
-                v-if="deckDisplayMode === 'text'"
-                class="md:grid grid-flow-col grid-cols-2 gap-2"
-                :style="{
-                  'grid-template-rows': `repeat(${Math.ceil(
-                    getCardsInGroup(group).length / 2,
-                  )}, 1fr)`,
-                }"
-              >
-                <div
-                  v-for="card in getCardsInGroup(group)"
-                  class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source cursor-pointer"
-                  v-cursor-image="card.imageUrl?.url"
-                  @click="openCardPopup(card)"
-                >
-                  <div class="flex gap-2">
-                    <span
-                      class="flex gap-0.5 js-collection-info font-bold"
-                      v-if="collectionMode"
-                    >
-                      <span
-                        :class="[
-                          getCollectionCount(card.baseId!) >=
-                          (getDeckCard(card.baseId!)?.amount ?? 0)
-                            ? 'text-green-600'
-                            : 'text-red-600',
-                        ]"
-                        >{{ getCollectionCount(card.baseId!) }}</span
-                      >
-                      <span>/</span>
-                      <span>{{ getDeckCard(card.baseId!)?.amount }}</span>
-                    </span>
-                    <span class="js-collection-info" v-else
-                      >{{ getDeckCard(card.baseId!)?.amount }} x</span
-                    >
-                    <div v-if="deckSettings.costImageUrl">
-                      <div v-if="deckSettings.renderCostOnImage">
-                        <div
-                          class="flex justify-center bg-contain bg-no-repeat h-5 w-[18px] text-white font-bold"
-                          :style="{
-                            'background-image': `url(${deckSettings.costImageUrl})`,
-                          }"
-                        >
-                          <span>{{ GetCardValue(card, "Cost") }}</span>
-                        </div>
-                      </div>
-                      <div
-                        class="flex items-center h-5 w-[18px] text-black font-bold"
-                        v-else
-                      >
-                        <span>{{ GetCardValue(card, "Shard Cost") }}</span>
-                        <img :src="deckSettings.costImageUrl" />
-                      </div>
-                    </div>
-                    <div class="flex gap-2">
-                      <img
-                        v-for="image in getImagesForCard(card)"
-                        :src="image"
-                        class="w-5 h-5"
-                      />
-                    </div>
-                  </div>
-                  <span>{{ card.displayName }}</span>
-                </div>
-              </div>
-              <div
-                v-else
-                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2"
-              >
-                <div
-                  v-for="card in getCardsInGroup(group)"
-                  class="flex flex-col items-center text-center gap-1 cursor-pointer"
-                  v-cursor-image="card.imageUrl?.url"
-                  @click="openCardPopup(card)"
-                >
-                  <img
-                    class="rounded"
-                    :src="GetCrop(card.imageUrl, undefined) ?? '#'"
-                    :alt="card.displayName ?? ''"
-                  />
-                  <span
-                    class="flex gap-0.5 text-xs font-semibold js-collection-info"
-                    v-if="collectionMode"
-                  >
-                    <span
-                      :class="[
-                        getCollectionCount(card.baseId!) >=
-                        (getDeckCard(card.baseId!)?.amount ?? 0)
-                          ? 'text-green-600'
-                          : 'text-red-600',
-                      ]"
-                    >{{ getCollectionCount(card.baseId!) }}</span>
-                    <span>/</span>
-                    <span>{{ getDeckCard(card.baseId!)?.amount }}</span>
-                  </span>
-                  <span class="text-xs font-semibold js-collection-info" v-else>
-                    {{ getDeckCard(card.baseId!)?.amount }} x
-                  </span>
-                </div>
-              </div>
-            </div>
+          <template
+            v-for="group in deckSettings?.groupings"
+            :key="group.header"
+          >
+            <DeckCardGroup
+              :group="group"
+              :cards="cards"
+              :settings="deckSettings"
+              :deck-cards="deck.cards"
+              :deck-display-mode="deckDisplayMode"
+              :collection-mode="collectionMode"
+              :cost-image-url="deckSettings?.costImageUrl"
+              :render-cost-on-image="deckSettings?.renderCostOnImage"
+              @card-click="openCardPopup"
+            />
           </template>
+          <div v-if="deck.sideboard && deck.sideboard.length > 0" class="mt-4">
+            <hr/>
+            <h3 class="text-lg mt-2">Sideboard</h3>
+            <template
+              v-for="group in deckSettings?.groupings"
+              :key="group.header"
+            >
+              <DeckCardGroup
+                :group="group"
+                :cards="sideboardCards"
+                :settings="deckSettings"
+                :deck-cards="deck.sideboard"
+                :deck-display-mode="deckDisplayMode"
+                :collection-mode="collectionMode"
+                :cost-image-url="deckSettings?.costImageUrl"
+                :render-cost-on-image="deckSettings?.renderCostOnImage"
+                @card-click="openCardPopup"
+              />
+            </template>
+          </div>
         </div>
         <div v-if="deck.description">
           <h2 class="text-lg pb-2">Description</h2>

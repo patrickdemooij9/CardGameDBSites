@@ -308,7 +308,7 @@ async function toggleMarkdownPreview() {
                 <div class="flex items-center" v-if="location.numberMode">
                   <span
                     >{{ location.getCardAmount(character) }}/{{
-                      location.getCardMaxAmount(character)
+                      location.getCardMaxAmount(character) - deck.getCardAmountInOtherSlots(location, character)
                     }}</span
                   >
                 </div>

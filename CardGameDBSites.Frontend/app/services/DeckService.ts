@@ -38,7 +38,7 @@ export default class DeckService {
       description: model.description,
       typeId: model.typeId,
       publish: publish,
-      squads: model.groups.map((group, index) => ({
+      squads: model.groups.map((group) => ({
         id: group.id,
         slots: [
           ...group.slots.map((slot) => ({
@@ -54,20 +54,24 @@ export default class DeckService {
                     .map((key) => key.card.baseId!)
                 ),
               })),
-          })),
-          // Include sideboard cards in the first group with slotId 99
-          ...(index === 0 && model.sideboardSlot && model.hasSideboard ? [{
-            id: 99,
-            cards: model.sideboardSlot.cardGroups
-              .flatMap((cg) => cg.cards)
-              .map((key) => ({
-                cardId: key.card.baseId!,
-                amount: key.amount,
-                children: [],
-              })),
-          }] : []),
+          }))
         ],
       })),
+      sideboard: model.sideboardSlot && model.hasSideboard ? {
+            id: 99,
+            slots: [
+              {
+                id: model.sideboardSlot.id,
+                cards: model.sideboardSlot.cardGroups
+                .flatMap((cg) => cg.cards)
+                .map((key) => ({
+                  cardId: key.card.baseId!,
+                  amount: key.amount,
+                  children: [],
+                }))
+              }
+            ]
+          } : undefined
     };
     const result = DoOptionalServerFetch<number>(
       '/api/deckbuilder/submit',

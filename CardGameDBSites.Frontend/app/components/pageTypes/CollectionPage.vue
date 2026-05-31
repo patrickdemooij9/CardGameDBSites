@@ -131,6 +131,7 @@ async function handleCollectionUpdated() {
   summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
     "/api/collection/summary",
   );
+  progressPercent.value = summaryData.value.collectionProgress ?? 0;
 }
 </script>
 
@@ -194,7 +195,7 @@ async function handleCollectionUpdated() {
       <div class="mt-12">
         <div v-if="accountStore.isLoggedIn">
           <h2 class="text-lg font-bold">All sets</h2>
-          <SetOverview />
+          <SetOverview @collection-updated="handleCollectionUpdated" />
         </div>
         <div v-else>
           <p class="text-lg font-bold text-center">

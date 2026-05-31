@@ -6,9 +6,25 @@ import { DoServerFetch } from "~/helpers/RequestsHelper";
 import type { SetProgressApiModel } from "~/api/default";
 import { useAccountStore } from "~/stores/AccountStore";
 
+type CollectionSettingsResponse = {
+  allowSetCollecting: boolean;
+  allowCardCollecting: boolean;
+  showProgressBar: boolean;
+};
+
 const sets = await new SetService().getAllSets();
 const setsProgress = ref<SetProgressApiModel[]>([]);
+const collectionSetIds = ref<number[]>([]);
+const collectionSettings = ref({
+  allowSetCollecting: false,
+  allowCardCollecting: true,
+  showProgressBar: true,
+});
+const processingSetIds = ref<number[]>([]);
 const isLoading = ref(true);
+const emit = defineEmits<{
+  collectionUpdated: [];
+}>();
 
 const accountStore = useAccountStore();
 const isLoggedIn = await accountStore.checkLogin();
@@ -41,11 +57,48 @@ function calculateProgressFilled(setId: number): number {
   return (progress.ownedCards! / progress.totalCards!) * 100;
 }
 
+function isSetInCollection(setId: number): boolean {
+  return collectionSetIds.value.includes(setId);
+}
+
+async function updateSetCollection(setId: number) {
+  if (!isLoggedIn || processingSetIds.value.includes(setId)) {
+    return;
+  }
+
+  processingSetIds.value = [...processingSetIds.value, setId];
+  const isInCollection = isSetInCollection(setId);
+  const endpoint = isInCollection ? "removeSet" : "addSet";
+
+  try {
+    await DoServerFetch(`/api/collection/${endpoint}?setId=${setId}`, true, {
+      method: "POST",
+    });
+
+    collectionSetIds.value = isInCollection
+      ? collectionSetIds.value.filter((id) => id !== setId)
+      : [...collectionSetIds.value, setId];
+    emit("collectionUpdated");
+  } finally {
+    processingSetIds.value = processingSetIds.value.filter((id) => id !== setId);
+  }
+}
+
 onMounted(async () => {
   if (isLoggedIn) {
-    setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
-      "/api/collection/setsProgress"
+    collectionSettings.value = await DoServerFetch<CollectionSettingsResponse>(
+      "/api/collection/settings"
     );
+    if (collectionSettings.value.allowSetCollecting) {
+      collectionSetIds.value = await DoServerFetch<number[]>("/api/collection/sets");
+    } else if (
+      collectionSettings.value.allowCardCollecting &&
+      collectionSettings.value.showProgressBar
+    ) {
+      setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
+        "/api/collection/setsProgress"
+      );
+    }
   }
   isLoading.value = false;
 });
@@ -70,6 +123,16 @@ onMounted(async () => {
           >
             <h2 class="text-base font-bold">{{ set.displayName }}</h2>
             <i v-if="set.code" class="text-xs">{{ set.code }}</i>
+            <p
+              v-if="
+                accountStore.isLoggedIn &&
+                collectionSettings.allowSetCollecting &&
+                isSetInCollection(set.id)
+              "
+              class="ml-auto text-xs text-green-600 font-bold"
+            >
+              Owned
+            </p>
           </NuxtLink>
           <div class="flex justify-between">
             <img class="h-16" v-if="set.imageUrl" :src="set.imageUrl" />
@@ -82,30 +145,28 @@ onMounted(async () => {
           <div class="flex justify-between gap-4">
             <div class="grow self-center">
               <div v-if="accountStore.isLoggedIn">
-                <ProgressBar :percent-filled="calculateProgressFilled(set.id)" :description="`${getProgress(set.id)?.ownedCards}/${getProgress(set.id)?.totalCards}`"></ProgressBar>
+                <button
+                  v-if="collectionSettings.allowSetCollecting"
+                  type="button"
+                  class="btn btn-outline px-2 py-1"
+                  :disabled="processingSetIds.includes(set.id)"
+                  @click="updateSetCollection(set.id)"
+                >
+                  {{
+                    isSetInCollection(set.id)
+                      ? "Remove from collection"
+                      : "Add to collection"
+                  }}
+                </button>
+                <ProgressBar
+                  v-else-if="
+                    collectionSettings.allowCardCollecting &&
+                    collectionSettings.showProgressBar
+                  "
+                  :percent-filled="calculateProgressFilled(set.id)"
+                  :description="`${getProgress(set.id)?.ownedCards}/${getProgress(set.id)?.totalCards}`"
+                ></ProgressBar>
               </div>
-
-              <!--@if (isLoggedIn)
-                        {
-                            if (collectionSettings.AllowSetCollecting)
-                            {
-                                <div id="collection-@set.Id">
-                                    @await Html.PartialAsync("~/Views/Partials/components/collectionButton.cshtml", new CollectionButtonViewModel()
-                                    {
-                                        SetId = set.Id,
-                                        ToAdd = !currentSets.Contains(set.Id)
-                                    })
-                                </div>
-                            }
-                            else if (collectionSettings.AllowCardCollecting && collectionSettings.ShowProgressBar)
-                            {
-                                var setProgress = _collectionService.CalculateCollectionProgressBySet(set.Id, out var totalCards, out var collectionCards);
-                                @await Html.PartialAsync("~/Views/Partials/components/progressBar.cshtml", new ProgressBarViewModel(setProgress)
-                                {
-                                    Description = $"{collectionCards}/{totalCards}"
-                                })
-                            }
-                            }-->
             </div>
             <NuxtLink
               :to="set.urlSegment"

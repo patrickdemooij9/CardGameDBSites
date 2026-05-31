@@ -10,6 +10,7 @@ import { useSite } from "~/composables/useSite";
 import DeckService from "~/services/DeckService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import type { OverviewFilterModel } from "~/components/overviews/OverviewFilterModel";
+import { getDeckDetailUrl } from "~/helpers/DeckUrlHelper";
 
 const props = defineProps<{
   typeId: number
@@ -81,7 +82,7 @@ function selectSlot(
 async function submitForm(publish: boolean) {
   isSubmitting = true;
   const result = await new DeckService().post(deck.value, publish);
-  router.push("/decks/" + result);
+  router.push(getDeckDetailUrl(deckTypeSettings.value?.overviewUrl, result));
 }
 
 function handleScroll() {

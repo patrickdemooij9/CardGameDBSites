@@ -6,6 +6,8 @@ import Button from '../shared/Button.vue';
 import ButtonType from '../shared/ButtonType';
 import DeckService from '~/services/DeckService';
 import { useAccountStore } from '~/stores/AccountStore';
+import { useSite } from '~/composables/useSite';
+import { getEditDeckUrl } from '~/helpers/DeckUrlHelper';
 
 defineProps<{
     content: AccountDecksContentModel
@@ -14,6 +16,8 @@ defineProps<{
 const router = useRouter();
 const memberId = ref<number | undefined>(undefined);
 const isLoading = ref(true);
+const siteSettings = await useSite().getSettings();
+const createDeckUrl = siteSettings.createDeckUrl ?? '/create-deck';
 
 onMounted(async () => {
     const isLoggedIn = await useAccountStore().checkLogin();
@@ -46,7 +50,7 @@ async function deleteDeck(deckId: number) {
             <template #default="{ decks }">
                 <div v-if="decks!.items!.length === 0" class="text-center">
                     <p>You have no decks yet. Create one to get started!</p>
-                    <router-link to="/create-squad" class="btn btn-primary">Create Deck</router-link>
+                    <router-link :to="createDeckUrl" class="btn btn-primary">Create Deck</router-link>
                 </div>
                 <div v-else>
                     <div v-for="deck in decks!.items" :key="deck.id" class="border rounded px-4 py-2 mb-2 bg-white">
@@ -57,7 +61,7 @@ async function deleteDeck(deckId: number) {
                             <Button :button-type="ButtonType.Primary" class="border rounded" @click="router.push(`/decks/${deck.id}`)">
                                 View deck
                             </Button>
-                            <Button :button-type="ButtonType.Primary" class="border rounded" @click="router.push(`/create-deck?id=${deck.id}`)">
+                            <Button :button-type="ButtonType.Primary" class="border rounded" @click="router.push(getEditDeckUrl(siteSettings.createDeckUrl, deck.id!))">
                                 Edit deck
                             </Button>
                             <Button :button-type="ButtonType.Danger" class="border rounded" @click="deck.id && deleteDeck(deck.id)">

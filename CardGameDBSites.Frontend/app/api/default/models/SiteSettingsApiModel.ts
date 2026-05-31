@@ -14,6 +14,7 @@ export type SiteSettingsApiModel = {
     showLogin: boolean;
     showPrices: boolean;
     loginPageUrl?: string | null;
+    createDeckUrl?: string | null;
     accountNavigation?: Array<NavigationItemApiModel>;
     navigation?: Array<NavigationItemApiModel>;
     navigationLogoUrl: string;
@@ -24,4 +25,3 @@ export type SiteSettingsApiModel = {
     keywordImages?: Array<KeywordImageApiModel>;
     cardOverviewIdentifier?: string | null;
 };
-

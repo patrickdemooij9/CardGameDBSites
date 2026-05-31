@@ -47,6 +47,8 @@ namespace CardGameDBSites.API.Controllers
             var cardSettings = _settingsService.GetCardSettings();
 
             var loginPageUrl = _siteService.GetRoot().FirstChild<Login>()?.Url(mode: UrlMode.Relative);
+            var createDeckUrl = _siteService.GetRoot().FirstChild<CreateDeck>()?.Url(mode: UrlMode.Relative)
+                ?? _siteService.GetRoot().FirstChild<CreateSquad>()?.Url(mode: UrlMode.Relative);
             var accountNavigation = _siteService.GetRoot().FirstChild<AccountPage>()?.Children().Select(it => new NavigationItemApiModel { Name = it.Name, Url = it.Url(mode: UrlMode.Relative) }).ToArray() ?? [];
 
             return Ok(new SiteSettingsApiModel
@@ -58,6 +60,7 @@ namespace CardGameDBSites.API.Controllers
                 ShowLogin = settings.ShowLogin,
                 ShowPrices = settings.AllowPricing,
                 LoginPageUrl = loginPageUrl,
+                CreateDeckUrl = createDeckUrl,
                 AccountNavigation = accountNavigation,
                 Navigation = [.. settings.Navigation.Select(MapNavigationItem)],
                 NavigationLogoUrl = settings.NavigationLogoUrl,

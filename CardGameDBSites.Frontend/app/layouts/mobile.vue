@@ -13,7 +13,6 @@
  * explicitly set on a per-page basis using `definePageMeta({ layout: 'mobile' })`.
  */
 import MobileBottomNav from '~/components/mobile/MobileBottomNav.vue';
-import MobileHeader from '~/components/mobile/MobileHeader.vue';
 import { useSite } from '~/composables/useSite';
 
 const { getSettings } = useSite();
@@ -29,7 +28,8 @@ const siteSettings = await getSettings();
     class="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950"
     id="root"
   >
-    <MobileHeader :title="siteSettings.siteName ?? ''" />
+    <!-- Safe area spacer for devices with notch/status bar -->
+    <div class="pt-safe" />
 
     <!-- Main content area with padding for bottom nav -->
     <main class="flex-1 pb-20 overflow-y-auto">
@@ -42,6 +42,10 @@ const siteSettings = await getSettings();
 
 <style>
 /* Global mobile-specific styles */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 .mobile-page-enter-active,
 .mobile-page-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;

@@ -4,6 +4,9 @@
  * 
  * Uses fixed positioning with safe-area insets to handle notched devices.
  * Includes haptic feedback on tab selection for a native feel.
+ * 
+ * Icons are rendered directly in the template (not via dynamic `component :is`)
+ * to ensure they display correctly on real devices with Capacitor builds.
  */
 import { PhHouse, PhCards, PhMagnifyingGlass, PhUser, PhStack } from '@phosphor-icons/vue';
 import { useHaptics } from '~/composables/mobile/useHaptics';
@@ -13,17 +16,22 @@ const { impact, ImpactStyle } = useHaptics();
 
 interface TabItem {
   label: string;
-  icon: any;
   path: string;
 }
 
 const tabs: TabItem[] = [
-  { label: 'Home', icon: PhHouse, path: '/' },
-  { label: 'Cards', icon: PhCards, path: '/cards' },
-  { label: 'Search', icon: PhMagnifyingGlass, path: '/search' },
-  { label: 'Decks', icon: PhStack, path: '/decks' },
-  { label: 'Profile', icon: PhUser, path: '/profile' },
+  { label: 'Home', path: '/' },
+  { label: 'Cards', path: '/cards' },
+  { label: 'Search', path: '/search' },
+  { label: 'Decks', path: '/decks' },
+  { label: 'Profile', path: '/profile' },
 ];
+
+const homeTab = tabs[0]!;
+const cardsTab = tabs[1]!;
+const searchTab = tabs[2]!;
+const decksTab = tabs[3]!;
+const profileTab = tabs[4]!;
 
 function isActive(tab: TabItem): boolean {
   if (tab.path === '/') return route.path === '/';
@@ -43,16 +51,58 @@ async function onTabTap(tab: TabItem) {
   >
     <div class="flex justify-around items-center h-16 pb-safe">
       <button
-        v-for="tab in tabs"
-        :key="tab.path"
         class="flex flex-col items-center justify-center flex-1 h-full pt-2 transition-colors duration-150"
-        :class="isActive(tab) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
-        :aria-current="isActive(tab) ? 'page' : undefined"
-        :aria-label="tab.label"
-        @click="onTabTap(tab)"
+        :class="isActive(homeTab) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
+        :aria-current="isActive(homeTab) ? 'page' : undefined"
+        aria-label="Home"
+        @click="onTabTap(homeTab)"
       >
-        <component :is="tab.icon" :size="24" :weight="isActive(tab) ? 'fill' : 'regular'" />
-        <span class="text-xs mt-1 font-medium">{{ tab.label }}</span>
+        <PhHouse :size="24" :weight="isActive(homeTab) ? 'fill' : 'regular'" />
+        <span class="text-xs mt-1 font-medium">Home</span>
+      </button>
+
+      <button
+        class="flex flex-col items-center justify-center flex-1 h-full pt-2 transition-colors duration-150"
+        :class="isActive(cardsTab) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
+        :aria-current="isActive(cardsTab) ? 'page' : undefined"
+        aria-label="Cards"
+        @click="onTabTap(cardsTab)"
+      >
+        <PhCards :size="24" :weight="isActive(cardsTab) ? 'fill' : 'regular'" />
+        <span class="text-xs mt-1 font-medium">Cards</span>
+      </button>
+
+      <button
+        class="flex flex-col items-center justify-center flex-1 h-full pt-2 transition-colors duration-150"
+        :class="isActive(searchTab) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
+        :aria-current="isActive(searchTab) ? 'page' : undefined"
+        aria-label="Search"
+        @click="onTabTap(searchTab)"
+      >
+        <PhMagnifyingGlass :size="24" :weight="isActive(searchTab) ? 'fill' : 'regular'" />
+        <span class="text-xs mt-1 font-medium">Search</span>
+      </button>
+
+      <button
+        class="flex flex-col items-center justify-center flex-1 h-full pt-2 transition-colors duration-150"
+        :class="isActive(decksTab) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
+        :aria-current="isActive(decksTab) ? 'page' : undefined"
+        aria-label="Decks"
+        @click="onTabTap(decksTab)"
+      >
+        <PhStack :size="24" :weight="isActive(decksTab) ? 'fill' : 'regular'" />
+        <span class="text-xs mt-1 font-medium">Decks</span>
+      </button>
+
+      <button
+        class="flex flex-col items-center justify-center flex-1 h-full pt-2 transition-colors duration-150"
+        :class="isActive(profileTab) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
+        :aria-current="isActive(profileTab) ? 'page' : undefined"
+        aria-label="Profile"
+        @click="onTabTap(profileTab)"
+      >
+        <PhUser :size="24" :weight="isActive(profileTab) ? 'fill' : 'regular'" />
+        <span class="text-xs mt-1 font-medium">Profile</span>
       </button>
     </div>
   </nav>

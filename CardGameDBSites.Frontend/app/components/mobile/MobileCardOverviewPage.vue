@@ -43,5 +43,7 @@ const tableColumns: CardOverviewTableColumn[] =
 </script>
 
 <template>
-  <CardOverview :filters="filters" :sortings="sortings" :table-columns="tableColumns"></CardOverview>
+  <div class="pt-4 pb-4 px-2">
+    <CardOverview :filters="filters" :sortings="sortings" :table-columns="tableColumns"></CardOverview>
+  </div>
 </template>

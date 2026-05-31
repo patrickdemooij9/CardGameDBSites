@@ -12,13 +12,13 @@
     "test:watch": "vitest",
     "generateUmbracoApi": "openapi --input http://localhost:58529/umbraco/swagger/delivery/swagger.json --output app/api/umbraco --postfixServices Resource --useOptions",
     "generateDefaultApi": "openapi --input http://localhost:58529/umbraco/swagger/default/swagger.json --output app/api/default --postfixServices Resource --useOptions",
-    "cap:build": "NUXT_CAPACITOR=true nuxt generate",
+    "cap:build": "cross-env NUXT_CAPACITOR=true nuxt generate",
     "cap:sync": "npx cap sync",
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android",
     "cap:run:ios": "npx cap run ios",
     "cap:run:android": "npx cap run android",
-    "cap:deploy": "NUXT_CAPACITOR=true nuxt generate && npx cap sync"
+    "cap:deploy": "cross-env NUXT_CAPACITOR=true nuxt generate && npx cap sync"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
@@ -47,6 +47,7 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@typescript-eslint/eslint-plugin": "^8.59.0",
     "@typescript-eslint/parser": "^8.59.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.22.0",
     "eslint-plugin-vue": "^10.9.0",
     "openapi-typescript-codegen": "^0.29.0",

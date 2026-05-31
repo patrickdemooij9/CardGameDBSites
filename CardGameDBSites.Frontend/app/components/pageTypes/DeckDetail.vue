@@ -61,9 +61,33 @@ const sideboardCards = await useCards().loadCardsByIds(
     ?.sort((a, b) => (a.slotId ?? 0) - (b.slotId ?? 0))
     .map((card) => card.cardId!) ?? [],
 );
+const childCardIds = [
+  ...new Set(deck.cards?.flatMap((deckCard) => deckCard.children ?? []) ?? []),
+];
+const childCards = await useCards().loadCardsByIds(childCardIds);
+const childCardsById = new Map(
+  childCards
+    .filter((card): card is CardDetailApiModel & { baseId: number } =>
+      card.baseId !== undefined,
+    )
+    .map((card) => [card.baseId, card]),
+);
 const mainCards = GetValidCards(
   cards,
   deckSettings!.mainCardRequirements ?? [],
+);
+const mainCardsWithChildren = computed(() =>
+  mainCards.map((mainCard) => ({
+    mainCard,
+    children:
+      deck.cards
+        ?.find((deckCard) => deckCard.cardId === mainCard.baseId)
+        ?.children?.map((childId) => childCardsById.get(childId))
+        .filter(
+          (child): child is CardDetailApiModel & { baseId: number } =>
+            child !== undefined,
+        ) ?? [],
+  })),
 );
 
 const sets = ref<SetViewModel[]>([]);
@@ -106,6 +130,22 @@ const groupedDeckCards = computed(() =>
   (deckSettings?.groupings ?? []).flatMap((group) =>
     getCardsInGroup(group, cards),
   ),
+);
+const hasDecklistCards = computed(() =>
+  (deckSettings?.groupings ?? []).some(
+    (group) => getCardsInGroup(group, cards).length > 0,
+  ),
+);
+const hasSideboardCards = computed(
+  () =>
+    deck.sideboard != null &&
+    deck.sideboard.length > 0 &&
+    (deckSettings?.groupings ?? []).some(
+      (group) => getCardsInGroup(group, sideboardCards).length > 0,
+    ),
+);
+const showDecklistSection = computed(
+  () => hasDecklistCards.value || hasSideboardCards.value,
 );
 const selectedCard = computed(() =>
   selectedCardIndex.value === undefined
@@ -336,22 +376,40 @@ console.timeEnd("page-render");
 
       <div class="flex flex-wrap justify-center gap-4 mt-8">
         <div
-          v-for="mainCard in mainCards"
+          v-for="mainCardWithChildren in mainCardsWithChildren"
           :class="{ 'w-2/5': mainCards.length > 1 }"
+          :key="mainCardWithChildren.mainCard.baseId"
           class="md:w-max"
         >
           <img
             class="w-48"
-            :src="GetCrop(mainCard.imageUrl, undefined) ?? '#'"
+            :src="GetCrop(mainCardWithChildren.mainCard.imageUrl, undefined) ?? '#'"
           />
           <p class="text-center">
-            <small>{{ mainCard.displayName }}</small>
+            <small>{{ mainCardWithChildren.mainCard.displayName }}</small>
           </p>
+          <div
+            v-if="mainCardWithChildren.children.length > 0"
+            class="mt-2 flex flex-wrap justify-center gap-2"
+          >
+            <div
+              v-for="childCard in mainCardWithChildren.children"
+              :key="childCard.baseId"
+              class="flex items-center gap-1 rounded-full border border-gray-300 bg-gray-50 px-2 py-1 text-xs"
+            >
+              <img
+                class="h-6 w-6 rounded object-cover"
+                :src="GetCrop(childCard.imageUrl, undefined) ?? '#'"
+                :alt="childCard.displayName ?? ''"
+              />
+              <span>{{ childCard.displayName }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="flex flex-col md:flex-row gap-8 mt-8">
-        <div class="md:w-2/3 shrink-0">
+        <div v-if="showDecklistSection" class="md:w-2/3 shrink-0">
           <div
             class="flex flex-col md:flex-row align-center justify-between gap-4"
           >

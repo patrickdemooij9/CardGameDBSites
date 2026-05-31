@@ -35,6 +35,7 @@ describe("DateHelper", () => {
 
     it("includes the year for dates in a previous year", () => {
       const lastYear = new Date();
+      lastYear.setDate(1); // Set day first to avoid month overflow
       lastYear.setFullYear(lastYear.getFullYear() - 1);
       lastYear.setMonth(5); // June
       lastYear.setDate(15);

@@ -23,6 +23,7 @@ import { PhDotsThree } from "@phosphor-icons/vue";
 import DeckDetailCardModal from "../decks/DeckDetailCardModal.vue";
 import DeckCardGroup from "../decks/DeckCardGroup.vue";
 import { useAccountStore } from "~/stores/AccountStore";
+import { getEditDeckUrl } from "~/helpers/DeckUrlHelper";
 
 console.time("page-render");
 
@@ -49,6 +50,7 @@ console.time("fetch-related-data");
 const accountService = useAccountStore();
 const collectionService = useCollection();
 const appToast = useAppToast();
+const siteSettings = await useSite().getSettings();
 const deckSettings = await useSite().getDeckTypeSettings(deck.typeId!);
 const comments = ref(await useComments().loadCommentsByDeckId(deckId));
 const cards = await useCards().loadCardsByIds(
@@ -307,7 +309,7 @@ console.timeEnd("page-render");
               <button
                 class="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 @click="
-                  router.push(`/create-deck?id=${deck.id}`);
+                  router.push(getEditDeckUrl(siteSettings.createDeckUrl, deck.id!));
                   showActionsDropdown = false;
                 "
               >

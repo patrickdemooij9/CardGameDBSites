@@ -94,6 +94,54 @@ namespace CardGameDBSites.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("settings")]
+        [ProducesResponseType(typeof(CollectionSettingsApiModel), 200)]
+        public IActionResult GetCollectionSettings()
+        {
+            var settings = _settingsService.GetCollectionSettings();
+            return Ok(new CollectionSettingsApiModel
+            {
+                AllowSetCollecting = settings.AllowSetCollecting,
+                AllowCardCollecting = settings.AllowCardCollecting,
+                ShowProgressBar = settings.ShowProgressBar
+            });
+        }
+
+        [HttpGet("sets")]
+        [ProducesResponseType(typeof(int[]), 200)]
+        public IActionResult GetSets()
+        {
+            return Ok(_collectionService.GetSets().Select(it => it.SetId).ToArray());
+        }
+
+        [HttpPost("addSet")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public IActionResult AddSetToCollection(int setId)
+        {
+            var set = _cardService.GetAllSets().FirstOrDefault(it => it.Id == setId);
+            if (set is null) return NotFound();
+
+            var collectionSetIds = _collectionService.GetSets().Select(it => it.SetId).ToArray();
+            if (!collectionSetIds.Contains(setId))
+            {
+                _collectionService.AddSetToCollection(setId, 1);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("removeSet")]
+        [ProducesResponseType(200)]
+        public IActionResult RemoveSetFromCollection(int setId)
+        {
+            if (_collectionService.GetSets().Any(it => it.SetId == setId))
+            {
+                _collectionService.RemoveSetFromCollection(setId);
+            }
+            return Ok();
+        }
+
         [HttpPost("cards")]
         [ProducesResponseType(typeof(CollectionCardApiModel[]), 200)]
         public IActionResult GetCollectionCards(int[] cardIds)

@@ -22,6 +22,7 @@ export type { CardVariantReferenceApiModel } from './models/CardVariantReference
 export type { CardVariantTypeApiModel } from './models/CardVariantTypeApiModel';
 export type { CollectionCardApiModel } from './models/CollectionCardApiModel';
 export { CollectionExportType } from './models/CollectionExportType';
+export type { CollectionSettingsApiModel } from './models/CollectionSettingsApiModel';
 export type { CollectionSummaryApiModel } from './models/CollectionSummaryApiModel';
 export type { CommentViewModel } from './models/CommentViewModel';
 export type { CommunityBlogPostApiModel } from './models/CommunityBlogPostApiModel';

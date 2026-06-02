@@ -12,7 +12,6 @@ export type DeckTypeSettingsApiModel = {
     displayName: string;
     amountOfSquadCards?: number;
     groupings?: Array<DeckCardGroupApiModel>;
-    sideboardGrouping?: DeckCardGroupApiModel;
     actions?: Array<DeckActionApiModel>;
     imageRules?: Array<DeckCardImageRuleApiModel>;
     mainCardRequirements?: Array<RequirementApiModel>;

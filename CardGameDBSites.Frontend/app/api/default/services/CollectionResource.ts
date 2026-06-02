@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
 import type { CollectionExportType } from '../models/CollectionExportType';
+import type { CollectionSettingsApiModel } from '../models/CollectionSettingsApiModel';
 import type { CollectionSummaryApiModel } from '../models/CollectionSummaryApiModel';
 import type { DeckProgressApiModel } from '../models/DeckProgressApiModel';
 import type { IActionResult } from '../models/IActionResult';
@@ -66,6 +67,26 @@ export class CollectionResource {
             url: '/api/collection/addPreset',
             query: {
                 'presetId': presetId,
+            },
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiCollectionAddSet({
+        setId,
+    }: {
+        setId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/addSet',
+            query: {
+                'setId': setId,
+            },
+            errors: {
+                404: `Not Found`,
             },
         });
     }
@@ -146,6 +167,33 @@ export class CollectionResource {
         });
     }
     /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static postApiCollectionRemoveSet({
+        setId,
+    }: {
+        setId?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/removeSet',
+            query: {
+                'setId': setId,
+            },
+        });
+    }
+    /**
+     * @returns number OK
+     * @throws ApiError
+     */
+    public static getApiCollectionSets(): CancelablePromise<Array<number>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/collection/sets',
+        });
+    }
+    /**
      * @returns SetProgressApiModel OK
      * @throws ApiError
      */
@@ -153,6 +201,16 @@ export class CollectionResource {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/collection/setsProgress',
+        });
+    }
+    /**
+     * @returns CollectionSettingsApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCollectionSettings(): CancelablePromise<CollectionSettingsApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/collection/settings',
         });
     }
     /**

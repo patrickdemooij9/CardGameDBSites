@@ -17,13 +17,14 @@ import ButtonType from "../shared/ButtonType";
 import type { PresetApiModel } from "~/models/PresetApiModel";
 import { useCollection } from "~/composables/useCollection";
 import { useAccountStore } from "~/stores/AccountStore";
+import { computed } from "vue";
 
 const accountStore = useAccountStore();
 const isLoggedIn = await accountStore.checkLogin();
 const appToast = useAppToast();
 const collectionComposable = useCollection();
 const showProgressBar = true;
-const progressPercent = ref(0);
+const progressPercent = computed(() => summaryData.value.collectionProgress ?? 0);
 const isLoading = ref(true);
 const showExportPopup = ref(false);
 const showImportPopup = ref(false);
@@ -115,7 +116,6 @@ onMounted(async () => {
         "/api/collection/summary",
       );
       sets.value = await DoServerFetch<SetViewModel[]>("/api/sets/getAll");
-      progressPercent.value = summaryData.value.collectionProgress ?? 0;
       presets.value = await collectionComposable.getPresets();
     }
     variantTypes.value = await DoServerFetch<CardVariantTypeApiModel[]>(
@@ -131,7 +131,6 @@ async function handleCollectionUpdated() {
   summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
     "/api/collection/summary",
   );
-  progressPercent.value = summaryData.value.collectionProgress ?? 0;
 }
 </script>
 

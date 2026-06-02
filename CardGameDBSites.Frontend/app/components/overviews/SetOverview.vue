@@ -5,6 +5,8 @@ import ProgressBar from "../shared/ProgressBar.vue";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
 import type { SetProgressApiModel } from "~/api/default";
 import { useAccountStore } from "~/stores/AccountStore";
+import Button from "~/components/shared/Button.vue";
+import ButtonType from "~/components/shared/ButtonType";
 
 type CollectionSettingsResponse = {
   allowSetCollecting: boolean;
@@ -145,19 +147,17 @@ onMounted(async () => {
           <div class="flex justify-between gap-4">
             <div class="grow self-center">
               <div v-if="accountStore.isLoggedIn">
-                <button
-                  v-if="collectionSettings.allowSetCollecting"
-                  type="button"
-                  class="btn btn-outline px-2 py-1"
+                <Button
+                :button-type="ButtonType.Outline"
+                v-if="collectionSettings.allowSetCollecting"
                   :disabled="processingSetIds.includes(set.id)"
-                  @click="updateSetCollection(set.id)"
-                >
+                  @click="updateSetCollection(set.id)">
                   {{
                     isSetInCollection(set.id)
                       ? "Remove from collection"
                       : "Add to collection"
                   }}
-                </button>
+                </Button>
                 <ProgressBar
                   v-else-if="
                     collectionSettings.allowCardCollecting &&
@@ -169,6 +169,7 @@ onMounted(async () => {
               </div>
             </div>
             <NuxtLink
+            v-if="!collectionSettings.allowSetCollecting"
               :to="set.urlSegment"
               class="border border-solid flex gap-2 rounded items-center px-2 py-1 bg-white"
             >

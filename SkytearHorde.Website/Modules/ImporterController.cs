@@ -151,7 +151,7 @@ namespace SkytearHorde.Modules
                         _mediaService.Save(backMedia);
                     }
 
-                    var ignoredProperties = new string[] { "Name", "image", "image_base64", "Id", "ParentId", "VariantTypeId" };
+                    var ignoredProperties = new string[] { "Name", "image", "image_base64", "Id", "ParentId", "VariantTypeId", "back_image_base64" };
                     foreach (var entry in item.Where(it => !ignoredProperties.Contains(it.Key, StringComparer.InvariantCultureIgnoreCase)))
                     {
                         var key = properties.Keys.FirstOrDefault(it => it.Replace("_multiple", "").Equals(entry.Key)) ?? entry.Key;

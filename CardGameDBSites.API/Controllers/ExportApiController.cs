@@ -196,7 +196,7 @@ namespace CardGameDBSites.API.Controllers
             if (type is DeckImageExport imageExport)
             {
                 var colors = _deckService.GetColorsByDeck(deck).Select(it => it.Key).ToArray();
-                return new ImageExport(_webHostEnvironment, _cardService, _siteService, new ImageExportConfig(_settingsService.GetSquadSettings(deck.TypeId))
+                return new ImageExport(_webHostEnvironment, _cardService, _siteService, _settingsService, new ImageExportConfig(_settingsService.GetSquadSettings(deck.TypeId))
                 {
                     SortOptions = imageExport.Sorting.ToItems<SortOption>().ToArray(),
                     MainCardLogic = imageExport.MainCardLogic.ToItems<ISquadRequirementConfig>().ToArray(),

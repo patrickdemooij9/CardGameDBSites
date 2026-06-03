@@ -64,6 +64,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool AllowRedditIntegration => this.Value<bool>(_publishedValueFallback, "allowRedditIntegration");
 
 		///<summary>
+		/// Base Url
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("baseUrl")]
+		public virtual string BaseUrl => this.Value<string>(_publishedValueFallback, "baseUrl");
+
+		///<summary>
 		/// Border Color
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]

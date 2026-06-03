@@ -53,7 +53,8 @@ namespace SkytearHorde.Business.Services
                     Subreddit = settings.RedditSubreddit
                 },
                 SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray(),
-                CardOverviewIdentifier = settings.CardOverviewIdentifier
+                CardOverviewIdentifier = settings.CardOverviewIdentifier,
+                BaseUrl = settings.BaseUrl
             };
         }
 

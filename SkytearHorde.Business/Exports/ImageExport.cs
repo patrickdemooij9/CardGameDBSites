@@ -25,6 +25,7 @@ namespace SkytearHorde.Business.Exports
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly CardService _cardService;
         private readonly ISiteService _siteService;
+        private readonly SettingsService _settingsService;
         private readonly ImageExportConfig _config;
         private readonly Color[] _deckColors;
         private readonly FontFamily _regularFontFamily;
@@ -33,12 +34,14 @@ namespace SkytearHorde.Business.Exports
         public ImageExport(IWebHostEnvironment webHostEnvironment,
             CardService cardService,
             ISiteService siteService,
+            SettingsService settingsService,
             ImageExportConfig config,
             Color[] deckColors)
         {
             _webHostEnvironment = webHostEnvironment;
             _cardService = cardService;
             _siteService = siteService;
+            _settingsService = settingsService;
             _config = config;
             _deckColors = deckColors;
 
@@ -70,7 +73,7 @@ namespace SkytearHorde.Business.Exports
             }
 
             await RenderAllDeckImages(image, deck.Cards.Except(mainCards).ToList(), new Size(imageContainerX, 1000), new Point(startingPointX, 200), 10, mainCards.Length > 0 ? 6 : 8);
-            RenderDeckLink(image, $"{_siteService.GetDeckOverview(deck.TypeId).Url(mode: UrlMode.Absolute)}{deck.Id}");
+            RenderDeckLink(image, $"{_settingsService.GetSiteSettings().BaseUrl}{_siteService.GetDeckOverview(deck.TypeId).Url(mode: UrlMode.Relative)}{deck.Id}");
 
             using var memoryStream = new MemoryStream();
             await image.SaveAsPngAsync(memoryStream);

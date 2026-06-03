@@ -21,6 +21,7 @@ namespace SkytearHorde.Entities.Models.Business.Config
         public RedditSettingsConfig? RedditSettings { get; set; }
         public SortOption[] SortOptions { get; set; }
         public string? CardOverviewIdentifier { get; set; }
+        public string BaseUrl { get; set; }
 
         public SiteSettingsConfig()
         {

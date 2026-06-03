@@ -67,8 +67,9 @@ const childCardIds = [
 const childCards = await useCards().loadCardsByIds(childCardIds);
 const childCardsById = new Map(
   childCards
-    .filter((card): card is CardDetailApiModel & { baseId: number } =>
-      card.baseId !== undefined,
+    .filter(
+      (card): card is CardDetailApiModel & { baseId: number } =>
+        card.baseId !== undefined,
     )
     .map((card) => [card.baseId, card]),
 );
@@ -383,7 +384,9 @@ console.timeEnd("page-render");
         >
           <img
             class="w-48"
-            :src="GetCrop(mainCardWithChildren.mainCard.imageUrl, undefined) ?? '#'"
+            :src="
+              GetCrop(mainCardWithChildren.mainCard.imageUrl, undefined) ?? '#'
+            "
           />
           <p class="text-center">
             <small>{{ mainCardWithChildren.mainCard.displayName }}</small>
@@ -395,13 +398,9 @@ console.timeEnd("page-render");
             <div
               v-for="childCard in mainCardWithChildren.children"
               :key="childCard.baseId"
-              class="flex items-center gap-1 rounded-full border border-gray-300 bg-gray-50 px-2 py-1 text-xs"
+              v-cursor-image="childCard.imageUrl?.url"
+              class="rounded-full border border-gray-300 bg-gray-50 px-2 py-1 text-xs"
             >
-              <img
-                class="h-6 w-6 rounded object-cover"
-                :src="GetCrop(childCard.imageUrl, undefined) ?? '#'"
-                :alt="childCard.displayName ?? ''"
-              />
               <span>{{ childCard.displayName }}</span>
             </div>
           </div>
@@ -409,8 +408,9 @@ console.timeEnd("page-render");
       </div>
 
       <div class="flex flex-col md:flex-row gap-8 mt-8">
-        <div v-if="showDecklistSection" class="md:w-2/3 shrink-0">
+        <div class="md:w-2/3 shrink-0">
           <div
+            v-if="showDecklistSection"
             class="flex flex-col md:flex-row align-center justify-between gap-4"
           >
             <h2 class="text-lg">Decklist</h2>
@@ -449,34 +449,16 @@ console.timeEnd("page-render");
               "
             ></DeckAction>
           </div>
-          <template
-            v-for="group in deckSettings?.groupings"
-            :key="group.header"
-          >
-            <DeckCardGroup
-              :group="group"
-              :cards="cards"
-              :settings="deckSettings"
-              :deck-cards="deck.cards"
-              :deck-display-mode="deckDisplayMode"
-              :collection-mode="collectionMode"
-              :cost-image-url="deckSettings?.costImageUrl"
-              :render-cost-on-image="deckSettings?.renderCostOnImage"
-              @card-click="openCardPopup"
-            />
-          </template>
-          <div v-if="deck.sideboard && deck.sideboard.length > 0" class="mt-4">
-            <hr/>
-            <h3 class="text-lg mt-2">Sideboard</h3>
+          <template v-if="showDecklistSection">
             <template
               v-for="group in deckSettings?.groupings"
               :key="group.header"
             >
               <DeckCardGroup
                 :group="group"
-                :cards="sideboardCards"
+                :cards="cards"
                 :settings="deckSettings"
-                :deck-cards="deck.sideboard"
+                :deck-cards="deck.cards"
                 :deck-display-mode="deckDisplayMode"
                 :collection-mode="collectionMode"
                 :cost-image-url="deckSettings?.costImageUrl"
@@ -484,7 +466,30 @@ console.timeEnd("page-render");
                 @card-click="openCardPopup"
               />
             </template>
-          </div>
+            <div
+              v-if="deck.sideboard && deck.sideboard.length > 0"
+              class="mt-4"
+            >
+              <hr />
+              <h3 class="text-lg mt-2">Sideboard</h3>
+              <template
+                v-for="group in deckSettings?.groupings"
+                :key="group.header"
+              >
+                <DeckCardGroup
+                  :group="group"
+                  :cards="sideboardCards"
+                  :settings="deckSettings"
+                  :deck-cards="deck.sideboard"
+                  :deck-display-mode="deckDisplayMode"
+                  :collection-mode="collectionMode"
+                  :cost-image-url="deckSettings?.costImageUrl"
+                  :render-cost-on-image="deckSettings?.renderCostOnImage"
+                  @card-click="openCardPopup"
+                />
+              </template>
+            </div>
+          </template>
         </div>
         <div v-if="deck.description">
           <h2 class="text-lg pb-2">Description</h2>

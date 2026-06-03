@@ -15,7 +15,7 @@ const navigationViewModel = await getNavigation();
       '--main-color-hover': siteSettings.hoverMainColor,
       '--nav-border-color': siteSettings.mainColor,
     }"
-    class="min-h-screen flex flex-col"
+    class="min-h-screen flex flex-col dark:bg-gray-900 dark:text-gray-200"
     id="root"
   >
     <ImpersonationBanner />

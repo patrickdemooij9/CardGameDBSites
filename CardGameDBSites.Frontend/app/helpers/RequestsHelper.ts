@@ -1,6 +1,7 @@
 import type { NitroFetchOptions } from "nitropack";
 import { useAppToast } from "~/composables/useAppToast";
 import { useAccountStore } from "~/stores/AccountStore";
+import { Capacitor } from "@capacitor/core";
 
 type FetchStatusError = {
   statusCode?: number;
@@ -36,6 +37,15 @@ function handleUnauthorized(error: unknown) {
   }
 }
 
+/**
+ * Returns true when running inside a Capacitor native shell.
+ * In that context there is no Nitro server, so the /api/proxy route is unavailable.
+ */
+function isNativeApp(): boolean {
+  if (!import.meta.client) return false;
+  return Capacitor.isNativePlatform();
+}
+
 export function DoFetch<T>(
   url: string,
   options?: NitroFetchOptions<string>
@@ -65,6 +75,12 @@ export async function DoServerFetch<T>(
 ): Promise<T> {
   options = options ?? {};
   options.headers = options.headers ?? {};
+
+  // In a Capacitor native app there is no Nitro server, so skip the proxy
+  // and call the API directly.
+  if (useProxy && isNativeApp()) {
+    return DoFetch<T>(url, options);
+  }
 
   if (useProxy){
     url = `/api/proxy${url}`;

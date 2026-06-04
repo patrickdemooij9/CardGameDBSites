@@ -30,6 +30,7 @@ const emit = defineEmits<{
 
 const pagedCards = ref<PagedResultCardDetailApiModel>();
 const overview = ref<InstanceType<typeof Overview>>();
+let currentRequestVersion = 0;
 
 //TODO: this needs to be reworked otherwise we keep on resetting stuff
 watch(
@@ -51,6 +52,10 @@ watch(
 );
 
 async function loadData(value: OverviewRefreshModel) {
+  // Increment the request version to track which request is the latest
+  currentRequestVersion++;
+  const requestVersion = currentRequestVersion;
+
   const filters: CardsQueryFilterClauseApiModel[] = [];
   value.SelectedFilters.forEach((values, key) => {
     if (values.length === 0) {
@@ -75,7 +80,7 @@ async function loadData(value: OverviewRefreshModel) {
     filters.push(filter);
   });
 
-  pagedCards.value = await useCards().queryCards({
+  const result = await useCards().queryCards({
     query: value.Query,
     pageNumber: value.PageNumber,
     pageSize: props.pageSize ?? 30,
@@ -86,10 +91,15 @@ async function loadData(value: OverviewRefreshModel) {
     includeReprintedCards: props.hideReprintedCards ? false : undefined,
     legalForDeckTypeId: props.legalForDeckTypeId,
   });
-  if (value.LoadedCallback) {
-    value.LoadedCallback();
+
+  // Only update state if this is the latest request
+  if (requestVersion === currentRequestVersion) {
+    pagedCards.value = result;
+    if (value.LoadedCallback) {
+      value.LoadedCallback();
+    }
+    emit("reloaded", pagedCards.value);
   }
-  emit("reloaded", pagedCards.value);
 }
 
 async function loadLazyFilter(filter: OverviewFilterModel) {

@@ -398,7 +398,7 @@ namespace SkytearHorde.Business.Services
                         maxCards = cards.Where(it => requirements.All(r => r.IsValid([it]))).Count();
                     }
 
-                    if (maxCards > 0 && maxCards > postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
+                    if (maxCards > 0 && maxCards < postedSlot.Cards.Sum(it => it.Amount)) throw new InvalidOperationException("Not max cards given");
 
                     foreach (var mutation in cards.SelectMany(it => it.Mutations))
                     {

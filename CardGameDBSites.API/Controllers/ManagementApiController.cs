@@ -1,4 +1,5 @@
 using CardGameDBSites.API.Attributes;
+using CardGameDBSites.API.Models.Management;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -30,14 +31,16 @@ namespace CardGameDBSites.API.Controllers
         private readonly IContentService _contentService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly TournamentService _tournamentService;
+        private readonly CardImportService _cardImportService;
 
-        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService)
+        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, CardImportService cardImportService)
         {
             _deckService = deckService;
             _siteService = siteService;
             _contentService = contentService;
             _umbracoContextFactory = umbracoContextFactory;
             _tournamentService = tournamentService;
+            _cardImportService = cardImportService;
         }
 
         [HttpPost("decks/{deckId}/createPreset")]
@@ -137,6 +140,29 @@ namespace CardGameDBSites.API.Controllers
         {
             await _tournamentService.ImportTournament(model);
             return Ok();
+        }
+
+        [HttpPost("importCards")]
+        [ProducesResponseType(typeof(CardImportResultApiModel), 200)]
+        [ProducesResponseType(403)]
+        public async Task<IActionResult> ImportCardsFromExternalApi()
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            var result = await _cardImportService.ImportCardsFromExternalApi();
+            
+            var apiModel = new CardImportResultApiModel
+            {
+                TotalCardsFetched = result.TotalCardsFetched,
+                CardsCreated = result.CardsCreated,
+                CardsDuplicate = result.CardsDuplicate,
+                CardsSkipped = result.CardsSkipped,
+                CardsError = result.CardsError,
+                Message = result.Message
+            };
+            
+            return Ok(apiModel);
         }
     }
 }

@@ -14,6 +14,7 @@ using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.ViewModels;
 using System.IO.Compression;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
@@ -73,6 +74,74 @@ namespace SkytearHorde.Modules
             _cardGameSettingsConfig = cardGameSettingsConfigOption.Value;
             _collectionService = collectionService;
             _logger = logger;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ImportFromApi(int nodeId)
+        {
+            _siteAccessor.SetSiteId(GetSiteIdByNode(nodeId));
+
+            var existingCardNames = _cardService.GetAll().Select(it => it.DisplayName)
+                .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+
+            var importModels = new List<ImportModel>();
+            using var httpClient = new HttpClient();
+
+            var pageNumber = 1;
+            const int pageSize = 100;
+            int totalPages = 1;
+
+            do
+            {
+                var queryModel = new
+                {
+                    pageNumber,
+                    pageSize,
+                    filterClauses = Array.Empty<object>(),
+                    variantTypeIds = Array.Empty<int>()
+                };
+
+                var response = await httpClient.PostAsJsonAsync(
+                    "https://api.sw-unlimited-db.com/api/cards/query", queryModel);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Failed to fetch cards from external API. Status: {StatusCode}", response.StatusCode);
+                    break;
+                }
+
+                var result = await response.Content.ReadFromJsonAsync<ExternalApiPagedResult>();
+                if (result?.Items is null || result.Items.Length == 0)
+                    break;
+
+                totalPages = result.TotalPages;
+
+                foreach (var card in result.Items)
+                {
+                    if (string.IsNullOrWhiteSpace(card.DisplayName)) continue;
+                    if (existingCardNames.Contains(card.DisplayName)) continue;
+
+                    var properties = new Dictionary<string, string>();
+                    if (card.Attributes is not null)
+                    {
+                        foreach (var attr in card.Attributes)
+                        {
+                            if (attr.Value is null || attr.Value.Length == 0) continue;
+                            properties[attr.Key] = string.Join(",", attr.Value);
+                        }
+                    }
+
+                    importModels.Add(new ImportModel(null, card.DisplayName, card.SetName ?? string.Empty, properties));
+                    existingCardNames.Add(card.DisplayName);
+                }
+
+                pageNumber++;
+            }
+            while (pageNumber <= totalPages);
+
+            ImportModels(importModels);
+
+            return Ok(new { imported = importModels.Count });
         }
 
         [HttpPost]
@@ -668,5 +737,21 @@ namespace SkytearHorde.Modules
             var currentNode = ctx.UmbracoContext.Content?.GetById(nodeId) ?? throw new InvalidOperationException("Node not found.");
             return currentNode.Root().FirstChild<Settings>()?.FirstChild<SiteSettings>()?.SiteId ?? throw new InvalidOperationException("Site settings not found.");
         }
+    }
+
+    internal class ExternalApiCardModel
+    {
+        public string? DisplayName { get; set; }
+        public string? SetName { get; set; }
+        public Dictionary<string, string[]>? Attributes { get; set; }
+    }
+
+    internal class ExternalApiPagedResult
+    {
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalItems { get; set; }
+        public ExternalApiCardModel[]? Items { get; set; }
     }
 }

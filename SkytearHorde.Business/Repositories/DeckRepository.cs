@@ -8,7 +8,6 @@ using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Infrastructure.Persistence;
 using Umbraco.Cms.Infrastructure.Scoping;
 using Umbraco.Extensions;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace SkytearHorde.Business.Repositories
 {
@@ -55,7 +54,8 @@ namespace SkytearHorde.Business.Repositories
                 DeckType = deck.TypeId,
                 SiteId = deck.SiteId,
                 Score = deck.Score,
-                IsLegal = deck.IsLegal
+                IsLegal = deck.IsLegal,
+                Source = (int)deck.Source
             };
             scope.Database.Insert(deckModel);
 
@@ -95,6 +95,7 @@ namespace SkytearHorde.Business.Repositories
                 .From<DeckDBModel>()
                 .Where<DeckDBModel>(it => it.Id == deck.Id));
 
+            deckDB.Source = (int)deck.Source;
             deckDB.Score = deck.Score;
             deckDB.IsLegal = deck.IsLegal;
 
@@ -467,6 +468,7 @@ namespace SkytearHorde.Business.Repositories
                 CreatedDate = deck.CreatedDate,
                 UpdatedDate = deck.UpdatedDate,
                 CreatedBy = deck.CreatedBy,
+                Source = (DeckSource)deck.Source,
                 SiteId = deck.SiteId,
                 TypeId = deck.DeckType,
                 AmountOfLikes = deck.AmountOfLikes,
@@ -498,7 +500,7 @@ namespace SkytearHorde.Business.Repositories
         private Sql<ISqlContext> BaseQuery(ISqlContext sqlContext, bool isPublished)
         {
             return sqlContext.Sql()
-                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, d.TotalLikes as 'AmountOfLikes'")
+                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.Source, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, d.TotalLikes as 'AmountOfLikes'")
                 .From<DeckDBModel>("d")
                 .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
         }

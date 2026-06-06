@@ -1,3 +1,4 @@
+using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Models.Business;
 
 namespace SkytearHorde.Tests.ModelTests
@@ -141,7 +142,7 @@ namespace SkytearHorde.Tests.ModelTests
         [Test]
         public void Constructor_InitializesDefaultValues()
         {
-            var deck = new Deck("Test Deck") { SiteId = 1, TypeId = 1 };
+            var deck = new Deck("Test Deck") { SiteId = 1, TypeId = 1, Source = DeckSource.DeckBuilder };
 
             Assert.That(deck.Name, Is.EqualTo("Test Deck"));
             Assert.That(deck.Cards, Is.Not.Null);
@@ -153,7 +154,7 @@ namespace SkytearHorde.Tests.ModelTests
         [Test]
         public void Constructor_WithId_SetsId()
         {
-            var deck = new Deck(42, "Test Deck") { SiteId = 1, TypeId = 1 };
+            var deck = new Deck(42, "Test Deck") { SiteId = 1, TypeId = 1, Source = DeckSource.DeckBuilder };
 
             Assert.That(deck.Id, Is.EqualTo(42));
             Assert.That(deck.Name, Is.EqualTo("Test Deck"));
@@ -165,7 +166,8 @@ namespace SkytearHorde.Tests.ModelTests
             {
                 Cards = cards.ToList(),
                 SiteId = 1,
-                TypeId = 1
+                TypeId = 1,
+                Source = DeckSource.DeckBuilder
             };
         }
     }

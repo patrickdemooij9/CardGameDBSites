@@ -1,11 +1,12 @@
 ﻿using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Tournaments;
+using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Tournament;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SkytearHorde.Business.Services.Search;
+using SkytearHorde.Business.Middleware;
+using SkytearHorde.Entities.Generated;
+using SkytearHorde.Business.Extensions;
+using SkytearHorde.Entities.Enums;
 
 namespace SkytearHorde.Business.Services
 {
@@ -13,20 +14,28 @@ namespace SkytearHorde.Business.Services
     {
         private readonly TournamentRepository _tournamentRepository;
         private readonly ITournamentConnector[] _tournamentConnectors;
+        private readonly CardService _cardService;
+        private readonly DeckRepository _deckRepository;
+        private readonly ISiteAccessor _siteAccessor;
+        private readonly SettingsService _settingsService;
 
-        public TournamentService(TournamentRepository tournamentRepository, IEnumerable<ITournamentConnector> tournamentConnectors)
+        public TournamentService(TournamentRepository tournamentRepository, IEnumerable<ITournamentConnector> tournamentConnectors, CardService cardService, DeckRepository deckRepository, ISiteAccessor siteAccessor, SettingsService settingsService)
         {
             _tournamentRepository = tournamentRepository;
             _tournamentConnectors = tournamentConnectors.ToArray();
+            _cardService = cardService;
+            _deckRepository = deckRepository;
+            _siteAccessor = siteAccessor;
+            _settingsService = settingsService;
         }
 
-        public async Task ImportTournament(ImportTournament model)
+        public async Task<ImportTournamentResult> ImportTournament(ImportTournament model)
         {
             var connector = _tournamentConnectors.FirstOrDefault(c => c.Source == model.Source);
-            if (connector is null) return;
+            if (connector is null) return new ImportTournamentResult { Success = false, Message = "Tournament connector not found" };
 
             var tournamentData = await connector.LoadTournament(model.ExternalId);
-            if (tournamentData is null) return;
+            if (tournamentData is null) return new ImportTournamentResult { Success = false, Message = "Tournament data not found" };
 
             var tournament = new Tournament
             {
@@ -39,17 +48,47 @@ namespace SkytearHorde.Business.Services
                 ExternalId = tournamentData.ExternalId
             };
 
-            _tournamentRepository.Save(tournament);
-
             var otherData = await connector.GetData(tournament);
-            if (otherData is null) return;
+            if (otherData is null) return new ImportTournamentResult { Success = false, Message = "Failed to retrieve tournament data" };
+
+            var deckSettings = _settingsService.GetSquadSettings(model.FormatId);
+            var decks = CreateDecksFromData(deckSettings, otherData, out var missingCards);
+            if (missingCards.Count > 0)
+            {
+                var message = $"Import failed due to missing cards: {string.Join(", ", missingCards)}";
+                return new ImportTournamentResult { Success = false, Message = message, MissingCards = missingCards };
+            }
+
+            // Save tournament only after validation passes
+            _tournamentRepository.Save(tournament);
 
             foreach (var round in otherData.RoundsByExternalId.Values)
             {
                 _tournamentRepository.Save(round);
             }
-            foreach (var entrant in otherData.EntrantsByExternalId.Values)
+
+            // Create and save decks before entrants, so we can attach deck IDs
+            var deckIdsByEntrantExternalId = new Dictionary<int, int>();
+            foreach (var kvp in decks)
             {
+                var entrantExternalId = kvp.Key;
+                var deck = kvp.Value;
+
+                _deckRepository.Create(deck);
+                deckIdsByEntrantExternalId[entrantExternalId] = deck.Id;
+            }
+
+            // Attach deck IDs to entrants before saving
+            foreach (var kvp in otherData.EntrantsByExternalId)
+            {
+                var entrantExternalId = kvp.Key;
+                var entrant = kvp.Value;
+
+                if (deckIdsByEntrantExternalId.TryGetValue(entrantExternalId, out var deckId))
+                {
+                    entrant.TournamentDeckId = deckId;
+                }
+
                 _tournamentRepository.Save(entrant);
             }
 
@@ -73,6 +112,98 @@ namespace SkytearHorde.Business.Services
 
                 _tournamentRepository.Save(match);
             }
+
+            return new ImportTournamentResult { Success = true, Message = "Tournament imported successfully" };
+        }
+
+        private Dictionary<int, Deck> CreateDecksFromData(SquadSettings deckSettings, TournamentConnectorData data, out List<string> missingCards)
+        {
+            var decks = new Dictionary<int, Deck>();
+            missingCards = [];
+
+            var resolvedCards = new Dictionary<string, Entities.Models.Business.Card?>();
+
+            foreach (var (entrantId, deckData) in data.DeckDataByEntrantExternalId)
+            {
+                if (deckData == null)
+                    continue;
+
+                var deck = new Deck(deckData.Name)
+                {
+                    SiteId = _siteAccessor.GetSiteId(),
+                    TypeId = deckSettings.TypeID,
+                    Source = DeckSource.TournamentSync,
+                    IsPublished = false,
+                    CreatedDate = DateTime.UtcNow,
+                    Cards = [],
+                    Sideboard = [],
+                    IsLegal = false // TODO: Do we need to check this?
+                };
+
+                if (deckData.Cards == null || deckData.Cards.Count == 0)
+                    continue;
+
+                // TODO: Implement card lookup by name + optional subtitle
+                // For now, cards will not be populated; decks are created as placeholders
+                // Each MeleeDeckCard has: Lookup, Name, Subtitle, Quantity, Component (0=main, 99=sideboard), Type
+
+                foreach (var card in deckData.Cards)
+                {
+                    // Search for the card by name
+                    var searchQuery = card.Subtitle != null
+                        ? $"{card.Name} {card.Subtitle}"
+                        : card.Name;
+
+                    resolvedCards.TryGetValue(searchQuery, out var resolvedCard);
+                    if (!resolvedCards.ContainsKey(searchQuery))
+                    {
+                        var results = _cardService.Search(
+                            new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId())
+                            {
+                                Query = searchQuery,
+                                VariantTypeIds = [0],
+                                Amount = 1
+                            }, out var _);
+
+                        resolvedCard = results.FirstOrDefault();
+                        resolvedCards[searchQuery] = resolvedCard;
+                        if (resolvedCard is null)
+                        {
+                            // Card not found in local database; skip with silent warning
+                            missingCards.Add($"{searchQuery} from {deckData.Name}");
+                            continue;
+                        }
+                    }
+                    if (resolvedCard is null) continue;
+
+                    var isMainDeck = card.Component != 99;
+                    var target = isMainDeck ? deck.Cards : deck.Sideboard;
+
+                    // This is not really correct as we could have multiple groupings (See shatterpoint), but for now we just support SW-Unlimited
+                    var grouping = isMainDeck ? deckSettings.Squads.ToItems<SquadConfig>().First() : deckSettings.SideboardGroup.ToItems<SquadConfig>().First();
+
+                    var slotId = GetSlotForCard(grouping, resolvedCard);
+
+                    // Use BaseId for the main card ID in the deck list
+                    target.Add(new DeckCard(resolvedCard.BaseId, grouping.SquadId, slotId, card.Quantity));
+                }
+                decks[entrantId] = deck;
+            }
+            return decks;
+        }
+
+        private int GetSlotForCard(SquadConfig config, Entities.Models.Business.Card card)
+        {
+            var slots = config.Slots.ToItems<SquadSlotConfig>().ToArray();
+            for (var i = 0; i < slots.Length; i++)
+            {
+                var slot = slots[i];
+                if (slot.Requirements.ToItems<ISquadRequirementConfig>().Where(it => it.RestrictionType != "Filter").All(r => r.GetRequirement().IsValid([card])))
+                {
+                    return i;
+                }
+            }
+            return 0;
         }
     }
 }

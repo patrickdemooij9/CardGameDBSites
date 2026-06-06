@@ -530,6 +530,7 @@ namespace SkytearHorde.Modules
                     var newSet = _contentService.Create(model.SetName, dataContainer.Id, Set.ModelTypeAlias);
                     var result = _contentService.SaveAndPublish(newSet).Content;
                     setId = result.Id;
+                    set = dataContainer.FirstChild<Set>(it => it.Name.Equals(model.SetName))!;
                 }
 
                 if (model.Id == 0 || model.Id is null)

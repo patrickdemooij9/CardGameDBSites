@@ -20,13 +20,13 @@ console.timeEnd("fetching content");
 const config = useRuntimeConfig();
 
 useHead({
-    title: data.value!.seoToolkit.title,
+    title: data.value?.seoToolkit.title,
     meta: [
-        { name: 'description', content: data.value!.seoToolkit.metaDescription },
-        { property: 'og:title', content: data.value!.seoToolkit.openGraphTitle || data.value!.seoToolkit.title },
-        { property: 'og:description', content: data.value!.seoToolkit.metaDescription },
-        { property: 'og:image', content: data.value!.seoToolkit.openGraphImage },
-        { property: 'og:url', content: data.value!.seoToolkit.canonicalUrl }
+        { name: 'description', content: data.value?.seoToolkit.metaDescription },
+        { property: 'og:title', content: data.value?.seoToolkit.openGraphTitle || data.value?.seoToolkit.title },
+        { property: 'og:description', content: data.value?.seoToolkit.metaDescription },
+        { property: 'og:image', content: data.value?.seoToolkit.openGraphImage },
+        { property: 'og:url', content: data.value?.seoToolkit.canonicalUrl }
     ],
     link: [
         { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` }

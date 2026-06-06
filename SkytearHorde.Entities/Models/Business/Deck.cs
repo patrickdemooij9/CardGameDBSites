@@ -1,4 +1,5 @@
-﻿using SkytearHorde.Entities.Generated;
+﻿using SkytearHorde.Entities.Enums;
+using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Interfaces;
 
 namespace SkytearHorde.Entities.Models.Business
@@ -12,6 +13,7 @@ namespace SkytearHorde.Entities.Models.Business
         public DateTime UpdatedDate { get; set; }
         public int? CreatedBy { get; set; }
         public bool IsPublished { get; set; }
+        public required DeckSource Source { get; set; }
         public required int SiteId { get; set; }
         public required int TypeId { get; set; }
         public List<DeckCard> Cards { get; set; }

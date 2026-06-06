@@ -1,4 +1,5 @@
 using SkytearHorde.Business.Helpers;
+using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Models.Business;
 
 namespace SkytearHorde.Tests.HelperTests
@@ -248,7 +249,8 @@ namespace SkytearHorde.Tests.HelperTests
                 AmountOfLikes = likes,
                 CreatedDate = createdDate ?? DateTime.UtcNow.AddDays(-60),
                 SiteId = 1,
-                TypeId = 1
+                TypeId = 1,
+                Source = DeckSource.DeckBuilder
             };
         }
     }

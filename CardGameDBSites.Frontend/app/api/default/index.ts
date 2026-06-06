@@ -67,6 +67,7 @@ export type { IDeckDisplayApiModel } from './models/IDeckDisplayApiModel';
 export type { ImageCropApiModel } from './models/ImageCropApiModel';
 export type { ImageCropsApiModel } from './models/ImageCropsApiModel';
 export type { ImportTournament } from './models/ImportTournament';
+export type { ImportTournamentResult } from './models/ImportTournamentResult';
 export type { KeywordImageApiModel } from './models/KeywordImageApiModel';
 export type { LinkApiModel } from './models/LinkApiModel';
 export type { LoginPostModel } from './models/LoginPostModel';

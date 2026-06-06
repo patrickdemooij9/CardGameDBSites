@@ -1,4 +1,5 @@
 ﻿using Examine;
+using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Web;
@@ -61,7 +62,7 @@ namespace SkytearHorde.Business.Startup.Indexes
             var setName = card.SetName.Replace(" ", "");
             updatedValues["CustomField.Set Name"] = [setName];
             updatedValues["CustomField.SetId"] = [card.SetId];
-            updatedValues["Name"] = [card.DisplayName];
+            updatedValues["Name"] = [card.DisplayName.ToSearchFriendly()];
             updatedValues["VariantType"] = [card.VariantTypeId ?? 0];
             updatedValues["IsReprint"] = [card.IsReprint ? 1 : 0];
 

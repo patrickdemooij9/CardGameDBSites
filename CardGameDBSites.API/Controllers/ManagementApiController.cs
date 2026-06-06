@@ -132,11 +132,16 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(ImportTournamentResult), 200)]
+        [ProducesResponseType(typeof(ImportTournamentResult), 400)]
         public async Task<IActionResult> ImportTournament(ImportTournament model)
         {
-            await _tournamentService.ImportTournament(model);
-            return Ok();
+            var result = await _tournamentService.ImportTournament(model);
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+            return Ok(result);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Tournament;
 using SkytearHorde.Entities.Models.Database.Tournament;
 using System.Text.Json;
@@ -118,6 +119,18 @@ namespace SkytearHorde.Business.Tournaments
                                 Source = Source
                             };
                             data.EntrantsByExternalId[player.ID] = entrant;
+
+                            // Load the entrant's deck from Melee if available
+                            if (competitor.Decklists != null && competitor.Decklists.Length > 0)
+                            {
+                                var firstDecklistGuid = competitor.Decklists[0].DeckListId;
+                                var deckData = await LoadDeckFromMelee(firstDecklistGuid.ToString());
+                                if (deckData != null)
+                                {
+                                    data.DeckData.Add(deckData);
+                                    data.DeckDataByEntrantExternalId[player.ID] = deckData;
+                                }
+                            }
                         }
 
                         if (i == 0)
@@ -146,13 +159,42 @@ namespace SkytearHorde.Business.Tournaments
                         Entrant2Id = entrant2ExternalId,    // external — remapped in TournamentService
                         WinnerEntrantId = winnerExternalId, // external — remapped in TournamentService
                         GamesWonP1 = gamesWonP1,
-                        GamesWonP2 = gamesWonP2
+                        GamesWonP2 = gamesWonP2,
                     });
                 }
             }
 
             return data;
         }
+
+        private async Task<MeleeDeckData?> LoadDeckFromMelee(string decklistGuid)
+        {
+            try
+            {
+                var deckUrl = $"https://melee.gg/Decklist/GetDecklistDetails?id={decklistGuid}";
+                var response = await _httpClient.GetAsync(deckUrl);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var json = await response.Content.ReadAsStringAsync();
+                var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var decklistResponse = JsonSerializer.Deserialize<MeleeDecklistResponse>(json, jsonOptions);
+                if (decklistResponse is null)
+                    return null;
+
+                // Return deck data; TournamentService will create the actual Deck object with site/type context
+                return new MeleeDeckData
+                {
+                    Name = decklistResponse.DecklistName,
+                    Cards = decklistResponse.Records ?? []
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
 
         // --- Melee.GG API response models ---
 
@@ -176,6 +218,7 @@ namespace SkytearHorde.Business.Tournaments
             public int? GameWins { get; set; }
             public string? ResultConfirmed { get; set; }
             public MeleeTeam? Team { get; set; }
+            public MeleeCompetitorDeckList[] Decklists { get; set; } = [];
         }
 
         private class MeleeTeam
@@ -188,6 +231,22 @@ namespace SkytearHorde.Business.Tournaments
             public int ID { get; set; }
             public int TeamId { get; set; }
             public string DisplayName { get; set; } = string.Empty;
+        }
+
+        private class MeleeCompetitorDeckList
+        {
+            public Guid DeckListId { get; set; }
+        }
+
+        // --- Melee Decklist Detail Response Models ---
+
+        private class MeleeDecklistResponse
+        {
+            public Guid Guid { get; set; }
+            public string DecklistName { get; set; } = string.Empty;
+            public string FormatName { get; set; } = string.Empty;
+            public string Game { get; set; } = string.Empty;
+            public List<MeleeDeckCard> Records { get; set; } = [];
         }
     }
 }

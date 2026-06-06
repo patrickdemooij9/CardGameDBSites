@@ -123,6 +123,7 @@ namespace SkytearHorde.Business.Services
             {
                 Description = postModel.Description,
                 CreatedBy = userId,
+                Source = DeckSource.DeckBuilder,
                 Cards = postModel.Squads.SelectMany((squad) => squad.Slots.SelectMany((c, index) =>
                 {
                     return c.Cards.Select(it => new DeckCard(it.CardId, squad.Id, index, it.Amount)

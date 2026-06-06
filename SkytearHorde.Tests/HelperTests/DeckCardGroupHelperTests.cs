@@ -1,4 +1,5 @@
 using SkytearHorde.Business.Helpers;
+using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.ViewModels;
 
@@ -135,7 +136,7 @@ namespace SkytearHorde.Tests.HelperTests
 
             return new DeckCardGroupViewModel
             {
-                Deck = new Entities.Models.Business.Deck(1, "Test") { SiteId = 1, TypeId = 1 },
+                Deck = new Entities.Models.Business.Deck(1, "Test") { SiteId = 1, TypeId = 1, Source = DeckSource.DeckBuilder },
                 Group = null!,
                 Cards = cards,
                 SquadSettings = null!

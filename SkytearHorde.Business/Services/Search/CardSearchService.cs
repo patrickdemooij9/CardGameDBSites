@@ -1,6 +1,7 @@
 ﻿using Examine;
 using Examine.Search;
 using Microsoft.Extensions.DependencyInjection;
+using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Models.Business;
 using Umbraco.Extensions;
@@ -136,7 +137,7 @@ namespace SkytearHorde.Business.Services.Search
 
             if (!string.IsNullOrWhiteSpace(query.Query))
             {
-                var splitQuery = query.Query.Replace('-', ' ').Split(' ');
+                var splitQuery = query.Query.ToSearchFriendly().Split(' ');
                 var searchFields = new List<string> { "name" };
                 searchFields.AddRange(_cardSearchFieldsFinder.GetGeneralFieldsToSearch().Select(it => $"CustomField.{it}"));
                 foreach (var queryItem in splitQuery.Where(it => !string.IsNullOrWhiteSpace(it)))

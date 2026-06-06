@@ -3,24 +3,28 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ImportTournament } from '../models/ImportTournament';
+import type { ImportTournamentResult } from '../models/ImportTournamentResult';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class ManagementResource {
     /**
-     * @returns any OK
+     * @returns ImportTournamentResult OK
      * @throws ApiError
      */
     public static postApiManagement({
         requestBody,
     }: {
         requestBody?: ImportTournament,
-    }): CancelablePromise<any> {
+    }): CancelablePromise<ImportTournamentResult> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/management',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+            },
         });
     }
     /**

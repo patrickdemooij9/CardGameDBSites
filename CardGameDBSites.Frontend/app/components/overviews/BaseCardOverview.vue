@@ -30,6 +30,7 @@ const emit = defineEmits<{
 
 const pagedCards = ref<PagedResultCardDetailApiModel>();
 const overview = ref<InstanceType<typeof Overview>>();
+let currentRequestVersion = 0;
 
 //TODO: this needs to be reworked otherwise we keep on resetting stuff
 watch(
@@ -51,6 +52,9 @@ watch(
 );
 
 async function loadData(value: OverviewRefreshModel) {
+  currentRequestVersion++;
+  const requestVersion = currentRequestVersion;
+  
   const filters: CardsQueryFilterClauseApiModel[] = [];
   value.SelectedFilters.forEach((values, key) => {
     if (values.length === 0) {
@@ -75,7 +79,7 @@ async function loadData(value: OverviewRefreshModel) {
     filters.push(filter);
   });
 
-  pagedCards.value = await useCards().queryCards({
+  const result = await useCards().queryCards({
     query: value.Query,
     pageNumber: value.PageNumber,
     pageSize: props.pageSize ?? 30,
@@ -86,6 +90,11 @@ async function loadData(value: OverviewRefreshModel) {
     includeReprintedCards: props.hideReprintedCards ? false : undefined,
     legalForDeckTypeId: props.legalForDeckTypeId,
   });
+  if (requestVersion !== currentRequestVersion) {
+    return;
+  }
+
+  pagedCards.value = result;
   if (value.LoadedCallback) {
     value.LoadedCallback();
   }

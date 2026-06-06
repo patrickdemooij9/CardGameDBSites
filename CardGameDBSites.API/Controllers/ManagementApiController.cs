@@ -143,6 +143,7 @@ namespace CardGameDBSites.API.Controllers
         }
 
         [HttpPost("importCards")]
+        [IgnoreAntiforgeryToken]
         [ProducesResponseType(typeof(CardImportResultApiModel), 200)]
         [ProducesResponseType(403)]
         public async Task<IActionResult> ImportCardsFromExternalApi()

@@ -1,37 +1,90 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import type { TournamentSummaryApiModel, TournamentEntrantApiModel } from '~/api/default';
+import TournamentService from '~/services/TournamentService';
+import { ParseToHumanReadableText } from '~/helpers/DateHelper';
 
-// Mock data
+// ── Real data ──────────────────────────────────────────────────────────────
+const service = new TournamentService();
+const recentTournaments = ref<TournamentSummaryApiModel[]>([]);
+const featuredTop8 = ref<TournamentEntrantApiModel[]>([]);
+
+try {
+  recentTournaments.value = await service.getRecent(6);
+  const firstId = recentTournaments.value[0]?.id;
+  if (recentTournaments.value.length > 0 && firstId != null) {
+    featuredTop8.value = await service.getTop8(firstId);
+  }
+} catch {
+  // API not available – fall back to mock data below
+}
+
+const hasTournaments = recentTournaments.value.length > 0;
+const featuredTournamentData = hasTournaments ? recentTournaments.value[0] : null;
+
+// Top-8 distribution grouped by deck name for the bar chart
+const top8Distribution = computed(() => {
+  const source = hasTournaments ? featuredTop8.value : mockFeaturedTop8;
+  const grouped: Record<string, number> = {};
+  for (const e of source) {
+    const key = e.deckName ?? 'Unknown';
+    grouped[key] = (grouped[key] ?? 0) + 1;
+  }
+  return Object.entries(grouped)
+    .map(([leader, count]) => ({ leader, count }))
+    .sort((a, b) => b.count - a.count);
+});
+
+// ── Static / mock data (used when no tournament data exists yet) ────────────
 const stats = [
-  { label: 'Tournaments Tracked', value: '143' },
+  { label: 'Tournaments Tracked', value: hasTournaments ? recentTournaments.value.length.toString() : '143' },
   { label: 'Competitive Decks', value: '4,231' },
   { label: 'Published Decklists', value: '18,431' },
   { label: 'Updated', value: 'Daily' },
 ];
 
-const featuredTournament = {
+const mockFeaturedTournament: TournamentSummaryApiModel = {
   name: 'Planetary Qualifier Amsterdam',
-  date: 'June 6, 2026',
+  dateUtc: '2026-06-06',
   playerCount: 128,
-  winner: 'Sabine Green Aggro',
-  winnerLeader: 'Sabine Wren',
-  top8: [
-    { leader: 'Sabine', count: 3 },
-    { leader: 'Boba', count: 2 },
-    { leader: 'Luke', count: 2 },
-    { leader: 'Han', count: 1 },
-  ],
+  externalUrl: undefined,
+  winner: { playerName: 'Player1', deckName: 'Sabine Green Aggro' },
 };
 
-const recentTournaments = [
-  { name: 'Planetary Qualifier Amsterdam', date: 'June 6, 2026', players: 128, winningLeader: 'Sabine Wren', winnerDeck: 'Sabine Green Aggro' },
-  { name: 'Regional Open Berlin', date: 'May 31, 2026', players: 96, winningLeader: 'Boba Fett', winnerDeck: 'Boba Control' },
-  { name: 'Store Championship London', date: 'May 25, 2026', players: 64, winningLeader: 'Luke Skywalker', winnerDeck: 'Luke Heroic Aggro' },
-  { name: 'Galactic Circuit Madrid', date: 'May 18, 2026', players: 112, winningLeader: 'Han Solo', winnerDeck: 'Han Smuggler Midrange' },
-  { name: 'Sector Championship Paris', date: 'May 10, 2026', players: 80, winningLeader: 'Sabine Wren', winnerDeck: 'Sabine Hyperspace' },
-  { name: 'Regional Open Copenhagen', date: 'May 3, 2026', players: 72, winningLeader: 'Darth Vader', winnerDeck: 'Vader Imperial Control' },
+const mockFeaturedTop8: TournamentEntrantApiModel[] = [
+  { deckName: 'Sabine' },
+  { deckName: 'Sabine' },
+  { deckName: 'Sabine' },
+  { deckName: 'Boba' },
+  { deckName: 'Boba' },
+  { deckName: 'Luke' },
+  { deckName: 'Luke' },
+  { deckName: 'Han' },
 ];
 
+const mockRecentTournaments = [
+  { id: 0, name: 'Planetary Qualifier Amsterdam', dateUtc: '2026-06-06', playerCount: 128, winner: { deckName: 'Sabine Green Aggro' } },
+  { id: 0, name: 'Regional Open Berlin', dateUtc: '2026-05-31', playerCount: 96, winner: { deckName: 'Boba Control' } },
+  { id: 0, name: 'Store Championship London', dateUtc: '2026-05-25', playerCount: 64, winner: { deckName: 'Luke Heroic Aggro' } },
+  { id: 0, name: 'Galactic Circuit Madrid', dateUtc: '2026-05-18', playerCount: 112, winner: { deckName: 'Han Smuggler Midrange' } },
+  { id: 0, name: 'Sector Championship Paris', dateUtc: '2026-05-10', playerCount: 80, winner: { deckName: 'Sabine Hyperspace' } },
+  { id: 0, name: 'Regional Open Copenhagen', dateUtc: '2026-05-03', playerCount: 72, winner: { deckName: 'Vader Imperial Control' } },
+] as TournamentSummaryApiModel[];
+
+const displayedTournaments = computed(() =>
+  hasTournaments ? recentTournaments.value : mockRecentTournaments
+);
+
+const displayedFeatured = computed(() =>
+  featuredTournamentData ?? mockFeaturedTournament
+);
+
+function formatDate(dateUtc: string | undefined) {
+  if (!dateUtc) return '';
+  try { return ParseToHumanReadableText(dateUtc); } catch { return dateUtc; }
+}
+
+// ── Still-static sections (cards/leaders — no backend data yet) ─────────────
 const recentWinners = [
   { name: 'Sabine Green Aggro', leader: 'Sabine Wren', tournament: 'Planetary Qualifier Amsterdam', date: 'June 6, 2026', author: 'DeckMaster99' },
   { name: 'Boba Control', leader: 'Boba Fett', tournament: 'Regional Open Berlin', date: 'May 31, 2026', author: 'CardShark42' },
@@ -121,8 +174,8 @@ const explorerDecks = [
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
         <div class="bg-gray-900 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 class="text-white text-2xl font-bold mb-1">{{ featuredTournament.name }}</h3>
-            <span class="text-gray-400 text-sm">{{ featuredTournament.date }} &bull; {{ featuredTournament.playerCount }} Players</span>
+            <h3 class="text-white text-2xl font-bold mb-1">{{ displayedFeatured.name }}</h3>
+            <span class="text-gray-400 text-sm">{{ formatDate(displayedFeatured.dateUtc) }} &bull; {{ displayedFeatured.playerCount }} Players</span>
           </div>
           <span class="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Latest Event</span>
         </div>
@@ -135,8 +188,8 @@ const explorerDecks = [
                 IMG
               </div>
               <div>
-                <div class="text-lg font-bold">{{ featuredTournament.winner }}</div>
-                <div class="text-sm text-gray-500">{{ featuredTournament.winnerLeader }}</div>
+                <div class="text-lg font-bold">{{ displayedFeatured.winner?.deckName ?? 'Unknown' }}</div>
+                <div class="text-sm text-gray-500">{{ displayedFeatured.winner?.playerName }}</div>
               </div>
             </div>
           </div>
@@ -144,8 +197,8 @@ const explorerDecks = [
           <div>
             <p class="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-3">Top 8 Leaders</p>
             <div class="space-y-2">
-              <div v-for="entry in featuredTournament.top8" :key="entry.leader" class="flex items-center gap-3">
-                <span class="text-sm font-medium w-20 text-gray-700">{{ entry.leader }}</span>
+              <div v-for="entry in top8Distribution" :key="entry.leader" class="flex items-center gap-3">
+                <span class="text-sm font-medium w-32 truncate text-gray-700">{{ entry.leader }}</span>
                 <div class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
                   <div
                     class="h-4 bg-yellow-400 rounded-full"
@@ -158,7 +211,10 @@ const explorerDecks = [
           </div>
         </div>
         <div class="px-6 pb-6">
-          <a href="#" class="no-underline inline-block bg-gray-900 text-white hover:bg-gray-700 font-semibold px-5 py-2 rounded transition-colors">
+          <a
+            :href="displayedFeatured.externalUrl ?? '#'"
+            class="no-underline inline-block bg-gray-900 text-white hover:bg-gray-700 font-semibold px-5 py-2 rounded transition-colors"
+          >
             View Full Results
           </a>
         </div>
@@ -170,23 +226,22 @@ const explorerDecks = [
       <h2 class="mb-6">Recent Events</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
-          v-for="tournament in recentTournaments"
-          :key="tournament.name"
+          v-for="tournament in displayedTournaments"
+          :key="tournament.id"
           class="bg-white rounded-lg shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow"
         >
           <div class="flex items-start justify-between gap-2">
             <h3 class="text-base font-bold leading-tight">{{ tournament.name }}</h3>
           </div>
-          <div class="text-sm text-gray-500">{{ tournament.date }} &bull; {{ tournament.players }} Players</div>
+          <div class="text-sm text-gray-500">{{ formatDate(tournament.dateUtc) }} &bull; {{ tournament.playerCount }} Players</div>
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">IMG</div>
             <div>
-              <div class="text-sm font-semibold">{{ tournament.winnerDeck }}</div>
-              <div class="text-xs text-gray-500">{{ tournament.winningLeader }}</div>
+              <div class="text-sm font-semibold">{{ tournament.winner?.deckName ?? 'Unknown' }}</div>
             </div>
           </div>
           <div class="mt-auto pt-1">
-            <a href="#" class="no-underline text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-1.5 rounded inline-block transition-colors">
+            <a :href="tournament.externalUrl ?? '#'" class="no-underline text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-1.5 rounded inline-block transition-colors">
               View Results
             </a>
           </div>

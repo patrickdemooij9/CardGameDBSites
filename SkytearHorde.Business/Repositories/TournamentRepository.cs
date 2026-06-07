@@ -274,5 +274,39 @@ namespace SkytearHorde.Business.Repositories
                 GamesWonP2 = dbModel.GamesWonP2
             };
         }
+
+        // Queries for Meta page
+
+        public IEnumerable<Tournament> GetRecent(int count)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            var dbModels = scope.Database.Fetch<TournamentDBModel>(
+                scope.SqlContext.Sql()
+                    .SelectAll()
+                    .From<TournamentDBModel>()
+                    .OrderByDescending<TournamentDBModel>(x => x.DateUtc)
+                    .Append($"OFFSET 0 ROWS FETCH NEXT {count} ROWS ONLY"));
+            return dbModels.Select(Map);
+        }
+
+        public int GetPlayerCount(int tournamentId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM TournamentEntrants WHERE TournamentId = @0", tournamentId);
+        }
+
+        public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<TournamentEntrantSummary>(
+                "SELECT te.Id, te.TournamentId, te.PlayerName, te.Placement, te.TournamentDeckId, dv.Name AS DeckName " +
+                "FROM TournamentEntrants te " +
+                "LEFT JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "LEFT JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "WHERE te.TournamentId = @0 AND te.Placement BETWEEN 1 AND 8 " +
+                "ORDER BY te.Placement ASC",
+                tournamentId);
+        }
     }
 }

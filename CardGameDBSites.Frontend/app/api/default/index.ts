@@ -97,6 +97,8 @@ export type { SetProgressApiModel } from './models/SetProgressApiModel';
 export type { SetViewModel } from './models/SetViewModel';
 export type { SiteSettingsApiModel } from './models/SiteSettingsApiModel';
 export type { SquadSettingsOptionApiModel } from './models/SquadSettingsOptionApiModel';
+export type { TournamentEntrantApiModel } from './models/TournamentEntrantApiModel';
+export type { TournamentSummaryApiModel } from './models/TournamentSummaryApiModel';
 
 export { AccountResource } from './services/AccountResource';
 export { CardsResource } from './services/CardsResource';

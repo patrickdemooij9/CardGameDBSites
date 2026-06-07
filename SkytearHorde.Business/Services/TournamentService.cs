@@ -29,6 +29,15 @@ namespace SkytearHorde.Business.Services
             _settingsService = settingsService;
         }
 
+        public IEnumerable<Tournament> GetRecent(int count = 6) =>
+            _tournamentRepository.GetRecent(count);
+
+        public int GetPlayerCount(int tournamentId) =>
+            _tournamentRepository.GetPlayerCount(tournamentId);
+
+        public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId) =>
+            _tournamentRepository.GetTop8Entrants(tournamentId);
+
         public async Task<ImportTournamentResult> ImportTournament(ImportTournament model)
         {
             var connector = _tournamentConnectors.FirstOrDefault(c => c.Source == model.Source);

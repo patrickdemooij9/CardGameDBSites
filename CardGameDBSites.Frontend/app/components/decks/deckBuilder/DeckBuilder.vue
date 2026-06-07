@@ -43,7 +43,7 @@ const deck = ref<CreateDeckModel>(deckSettings);
 
 const ignorePassiveFilters = ref(false);
 const collectionOnlyMode = ref(false);
-let isSubmitting = false;
+const isSubmitting = ref(false);
 
 // Preselect the first slot that still has room; fall back to the very first slot.
 let selectedGroup = deckSettings.groups[0]!;
@@ -80,7 +80,7 @@ function selectSlot(
 }
 
 async function submitForm(publish: boolean) {
-  isSubmitting = true;
+  isSubmitting.value = true;
   const result = await new DeckService().post(deck.value, publish);
   router.push(getDeckDetailUrl(deckTypeSettings.value?.overviewUrl, result));
 }
@@ -96,7 +96,7 @@ function handleScroll() {
 }
 
 const toRemove = router.beforeEach((to, from, next) => {
-  if (from.fullPath === route.fullPath && !isSubmitting) {
+  if (from.fullPath === route.fullPath && !isSubmitting.value) {
     if (confirm("Are you sure you want to leave this page?")) {
       next();
     } else {
@@ -108,7 +108,7 @@ const toRemove = router.beforeEach((to, from, next) => {
 });
 
 function beforeUnload(e: BeforeUnloadEvent) {
-  if (isSubmitting) return;
+  if (isSubmitting.value) return;
   e.preventDefault();
   e.returnValue = "";
 }
@@ -180,6 +180,7 @@ onUnmounted(() => {
           :current-tab="currentTab"
           :ignore-passive-filters="ignorePassiveFilters"
           :collection-only-mode="collectionOnlyMode"
+          :is-submitting="isSubmitting"
           @submit-form="submitForm"
           @ignore-passive-filters="ignorePassiveFilters = $event"
           @collection-only-mode="collectionOnlyMode = $event"

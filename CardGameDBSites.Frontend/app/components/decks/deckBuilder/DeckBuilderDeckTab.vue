@@ -31,7 +31,8 @@ const props = defineProps<{
   currentTab: DeckBuilderTab;
   ignorePassiveFilters: boolean;
   collectionOnlyMode: boolean;
-  selectedArea?: CreateDeckSelectedArea
+  selectedArea?: CreateDeckSelectedArea;
+  isSubmitting?: boolean;
 }>();
 
 const accountStore = useAccountStore();
@@ -233,6 +234,7 @@ const hasPassiveRequirements = computed(() => {
             <Button
               v-if="accountStore.isLoggedIn"
               v-on:click="$emit('submitForm', false)"
+              :loading="isSubmitting"
               class="border border-black"
             >
               Save
@@ -240,6 +242,7 @@ const hasPassiveRequirements = computed(() => {
             <Button
               :button-type="ButtonType.Success"
               v-on:click="$emit('submitForm', true)"
+              :loading="isSubmitting"
               class="border border-black disabled:border-none"
               v-bind:disabled="!deck.validate().isValid()"
             >

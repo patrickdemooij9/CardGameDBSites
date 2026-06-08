@@ -46,6 +46,7 @@ namespace SkytearHorde.Modules
         private readonly CardGameSettingsConfig _cardGameSettingsConfig;
         private readonly CollectionService _collectionService;
         private readonly ILogger<ImporterController> _logger;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public ImporterController(IUmbracoContextFactory umbracoContextFactory,
             IContentService contentService,
@@ -59,7 +60,8 @@ namespace SkytearHorde.Modules
             IContentTypeBaseServiceProvider contentTypeBaseServiceProvider,
             IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption,
             CollectionService collectionService,
-            ILogger<ImporterController> logger)
+            ILogger<ImporterController> logger,
+            IWebHostEnvironment webHostEnvironment)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _contentService = contentService;
@@ -74,11 +76,15 @@ namespace SkytearHorde.Modules
             _cardGameSettingsConfig = cardGameSettingsConfigOption.Value;
             _collectionService = collectionService;
             _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpPost]
         public async Task<IActionResult> ImportFromApi(int nodeId)
         {
+            if (!_webHostEnvironment.IsDevelopment())
+                return Forbid();
+
             _siteAccessor.SetSiteId(GetSiteIdByNode(nodeId));
 
             var existingCardNames = _cardService.GetAll().Select(it => it.DisplayName)

@@ -18,6 +18,8 @@ namespace SkytearHorde.Entities.Models.Business.Repository
         public int? UseUserCollectionId { get; set; }
         //public CollectionCardItem[] CollectionItems { get; set; }
 
+        public DeckSource? Source { get; set; }
+
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
 
@@ -37,7 +39,7 @@ namespace SkytearHorde.Entities.Models.Business.Repository
 
         public string ToCacheKey()
         {
-            return $"{SiteId}-{TypeId}-{Status}-{Take}-{Page}-{OrderBy}-{UserId}-{DateFrom}-{DateTo}";
+            return $"{SiteId}-{TypeId}-{Status}-{Take}-{Page}-{OrderBy}-{UserId}-{Source}-{DateFrom}-{DateTo}";
         }
     }
 }

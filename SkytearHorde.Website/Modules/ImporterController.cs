@@ -104,7 +104,7 @@ namespace SkytearHorde.Modules
                     pageNumber,
                     pageSize,
                     filterClauses = Array.Empty<object>(),
-                    variantTypeIds = Array.Empty<int>()
+                    variantTypeIds = new[] {0}
                 };
 
                 var response = await httpClient.PostAsJsonAsync(

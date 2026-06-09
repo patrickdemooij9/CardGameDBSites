@@ -64,6 +64,7 @@ namespace SkytearHorde.Business.Services
 
             foreach (var round in otherData.RoundsByExternalId.Values)
             {
+                round.TournamentId = tournament.Id;
                 _tournamentRepository.Save(round);
             }
 
@@ -89,6 +90,7 @@ namespace SkytearHorde.Business.Services
                     entrant.TournamentDeckId = deckId;
                 }
 
+                entrant.TournamentId = tournament.Id;
                 _tournamentRepository.Save(entrant);
             }
 
@@ -133,7 +135,7 @@ namespace SkytearHorde.Business.Services
                     SiteId = _siteAccessor.GetSiteId(),
                     TypeId = deckSettings.TypeID,
                     Source = DeckSource.TournamentSync,
-                    IsPublished = false,
+                    IsPublished = true,
                     CreatedDate = DateTime.UtcNow,
                     Cards = [],
                     Sideboard = [],

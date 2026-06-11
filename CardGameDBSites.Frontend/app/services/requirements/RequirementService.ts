@@ -7,6 +7,7 @@ import type { IRequirement } from "./IRequirement";
 import ConditionalRequirement from "./ConditionalRequirement";
 import SameValueRequirement from "./SameValueRequirement";
 import ChildOfRequirement from "./ChildOfRequirement";
+import PointsRequirement from "./PointsRequirement";
 
 const requirementHandlers: IRequirement[] = [
     new EqualValueRequirement(),
@@ -15,6 +16,7 @@ const requirementHandlers: IRequirement[] = [
     new ConditionalRequirement(),
     new SameValueRequirement(),
     new ChildOfRequirement(),
+    new PointsRequirement(),
 ]
 
 export function GetValidCards(cards: CardDetailApiModel[], requirements: RequirementApiModel[])

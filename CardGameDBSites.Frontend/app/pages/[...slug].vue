@@ -6,6 +6,7 @@ import { DoFetch } from '~/helpers/RequestsHelper';
 import type { ApiContentModel } from '~/models/ApiContentModel';
 import type { PageSeoModel } from '~/models/PageSeoModel';
 import { useAccountStore } from '~/stores/AccountStore';
+import { Capacitor } from '@capacitor/core';
 
 const route = useRoute()
 let slug = route.params.slug;
@@ -38,6 +39,13 @@ onMounted(() => {
 });
 
 const componentName = data.value!.contentType;
+
+// Mobile-specific page type overrides.
+// When running in a Capacitor native shell, use mobile-optimized variants if available.
+const mobilePageComponents: {[key: string]: Component} = {
+    'cardOverview': defineAsyncComponent(() => import('~/components/mobile/MobileCardOverviewPage.vue')),
+}
+
 const pageComponents: {[key: string]: Component} = {
     'cardOverview': defineAsyncComponent(() => import('~/components/pageTypes/CardOverviewPage.vue')),
     'contentPage': defineAsyncComponent(() => import('~/components/pageTypes/contentPage.vue')),
@@ -60,7 +68,10 @@ const pageComponents: {[key: string]: Component} = {
     'proxyCards': defineAsyncComponent(() => import('~/components/pageTypes/ProxyCardsPage.vue')),
     'accountCards': defineAsyncComponent(() => import('~/components/pageTypes/AccountCards.vue'))
 }
-const pageComponent = pageComponents[componentName];
+
+// Use mobile variant when in native app, fall back to default
+const isNative = import.meta.client && Capacitor.isNativePlatform();
+const pageComponent = (isNative && mobilePageComponents[componentName]) || pageComponents[componentName];
 </script>
 
 <template>

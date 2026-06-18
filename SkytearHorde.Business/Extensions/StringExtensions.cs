@@ -13,7 +13,11 @@
                 .Replace(".", "")
                 .Replace('/', ' ')
                 .Replace("\"", "")
-                .Replace("\'", "");
+                .Replace("\'", "")
+                .Replace("“", "")
+                .Replace("”", "")
+                .Replace("…", "")
+                .Replace("0", "O");
         }
     }
 }

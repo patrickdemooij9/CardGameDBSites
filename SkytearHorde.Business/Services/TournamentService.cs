@@ -73,6 +73,7 @@ namespace SkytearHorde.Business.Services
 
             foreach (var round in otherData.RoundsByExternalId.Values)
             {
+                round.TournamentId = tournament.Id;
                 _tournamentRepository.Save(round);
             }
 
@@ -98,6 +99,7 @@ namespace SkytearHorde.Business.Services
                     entrant.TournamentDeckId = deckId;
                 }
 
+                entrant.TournamentId = tournament.Id;
                 _tournamentRepository.Save(entrant);
             }
 

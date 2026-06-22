@@ -32,6 +32,7 @@ a:not(.no-underline) {
     @apply border-dotted;
     @apply border-b;
     @apply border-black;
+    @apply dark:border-gray-300;
 }
 
 a:hover{
@@ -134,6 +135,17 @@ body {
   color: #000;
 
   @apply bg-gray-100;
+}
+
+.dark body,
+body.dark {
+  color: #e5e7eb;
+  @apply bg-gray-900;
+}
+
+html.dark body {
+  color: #e5e7eb;
+  @apply bg-gray-900;
 }
 
 .scrollbar::-webkit-scrollbar {

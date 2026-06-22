@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { PhCaretDown, PhSignIn, PhUser } from "@phosphor-icons/vue";
+import { PhCaretDown, PhMoon, PhSignIn, PhSun, PhUser } from "@phosphor-icons/vue";
 import type NavigationModel from "./NavigationModel";
 import { useAccountStore } from "~/stores/AccountStore";
+import { useColorMode } from "~/composables/useColorMode";
 
 defineProps<{
   content: NavigationModel;
@@ -10,6 +11,11 @@ defineProps<{
 const isOpen = ref(false);
 const isAccountsOpen = ref(false);
 const accountStore = useAccountStore();
+const { isDark, toggle: toggleColorMode, initialize: initColorMode } = useColorMode();
+
+onMounted(() => {
+  initColorMode();
+});
 
 function closeMenu() {
   isOpen.value = false;
@@ -41,7 +47,7 @@ function logout() {
 
         <div
           :class="{
-            'fixed top-14 bg-slate-50 h-full w-full z-20 flex-col': isOpen,
+            'fixed top-14 bg-slate-50 dark:bg-gray-800 h-full w-full z-20 flex-col': isOpen,
             hidden: !isOpen || content.createDeckMode,
           }"
           class="grow md:justify-between md:flex"
@@ -120,6 +126,17 @@ function logout() {
                 Logout
               </button>
             </div>
+          </div>
+          <div class="mt-4 mx-2 md:mt-0 flex items-center md:h-full">
+            <button
+              type="button"
+              class="flex items-center gap-1 hover:text-slate-400 py-3 md:py-0 no-underline"
+              aria-label="Toggle dark mode"
+              @click="toggleColorMode"
+            >
+              <PhMoon v-if="!isDark" />
+              <PhSun v-else />
+            </button>
           </div>
         </div>
         <div

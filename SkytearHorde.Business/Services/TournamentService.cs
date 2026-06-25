@@ -38,6 +38,74 @@ namespace SkytearHorde.Business.Services
         public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId) =>
             _tournamentRepository.GetTop8Entrants(tournamentId);
 
+        public IEnumerable<MetaWinningDeck> GetRecentWinningDecks(int count, int leaderGroupId, int leaderSlotId)
+        {
+            var rows = _tournamentRepository.GetRecentWinningDecks(count, leaderGroupId, leaderSlotId).ToArray();
+            var names = ResolveCardNames(rows.Where(r => r.LeaderCardId.HasValue).Select(r => r.LeaderCardId!.Value));
+
+            return rows.Select(r => new MetaWinningDeck
+            {
+                TournamentId = r.TournamentId,
+                TournamentName = r.TournamentName,
+                TournamentDateUtc = r.TournamentDateUtc,
+                ExternalUrl = r.ExternalUrl,
+                PlayerName = r.PlayerName,
+                DeckId = r.DeckId,
+                DeckName = r.DeckName,
+                LeaderName = r.LeaderCardId.HasValue ? names.GetValueOrDefault(r.LeaderCardId.Value) : null
+            }).ToArray();
+        }
+
+        public IEnumerable<MetaLeaderStat> GetTopLeaders(int days, int take, int leaderGroupId, int leaderSlotId)
+        {
+            var from = DateTime.UtcNow.AddDays(-days);
+            var rows = _tournamentRepository.GetTopLeaders(from, leaderGroupId, leaderSlotId).ToArray();
+            var names = ResolveCardNames(rows.Select(r => r.LeaderCardId));
+
+            return rows
+                .Select(r => new MetaLeaderStat
+                {
+                    LeaderName = names.GetValueOrDefault(r.LeaderCardId) ?? "Unknown",
+                    Wins = r.Wins,
+                    Top8Count = r.Top8Count
+                })
+                .Where(it => it.LeaderName != "Unknown")
+                .Take(take)
+                .ToArray();
+        }
+
+        public IEnumerable<MetaPopularCard> GetPopularCards(int days, int take, int leaderGroupId, int leaderSlotId)
+        {
+            var from = DateTime.UtcNow.AddDays(-days);
+            var totalWinningDecks = _tournamentRepository.GetWinningDeckCount(from);
+            if (totalWinningDecks == 0) return Array.Empty<MetaPopularCard>();
+
+            var rows = _tournamentRepository.GetPopularCardsInWinningDecks(from, leaderGroupId, leaderSlotId)
+                .Take(take)
+                .ToArray();
+            var names = ResolveCardNames(rows.Select(r => r.CardId));
+
+            return rows.Select(r => new MetaPopularCard
+            {
+                CardName = names.GetValueOrDefault(r.CardId) ?? "Unknown",
+                Percentage = (int)Math.Round((double)r.DeckCount / totalWinningDecks * 100)
+            }).ToArray();
+        }
+
+        private Dictionary<int, string> ResolveCardNames(IEnumerable<int> cardIds)
+        {
+            var result = new Dictionary<int, string>();
+            foreach (var id in cardIds.Distinct())
+            {
+                var card = _cardService.Get(id);
+                if (card != null)
+                {
+                    result[id] = card.DisplayName;
+                }
+            }
+            return result;
+        }
+
         public async Task<ImportTournamentResult> ImportTournament(ImportTournament model)
         {
             var connector = _tournamentConnectors.FirstOrDefault(c => c.Source == model.Source);

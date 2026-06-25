@@ -4,13 +4,28 @@ import type {
   TournamentSummaryApiModel,
   TournamentEntrantApiModel,
 } from "~/api/default";
-import TournamentService from "~/services/TournamentService";
+import TournamentService, {
+  type MetaWinningDeckApiModel,
+  type MetaLeaderApiModel,
+  type MetaPopularCardApiModel,
+} from "~/services/TournamentService";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
+
+// ── Leader configuration ─────────────────────────────────────────────────────
+// A deck's leader is the card in this group/slot. This differs per game type;
+// for now it is configured here and passed to the meta endpoints.
+const LEADER_GROUP_ID = 1;
+const LEADER_SLOT_ID = 0;
+// Window (in days) used for the leader/card aggregations.
+const META_WINDOW_DAYS = 30;
 
 // ── Real data ──────────────────────────────────────────────────────────────
 const service = new TournamentService();
 const recentTournaments = ref<TournamentSummaryApiModel[]>([]);
 const featuredTop8 = ref<TournamentEntrantApiModel[]>([]);
+const recentWinnersData = ref<MetaWinningDeckApiModel[]>([]);
+const topLeadersData = ref<MetaLeaderApiModel[]>([]);
+const popularCardsData = ref<MetaPopularCardApiModel[]>([]);
 
 try {
   recentTournaments.value = await service.getRecent(6);
@@ -18,6 +33,13 @@ try {
   if (recentTournaments.value.length > 0 && firstId != null) {
     featuredTop8.value = await service.getTop8(firstId);
   }
+
+  [recentWinnersData.value, topLeadersData.value, popularCardsData.value] =
+    await Promise.all([
+      service.getRecentWinners(6, LEADER_GROUP_ID, LEADER_SLOT_ID),
+      service.getTopLeaders(META_WINDOW_DAYS, 5, LEADER_GROUP_ID, LEADER_SLOT_ID),
+      service.getPopularCards(META_WINDOW_DAYS, 8, LEADER_GROUP_ID, LEADER_SLOT_ID),
+    ]);
 } catch {
   // API not available – fall back to mock data below
 }
@@ -121,8 +143,8 @@ function formatDate(dateUtc: string | undefined) {
   }
 }
 
-// ── Still-static sections (cards/leaders — no backend data yet) ─────────────
-const recentWinners = [
+// ── Mock fallbacks (used when the API is unavailable) ───────────────────────
+const mockRecentWinners = [
   {
     name: "Sabine Green Aggro",
     leader: "Sabine Wren",
@@ -167,7 +189,7 @@ const recentWinners = [
   },
 ];
 
-const topLeaders = [
+const mockTopLeaders = [
   { name: "Sabine Wren", wins: 12, top8: 34 },
   { name: "Boba Fett", wins: 9, top8: 28 },
   { name: "Luke Skywalker", wins: 7, top8: 22 },
@@ -175,9 +197,7 @@ const topLeaders = [
   { name: "Darth Vader", wins: 4, top8: 15 },
 ];
 
-const maxWins = topLeaders[0]?.wins ?? 1;
-
-const popularCards = [
+const mockPopularCards = [
   { name: "Superlaser Blast", percentage: 73 },
   { name: "Triple Dark Raid", percentage: 68 },
   { name: "Luke's Lightsaber", percentage: 61 },
@@ -187,6 +207,37 @@ const popularCards = [
   { name: "Reinforcement Walker", percentage: 47 },
   { name: "Battle Meditation", percentage: 43 },
 ];
+
+// ── Displayed data (real when available, mock otherwise) ────────────────────
+const recentWinners = computed(() => {
+  if (recentWinnersData.value.length === 0) return mockRecentWinners;
+  return recentWinnersData.value.map((d) => ({
+    name: d.deckName ?? "Unknown",
+    leader: d.leaderName ?? "Unknown",
+    tournament: d.tournamentName,
+    date: formatDate(d.tournamentDateUtc),
+    author: d.playerName ?? "Unknown",
+  }));
+});
+
+const topLeaders = computed(() => {
+  if (topLeadersData.value.length === 0) return mockTopLeaders;
+  return topLeadersData.value.map((l) => ({
+    name: l.leaderName,
+    wins: l.wins,
+    top8: l.top8Count,
+  }));
+});
+
+const maxWins = computed(() => topLeaders.value[0]?.wins ?? 1);
+
+const popularCards = computed(() => {
+  if (popularCardsData.value.length === 0) return mockPopularCards;
+  return popularCardsData.value.map((c) => ({
+    name: c.cardName,
+    percentage: c.percentage,
+  }));
+});
 
 const trendingCards = [
   { name: "Superlaser Blast", change: "+18%" },

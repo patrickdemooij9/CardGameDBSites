@@ -308,5 +308,101 @@ namespace SkytearHorde.Business.Repositories
                 "ORDER BY te.Placement ASC",
                 tournamentId);
         }
+
+        // Meta page aggregations.
+        // A deck's "leader" is the card in the leader group/slot (e.g. GroupId 1, SlotId 0).
+        // The group/slot is passed in so it can vary per game type.
+
+        public IEnumerable<MetaWinningDeckRow> GetRecentWinningDecks(int count, int leaderGroupId, int leaderSlotId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<MetaWinningDeckRow>(
+                "SELECT TOP(@0) " +
+                "  t.Id AS TournamentId, t.Name AS TournamentName, t.DateUtc AS TournamentDateUtc, t.ExternalUrl AS ExternalUrl, " +
+                "  te.PlayerName AS PlayerName, te.TournamentDeckId AS DeckId, dv.Name AS DeckName, lc.CardId AS LeaderCardId " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "LEFT JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "LEFT JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "OUTER APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
+                "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @1 AND dc.SlotId = @2) lc " +
+                "WHERE te.Placement = 1 " +
+                "ORDER BY t.DateUtc DESC",
+                count, leaderGroupId, leaderSlotId);
+        }
+
+        public IEnumerable<MetaLeaderRow> GetTopLeaders(DateTime from, int leaderGroupId, int leaderSlotId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<MetaLeaderRow>(
+                "SELECT lc.CardId AS LeaderCardId, " +
+                "  SUM(CASE WHEN te.Placement = 1 THEN 1 ELSE 0 END) AS Wins, " +
+                "  COUNT(*) AS Top8Count " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @1 AND lc.SlotId = @2 " +
+                "WHERE te.Placement BETWEEN 1 AND 8 AND t.DateUtc >= @0 " +
+                "GROUP BY lc.CardId " +
+                "ORDER BY Wins DESC, Top8Count DESC",
+                from, leaderGroupId, leaderSlotId);
+        }
+
+        public int GetWinningDeckCount(DateTime from)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.ExecuteScalar<int>(
+                "SELECT COUNT(DISTINCT dv.Id) " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "WHERE te.Placement = 1 AND t.DateUtc >= @0",
+                from);
+        }
+
+        public IEnumerable<MetaPopularCardRow> GetPopularCardsInWinningDecks(DateTime from, int leaderGroupId, int leaderSlotId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<MetaPopularCardRow>(
+                "SELECT dc.CardId AS CardId, COUNT(DISTINCT dv.Id) AS DeckCount " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId <> 99 " +
+                "WHERE te.Placement = 1 AND t.DateUtc >= @0 " +
+                "  AND NOT (dc.GroupId = @1 AND dc.SlotId = @2) " +
+                "GROUP BY dc.CardId " +
+                "ORDER BY DeckCount DESC",
+                from, leaderGroupId, leaderSlotId);
+        }
+    }
+
+    // Raw fetch rows for the meta aggregations. Card ids are resolved to names in the service layer.
+    public class MetaWinningDeckRow
+    {
+        public int TournamentId { get; set; }
+        public string TournamentName { get; set; } = string.Empty;
+        public DateTime TournamentDateUtc { get; set; }
+        public string? ExternalUrl { get; set; }
+        public string? PlayerName { get; set; }
+        public int DeckId { get; set; }
+        public string? DeckName { get; set; }
+        public int? LeaderCardId { get; set; }
+    }
+
+    public class MetaLeaderRow
+    {
+        public int LeaderCardId { get; set; }
+        public int Wins { get; set; }
+        public int Top8Count { get; set; }
+    }
+
+    public class MetaPopularCardRow
+    {
+        public int CardId { get; set; }
+        public int DeckCount { get; set; }
     }
 }

@@ -70,5 +70,57 @@ namespace CardGameDBSites.API.Controllers
 
             return Ok(top8);
         }
+
+        [HttpGet("meta/recent-winners")]
+        [ProducesResponseType(typeof(MetaWinningDeckApiModel[]), 200)]
+        public IActionResult GetRecentWinners([FromQuery] int count = 6, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
+        {
+            var result = _tournamentService.GetRecentWinningDecks(count, leaderGroupId, leaderSlotId)
+                .Select(d => new MetaWinningDeckApiModel
+                {
+                    TournamentId = d.TournamentId,
+                    TournamentName = d.TournamentName,
+                    TournamentDateUtc = d.TournamentDateUtc,
+                    ExternalUrl = d.ExternalUrl,
+                    PlayerName = d.PlayerName,
+                    DeckId = d.DeckId,
+                    DeckName = d.DeckName,
+                    LeaderName = d.LeaderName
+                })
+                .ToArray();
+
+            return Ok(result);
+        }
+
+        [HttpGet("meta/top-leaders")]
+        [ProducesResponseType(typeof(MetaLeaderApiModel[]), 200)]
+        public IActionResult GetTopLeaders([FromQuery] int days = 30, [FromQuery] int take = 5, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
+        {
+            var result = _tournamentService.GetTopLeaders(days, take, leaderGroupId, leaderSlotId)
+                .Select(l => new MetaLeaderApiModel
+                {
+                    LeaderName = l.LeaderName,
+                    Wins = l.Wins,
+                    Top8Count = l.Top8Count
+                })
+                .ToArray();
+
+            return Ok(result);
+        }
+
+        [HttpGet("meta/popular-cards")]
+        [ProducesResponseType(typeof(MetaPopularCardApiModel[]), 200)]
+        public IActionResult GetPopularCards([FromQuery] int days = 30, [FromQuery] int take = 8, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
+        {
+            var result = _tournamentService.GetPopularCards(days, take, leaderGroupId, leaderSlotId)
+                .Select(c => new MetaPopularCardApiModel
+                {
+                    CardName = c.CardName,
+                    Percentage = c.Percentage
+                })
+                .ToArray();
+
+            return Ok(result);
+        }
     }
 }

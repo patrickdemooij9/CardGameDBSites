@@ -331,7 +331,7 @@ namespace SkytearHorde.Business.Repositories
                 count, leaderGroupId, leaderSlotId);
         }
 
-        public IEnumerable<MetaLeaderRow> GetTopLeaders(DateTime from, int leaderGroupId, int leaderSlotId)
+        public IEnumerable<MetaLeaderRow> GetTopLeaders(DateTime from, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
             return scope.Database.Fetch<MetaLeaderRow>(
@@ -344,9 +344,10 @@ namespace SkytearHorde.Business.Repositories
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
                 "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @1 AND lc.SlotId = @2 " +
                 "WHERE te.Placement BETWEEN 1 AND 8 AND t.DateUtc >= @0 " +
+                (tournamentId.HasValue ? "AND t.Id = @3 " : "") +
                 "GROUP BY lc.CardId " +
                 "ORDER BY Wins DESC, Top8Count DESC",
-                from, leaderGroupId, leaderSlotId);
+                from, leaderGroupId, leaderSlotId, tournamentId);
         }
 
         public int GetWinningDeckCount(DateTime from)

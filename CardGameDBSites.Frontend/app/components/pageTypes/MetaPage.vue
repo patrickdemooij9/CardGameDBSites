@@ -19,10 +19,9 @@ const LEADER_SLOT_ID = 0;
 // Window (in days) used for the leader/card aggregations.
 const META_WINDOW_DAYS = 30;
 
-// ── Real data ──────────────────────────────────────────────────────────────
 const service = new TournamentService();
 const recentTournaments = ref<TournamentSummaryApiModel[]>([]);
-const featuredTop8 = ref<TournamentEntrantApiModel[]>([]);
+const featuredTop8Leaders = ref<MetaLeaderApiModel[]>([]);
 const recentWinnersData = ref<MetaWinningDeckApiModel[]>([]);
 const topLeadersData = ref<MetaLeaderApiModel[]>([]);
 const popularCardsData = ref<MetaPopularCardApiModel[]>([]);
@@ -31,7 +30,7 @@ try {
   recentTournaments.value = await service.getRecent(6);
   const firstId = recentTournaments.value[0]?.id;
   if (recentTournaments.value.length > 0 && firstId != null) {
-    featuredTop8.value = await service.getTop8(firstId);
+    featuredTop8Leaders.value = await service.getTopLeaders(META_WINDOW_DAYS, 5, LEADER_GROUP_ID, LEADER_SLOT_ID, firstId);
   }
 
   [recentWinnersData.value, topLeadersData.value, popularCardsData.value] =
@@ -51,10 +50,10 @@ const featuredTournamentData = hasTournaments
 
 // Top-8 distribution grouped by deck name for the bar chart
 const top8Distribution = computed(() => {
-  const source = hasTournaments ? featuredTop8.value : mockFeaturedTop8;
+  const source = hasTournaments ? featuredTop8Leaders.value : [];
   const grouped: Record<string, number> = {};
   for (const e of source) {
-    const key = e.deckName ?? "Unknown";
+    const key = e.leaderName ?? "Unknown";
     grouped[key] = (grouped[key] ?? 0) + 1;
   }
   return Object.entries(grouped)
@@ -62,76 +61,12 @@ const top8Distribution = computed(() => {
     .sort((a, b) => b.count - a.count);
 });
 
-const mockFeaturedTournament: TournamentSummaryApiModel = {
-  name: "Planetary Qualifier Amsterdam",
-  dateUtc: "2026-06-06",
-  playerCount: 128,
-  externalUrl: undefined,
-  winner: { playerName: "Player1", deckName: "Sabine Green Aggro" },
-};
-
-const mockFeaturedTop8: TournamentEntrantApiModel[] = [
-  { deckName: "Sabine" },
-  { deckName: "Sabine" },
-  { deckName: "Sabine" },
-  { deckName: "Boba" },
-  { deckName: "Boba" },
-  { deckName: "Luke" },
-  { deckName: "Luke" },
-  { deckName: "Han" },
-];
-
-const mockRecentTournaments = [
-  {
-    id: 0,
-    name: "Planetary Qualifier Amsterdam",
-    dateUtc: "2026-06-06",
-    playerCount: 128,
-    winner: { deckName: "Sabine Green Aggro" },
-  },
-  {
-    id: 0,
-    name: "Regional Open Berlin",
-    dateUtc: "2026-05-31",
-    playerCount: 96,
-    winner: { deckName: "Boba Control" },
-  },
-  {
-    id: 0,
-    name: "Store Championship London",
-    dateUtc: "2026-05-25",
-    playerCount: 64,
-    winner: { deckName: "Luke Heroic Aggro" },
-  },
-  {
-    id: 0,
-    name: "Galactic Circuit Madrid",
-    dateUtc: "2026-05-18",
-    playerCount: 112,
-    winner: { deckName: "Han Smuggler Midrange" },
-  },
-  {
-    id: 0,
-    name: "Sector Championship Paris",
-    dateUtc: "2026-05-10",
-    playerCount: 80,
-    winner: { deckName: "Sabine Hyperspace" },
-  },
-  {
-    id: 0,
-    name: "Regional Open Copenhagen",
-    dateUtc: "2026-05-03",
-    playerCount: 72,
-    winner: { deckName: "Vader Imperial Control" },
-  },
-] as TournamentSummaryApiModel[];
-
 const displayedTournaments = computed(() =>
-  hasTournaments ? recentTournaments.value : mockRecentTournaments,
+  hasTournaments ? recentTournaments.value : [],
 );
 
 const displayedFeatured = computed(
-  () => featuredTournamentData ?? mockFeaturedTournament,
+  () => featuredTournamentData,
 );
 
 function formatDate(dateUtc: string | undefined) {
@@ -143,74 +78,7 @@ function formatDate(dateUtc: string | undefined) {
   }
 }
 
-// ── Mock fallbacks (used when the API is unavailable) ───────────────────────
-const mockRecentWinners = [
-  {
-    name: "Sabine Green Aggro",
-    leader: "Sabine Wren",
-    tournament: "Planetary Qualifier Amsterdam",
-    date: "June 6, 2026",
-    author: "DeckMaster99",
-  },
-  {
-    name: "Boba Control",
-    leader: "Boba Fett",
-    tournament: "Regional Open Berlin",
-    date: "May 31, 2026",
-    author: "CardShark42",
-  },
-  {
-    name: "Luke Heroic Aggro",
-    leader: "Luke Skywalker",
-    tournament: "Store Championship London",
-    date: "May 25, 2026",
-    author: "JediKnight7",
-  },
-  {
-    name: "Han Smuggler Midrange",
-    leader: "Han Solo",
-    tournament: "Galactic Circuit Madrid",
-    date: "May 18, 2026",
-    author: "SpiceRunner",
-  },
-  {
-    name: "Sabine Hyperspace",
-    leader: "Sabine Wren",
-    tournament: "Sector Championship Paris",
-    date: "May 10, 2026",
-    author: "MandoWarrior",
-  },
-  {
-    name: "Vader Imperial Control",
-    leader: "Darth Vader",
-    tournament: "Regional Open Copenhagen",
-    date: "May 3, 2026",
-    author: "DarkSideUser",
-  },
-];
-
-const mockTopLeaders = [
-  { name: "Sabine Wren", wins: 12, top8: 34 },
-  { name: "Boba Fett", wins: 9, top8: 28 },
-  { name: "Luke Skywalker", wins: 7, top8: 22 },
-  { name: "Han Solo", wins: 5, top8: 18 },
-  { name: "Darth Vader", wins: 4, top8: 15 },
-];
-
-const mockPopularCards = [
-  { name: "Superlaser Blast", percentage: 73 },
-  { name: "Triple Dark Raid", percentage: 68 },
-  { name: "Luke's Lightsaber", percentage: 61 },
-  { name: "Tarkintown Raid", percentage: 58 },
-  { name: "Waylay", percentage: 54 },
-  { name: "Open Fire", percentage: 51 },
-  { name: "Reinforcement Walker", percentage: 47 },
-  { name: "Battle Meditation", percentage: 43 },
-];
-
-// ── Displayed data (real when available, mock otherwise) ────────────────────
 const recentWinners = computed(() => {
-  if (recentWinnersData.value.length === 0) return mockRecentWinners;
   return recentWinnersData.value.map((d) => ({
     name: d.deckName ?? "Unknown",
     leader: d.leaderName ?? "Unknown",
@@ -221,7 +89,6 @@ const recentWinners = computed(() => {
 });
 
 const topLeaders = computed(() => {
-  if (topLeadersData.value.length === 0) return mockTopLeaders;
   return topLeadersData.value.map((l) => ({
     name: l.leaderName,
     wins: l.wins,
@@ -232,96 +99,11 @@ const topLeaders = computed(() => {
 const maxWins = computed(() => topLeaders.value[0]?.wins ?? 1);
 
 const popularCards = computed(() => {
-  if (popularCardsData.value.length === 0) return mockPopularCards;
   return popularCardsData.value.map((c) => ({
     name: c.cardName,
     percentage: c.percentage,
   }));
 });
-
-const trendingCards = [
-  { name: "Superlaser Blast", change: "+18%" },
-  { name: "Reinforcement Walker", change: "+15%" },
-  { name: "Open Fire", change: "+12%" },
-  { name: "Battle Meditation", change: "+9%" },
-  { name: "Waylay", change: "+7%" },
-  { name: "Force Push", change: "+6%" },
-];
-
-const deckTabs = [
-  "Recent Winners",
-  "Most Viewed",
-  "Most Liked",
-  "Recently Updated",
-];
-const activeTab = ref("Recent Winners");
-
-const explorerDecks = [
-  {
-    name: "Sabine Green Aggro",
-    leader: "Sabine Wren",
-    author: "DeckMaster99",
-    views: 3241,
-    likes: 187,
-    updated: "June 6, 2026",
-  },
-  {
-    name: "Boba Control",
-    leader: "Boba Fett",
-    author: "CardShark42",
-    views: 2891,
-    likes: 154,
-    updated: "May 31, 2026",
-  },
-  {
-    name: "Luke Heroic Aggro",
-    leader: "Luke Skywalker",
-    author: "JediKnight7",
-    views: 2504,
-    likes: 132,
-    updated: "May 25, 2026",
-  },
-  {
-    name: "Han Smuggler Midrange",
-    leader: "Han Solo",
-    author: "SpiceRunner",
-    views: 2188,
-    likes: 121,
-    updated: "May 18, 2026",
-  },
-  {
-    name: "Sabine Hyperspace",
-    leader: "Sabine Wren",
-    author: "MandoWarrior",
-    views: 1974,
-    likes: 109,
-    updated: "May 10, 2026",
-  },
-  {
-    name: "Vader Imperial Control",
-    leader: "Darth Vader",
-    author: "DarkSideUser",
-    views: 1823,
-    likes: 98,
-    updated: "May 3, 2026",
-  },
-  {
-    name: "Leia Rebel Support",
-    leader: "Leia Organa",
-    author: "RebelScum",
-    views: 1654,
-    likes: 87,
-    updated: "April 28, 2026",
-  },
-  {
-    name: "Maul Aggro Rush",
-    leader: "Maul",
-    author: "SithLord",
-    views: 1502,
-    likes: 76,
-    updated: "April 20, 2026",
-  },
-];
 </script>
 
 <template>
@@ -340,7 +122,7 @@ const explorerDecks = [
     </section>
 
     <!-- Featured Tournament Section -->
-    <section class="container px-4 md:px-8 py-12">
+    <section class="container px-4 md:px-8 py-12" v-if="displayedFeatured">
       <h2 class="mb-6">Latest Tournament</h2>
       <div class="bg-white rounded-xl shadow-md overflow-hidden">
         <div
@@ -398,7 +180,7 @@ const explorerDecks = [
                 :key="entry.leader"
                 class="flex items-center gap-3"
               >
-                <span class="text-sm font-medium w-32 truncate text-gray-700">{{
+                <span class="text-sm font-medium w-1/2 truncate text-gray-700">{{
                   entry.leader
                 }}</span>
                 <div
@@ -457,18 +239,18 @@ const explorerDecks = [
       <div class="container px-4 md:px-8">
         <div class="flex items-center justify-between mb-6">
           <h2 class="mb-0">Recent Winners</h2>
-          <a
+          <!--<a
             href="#"
             class="no-underline text-sm font-medium bg-gray-900 text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors"
           >
             View All Winning Decks
-          </a>
+          </a>-->
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div
             v-for="deck in recentWinners"
             :key="deck.name"
-            class="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow cursor-pointer"
+            class="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
           >
             <div class="flex items-start gap-4 mb-3">
               <div class="flex-1 min-w-0">

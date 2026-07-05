@@ -56,10 +56,10 @@ namespace SkytearHorde.Business.Services
             }).ToArray();
         }
 
-        public IEnumerable<MetaLeaderStat> GetTopLeaders(int days, int take, int leaderGroupId, int leaderSlotId)
+        public IEnumerable<MetaLeaderStat> GetTopLeaders(int days, int take, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
         {
             var from = DateTime.UtcNow.AddDays(-days);
-            var rows = _tournamentRepository.GetTopLeaders(from, leaderGroupId, leaderSlotId).ToArray();
+            var rows = _tournamentRepository.GetTopLeaders(from, leaderGroupId, leaderSlotId, tournamentId).ToArray();
             var names = ResolveCardNames(rows.Select(r => r.LeaderCardId));
 
             return rows

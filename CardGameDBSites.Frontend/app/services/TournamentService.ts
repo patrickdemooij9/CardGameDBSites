@@ -28,10 +28,6 @@ export default class TournamentService {
     return DoFetch<TournamentSummaryApiModel[]>(`/api/tournaments/recent?count=${count}`);
   }
 
-  async getTop8(tournamentId: number): Promise<TournamentEntrantApiModel[]> {
-    return DoFetch<TournamentEntrantApiModel[]>(`/api/tournaments/${tournamentId}/top8`);
-  }
-
   async getRecentWinners(
     count: number,
     leaderGroupId: number,
@@ -46,10 +42,11 @@ export default class TournamentService {
     days: number,
     take: number,
     leaderGroupId: number,
-    leaderSlotId: number
+    leaderSlotId: number,
+    tournamentId?: number
   ): Promise<MetaLeaderApiModel[]> {
     return DoFetch<MetaLeaderApiModel[]>(
-      `/api/tournaments/meta/top-leaders?days=${days}&take=${take}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}`
+      `/api/tournaments/meta/top-leaders?days=${days}&take=${take}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}${tournamentId ? `&tournamentId=${tournamentId}` : ''}`
     );
   }
 

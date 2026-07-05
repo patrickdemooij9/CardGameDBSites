@@ -2,6 +2,7 @@
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Tournament;
 using SkytearHorde.Entities.Models.Database.Tournament;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -58,6 +59,8 @@ namespace SkytearHorde.Business.Tournaments
             var data = new TournamentConnectorData();
             var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
+            var lastRoundStandings = await GetRoundStandings(_matchesIds.Last());
+
             foreach (var matchId in _matchesIds)
             {
                 var content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -111,12 +114,18 @@ namespace SkytearHorde.Business.Tournaments
 
                         if (!data.EntrantsByExternalId.TryGetValue(player.ID, out var entrant))
                         {
+                            var standing = lastRoundStandings.TryGetValue(player.ID, out var roundStanding) ? roundStanding : null;
+
                             entrant = new TournamentEntrant
                             {
                                 TournamentId = tournament.Id,
                                 PlayerName = player.DisplayName,
                                 ExternalId = player.ID.ToString(),
-                                Source = Source
+                                Source = Source,
+                                Placement = standing?.Rank ?? 1000,
+                                Wins = standing?.GameWins ?? 0,
+                                Losses = standing?.GameLosses ?? 0,
+                                Draws = standing?.GameDraws ?? 0
                             };
                             data.EntrantsByExternalId[player.ID] = entrant;
 
@@ -195,6 +204,36 @@ namespace SkytearHorde.Business.Tournaments
             }
         }
 
+        private async Task<Dictionary<int, MeleeRoundStanding>> GetRoundStandings(string roundId)
+        {
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "draw", "1" },
+                { "start", "0" },
+                { "length", "1000" },
+                { "columns[0][data]", "Rank" },
+                { "columns[0][name]", "Rank" },
+                { "columns[0][searchable]", "true" },
+                { "columns[0][orderable]", "true" },
+                { "columns[0][search][value]", "" },
+                { "columns[0][search][regex]", "false" },
+                { "order[0][column]", "0" },
+                { "order[0][dir]", "asc" },
+                { "search[value]", "" },
+                { "search[regex]", "false" },
+                { "roundId", roundId }
+            });
+            var matchResponse = await _httpClient.PostAsync($"https://melee.gg/Standing/GetRoundStandings", content);
+            if (!matchResponse.IsSuccessStatusCode)
+                return [];
+
+            var response = await matchResponse.Content.ReadFromJsonAsync<MeleeRoundResponse>();
+            if (response?.Data == null)
+                return [];
+
+            return response.Data.ToDictionary(s => s.Team?.Players?.FirstOrDefault()?.ID ?? 0, s => s);
+        }
+
 
         // --- Melee.GG API response models ---
 
@@ -247,6 +286,20 @@ namespace SkytearHorde.Business.Tournaments
             public string FormatName { get; set; } = string.Empty;
             public string Game { get; set; } = string.Empty;
             public List<MeleeDeckCard> Records { get; set; } = [];
+        }
+
+        private class MeleeRoundResponse
+        {
+            public List<MeleeRoundStanding> Data { get; set; } = [];
+        }
+
+        private class MeleeRoundStanding
+        {
+            public int GameWins { get; set; }
+            public int GameLosses { get; set; }
+            public int GameDraws { get; set; }
+            public int Rank { get; set; }
+            public MeleeTeam? Team { get; set; }
         }
     }
 }

@@ -105,8 +105,6 @@ await app.RunAsync();
 
 void ConfigureServices(IServiceCollection services, bool isProduction)
 {
-    services.AddAdServer();
-
     var rootDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
     services.AddDataProtection()
         .PersistKeysToFileSystem(new DirectoryInfo(rootDirectory + "/umbraco"))

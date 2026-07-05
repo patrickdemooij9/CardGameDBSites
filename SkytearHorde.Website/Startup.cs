@@ -60,8 +60,6 @@ namespace SkytearHorde
                 .AddNotificationHandler<ContentPublishedNotification, CardSortingEventHandler>()
                 .Build();
 
-            services.AddAdServer();
-
             services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 

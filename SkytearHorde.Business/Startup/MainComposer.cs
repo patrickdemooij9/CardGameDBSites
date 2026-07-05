@@ -61,6 +61,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddScoped<RandomizeService>();
             builder.Services.AddScoped<TournamentService>();
             builder.Services.AddSingleton<CardSearchFieldsFinder>();
+            builder.Services.AddSingleton<CardImportQueueService>();
 
             builder.Services.AddSingleton<DeckRepository>();
             builder.Services.AddSingleton<DeckViewRepository>();
@@ -82,6 +83,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<DailyCardGameSessionRepository>();
             builder.Services.AddSingleton<DailyCardGameGuessRepository>();
             builder.Services.AddSingleton<TournamentRepository>();
+            builder.Services.AddSingleton<CardImportQueueRepository>();
 
             builder.Services.AddSingleton<IAdRepository, AdRepository>();
             builder.Services.AddSingleton<IMetricRawDataRepository, MetricRawDataRepository>();
@@ -89,6 +91,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<ICampaignRepository, CampaignRepository>();
 
             builder.Services.AddScoped<CardMaker>();
+            builder.Services.AddScoped<CardImporterService>();
 
             builder.Services.AddSingleton<ISiteAccessor, SiteAccessor>();
             builder.Services.AddSingleton<ISiteService, SiteService>();
@@ -129,6 +132,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddHostedService<RedditDailyCardTask>();
             builder.Services.AddHostedService<RedditBotTask>();
             builder.Services.AddHostedService<DeckViewCleanupTask>();
+            builder.Services.AddHostedService<CardImportQueueCleanupTask>();
 
             builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();
 
@@ -141,7 +145,7 @@ namespace SkytearHorde.Business.Startup
                     applicationBuilder =>
                     {
                         applicationBuilder.UseMiddleware<SiteSetterMiddleware>();
-                        applicationBuilder.UseMiddleware<AdRedirectMiddleware>();
+                        //applicationBuilder.UseMiddleware<AdRedirectMiddleware>();
                         applicationBuilder.UseMiddleware<CountryMiddleware>();
                         applicationBuilder.UseMiddleware<TrackDeckMiddleware>();
                         //applicationBuilder.UseMiddleware<TrackViewMiddleware>();

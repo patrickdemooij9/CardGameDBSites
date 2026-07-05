@@ -27,12 +27,15 @@ namespace SkytearHorde.Business.Discord
         private readonly ISiteAccessor _siteAccessor;
         private readonly IAbilityFormatter _abilityFormatter;
         private readonly ISiteService _siteService;
+        private readonly CardImportQueueService? _cardImportQueueService;
+        private readonly ulong? _revealChannelId;
         private string _baseUrl;
         private readonly int _siteId;
 
+        private static readonly HttpClient _httpClient = new();
         private DiscordSocketClient _client;
 
-        public DiscordBot(ILogger logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, int siteId)
+        public DiscordBot(ILogger logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, int siteId, CardImportQueueService? cardImportQueueService = null, ulong? revealChannelId = null)
         {
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -48,6 +51,8 @@ namespace SkytearHorde.Business.Discord
             _abilityFormatter = abilityFormatter;
             _siteService = siteService;
             _siteId = siteId;
+            _cardImportQueueService = cardImportQueueService;
+            _revealChannelId = revealChannelId;
 
             ExecutionContext.SuppressFlow();
             Task.Run(Startup);
@@ -103,6 +108,41 @@ namespace SkytearHorde.Business.Discord
 
             if (message.Author.IsBot) return;
 
+            // Reveal channel: queue any image attachments for card import
+            if (_revealChannelId.HasValue &&
+                message.Channel.Id == _revealChannelId.Value &&
+                _cardImportQueueService != null &&
+                message.Attachments.Count > 0)
+            {
+                foreach (var attachment in message.Attachments)
+                {
+                    if (!IsImageAttachment(attachment)) continue;
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var imageBytes = await _httpClient.GetByteArrayAsync(attachment.Url);
+                            var base64 = Convert.ToBase64String(imageBytes);
+                            var mimeType = attachment.Filename.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                                ? "image/png" : "image/jpeg";
+
+                            await _cardImportQueueService.ProcessImageAsync(
+                                base64, _siteId,
+                                Entities.Models.Database.CardImportQueueSource.Discord,
+                                attachment.Url,
+                                mimeType);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to process reveal image from Discord attachment {Url}", attachment.Url);
+                        }
+                    });
+                }
+                return;
+            }
+
+            // Standard card lookup: {card name}
             try
             {
                 var matches = Regex.Matches(message.Content, "(?<=\\{{)(.*?)(?=\\}})");
@@ -122,6 +162,12 @@ namespace SkytearHorde.Business.Discord
             {
                 _logger.LogError(ex, "Something went wrong");
             }
+        }
+
+        private static bool IsImageAttachment(Attachment attachment)
+        {
+            var ext = Path.GetExtension(attachment.Filename).ToLowerInvariant();
+            return ext is ".png" or ".jpg" or ".jpeg" or ".webp";
         }
 
         private Embed CreateCardEmbed(Card card)

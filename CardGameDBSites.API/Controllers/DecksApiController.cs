@@ -110,6 +110,7 @@ namespace CardGameDBSites.API.Controllers
                 Page = query.Page,
                 UserId = query.UserId,
                 OrderBy = query.OrderBy,
+                Source = DeckSource.DeckBuilder,
                 DateFrom = query.DateFrom,
                 DateTo = query.DateTo,
                 UseUserCollectionId = useUserCollection

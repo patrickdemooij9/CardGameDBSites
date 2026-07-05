@@ -212,7 +212,7 @@ namespace SkytearHorde.Business.Services
                     SiteId = _siteAccessor.GetSiteId(),
                     TypeId = deckSettings.TypeID,
                     Source = DeckSource.TournamentSync,
-                    IsPublished = false,
+                    IsPublished = true,
                     CreatedDate = DateTime.UtcNow,
                     Cards = [],
                     Sideboard = [],

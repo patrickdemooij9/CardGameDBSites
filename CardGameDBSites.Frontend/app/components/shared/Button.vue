@@ -3,7 +3,8 @@ import ButtonType from './ButtonType';
 
 const props = defineProps<{
   disabled?: boolean;
-  buttonType?: ButtonType
+  buttonType?: ButtonType;
+  loading?: boolean;
 }>();
 
 function getClasses(){
@@ -23,10 +24,11 @@ function getClasses(){
 <template>
   <button
     type="button"
-    :disabled="disabled"
+    :disabled="disabled || loading"
     :class="getClasses()"
-    class="pointer rounded w-fit px-4 py-2 disabled:cursor-not-allowed disabled:bg-gray-200 hover:bg-gray-200"
+    class="pointer rounded w-fit px-4 py-2 disabled:cursor-not-allowed disabled:bg-gray-200 hover:bg-gray-200 flex items-center justify-center gap-2"
   >
-    <slot></slot>
+    <div v-if="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+    <slot v-if="!loading"></slot>
   </button>
 </template>

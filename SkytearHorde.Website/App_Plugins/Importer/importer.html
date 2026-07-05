@@ -22,4 +22,11 @@
     <umb-button action="vm.doImportJson()" label="Import Cards (.json) from reader">
         Import
     </umb-button>
+
+    <div>
+        <umb-button action="vm.doImportFromApi()" label="Import from API (sw-unlimited-db.com)">
+            Import from API
+        </umb-button>
+        <span ng-if="vm.importFromApiStatus">{{vm.importFromApiStatus}}</span>
+    </div>
 </div>

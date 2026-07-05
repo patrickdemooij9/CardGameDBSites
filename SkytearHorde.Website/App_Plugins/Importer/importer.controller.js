@@ -9,10 +9,12 @@
 
         vm.importFile = "";
         vm.test = "hello";
+        vm.importFromApiStatus = "";
 
         vm.doImport = doImport;
         vm.doImportImages = doImportImages;
         vm.doImportJson = doImportJson;
+        vm.doImportFromApi = doImportFromApi;
 
         function doImport() {
             var formData = new FormData();
@@ -51,6 +53,20 @@
                 data: formData,
                 processData: false,
                 contentType: false
+            });
+        }
+
+        function doImportFromApi() {
+            vm.importFromApiStatus = "Importing...";
+            $.ajax({
+                url: '/umbraco/backoffice/importer/importer/importFromApi?nodeId=' + editorState.current.id,
+                type: 'POST',
+                success: function (result) {
+                    vm.importFromApiStatus = "Done! Imported " + result.imported + " card(s).";
+                },
+                error: function () {
+                    vm.importFromApiStatus = "Import failed.";
+                }
             });
         }
     }

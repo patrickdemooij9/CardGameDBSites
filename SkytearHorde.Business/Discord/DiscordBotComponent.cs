@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
@@ -29,8 +30,10 @@ namespace SkytearHorde.Business.Discord
         private readonly IAbilityFormatter _abilityFormatter;
         private readonly ISiteService _siteService;
         private readonly IRuntimeState _runtimeState;
+        private readonly CardImportQueueService _cardImportQueueService;
+        private readonly IConfiguration _configuration;
 
-        public DiscordBotComponent(ILogger<DiscordBot> logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter,ISiteService siteService, IRuntimeState runtimeState)
+        public DiscordBotComponent(ILogger<DiscordBot> logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, IRuntimeState runtimeState, CardImportQueueService cardImportQueueService, IConfiguration configuration)
         {
             _logger = logger;
             _cardService = cardService;
@@ -43,7 +46,8 @@ namespace SkytearHorde.Business.Discord
             _abilityFormatter = abilityFormatter;
             _siteService = siteService;
             _runtimeState = runtimeState;
-            _siteService = siteService;
+            _cardImportQueueService = cardImportQueueService;
+            _configuration = configuration;
         }
 
         public void Initialize()
@@ -62,7 +66,10 @@ namespace SkytearHorde.Business.Discord
 
             foreach (var siteId in siteIds)
             {
-                new DiscordBot(_logger, _cardService, _cardPageService, _umbracoContextFactory, _settingsService, _siteAccessor, _abilityFormatter, _siteService, siteId);
+                var channelIdStr = _configuration[$"CardImport:RevealChannels:{siteId}"];
+                ulong? revealChannelId = ulong.TryParse(channelIdStr, out var parsed) ? parsed : null;
+
+                new DiscordBot(_logger, _cardService, _cardPageService, _umbracoContextFactory, _settingsService, _siteAccessor, _abilityFormatter, _siteService, siteId, _cardImportQueueService, revealChannelId);
             }
         }
 

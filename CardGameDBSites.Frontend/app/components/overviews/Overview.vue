@@ -57,6 +57,7 @@ const search = ref(route.query.search?.toString() ?? "");
 
 const selectedFilters = ref<Map<OverviewFilterModel, string[]>>(new Map());
 const isLoading = ref(false);
+const nuxtApp = useNuxtApp();
 const page = ref(1);
 const pageNumberString = route.query["page"];
 if (pageNumberString) {
@@ -158,7 +159,9 @@ function reloadData() {
     history.replaceState(history.state, "", url);
   }
 
-  isLoading.value = true;
+  if (!(import.meta.client && nuxtApp.isHydrating)) {
+    isLoading.value = true;
+  }
 
   const filters = new Map<OverviewFilterModel, string[]>();
   selectedFilters.value &&
@@ -488,14 +491,17 @@ init();
         </div>
       </div>
     </form>
-    <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative">
-      <div id="card-overview" v-show="!isLoading">
+    <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative min-h-20">
+      <div id="card-overview" :aria-busy="isLoading" :class="{ 'opacity-40': isLoading }">
         <slot :viewMode="viewMode"></slot>
       </div>
-      <div class="h-20" v-show="isLoading">
+      <div
+        v-if="isLoading"
+        class="absolute inset-0 flex items-center justify-center"
+      >
         <div
           role="status"
-          class="flex flex-col gap-4 items-center absolute -translate-x-1/2 -translate-y-1/2 top-2/4 left-1/2"
+          class="flex flex-col gap-4 items-center bg-white/80 rounded-lg px-6 py-4"
         >
           <svg
             aria-hidden="true"

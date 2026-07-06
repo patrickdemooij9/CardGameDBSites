@@ -6,6 +6,7 @@ import {
   CardSearchCollectionMode,
   CardSearchFilterClauseType,
   type CardsQueryFilterClauseApiModel,
+  type CardsQueryPostApiModel,
   type PagedResultCardDetailApiModel,
 } from "~/api/default";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
@@ -79,7 +80,7 @@ async function loadData(value: OverviewRefreshModel) {
     filters.push(filter);
   });
 
-  const result = await useCards().queryCards({
+  const queryModel: CardsQueryPostApiModel = {
     query: value.Query,
     pageNumber: value.PageNumber,
     pageSize: props.pageSize ?? 30,
@@ -89,16 +90,24 @@ async function loadData(value: OverviewRefreshModel) {
     sortBy: value.SortBy,
     includeReprintedCards: props.hideReprintedCards ? false : undefined,
     legalForDeckTypeId: props.legalForDeckTypeId,
-  });
+  };
+
+  const { data: result } = await useAsyncData(
+    `card-overview:${JSON.stringify(queryModel)}`,
+    () => useCards().queryCards(queryModel),
+  );
+
   if (requestVersion !== currentRequestVersion) {
     return;
   }
 
-  pagedCards.value = result;
+  pagedCards.value = result.value ?? undefined;
   if (value.LoadedCallback) {
     value.LoadedCallback();
   }
-  emit("reloaded", pagedCards.value);
+  if (pagedCards.value) {
+    emit("reloaded", pagedCards.value);
+  }
 }
 
 async function loadLazyFilter(filter: OverviewFilterModel) {

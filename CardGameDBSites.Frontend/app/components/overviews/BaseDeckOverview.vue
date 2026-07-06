@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DeckStatus, type PagedResultDeckApiModel } from "~/api/default";
+import { DeckStatus, type DeckQueryPostModel, type PagedResultDeckApiModel } from "~/api/default";
 import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
@@ -21,6 +21,7 @@ const deckService = new DeckService();
 
 const pagedDecks = ref<PagedResultDeckApiModel>();
 const overview = ref<InstanceType<typeof Overview>>();
+const nuxtApp = useNuxtApp();
 
 const defaultSortings: OverviewSortModel[] = [
   { Name: "Popular", Value: "popular" },
@@ -71,7 +72,7 @@ async function loadData(value: OverviewRefreshModel) {
       ? cardFilter.map((v) => parseInt(v))
       : undefined;
 
-  pagedDecks.value = await deckService.query({
+  const queryModel: DeckQueryPostModel = {
     page: value.PageNumber,
     take: 20,
     userId: props.userId,
@@ -81,7 +82,29 @@ async function loadData(value: OverviewRefreshModel) {
     dateTo: dateTo || null,
     orderBy: value.SortBy,
     cards: cardIds,
-  });
+  };
+
+  const key = `deck-overview:${JSON.stringify(queryModel)}`;
+
+  // While Vue is still hydrating the server-rendered page, the payload for this exact
+  // request is already sitting in the Nuxt payload. Read it synchronously via
+  // useNuxtData instead of through useAsyncData below - that call's `await` always
+  // defers by at least one microtask, even on a cache hit, which would mean the
+  // client's first render briefly has no decks while the server-rendered DOM already
+  // does, causing a hydration mismatch.
+  if (import.meta.client && nuxtApp.isHydrating) {
+    const { data: cachedResult } = useNuxtData<PagedResultDeckApiModel>(key);
+    if (cachedResult.value !== undefined) {
+      pagedDecks.value = cachedResult.value;
+      if (value.LoadedCallback) {
+        value.LoadedCallback();
+      }
+      return;
+    }
+  }
+
+  const { data: result } = await useAsyncData(key, () => deckService.query(queryModel));
+  pagedDecks.value = result.value ?? undefined;
 
   if (value.LoadedCallback) {
     value.LoadedCallback();

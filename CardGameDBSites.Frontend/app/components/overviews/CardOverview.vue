@@ -113,7 +113,6 @@ const collectionColumns = computed<CollectionColumn[]>(() => [
     })),
 ]);
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
-const isLoading = ref(true);
 const isLoggedIn = ref(false);
 const collectionStore = useCollectionStore();
 const updatingCollectionKeys = ref(new Set<string>());
@@ -123,7 +122,6 @@ const collectionVariantBadgeStep = 10;
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
   variantTypes.value = await cards.loadVariantTypes();
-  isLoading.value = false;
 });
 
 function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
@@ -266,11 +264,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
 </script>
 
 <template>
-  <div v-if="isLoading" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-  </div>
   <BaseCardOverview
-    v-else
     :filters="filters"
     :sortings="sortings"
     :internal-filters="internalFilters"

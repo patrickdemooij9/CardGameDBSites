@@ -34,7 +34,7 @@ const emit = defineEmits<{
           v-else
           :src="GetCrop(card.imageUrl, undefined)"
           loading="lazy"
-          class="w-full aspect-[2/3] object-cover"
+          class="w-full object-cover"
         />
       </NuxtLink>
       <div class="flex justify-between items-center mt-2">

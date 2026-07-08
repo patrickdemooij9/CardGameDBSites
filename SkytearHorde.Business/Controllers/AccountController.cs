@@ -85,7 +85,7 @@ namespace SkytearHorde.Business.Controllers
                     return CurrentUmbracoPage();
                 else
                 {
-                    var responseContent = response.Content.ReadFromJsonAsync<RecaptchaVerifyResultModel>().Result;
+                    var responseContent = await response.Content.ReadFromJsonAsync<RecaptchaVerifyResultModel>();
                     if (!responseContent.Success)
                         return CurrentUmbracoPage();
                 }

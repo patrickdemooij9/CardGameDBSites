@@ -3,6 +3,7 @@ using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Config;
+using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
@@ -11,51 +12,64 @@ namespace SkytearHorde.Business.Services
 {
     public class SettingsService
     {
+        private const string SiteSettingsCacheKeyPrefix = "GetSiteSettings_";
+
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly ISiteService _siteService;
+        private readonly IAppPolicyCache _cache;
 
-        public SettingsService(IUmbracoContextFactory umbracoContextFactory, ISiteService siteService)
+        public SettingsService(IUmbracoContextFactory umbracoContextFactory, ISiteService siteService, AppCaches appCaches)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _siteService = siteService;
+            _cache = appCaches.RuntimeCache;
         }
 
         public SiteSettingsConfig GetSiteSettings()
         {
-            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var settings = _siteService.GetRoot().FirstChild<Settings>()?.FirstChild<SiteSettings>();
-            if (settings is null) return new SiteSettingsConfig() { MainColor = "#ffffff", HoverMainColor = "#f0f0f0", BorderColor = "#000000", SiteName = "", NavigationLogoUrl = "", ShowLogin = false, TextColorWhite = false, FooterText = ""};
-
-            return new SiteSettingsConfig
+            var root = _siteService.GetRoot();
+            return _cache.GetCacheItem($"{SiteSettingsCacheKeyPrefix}{root.Id}", () =>
             {
-                MainColor = settings.MainColor,
-                HoverMainColor = settings.HoverMainColor,
-                BorderColor = settings.BorderColor,
-                SiteName = settings.SiteName,
-                ShowLogin = settings.ShowLogin,
-                NavigationLogoUrl = settings.NavigationLogo?.Url(mode: UrlMode.Absolute) ?? "#",
-                TextColorWhite = settings.TextColorWhite,
-                Navigation = settings.Navigation.ToItems<NavigationItem>().ToArray(),
-                FooterText = settings.FooterText,
-                FooterLinks = settings.FooterLinks?.ToArray() ?? [],
-                Keywords = settings.KeywordImages.ToItems<KeywordImage>().Select(it => new KeywordImageConfig(it.Keyword, it.Image?.Url(mode: UrlMode.Absolute))
+                using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+                var settings = root.FirstChild<Settings>()?.FirstChild<SiteSettings>();
+                if (settings is null) return new SiteSettingsConfig() { MainColor = "#ffffff", HoverMainColor = "#f0f0f0", BorderColor = "#000000", SiteName = "", NavigationLogoUrl = "", ShowLogin = false, TextColorWhite = false, FooterText = ""};
+
+                return new SiteSettingsConfig
                 {
-                    DiscordIcon = $"<:{it.DiscordIconName}:{it.DiscordIconID}>"
-                }).ToArray(),
-                AllowPricing = settings.AllowPricingSync,
-                RedditSettings = new RedditSettingsConfig
-                {
-                    Enabled = settings.AllowRedditIntegration,
-                    Username = settings.RedditUsername,
-                    Password = settings.RedditPassword,
-                    ClientId = settings.RedditClientID,
-                    ClientSecret = settings.RedditClientSecret,
-                    Subreddit = settings.RedditSubreddit
-                },
-                SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray(),
-                CardOverviewIdentifier = settings.CardOverviewIdentifier,
-                BaseUrl = settings.BaseUrl
-            };
+                    MainColor = settings.MainColor,
+                    HoverMainColor = settings.HoverMainColor,
+                    BorderColor = settings.BorderColor,
+                    SiteName = settings.SiteName,
+                    ShowLogin = settings.ShowLogin,
+                    NavigationLogoUrl = settings.NavigationLogo?.Url(mode: UrlMode.Absolute) ?? "#",
+                    TextColorWhite = settings.TextColorWhite,
+                    Navigation = settings.Navigation.ToItems<NavigationItem>().ToArray(),
+                    FooterText = settings.FooterText,
+                    FooterLinks = settings.FooterLinks?.ToArray() ?? [],
+                    Keywords = settings.KeywordImages.ToItems<KeywordImage>().Select(it => new KeywordImageConfig(it.Keyword, it.Image?.Url(mode: UrlMode.Absolute))
+                    {
+                        DiscordIcon = $"<:{it.DiscordIconName}:{it.DiscordIconID}>"
+                    }).ToArray(),
+                    AllowPricing = settings.AllowPricingSync,
+                    RedditSettings = new RedditSettingsConfig
+                    {
+                        Enabled = settings.AllowRedditIntegration,
+                        Username = settings.RedditUsername,
+                        Password = settings.RedditPassword,
+                        ClientId = settings.RedditClientID,
+                        ClientSecret = settings.RedditClientSecret,
+                        Subreddit = settings.RedditSubreddit
+                    },
+                    SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray(),
+                    CardOverviewIdentifier = settings.CardOverviewIdentifier,
+                    BaseUrl = settings.BaseUrl
+                };
+            }, TimeSpan.FromMinutes(10))!;
+        }
+
+        public void ClearSiteSettingsCache()
+        {
+            _cache.ClearByKey(SiteSettingsCacheKeyPrefix);
         }
 
         public DeckSettings GetDeckSettings()

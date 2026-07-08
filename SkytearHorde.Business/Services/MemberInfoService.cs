@@ -47,6 +47,17 @@ namespace SkytearHorde.Business.Services
         public CurrentMemberModel? GetMemberInfo()
         {
             var member = _memberManager.GetCurrentMemberAsync().Result;
+            return BuildMemberInfo(member);
+        }
+
+        public async Task<CurrentMemberModel?> GetMemberInfoAsync()
+        {
+            var member = await _memberManager.GetCurrentMemberAsync();
+            return BuildMemberInfo(member);
+        }
+
+        private CurrentMemberModel? BuildMemberInfo(MemberIdentityUser? member)
+        {
             if (member is null) return null;
             var memberId = int.Parse(member.Id);
 

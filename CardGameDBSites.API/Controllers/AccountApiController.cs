@@ -109,7 +109,7 @@ namespace CardGameDBSites.API.Controllers
                     return BadRequest("Recaptcha failed");
                 else
                 {
-                    var responseContent = response.Content.ReadFromJsonAsync<RecaptchaVerifyResultModel>().Result;
+                    var responseContent = await response.Content.ReadFromJsonAsync<RecaptchaVerifyResultModel>();
                     if (!responseContent.Success)
                         return BadRequest("Recaptcha failed");
                 }
@@ -221,18 +221,18 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("IsLoggedIn")]
         [JwtAuthorization]
-        public IActionResult IsLoggedIn()
+        public async Task<IActionResult> IsLoggedIn()
         {
-            var test = _memberManager.GetCurrentMemberAsync().Result;
+            await _memberManager.GetCurrentMemberAsync();
             return Ok("You need to be authenticated to see this message.");
         }
 
         [HttpGet("GetCurrentMember")]
         [ProducesResponseType(typeof(CurrentMemberApiModel), 200)]
         [OptionalJwtAuthorization]
-        public IActionResult GetCurrentMember()
+        public async Task<IActionResult> GetCurrentMember()
         {
-            var member = _memberInfoService.GetMemberInfo();
+            var member = await _memberInfoService.GetMemberInfoAsync();
             if (member is null) return Unauthorized("You need to be logged in to see this information.");
 
             var isAdmin = HttpContext.User.FindFirst("isAdmin")?.Value == "true";

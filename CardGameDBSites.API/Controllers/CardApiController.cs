@@ -67,8 +67,8 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(CardDetailApiModel[]), 200)]
         public IActionResult ByIds(int[] ids)
         {
-            var cards = _cardService.Get(ids);
-            return Ok(cards.Select(MapToApiModel));
+            var cards = _cardService.Get(ids).ToArray();
+            return Ok(MapToApiModels(cards));
         }
 
         [HttpGet("byId")]
@@ -82,13 +82,13 @@ namespace CardGameDBSites.API.Controllers
             var baseVariant = _cardService.Get(umbracoCard.Id);
             if (baseVariant is null) return NotFound();
 
-            return Ok(MapToApiModel(baseVariant));
+            return Ok(MapToApiModels([baseVariant]).Single());
         }
 
         [HttpPost("query")]
         [OptionalJwtAuthorization]
         [ProducesResponseType(typeof(PagedResult<CardDetailApiModel>), 200)]
-        public IActionResult Query(CardsQueryPostApiModel model)
+        public async Task<IActionResult> Query(CardsQueryPostApiModel model)
         {
             var potentialCollectionFilter = model.FilterClauses.SelectMany(it => it.Filters).FirstOrDefault(it => it.Alias == "collection");
             if (potentialCollectionFilter != null)
@@ -106,7 +106,7 @@ namespace CardGameDBSites.API.Controllers
             int? memberId = null;
             if (_memberManager.IsLoggedIn() && (model.CollectionMode != CardSearchCollectionMode.Ignore || model.SortBy == "collection"))
             {
-                var member = _memberManager.GetCurrentMemberAsync().GetAwaiter().GetResult();
+                var member = await _memberManager.GetCurrentMemberAsync();
                 if (member != null && int.TryParse(member.Id, out var id))
                 {
                     memberId = id;
@@ -162,10 +162,10 @@ namespace CardGameDBSites.API.Controllers
                 MemberId = memberId,
                 IncludeReprintedCards = model.IncludeReprintedCards,
                 LegalForDeckTypeId = model.LegalForDeckTypeId
-            }, out var totalItems).Select(MapToApiModel);
+            }, out var totalItems).ToArray();
             return Ok(new PagedResult<CardDetailApiModel>(totalItems, model.PageNumber, model.PageSize)
             {
-                Items = result
+                Items = MapToApiModels(result)
             });
         }
 
@@ -247,13 +247,17 @@ namespace CardGameDBSites.API.Controllers
             return Ok(result);
         }
 
-        private CardDetailApiModel MapToApiModel(Card card)
+        private CardDetailApiModel[] MapToApiModels(IReadOnlyCollection<Card> cards)
         {
-            var detail = new CardDetailApiModel(card, card.NonLegalDeckTypes, _cardPageService.GetUrl(card));
-            if (_settingsService.GetSiteSettings().AllowPricing)
+            var setsById = _cardService.GetAllSets().ToDictionary(it => it.Id);
+            var allowPricing = _settingsService.GetSiteSettings().AllowPricing;
+            var pricesByVariantId = allowPricing ? _cardPriceService.GetPrices([.. cards]) : null;
+
+            return [.. cards.Select(card =>
             {
-                var prices = _cardPriceService.GetPrices(card);
-                if (prices.TryGetValue(card.VariantId, out CardPrice? value))
+                setsById.TryGetValue(card.SetId, out var set);
+                var detail = new CardDetailApiModel(card, card.NonLegalDeckTypes, _cardPageService.GetUrl(card, set));
+                if (pricesByVariantId != null && pricesByVariantId.TryGetValue(card.VariantId, out CardPrice? value))
                 {
                     detail.Price = new CardPriceApiModel
                     {
@@ -261,9 +265,8 @@ namespace CardGameDBSites.API.Controllers
                         ReferenceUrl = _cardPriceService.GetUrl(value, card)
                     };
                 }
-            }
-
-            return detail;
+                return detail;
+            })];
         }
     }
 }

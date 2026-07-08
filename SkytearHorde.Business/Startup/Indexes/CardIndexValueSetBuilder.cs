@@ -74,6 +74,8 @@ namespace SkytearHorde.Business.Startup.Indexes
                 {
                     updatedValues["sortOrder"] = [sortOrder];
                 }
+
+                updatedValues["CustomField.SetSortOrder"] = [set.SortOrder];
             }
 
             updatedValues["DecksOnly"] = [card.HideFromDecks ? 0 : 1];

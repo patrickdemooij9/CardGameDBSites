@@ -37,16 +37,7 @@ namespace SkytearHorde.Business.Startup.Indexes
                 {
                     _siteAccessor.SetSiteId(siteId);
 
-                    var sets = _cardService.GetAllSets().ToArray();
-                    var setSortOrder = sets
-                        .Select((set, index) => new { set.Id, Index = index })
-                        .ToDictionary(x => x.Id, x => x.Index);
-
-                    var cards = _cardService.GetAll(true)
-                        .Where(it => it.VariantId != 0)
-                        .OrderBy(card => setSortOrder.TryGetValue(card.SetId, out var order) ? order : int.MaxValue)
-                        .ToArray();
-
+                    var cards = _cardService.GetAll(true).Where(it => it.VariantId != 0).ToArray();
                     index.IndexItems(_cardIndexValueSetBuilder.GetValueSets(cards));
                 }
             }

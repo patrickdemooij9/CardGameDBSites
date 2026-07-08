@@ -23,41 +23,56 @@ export type MetaPopularCardApiModel = {
   percentage: number;
 };
 
+export type PeriodApiModel = {
+  id: number;
+  name: string;
+  startingDateUtc: string;
+  endDateUtc?: string;
+  isCurrent: boolean;
+};
+
 export default class TournamentService {
-  async getRecent(count: number = 6): Promise<TournamentSummaryApiModel[]> {
-    return DoFetch<TournamentSummaryApiModel[]>(`/api/tournaments/recent?count=${count}`);
+  async getPeriods(formatId: number): Promise<PeriodApiModel[]> {
+    return DoFetch<PeriodApiModel[]>(`/api/tournaments/periods?formatId=${formatId}`);
+  }
+
+  async getRecent(periodId: number, count: number = 6): Promise<TournamentSummaryApiModel[]> {
+    return DoFetch<TournamentSummaryApiModel[]>(
+      `/api/tournaments/recent?periodId=${periodId}&count=${count}`
+    );
   }
 
   async getRecentWinners(
+    periodId: number,
     count: number,
     leaderGroupId: number,
     leaderSlotId: number
   ): Promise<MetaWinningDeckApiModel[]> {
     return DoFetch<MetaWinningDeckApiModel[]>(
-      `/api/tournaments/meta/recent-winners?count=${count}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}`
+      `/api/tournaments/meta/recent-winners?periodId=${periodId}&count=${count}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}`
     );
   }
 
   async getTopLeaders(
-    days: number,
+    periodId: number,
     take: number,
     leaderGroupId: number,
     leaderSlotId: number,
     tournamentId?: number
   ): Promise<MetaLeaderApiModel[]> {
     return DoFetch<MetaLeaderApiModel[]>(
-      `/api/tournaments/meta/top-leaders?days=${days}&take=${take}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}${tournamentId ? `&tournamentId=${tournamentId}` : ''}`
+      `/api/tournaments/meta/top-leaders?periodId=${periodId}&take=${take}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}${tournamentId ? `&tournamentId=${tournamentId}` : ''}`
     );
   }
 
   async getPopularCards(
-    days: number,
+    periodId: number,
     take: number,
     leaderGroupId: number,
     leaderSlotId: number
   ): Promise<MetaPopularCardApiModel[]> {
     return DoFetch<MetaPopularCardApiModel[]>(
-      `/api/tournaments/meta/popular-cards?days=${days}&take=${take}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}`
+      `/api/tournaments/meta/popular-cards?periodId=${periodId}&take=${take}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}`
     );
   }
 }

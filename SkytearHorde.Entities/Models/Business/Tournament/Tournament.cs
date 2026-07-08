@@ -10,5 +10,7 @@
         public string Source { get; set; }
         public string? ExternalUrl { get; set; }
         public string? ExternalId { get; set; }
+        public int SiteId { get; set; }
+        public int? PeriodId { get; set; }
     }
 }

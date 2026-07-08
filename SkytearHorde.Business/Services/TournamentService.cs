@@ -13,15 +13,17 @@ namespace SkytearHorde.Business.Services
     public class TournamentService
     {
         private readonly TournamentRepository _tournamentRepository;
+        private readonly PeriodRepository _periodRepository;
         private readonly ITournamentConnector[] _tournamentConnectors;
         private readonly CardService _cardService;
         private readonly DeckRepository _deckRepository;
         private readonly ISiteAccessor _siteAccessor;
         private readonly SettingsService _settingsService;
 
-        public TournamentService(TournamentRepository tournamentRepository, IEnumerable<ITournamentConnector> tournamentConnectors, CardService cardService, DeckRepository deckRepository, ISiteAccessor siteAccessor, SettingsService settingsService)
+        public TournamentService(TournamentRepository tournamentRepository, PeriodRepository periodRepository, IEnumerable<ITournamentConnector> tournamentConnectors, CardService cardService, DeckRepository deckRepository, ISiteAccessor siteAccessor, SettingsService settingsService)
         {
             _tournamentRepository = tournamentRepository;
+            _periodRepository = periodRepository;
             _tournamentConnectors = tournamentConnectors.ToArray();
             _cardService = cardService;
             _deckRepository = deckRepository;
@@ -29,8 +31,8 @@ namespace SkytearHorde.Business.Services
             _settingsService = settingsService;
         }
 
-        public IEnumerable<Tournament> GetRecent(int count = 6) =>
-            _tournamentRepository.GetRecent(count);
+        public IEnumerable<Tournament> GetRecent(int periodId, int count = 6) =>
+            _tournamentRepository.GetRecent(_siteAccessor.GetSiteId(), periodId, count);
 
         public int GetPlayerCount(int tournamentId) =>
             _tournamentRepository.GetPlayerCount(tournamentId);
@@ -38,9 +40,9 @@ namespace SkytearHorde.Business.Services
         public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId) =>
             _tournamentRepository.GetTop8Entrants(tournamentId);
 
-        public IEnumerable<MetaWinningDeck> GetRecentWinningDecks(int count, int leaderGroupId, int leaderSlotId)
+        public IEnumerable<MetaWinningDeck> GetRecentWinningDecks(int periodId, int count, int leaderGroupId, int leaderSlotId)
         {
-            var rows = _tournamentRepository.GetRecentWinningDecks(count, leaderGroupId, leaderSlotId).ToArray();
+            var rows = _tournamentRepository.GetRecentWinningDecks(_siteAccessor.GetSiteId(), periodId, count, leaderGroupId, leaderSlotId).ToArray();
             var names = ResolveCardNames(rows.Where(r => r.LeaderCardId.HasValue).Select(r => r.LeaderCardId!.Value));
 
             return rows.Select(r => new MetaWinningDeck
@@ -56,10 +58,9 @@ namespace SkytearHorde.Business.Services
             }).ToArray();
         }
 
-        public IEnumerable<MetaLeaderStat> GetTopLeaders(int days, int take, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
+        public IEnumerable<MetaLeaderStat> GetTopLeaders(int periodId, int take, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
         {
-            var from = DateTime.UtcNow.AddDays(-days);
-            var rows = _tournamentRepository.GetTopLeaders(from, leaderGroupId, leaderSlotId, tournamentId).ToArray();
+            var rows = _tournamentRepository.GetTopLeaders(_siteAccessor.GetSiteId(), periodId, leaderGroupId, leaderSlotId, tournamentId).ToArray();
             var names = ResolveCardNames(rows.Select(r => r.LeaderCardId));
 
             return rows
@@ -74,13 +75,13 @@ namespace SkytearHorde.Business.Services
                 .ToArray();
         }
 
-        public IEnumerable<MetaPopularCard> GetPopularCards(int days, int take, int leaderGroupId, int leaderSlotId)
+        public IEnumerable<MetaPopularCard> GetPopularCards(int periodId, int take, int leaderGroupId, int leaderSlotId)
         {
-            var from = DateTime.UtcNow.AddDays(-days);
-            var totalWinningDecks = _tournamentRepository.GetWinningDeckCount(from);
+            var siteId = _siteAccessor.GetSiteId();
+            var totalWinningDecks = _tournamentRepository.GetWinningDeckCount(siteId, periodId);
             if (totalWinningDecks == 0) return Array.Empty<MetaPopularCard>();
 
-            var rows = _tournamentRepository.GetPopularCardsInWinningDecks(from, leaderGroupId, leaderSlotId)
+            var rows = _tournamentRepository.GetPopularCardsInWinningDecks(siteId, periodId, leaderGroupId, leaderSlotId)
                 .Take(take)
                 .ToArray();
             var names = ResolveCardNames(rows.Select(r => r.CardId));
@@ -91,6 +92,12 @@ namespace SkytearHorde.Business.Services
                 Percentage = (int)Math.Round((double)r.DeckCount / totalWinningDecks * 100)
             }).ToArray();
         }
+
+        public IEnumerable<Period> GetPeriods(int formatId) =>
+            _periodRepository.GetBySiteAndFormat(_siteAccessor.GetSiteId(), formatId);
+
+        public Period? GetCurrentPeriod(int formatId) =>
+            GetPeriods(formatId).Where(p => p.EndDateUtc == null).OrderByDescending(p => p.StartingDateUtc).FirstOrDefault();
 
         private Dictionary<int, string> ResolveCardNames(IEnumerable<int> cardIds)
         {
@@ -122,7 +129,8 @@ namespace SkytearHorde.Business.Services
                 DateUtc = tournamentData.DateUtc,
                 Source = model.Source,
                 ExternalUrl = tournamentData.ExternalUrl,
-                ExternalId = tournamentData.ExternalId
+                ExternalId = tournamentData.ExternalId,
+                SiteId = _siteAccessor.GetSiteId()
             };
 
             var otherData = await connector.GetData(tournament);
@@ -135,6 +143,9 @@ namespace SkytearHorde.Business.Services
                 var message = $"Import failed due to missing cards: {string.Join(", ", missingCards)}";
                 return new ImportTournamentResult { Success = false, Message = message, MissingCards = missingCards };
             }
+
+            var matchingPeriod = _periodRepository.FindMatchingPeriod(tournament.SiteId, tournament.FormatId, tournament.DateUtc);
+            tournament.PeriodId = matchingPeriod?.Id;
 
             // Save tournament only after validation passes
             _tournamentRepository.Save(tournament);

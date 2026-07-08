@@ -18,11 +18,30 @@ namespace CardGameDBSites.API.Controllers
             _tournamentService = tournamentService;
         }
 
+        [HttpGet("periods")]
+        [ProducesResponseType(typeof(PeriodApiModel[]), 200)]
+        public IActionResult GetPeriods([FromQuery] int formatId)
+        {
+            var periods = _tournamentService.GetPeriods(formatId).ToArray();
+            var currentId = _tournamentService.GetCurrentPeriod(formatId)?.Id;
+
+            var result = periods.Select(p => new PeriodApiModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                StartingDateUtc = p.StartingDateUtc,
+                EndDateUtc = p.EndDateUtc,
+                IsCurrent = p.Id == currentId
+            }).ToArray();
+
+            return Ok(result);
+        }
+
         [HttpGet("recent")]
         [ProducesResponseType(typeof(TournamentSummaryApiModel[]), 200)]
-        public IActionResult GetRecent([FromQuery] int count = 6)
+        public IActionResult GetRecent([FromQuery] int periodId, [FromQuery] int count = 6)
         {
-            var tournaments = _tournamentService.GetRecent(count);
+            var tournaments = _tournamentService.GetRecent(periodId, count);
 
             var result = tournaments.Select(t =>
             {
@@ -54,9 +73,9 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("meta/recent-winners")]
         [ProducesResponseType(typeof(MetaWinningDeckApiModel[]), 200)]
-        public IActionResult GetRecentWinners([FromQuery] int count = 6, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
+        public IActionResult GetRecentWinners([FromQuery] int periodId, [FromQuery] int count = 6, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
         {
-            var result = _tournamentService.GetRecentWinningDecks(count, leaderGroupId, leaderSlotId)
+            var result = _tournamentService.GetRecentWinningDecks(periodId, count, leaderGroupId, leaderSlotId)
                 .Select(d => new MetaWinningDeckApiModel
                 {
                     TournamentId = d.TournamentId,
@@ -75,9 +94,9 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("meta/top-leaders")]
         [ProducesResponseType(typeof(MetaLeaderApiModel[]), 200)]
-        public IActionResult GetTopLeaders([FromQuery] int days = 30, [FromQuery] int take = 5, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0, [FromQuery] int? tournamentId = null)
+        public IActionResult GetTopLeaders([FromQuery] int periodId, [FromQuery] int take = 5, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0, [FromQuery] int? tournamentId = null)
         {
-            var result = _tournamentService.GetTopLeaders(days, take, leaderGroupId, leaderSlotId, tournamentId)
+            var result = _tournamentService.GetTopLeaders(periodId, take, leaderGroupId, leaderSlotId, tournamentId)
                 .Select(l => new MetaLeaderApiModel
                 {
                     LeaderName = l.LeaderName,
@@ -91,9 +110,9 @@ namespace CardGameDBSites.API.Controllers
 
         [HttpGet("meta/popular-cards")]
         [ProducesResponseType(typeof(MetaPopularCardApiModel[]), 200)]
-        public IActionResult GetPopularCards([FromQuery] int days = 30, [FromQuery] int take = 8, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
+        public IActionResult GetPopularCards([FromQuery] int periodId, [FromQuery] int take = 8, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
         {
-            var result = _tournamentService.GetPopularCards(days, take, leaderGroupId, leaderSlotId)
+            var result = _tournamentService.GetPopularCards(periodId, take, leaderGroupId, leaderSlotId)
                 .Select(c => new MetaPopularCardApiModel
                 {
                     CardName = c.CardName,

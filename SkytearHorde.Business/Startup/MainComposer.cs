@@ -83,6 +83,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<DailyCardGameSessionRepository>();
             builder.Services.AddSingleton<DailyCardGameGuessRepository>();
             builder.Services.AddSingleton<TournamentRepository>();
+            builder.Services.AddSingleton<PeriodRepository>();
             builder.Services.AddSingleton<CardImportQueueRepository>();
 
             builder.Services.AddSingleton<IAdRepository, AdRepository>();

@@ -58,7 +58,9 @@ namespace SkytearHorde.Business.Repositories
                 DateUtc = tournament.DateUtc,
                 Source = tournament.Source,
                 ExternalUrl = tournament.ExternalUrl,
-                ExternalId = tournament.ExternalId
+                ExternalId = tournament.ExternalId,
+                SiteId = tournament.SiteId,
+                PeriodId = tournament.PeriodId
             };
         }
 
@@ -73,7 +75,9 @@ namespace SkytearHorde.Business.Repositories
                 DateUtc = tournamentDBModel.DateUtc,
                 Source = tournamentDBModel.Source,
                 ExternalUrl = tournamentDBModel.ExternalUrl,
-                ExternalId = tournamentDBModel.ExternalId
+                ExternalId = tournamentDBModel.ExternalId,
+                SiteId = tournamentDBModel.SiteId,
+                PeriodId = tournamentDBModel.PeriodId
             };
         }
 
@@ -277,15 +281,16 @@ namespace SkytearHorde.Business.Repositories
 
         // Queries for Meta page
 
-        public IEnumerable<Tournament> GetRecent(int count)
+        public IEnumerable<Tournament> GetRecent(int siteId, int periodId, int count)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
-            var dbModels = scope.Database.Fetch<TournamentDBModel>(
-                scope.SqlContext.Sql()
-                    .SelectAll()
-                    .From<TournamentDBModel>()
-                    .OrderByDescending<TournamentDBModel>(x => x.DateUtc)
-                    .Append($"OFFSET 0 ROWS FETCH NEXT {count} ROWS ONLY"));
+            var sql = scope.SqlContext.Sql()
+                .SelectAll()
+                .From<TournamentDBModel>()
+                .Where<TournamentDBModel>(x => x.SiteId == siteId && x.PeriodId == periodId)
+                .OrderByDescending<TournamentDBModel>(x => x.DateUtc)
+                .Append($"OFFSET 0 ROWS FETCH NEXT {count} ROWS ONLY");
+            var dbModels = scope.Database.Fetch<TournamentDBModel>(sql);
             return dbModels.Select(Map);
         }
 
@@ -313,7 +318,7 @@ namespace SkytearHorde.Business.Repositories
         // A deck's "leader" is the card in the leader group/slot (e.g. GroupId 1, SlotId 0).
         // The group/slot is passed in so it can vary per game type.
 
-        public IEnumerable<MetaWinningDeckRow> GetRecentWinningDecks(int count, int leaderGroupId, int leaderSlotId)
+        public IEnumerable<MetaWinningDeckRow> GetRecentWinningDecks(int siteId, int periodId, int count, int leaderGroupId, int leaderSlotId)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
             return scope.Database.Fetch<MetaWinningDeckRow>(
@@ -326,12 +331,12 @@ namespace SkytearHorde.Business.Repositories
                 "LEFT JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
                 "OUTER APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
                 "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @1 AND dc.SlotId = @2) lc " +
-                "WHERE te.Placement = 1 " +
+                "WHERE te.Placement = 1 AND t.SiteId = @3 AND t.PeriodId = @4 " +
                 "ORDER BY t.DateUtc DESC",
-                count, leaderGroupId, leaderSlotId);
+                count, leaderGroupId, leaderSlotId, siteId, periodId);
         }
 
-        public IEnumerable<MetaLeaderRow> GetTopLeaders(DateTime from, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
+        public IEnumerable<MetaLeaderRow> GetTopLeaders(int siteId, int periodId, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
             return scope.Database.Fetch<MetaLeaderRow>(
@@ -343,14 +348,15 @@ namespace SkytearHorde.Business.Repositories
                 "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
                 "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @1 AND lc.SlotId = @2 " +
-                "WHERE te.Placement BETWEEN 1 AND 8 AND t.DateUtc >= @0 " +
-                (tournamentId.HasValue ? "AND t.Id = @3 " : "") +
+                "WHERE te.Placement BETWEEN 1 AND 8 AND t.SiteId = @0 " +
+                "AND t.PeriodId = @3 " +
+                (tournamentId.HasValue ? "AND t.Id = @4 " : "") +
                 "GROUP BY lc.CardId " +
                 "ORDER BY Wins DESC, Top8Count DESC",
-                from, leaderGroupId, leaderSlotId, tournamentId);
+                siteId, leaderGroupId, leaderSlotId, periodId, tournamentId);
         }
 
-        public int GetWinningDeckCount(DateTime from)
+        public int GetWinningDeckCount(int siteId, int periodId)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
             return scope.Database.ExecuteScalar<int>(
@@ -359,11 +365,11 @@ namespace SkytearHorde.Business.Repositories
                 "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
                 "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
-                "WHERE te.Placement = 1 AND t.DateUtc >= @0",
-                from);
+                "WHERE te.Placement = 1 AND t.SiteId = @0 AND t.PeriodId = @1",
+                siteId, periodId);
         }
 
-        public IEnumerable<MetaPopularCardRow> GetPopularCardsInWinningDecks(DateTime from, int leaderGroupId, int leaderSlotId)
+        public IEnumerable<MetaPopularCardRow> GetPopularCardsInWinningDecks(int siteId, int periodId, int leaderGroupId, int leaderSlotId)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
             return scope.Database.Fetch<MetaPopularCardRow>(
@@ -373,11 +379,11 @@ namespace SkytearHorde.Business.Repositories
                 "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
                 "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId <> 99 " +
-                "WHERE te.Placement = 1 AND t.DateUtc >= @0 " +
+                "WHERE te.Placement = 1 AND t.SiteId = @0 AND t.PeriodId = @3 " +
                 "  AND NOT (dc.GroupId = @1 AND dc.SlotId = @2) " +
                 "GROUP BY dc.CardId " +
                 "ORDER BY DeckCount DESC",
-                from, leaderGroupId, leaderSlotId);
+                siteId, leaderGroupId, leaderSlotId, periodId);
         }
     }
 

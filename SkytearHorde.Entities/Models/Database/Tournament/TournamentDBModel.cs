@@ -33,5 +33,12 @@ namespace SkytearHorde.Entities.Models.Database.Tournament
         [Column("ExternalId")]
         [NullSetting(NullSetting = NullSettings.Null)]
         public string? ExternalId { get; set; }
+
+        [Column("SiteId")]
+        public int SiteId { get; set; }
+
+        [Column("PeriodId")]
+        [NullSetting(NullSetting = NullSettings.Null)]
+        public int? PeriodId { get; set; }
     }
 }

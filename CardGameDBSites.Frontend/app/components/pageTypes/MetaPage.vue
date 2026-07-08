@@ -8,6 +8,7 @@ import TournamentService, {
   type MetaWinningDeckApiModel,
   type MetaLeaderApiModel,
   type MetaPopularCardApiModel,
+  type PeriodApiModel,
 } from "~/services/TournamentService";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 
@@ -16,32 +17,60 @@ import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 // for now it is configured here and passed to the meta endpoints.
 const LEADER_GROUP_ID = 1;
 const LEADER_SLOT_ID = 0;
-// Window (in days) used for the leader/card aggregations.
-const META_WINDOW_DAYS = 30;
+// The meta page currently only supports a single format per site.
+const DEFAULT_FORMAT_ID = 1;
 
 const service = new TournamentService();
+const periods = ref<PeriodApiModel[]>([]);
+const selectedPeriodId = ref<number | undefined>(undefined);
 const recentTournaments = ref<TournamentSummaryApiModel[]>([]);
 const featuredTop8Leaders = ref<MetaLeaderApiModel[]>([]);
 const recentWinnersData = ref<MetaWinningDeckApiModel[]>([]);
 const topLeadersData = ref<MetaLeaderApiModel[]>([]);
 const popularCardsData = ref<MetaPopularCardApiModel[]>([]);
 
-try {
-  recentTournaments.value = await service.getRecent(6);
-  const firstId = recentTournaments.value[0]?.id;
-  if (recentTournaments.value.length > 0 && firstId != null) {
-    featuredTop8Leaders.value = await service.getTopLeaders(META_WINDOW_DAYS, 5, LEADER_GROUP_ID, LEADER_SLOT_ID, firstId);
-  }
+async function loadMetaData(periodId: number) {
+  try {
+    recentTournaments.value = await service.getRecent(periodId, 6);
+    const firstId = recentTournaments.value[0]?.id;
+    featuredTop8Leaders.value =
+      recentTournaments.value.length > 0 && firstId != null
+        ? await service.getTopLeaders(periodId, 5, LEADER_GROUP_ID, LEADER_SLOT_ID, firstId)
+        : [];
 
-  [recentWinnersData.value, topLeadersData.value, popularCardsData.value] =
-    await Promise.all([
-      service.getRecentWinners(6, LEADER_GROUP_ID, LEADER_SLOT_ID),
-      service.getTopLeaders(META_WINDOW_DAYS, 5, LEADER_GROUP_ID, LEADER_SLOT_ID),
-      service.getPopularCards(META_WINDOW_DAYS, 8, LEADER_GROUP_ID, LEADER_SLOT_ID),
-    ]);
-} catch {
-  // API not available – fall back to mock data below
+    [recentWinnersData.value, topLeadersData.value, popularCardsData.value] =
+      await Promise.all([
+        service.getRecentWinners(periodId, 6, LEADER_GROUP_ID, LEADER_SLOT_ID),
+        service.getTopLeaders(periodId, 5, LEADER_GROUP_ID, LEADER_SLOT_ID),
+        service.getPopularCards(periodId, 8, LEADER_GROUP_ID, LEADER_SLOT_ID),
+      ]);
+  } catch {
+    // API not available – fall back to mock data below
+  }
 }
+
+try {
+  periods.value = await service.getPeriods(DEFAULT_FORMAT_ID);
+  // No "current" (open-ended) period? Fall back to the most recent one - periods
+  // are ordered by StartingDateUtc descending by the API.
+  selectedPeriodId.value = periods.value.find((p) => p.isCurrent)?.id ?? periods.value[0]?.id;
+} catch {
+  // API not available – no periods to select from
+}
+
+if (selectedPeriodId.value != null) {
+  await loadMetaData(selectedPeriodId.value);
+}
+
+async function onPeriodChange() {
+  if (selectedPeriodId.value != null) {
+    await loadMetaData(selectedPeriodId.value);
+  }
+}
+
+const selectedPeriodLabel = computed(() => {
+  return periods.value.find((p) => p.id === selectedPeriodId.value)?.name ?? "No Period Available";
+});
 
 const hasTournaments = recentTournaments.value.length > 0;
 const featuredTournamentData = hasTournaments
@@ -118,6 +147,23 @@ const popularCards = computed(() => {
           Track tournament results, winning decks, and the latest competitive
           trends.
         </p>
+      </div>
+    </section>
+
+    <!-- Period Filter -->
+    <section class="container px-4 md:px-8 pt-8" v-if="periods.length > 0">
+      <div class="flex items-center justify-end gap-3">
+        <label for="period-select" class="text-sm text-gray-600 font-medium">Period</label>
+        <select
+          id="period-select"
+          v-model="selectedPeriodId"
+          @change="onPeriodChange"
+          class="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+        >
+          <option v-for="period in periods" :key="period.id" :value="period.id">
+            {{ period.name }}
+          </option>
+        </select>
       </div>
     </section>
 
@@ -280,7 +326,7 @@ const popularCards = computed(() => {
     <section class="container px-4 md:px-8 py-12">
       <h2 class="mb-6">
         Most Successful Leaders
-        <span class="text-gray-500 text-lg font-normal">(Last 30 Days)</span>
+        <span class="text-gray-500 text-lg font-normal">({{ selectedPeriodLabel }})</span>
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div

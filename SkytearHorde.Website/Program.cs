@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Rewrite;
 using OfficeOpenXml;
 using OpenTelemetry.Metrics;
@@ -79,6 +80,7 @@ else
     .AddRedirectToNonWwwPermanent());
 }
 
+app.UseResponseCompression();
 app.UseSession();
 app.UseRateLimiter();
 
@@ -110,6 +112,15 @@ void ConfigureServices(IServiceCollection services, bool isProduction)
     services.AddDataProtection()
         .PersistKeysToFileSystem(new DirectoryInfo(rootDirectory + "/umbraco"))
         .SetApplicationName("CardDatabaseSites");
+
+    services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+        options.Providers.Add<BrotliCompressionProvider>();
+        options.Providers.Add<GzipCompressionProvider>();
+    });
+    services.Configure<BrotliCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Fastest);
+    services.Configure<GzipCompressionProviderOptions>(options => options.Level = System.IO.Compression.CompressionLevel.Fastest);
 
     services.AddRazorComponents()
         .AddInteractiveServerComponents();

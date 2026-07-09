@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { DeckStatus, type DeckQueryPostModel, type PagedResultDeckApiModel } from "~/api/default";
+import {
+  DeckStatus,
+  type DeckQueryPostModel,
+  type PagedResultDeckApiModel,
+} from "~/api/default";
 import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
 import type OverviewRefreshModel from "./OverviewRefreshModel";
@@ -18,10 +22,6 @@ const props = defineProps<{
 }>();
 
 const deckService = new DeckService();
-
-const pagedDecks = ref<PagedResultDeckApiModel>();
-const overview = ref<InstanceType<typeof Overview>>();
-const nuxtApp = useNuxtApp();
 
 const defaultSortings: OverviewSortModel[] = [
   { Name: "Popular", Value: "popular" },
@@ -54,11 +54,19 @@ const filters: OverviewFilterModel[] = [
   },
 ];
 
-async function loadData(value: OverviewRefreshModel) {
+const overviewState = useOverviewState(
+  toRef(filters),
+  toRef(props, "sortings"),
+  undefined,
+  {
+    enableQueryStringSync: true,
+  },
+);
+const queryModel = computed<DeckQueryPostModel>(() => {
   let dateFrom: string | undefined;
   let dateTo: string | undefined;
 
-  value.SelectedFilters.forEach((values, filter) => {
+  overviewState.state.selectedFilters.forEach((values, filter) => {
     if (filter.Alias === "fromDate") {
       if (values[0]) dateFrom = values[0];
     } else if (filter.Alias === "toDate") {
@@ -66,50 +74,33 @@ async function loadData(value: OverviewRefreshModel) {
     }
   });
 
-  const cardFilter = value.SelectedFilters.get(filters[0]!);
+  const cardFilter = overviewState.state.selectedFilters.get(filters[0]!);
   const cardIds =
     cardFilter && cardFilter.length > 0
       ? cardFilter.map((v) => parseInt(v))
       : undefined;
 
-  const queryModel: DeckQueryPostModel = {
-    page: value.PageNumber,
+  return {
+    page: page.value,
     take: 20,
     userId: props.userId,
     typeId: props.typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
     dateFrom: dateFrom || null,
     dateTo: dateTo || null,
-    orderBy: value.SortBy,
+    orderBy: overviewState.state.sortBy,
     cards: cardIds,
   };
+});
 
-  const key = `deck-overview:${JSON.stringify(queryModel)}`;
+const page = computed(() => overviewState.state.page);
 
-  // While Vue is still hydrating the server-rendered page, the payload for this exact
-  // request is already sitting in the Nuxt payload. Read it synchronously via
-  // useNuxtData instead of through useAsyncData below - that call's `await` always
-  // defers by at least one microtask, even on a cache hit, which would mean the
-  // client's first render briefly has no decks while the server-rendered DOM already
-  // does, causing a hydration mismatch.
-  if (import.meta.client && nuxtApp.isHydrating) {
-    const { data: cachedResult } = useNuxtData<PagedResultDeckApiModel>(key);
-    if (cachedResult.value !== undefined) {
-      pagedDecks.value = cachedResult.value;
-      if (value.LoadedCallback) {
-        value.LoadedCallback();
-      }
-      return;
-    }
-  }
-
-  const { data: result } = await useAsyncData(key, () => deckService.query(queryModel));
-  pagedDecks.value = result.value ?? undefined;
-
-  if (value.LoadedCallback) {
-    value.LoadedCallback();
-  }
-}
+const id = useId();
+const { data: pagedDecks, pending } = await useAsyncData(
+  `deck-overview-${id}`,
+  () => deckService.query(queryModel.value),
+  { watch: [queryModel] },
+);
 
 onMounted(() => {
   const accountStore = useAccountStore();
@@ -123,13 +114,14 @@ onMounted(() => {
 
 <template>
   <Overview
+    :overview-state="overviewState"
     :hide-search="true"
     :hide-filters="false"
     :white-background="false"
     :enable-query-string-sync="true"
     :sortings="effectiveSortings"
     :filters="filters"
-    @reload="loadData"
+    :is-loading="pending"
     ref="overview"
   >
     <div v-if="pagedDecks">
@@ -145,37 +137,36 @@ onMounted(() => {
         v-if="(pagedDecks.totalPages ?? 0) > 1"
       >
         <div
-          v-if="overview"
           class="flex items-center mt-3 border border-gray-400 rounded bg-white overflow-hidden"
         >
           <a
-            v-if="overview.getPage() > 1"
-            :href="'?page=' + (overview.getPage() - 1)"
+            v-if="page > 1"
+            :href="'?page=' + (page - 1)"
             class="pointer px-4 py-2 hover:bg-gray-400 no-underline"
-            @click.prevent="overview.setPage(overview.getPage() - 1)"
+            @click.prevent="overviewState.setPage(page - 1)"
             >Previous</a
           >
 
-          <template v-for="i in overview.getPage() + 4">
+          <template v-for="i in page + 4">
             <a
               v-if="i - 2 <= (pagedDecks.totalPages ?? 0) && i - 2 > 0"
               :href="'?page=' + (i - 2)"
               :class="[
-                i - 2 === overview.getPage()
+                i - 2 === page
                   ? 'bg-main-color text-white'
                   : 'hover:bg-gray-100',
               ]"
               class="pointer px-4 py-2 border-l border-gray-400 no-underline"
-              @click.prevent="overview.setPage(i - 2)"
+              @click.prevent="overviewState.setPage(i - 2)"
               >{{ i - 2 }}</a
             >
           </template>
 
           <a
-            v-if="overview.getPage() < (pagedDecks.totalPages ?? 0)"
-            :href="'?page=' + (overview.getPage() + 1)"
+            v-if="page < (pagedDecks.totalPages ?? 0)"
+            :href="'?page=' + (page + 1)"
             class="pointer px-4 py-2 border-l border-gray-400 hover:bg-gray-100 no-underline"
-            @click.prevent="overview.setPage(overview.getPage() + 1)"
+            @click.prevent="overviewState.setPage(page + 1)"
             >Next</a
           >
         </div>

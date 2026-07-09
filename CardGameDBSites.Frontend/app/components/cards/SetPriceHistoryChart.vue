@@ -147,7 +147,7 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <div class="bg-white rounded p-4 mt-8">
+    <div class="bg-white rounded p-4">
         <h2 class="text-xl font-bold mb-4">Set Value History</h2>
         <ClientOnly>
             <template #fallback>
@@ -159,7 +159,7 @@ const chartOptions = computed(() => ({
             <p v-else-if="!history.length" class="text-gray-500">
                 No price history available.
             </p>
-            <div v-else style="height: 300px;">
+            <div v-else style="height: 200px;">
                 <Line :data="chartData" :options="(chartOptions as any)" />
             </div>
         </ClientOnly>

@@ -87,7 +87,7 @@ onMounted(async () => {
           </div>
           <div v-if="currentPrice !== null" class="mt-4">
             <p>Current set value: <span class="text-green-700">${{ currentPrice.toFixed(2) }}</span></p>
-            <SetPriceHistoryChart v-if="priceHistory && priceHistory.length > 1" :set-id="set.id" />
+            <SetPriceHistoryChart class="mt-2" v-if="priceHistory && priceHistory.length > 1" :set-id="set.id" />
           </div>
         </div>
       </div>

@@ -24,7 +24,7 @@ const emit = defineEmits<{
 
 <template>
   <div class="container px-4 md:px-8 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6">
-    <div class="relative" v-for="card in cards" :key="card.baseId">
+    <div class="relative min-h-80" v-for="card in cards" :key="card.baseId">
       <NuxtLink :href="card.urlSegment" class="no-underline">
         <div class="missing-card-image aspect-[2/3]" v-if="!card.imageUrl">
           <h2>{{ card.displayName }}</h2>

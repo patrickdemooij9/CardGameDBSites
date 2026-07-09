@@ -4,11 +4,13 @@ export default defineEventHandler(async (event) => {
   // Read JWT from cookies
   const jwt = getCookie(event, "cardgamesdb"); // 'token' is your cookie name
 
+  if (!jwt) {
+    setResponseStatus(event, 401);
+  }
+
   // Prepare the backend API URL
   const config = useRuntimeConfig();
   const backendUrl = `${config.public.API_BASE_URL}/api/account/getcurrentmember`;
-
-  console.log(jwt);
 
   // Proxy the request, adding the Authorization header if JWT exists
   const response = await proxyRequest(event, backendUrl, {

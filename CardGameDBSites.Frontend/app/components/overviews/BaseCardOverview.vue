@@ -9,7 +9,6 @@ import {
   type CardsQueryPostApiModel,
   type PagedResultCardDetailApiModel,
 } from "~/api/default";
-import type OverviewRefreshModel from "./OverviewRefreshModel";
 
 const props = defineProps<{
   filters: OverviewFilterModel[];
@@ -29,35 +28,17 @@ const emit = defineEmits<{
   (e: "reloaded", value: PagedResultCardDetailApiModel): void;
 }>();
 
-const pagedCards = ref<PagedResultCardDetailApiModel>();
-const overview = ref<InstanceType<typeof Overview>>();
-let currentRequestVersion = 0;
-
-//TODO: this needs to be reworked otherwise we keep on resetting stuff
-watch(
-  () => props.internalFilters,
-  (newVal, oldVal) => {
-    // Compare JSON stringified values for a shallow equality check
-    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
-      overview.value?.setPage(1, true);
-    }
-  },
-  { deep: true },
-);
-
-watch(
-  () => props.collectionMode,
-  () => {
-    overview.value?.setPage(1, true);
+const overviewState = useOverviewState(
+  toRef(props, "filters"),
+  toRef(props, "sortings"),
+  toRef(props, "availableViews"),
+  {
+    enableQueryStringSync: props.enableQueryStringSync,
   },
 );
-
-async function loadData(value: OverviewRefreshModel) {
-  currentRequestVersion++;
-  const requestVersion = currentRequestVersion;
-  
+const queryModel = computed<CardsQueryPostApiModel>(() => {
   const filters: CardsQueryFilterClauseApiModel[] = [];
-  value.SelectedFilters.forEach((values, key) => {
+  overviewState.state.selectedFilters.forEach((values, key) => {
     if (values.length === 0) {
       return;
     }
@@ -80,35 +61,56 @@ async function loadData(value: OverviewRefreshModel) {
     filters.push(filter);
   });
 
-  const queryModel: CardsQueryPostApiModel = {
-    query: value.Query,
-    pageNumber: value.PageNumber,
+  return {
+    query: overviewState.state.search,
+    pageNumber: page.value,
     pageSize: props.pageSize ?? 30,
     filterClauses: filters,
     variantTypeIds: props.variantTypeIds ?? [0],
     collectionMode: props.collectionMode ?? CardSearchCollectionMode.IGNORE,
-    sortBy: value.SortBy,
+    sortBy: overviewState.state.sortBy,
     includeReprintedCards: props.hideReprintedCards ? false : undefined,
     legalForDeckTypeId: props.legalForDeckTypeId,
   };
+});
 
-  const { data: result } = await useAsyncData(
-    `card-overview:${JSON.stringify(queryModel)}`,
-    () => useCards().queryCards(queryModel),
-  );
+const page = computed(() => overviewState.state.page);
 
-  if (requestVersion !== currentRequestVersion) {
-    return;
-  }
+//TODO: this needs to be reworked otherwise we keep on resetting stuff
+watch(
+  () => props.internalFilters,
+  (newVal, oldVal) => {
+    // Compare JSON stringified values for a shallow equality check
+    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+      overviewState.setPage(1);
+    }
+  },
+  { deep: true },
+);
 
-  pagedCards.value = result.value ?? undefined;
-  if (value.LoadedCallback) {
-    value.LoadedCallback();
-  }
-  if (pagedCards.value) {
-    emit("reloaded", pagedCards.value);
-  }
-}
+watch(
+  () => props.collectionMode,
+  () => {
+    overviewState.setPage(1);
+  },
+);
+
+const id = useId();
+const { data: pagedCards, pending } = await useAsyncData(
+  `card-overview-${id}`,
+  () => useCards().queryCards(queryModel.value),
+  { watch: [queryModel] },
+);
+
+watch(
+  pagedCards,
+  (newValue) => {
+    if (newValue) {
+      emit("reloaded", newValue);
+    }
+  },
+  { immediate: true },
+);
 
 async function loadLazyFilter(filter: OverviewFilterModel) {
   const values = await useCards().getAbilityValues(filter.Alias);
@@ -123,17 +125,17 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
 
 <template>
   <Overview
+    :overview-state="overviewState"
     :hide-search="false"
     :hide-filters="false"
     :white-background="whiteBackground"
     :filters="filters"
     :sortings="sortings"
-    :enable-query-string-sync="enableQueryStringSync"
     :available-views="availableViews"
-    @reload="loadData"
+    :is-loading="pending"
     @loadLazyFilter="loadLazyFilter"
     ref="overview"
-    v-slot="{viewMode}"
+    v-slot="{ viewMode }"
   >
     <div v-if="pagedCards">
       <slot :cards="pagedCards" :viewMode="viewMode"> </slot>
@@ -142,37 +144,36 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
         v-if="(pagedCards.totalPages ?? 0) > 1"
       >
         <div
-          v-if="overview"
           class="flex items-center mt-3 border border-gray-400 rounded bg-white overflow-hidden"
         >
           <a
-            v-if="overview.getPage() > 1"
-            :href="'?page=' + (overview.getPage() - 1)"
+            v-if="page > 1"
+            :href="'?page=' + (page - 1)"
             class="pointer px-4 py-2 hover:bg-gray-400 no-underline"
-            @click.prevent="overview.setPage(overview.getPage() - 1)"
+            @click.prevent="overviewState.setPage(page - 1)"
             >Previous</a
           >
 
-          <template v-for="i in overview.getPage() + 4">
+          <template v-for="i in page + 4">
             <a
               v-if="i - 2 <= (pagedCards.totalPages ?? 0) && i - 2 > 0"
               :href="'?page=' + (i - 2)"
               :class="[
-                i - 2 === overview.getPage()
+                i - 2 === page
                   ? 'bg-main-color text-white'
                   : 'hover:bg-gray-100',
               ]"
               class="pointer px-4 py-2 border-l border-gray-400 no-underline"
-              @click.prevent="overview.setPage(i - 2)"
+              @click.prevent="overviewState.setPage(i - 2)"
               >{{ i - 2 }}</a
             >
           </template>
 
           <a
-            v-if="overview.getPage() < (pagedCards.totalPages ?? 0)"
-            :href="'?page=' + (overview.getPage() + 1)"
+            v-if="page < (pagedCards.totalPages ?? 0)"
+            :href="'?page=' + (page + 1)"
             class="pointer px-4 py-2 border-l border-gray-400 hover:bg-gray-100 no-underline"
-            @click.prevent="overview.setPage(overview.getPage() + 1)"
+            @click.prevent="overviewState.setPage(page + 1)"
             >Next</a
           >
         </div>

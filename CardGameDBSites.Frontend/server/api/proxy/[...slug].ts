@@ -68,8 +68,14 @@ export default defineEventHandler(async (event) => {
     }
 
     setResponseStatus(event, response.status);
+    const excludedHeaders = new Set([
+      "set-cookie",
+      "content-encoding",
+      "content-length",
+      "transfer-encoding",
+    ]);
     response.headers.forEach((value, key) => {
-      if (key.toLowerCase() !== "set-cookie") {
+      if (!excludedHeaders.has(key.toLowerCase())) {
         setResponseHeader(event, key, value);
       }
     });

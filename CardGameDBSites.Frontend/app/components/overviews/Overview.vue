@@ -14,76 +14,29 @@ import {
 } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import Dropdown from "../shared/Dropdown.vue";
-import type OverviewRefreshModel from "./OverviewRefreshModel";
 import CardSearchInput from "~/components/shared/CardSearchInput.vue";
 import type { CardDetailApiModel } from "~/api/default";
-import type { LocationQueryValue } from "vue-router";
 
 const props = defineProps<{
+  overviewState: ReturnType<typeof useOverviewState>,
   hideSearch: boolean;
   hideFilters: boolean;
   filters: OverviewFilterModel[];
   sortings?: OverviewSortModel[];
   whiteBackground: boolean;
-  enableQueryStringSync: boolean;
   availableViews?: string[];
+  isLoading: boolean;
 }>();
 
-defineExpose({
-  setPage,
-  getPage,
-});
-
 const emit = defineEmits<{
-  (e: "reload", value: OverviewRefreshModel): void;
   (e: "loadLazyFilter", filter: OverviewFilterModel): void;
 }>();
 
-const route = useRoute();
-
-const defaultView =
-  props.availableViews && props.availableViews.length > 0
-    ? props.availableViews[0]
-    : "images";
-
-const viewMode = ref<string>(route.query.view?.toString() ?? defaultView!);
-
-function setViewMode(mode: string) {
-  viewMode.value = mode;
-  reloadData();
-}
-
-const search = ref(route.query.search?.toString() ?? "");
-
-const selectedFilters = ref<Map<OverviewFilterModel, string[]>>(new Map());
-const isLoading = ref(false);
-const nuxtApp = useNuxtApp();
-const page = ref(1);
-const pageNumberString = route.query["page"];
-if (pageNumberString) {
-  page.value = Number.parseInt(pageNumberString as string);
-}
-
-const selectedSort = ref(route.query.sortBy?.toString() ?? "");
-
 const filtersOpen = ref(false);
+const search = ref(props.overviewState.state.search);
 
 function clickFilters() {
   filtersOpen.value = !filtersOpen.value;
-}
-
-function getPage() {
-  return page.value;
-}
-
-function setPage(newPageNumber: number, forceReload = true) {
-  const shouldReload = forceReload || newPageNumber !== page.value;
-
-  page.value = newPageNumber;
-
-  if (shouldReload) {
-    reloadData();
-  }
 }
 
 function loadLazyDropdownItemsIfNeeded(filter: OverviewFilterModel) {
@@ -92,129 +45,32 @@ function loadLazyDropdownItemsIfNeeded(filter: OverviewFilterModel) {
 }
 
 function setFilter(filter: OverviewFilterModel, value: string) {
-  selectedFilters.value.set(filter, [value]);
-  reloadData();
+  props.overviewState.setFilter(filter, value);
 }
 
 function selectFilter(filter: OverviewFilterModel, value: string) {
-  const items = selectedFilters.value.get(filter) || [];
-  if (items.includes(value)) {
-    const index = items.indexOf(value);
-    items.splice(index, 1);
-  } else {
-    items.push(value);
-  }
-  selectedFilters.value.set(filter, items);
-  reloadData();
+  props.overviewState.selectFilter(filter, value);
 }
 
 function isSelectedFilter(filter: OverviewFilterModel, value: string) {
-  const items = selectedFilters.value.get(filter) || [];
-  return items.includes(value);
+  return props.overviewState.isSelectedFilter(filter, value);
 }
 
 function getFilterValue(filter: OverviewFilterModel): string | undefined {
-  const items = selectedFilters.value.get(filter) || [];
-  return items[0];
+  return props.overviewState.getFilterValue(filter);
 }
 
 function onTextInputFilterSelect(
   filter: OverviewFilterModel,
   card: CardDetailApiModel,
 ) {
-  if (!selectedFilters.value.get(filter)) {
-    selectedFilters.value.set(filter, []);
-  }
-  selectedFilters.value.get(filter)!.push(card.baseId!.toString());
-  reloadData();
+  selectFilter(filter, card.baseId!.toString());
 }
 
 function handleSubmit(event: Event) {
   event.preventDefault();
-  reloadData();
+  props.overviewState.setSearch(search.value);
 }
-
-function reloadData() {
-  if (import.meta.client && props.enableQueryStringSync) {
-    const url = new URL(window.location.href.split("?")[0]!);
-    if (page.value !== 1) {
-      url.searchParams.append("page", page.value.toString());
-    }
-    if (search.value) {
-      url.searchParams.append("search", search.value);
-    }
-    if (selectedSort.value && props.sortings![0]!.Value !== selectedSort.value) {
-      url.searchParams.append("sortBy", selectedSort.value);
-    }
-    if (viewMode.value !== defaultView) {
-      url.searchParams.append("view", viewMode.value);
-    }
-    selectedFilters.value.forEach((values, filter) => {
-      values.forEach((value) => {
-        if (value) {
-          url.searchParams.append(filter.Alias, value);
-        }
-      });
-    });
-    history.replaceState(history.state, "", url);
-  }
-
-  if (!(import.meta.client && nuxtApp.isHydrating)) {
-    isLoading.value = true;
-  }
-
-  const filters = new Map<OverviewFilterModel, string[]>();
-  selectedFilters.value &&
-    selectedFilters.value.forEach((values, filter) => {
-      filters.set(props.filters.find((f) => f.Alias === filter.Alias)!, values);
-    });
-  emit("reload", {
-    Query: search.value,
-    SelectedFilters: filters,
-    PageNumber: page.value,
-    SortBy: selectedSort.value || undefined,
-    LoadedCallback: () => {
-      isLoading.value = false;
-    },
-  });
-}
-
-watch(
-  () => props.filters,
-  (newVal, oldVal) => {
-    // Compare JSON stringified values for a shallow equality check
-    if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
-      init();
-    }
-  },
-  { deep: true },
-);
-
-function init() {
-  selectedFilters.value = new Map();
-  if (props.sortings && props.sortings.length > 0) {
-    selectedSort.value = props.sortings[0]!.Value;
-  }
-  props.filters.forEach((filter) => {
-    if (route.query[filter.Alias]) {
-      const values = route.query[filter.Alias];
-      if (Array.isArray(values)) {
-        selectedFilters.value.set(
-          filter,
-          values.map((v) => v!.toString()),
-        );
-      } else {
-        selectedFilters.value.set(filter, [values!.toString()]);
-      }
-    } else if (filter.DefaultEnabled) {
-      selectedFilters.value.set(filter, ["true"]);
-    }
-  });
-
-  reloadData();
-}
-
-init();
 </script>
 
 <template>
@@ -374,7 +230,7 @@ init();
 
       <div class="flex flex-col-reverse gap-8 justify-between pt-4 md:flex-row">
         <div class="flex flex-wrap items-center gap-2">
-          <template v-for="filter in selectedFilters">
+          <template v-for="filter in overviewState.state.selectedFilters">
             <div
               v-for="filterItem in filter[1]"
               class="flex gap-2 rounded-md border-2 border-main-color p-1 cursor-pointer"
@@ -401,9 +257,9 @@ init();
           >
             <p>Sort by:</p>
             <select
-              v-model="selectedSort"
+              :value="overviewState.state.sortBy"
               class="h-8 p-2 bg-main-color text-white rounded hover:bg-main-color-hover"
-              @change="reloadData"
+              @change="overviewState.setSort(($event.target as HTMLOptionElement).value)"
             >
               <option
                 v-for="sort in sortings"
@@ -414,27 +270,6 @@ init();
               </option>
             </select>
           </div>
-          <!--@if (Model.Config.AvailableViews.Length > 1)
-            {
-                <div class="flex items-center gap-2">
-                    <p>
-                        Layout:
-                    </p>
-
-                    @if (Model.Config.AvailableViews.Contains(OverviewViewType.Rows))
-                    {
-                        <button type="button" class="flex justify-center items-center w-8 h-8 text-lg p-2 bg-main-color text-white rounded hover:bg-main-color-hover" x-on:click="listStyle = true;">
-                            <i class="ph ph-list"></i>
-                        </button>
-                    }
-                    @if (Model.Config.AvailableViews.Contains(OverviewViewType.Images))
-                    {
-                        <button type="button" class="flex justify-center items-center w-8 h-8 text-lg p-2 bg-main-color text-white rounded hover:bg-main-color-hover" x-on:click="listStyle = false;">
-                            <i class="ph ph-squares-four"></i>
-                        </button>
-                    }
-                </div>
-            }-->
           <div
             v-if="availableViews && availableViews.length > 1"
             class="flex items-center gap-2"
@@ -447,13 +282,13 @@ init();
               type="button"
               class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
               :class="
-                viewMode === 'rows'
+                overviewState.state.viewMode === 'rows'
                   ? 'bg-main-color text-white'
                   : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'
               "
               aria-label="Table view"
-              :aria-pressed="viewMode === 'rows'"
-              @click="setViewMode('rows')"
+              :aria-pressed="overviewState.state.viewMode === 'rows'"
+              @click="overviewState.setViewMode('rows')"
             >
               <PhList aria-hidden="true" />
             </button>
@@ -462,13 +297,13 @@ init();
               type="button"
               class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
               :class="
-                viewMode === 'collection'
+                overviewState.state.viewMode === 'collection'
                   ? 'bg-main-color text-white'
                   : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'
               "
               aria-label="Collection view"
-              :aria-pressed="viewMode === 'collection'"
-              @click="setViewMode('collection')"
+              :aria-pressed="overviewState.state.viewMode === 'collection'"
+              @click="overviewState.setViewMode('collection')"
             >
               <PhBooks aria-hidden="true" />
             </button>
@@ -477,13 +312,13 @@ init();
               type="button"
               class="flex justify-center items-center w-8 h-8 text-lg p-2 rounded"
               :class="
-                viewMode === 'images'
+                overviewState.state.viewMode === 'images'
                   ? 'bg-main-color text-white'
                   : 'bg-gray-200 text-gray-600 hover:bg-main-color hover:text-white'
               "
               aria-label="Image view"
-              :aria-pressed="viewMode === 'images'"
-              @click="setViewMode('images')"
+              :aria-pressed="overviewState.state.viewMode === 'images'"
+              @click="overviewState.setViewMode('images')"
             >
               <PhSquaresFour aria-hidden="true" />
             </button>
@@ -493,7 +328,7 @@ init();
     </form>
     <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative min-h-20">
       <div id="card-overview" :aria-busy="isLoading" :class="{ 'opacity-40': isLoading }">
-        <slot :viewMode="viewMode"></slot>
+        <slot :viewMode="overviewState.state.viewMode"></slot>
       </div>
       <div
         v-if="isLoading"

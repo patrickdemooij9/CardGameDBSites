@@ -1,10 +1,101 @@
 # Performance test harness
 
-k6 load-test scripts for validating that backend changes actually improve (or at least
-don't regress) throughput/latency under concurrency. Sync-over-async and thread-pool
-issues only show up under concurrent load — a single manual request always looks fine.
+Tools for validating that backend perf changes actually help. **Default to the in-process
+A/B benchmark first** — on this dev setup (shared machine, real SQL Server), k6/HTTP timing
+has run-to-run variance of ±25% or more, which swallows most single-method fixes. Reach for
+k6 specifically when the fix is about *concurrency* (thread-pool blocking, lock contention)
+— those only show up under concurrent load in the first place, so an in-process loop won't
+reproduce them; a single manual request always looks fine too.
 
-## Prerequisites
+## Default method: in-process A/B benchmark
+
+Add a throwaway `Development`-only minimal API endpoint directly in `Program.cs` that runs
+the *old* and *new* code paths back-to-back, in the same request, against the real
+dependencies (real DB, real Umbraco content cache) — no mocks. Running both in the same
+process eliminates cross-run noise (JIT warm-up, DB buffer cache state, background load)
+almost entirely, since both versions experience identical conditions milliseconds apart.
+
+```csharp
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/api/_debug/bench-X", (MyService svc, int? iterations) =>
+    {
+        var count = iterations is > 0 ? iterations.Value : 100000;
+
+        var swOld = System.Diagnostics.Stopwatch.StartNew();
+        for (var i = 0; i < count; i++) { /* old code path */ }
+        swOld.Stop();
+
+        var swNew = System.Diagnostics.Stopwatch.StartNew();
+        for (var i = 0; i < count; i++) { /* new code path */ }
+        swNew.Stop();
+
+        return Results.Ok(new {
+            oldAvgMs = swOld.Elapsed.TotalMilliseconds / count,
+            newAvgMs = swNew.Elapsed.TotalMilliseconds / count
+        });
+    });
+}
+```
+
+Usage:
+1. Hit it once with a small `iterations` value to JIT-warm both code paths.
+2. Hit it again with a larger value (start around 20-50 for real DB work, 100k+ for pure
+   CPU-only work) for the real numbers.
+3. **Repeat 2-3 times.** Trust the result only if the direction is consistent across
+   repeats — if the two numbers are close (within ~20%) or the winner flips between runs,
+   this informal method isn't rigorous enough to call it; either run more repeats or reach
+   for a real tool (BenchmarkDotNet) before making a claim.
+4. Delete the endpoint once you have your answer — it's not meant to ship.
+
+If the "old" and "new" logic can't both exist side-by-side in one endpoint (e.g. the fix
+changes a class's own field/constructor, like adding a cache field), fall back to two
+separate runs — `git stash` the change, rebuild, restart, measure; `git stash pop`,
+rebuild, restart, measure again. This reintroduces cross-process noise, so lean harder on
+the "repeat and check consistency" step.
+
+**Validated so far with this method:**
+- `SettingsService.GetSiteSettings()` caching: ~30µs → ~2.5µs per call (~10-13x, pure CPU,
+  100k-iteration loop, separate-process comparison since the fix added a cache field)
+- `CardApiController.MapToApiModels` N+1 batching: 2.4-3.9ms → 1.5-1.8ms per 50-card page
+  (~1.6-2.2x, real DB work, same-request A/B comparison, consistent across 3 repeats)
+- `CardRepository.GetVariant` caching (`CardVariantCachePolicy`): uncached `Map()` averages
+  ~0.2-0.27ms/card (11-13ms per 50-card page); cached hits average ~0.0003-0.004ms — 50-700x
+  in practice (an idealized dictionary-only simulation suggested ~10,000x, but the real
+  `IAppPolicyCache` lookup has its own overhead, which is why validating against the actual
+  implementation matters more than a simulated stand-in).
+  **Memory concern check**: caching every mapped card for one site would cost ~100MB
+  (measured via `GC.GetTotalMemory(true)` before/after populating a `List<Card>` with the
+  full catalog — 10,556 cards, ~10KB avg each). Since this runs on a multi-tenant host,
+  that's per-site, so uncapped caching risked hundreds of MB to 1GB+ across all sites. Fixed
+  with FIFO eviction capped at 3,000 entries (~30MB, shared globally across all sites since
+  `CardRepository` is a process-wide singleton and Umbraco content IDs are globally unique).
+  Verified the cap holds: fetched 3,100 distinct cards, re-fetched the first (oldest) one,
+  and it cost ~0.26ms — back in cache-miss territory, confirming eviction actually fires
+  rather than the cache silently growing unbounded.
+
+**Bandwidth/payload-size fixes are even simpler to validate — skip the loop entirely.**
+Response compression doesn't change CPU cost, it changes bytes on the wire, and that's
+deterministic (no timing noise at all) — just diff `curl -w "%{size_download}"` with and
+without an `Accept-Encoding` header:
+```
+curl -o /dev/null -w "%{size_download}\n" <url>                          # uncompressed
+curl -H "Accept-Encoding: gzip" -o /dev/null -w "%{size_download}\n" <url> # compressed
+```
+Don't use `curl --compressed` for this — it auto-decodes the response before reporting
+size, which hides the effect you're trying to measure.
+`AddResponseCompression()`/`UseResponseCompression()` in `Program.cs`: a 50-card
+`/api/cards/query` response went from 50,552 bytes uncompressed to 4,716 bytes gzip
+(90.7% smaller) / 6,159 bytes brotli (87.8% smaller). Note this won't show up as a
+latency win in local k6 runs — there's no bandwidth bottleneck on localhost, so the
+wall-clock effect only shows up on real (slower/higher-latency) networks in production.
+
+## k6: for concurrency-sensitive fixes only
+
+Use these when the fix changes *how many requests fit through at once* (thread-pool
+blocking, lock contention) — effects that genuinely only appear under concurrent load.
+
+### Prerequisites
 
 - [k6](https://k6.io/) installed (`choco install k6` on Windows).
 - The site running locally against your dev DB:
@@ -17,7 +108,7 @@ issues only show up under concurrent load — a single manual request always loo
   `SELECT domainName FROM umbracoDomain` in your dev DB for valid values. The scripts
   default to `localhost:44344` (maps to the SWU site in the current dev DB backup).
 
-## Scripts
+### Scripts
 
 | Script | Endpoint | Auth | What it exercises |
 |---|---|---|---|
@@ -33,7 +124,7 @@ Authenticated scripts register a throwaway member via `/api/account/Register` in
 (recaptcha is unenforced when `RecaptchaSecret` is empty, as in dev) and reuse the token
 across all VUs.
 
-## Running a single test
+### Running a single test
 
 ```
 k6 run perf-tests/k6/get-current-member.js
@@ -46,74 +137,21 @@ Useful env vars (all optional): `BASE_URL` (default `http://localhost:58529`),
 k6 run --env VUS=150 perf-tests/k6/card-search-collection-sort.js
 ```
 
-## Before/after comparison workflow
+### Before/after comparison workflow
 
 1. Save a summary of the **current** code: `k6 run --summary-export=perf-tests/results/after.json perf-tests/k6/get-current-member.js`
 2. `git stash` (or checkout the prior commit) to restore the old code, rebuild, restart `dotnet run`.
 3. Save the baseline: `k6 run --summary-export=perf-tests/results/before.json perf-tests/k6/get-current-member.js`
 4. `git stash pop` (or checkout back), rebuild, restart the site.
 5. Compare `before.json`/`after.json` — look at `http_req_duration` (p95/p99), `http_reqs`
-   (throughput), and `http_req_failed` (error rate under load). A fix that removes
-   thread-pool blocking should show flat/lower p95-p99 latency and higher throughput
-   as `VUS` increases, with the gap widening at higher concurrency.
+   (throughput), and `http_req_failed` (error rate under load).
+6. **Re-run step 1 once more with no code changes.** If the "after" number moves as much as
+   your before/after delta did, the result is noise — stop trusting it and don't report a win.
 
 `perf-tests/results/` is where exported summaries land — gitignored scratch space, not
 committed artifacts.
 
-## When k6 isn't sensitive enough: in-process micro-benchmarks
-
-k6/HTTP load tests are the right tool for concurrency-sensitive issues (thread-pool
-blocking, lock contention) — the fix changes *how many requests fit through at once*.
-They are the **wrong** tool for pure per-call CPU savings on a single code path (e.g.
-adding a cache around a cheap computation): at real-world concurrency the request's
-network/Kestrel/thread-pool-queueing overhead (hundreds of ms) completely swamps a
-few-microsecond improvement in one method, on shared hardware, regardless of which
-endpoint you pick. Two identical-code k6 runs can easily differ by more than the effect
-you're trying to measure — if before/after results are within a run-to-run noise band
-(re-run the "after" case once more with no changes; if it moves as much as your before/after
-delta, you have your answer), stop trusting the HTTP numbers.
-
-For that case, measure the method directly, in-process, with a throwaway `Development`-only
-minimal API endpoint that loops N times and reports average time per call:
-
-```csharp
-if (app.Environment.IsDevelopment())
-{
-    app.MapGet("/api/_debug/bench-X", (MyService svc, int? iterations) =>
-    {
-        var count = iterations is > 0 ? iterations.Value : 100000;
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        for (var i = 0; i < count; i++) _ = svc.MethodUnderTest();
-        sw.Stop();
-        return Results.Ok(new { count, avgMicroseconds = sw.Elapsed.TotalMilliseconds * 1000 / count });
-    });
-}
-```
-
-Hit it once with a small `iterations` value to JIT-warm, then again with a large one
-(100k+) for the real number. This removes HTTP/network/thread-pool noise entirely and
-isolates the method's own cost — delete the endpoint once you have your answer, it's not
-meant to ship.
-
-**Even better when the fix does real DB/repository work** (not just CPU, e.g. batching
-N+1 calls): a single before/after in-process benchmark can still be noisy request-to-request
-against a real DB, exactly like the HTTP case. Run the *old* and *new* code paths
-back-to-back inside the same request instead of across separate server restarts — same
-warm caches, same DB connection pool, same everything except the code under test:
-
-```csharp
-var swOld = Stopwatch.StartNew();
-for (var i = 0; i < iterations; i++) { /* old per-item loop */ }
-swOld.Stop();
-
-var swNew = Stopwatch.StartNew();
-for (var i = 0; i < iterations; i++) { /* new batched call */ }
-swNew.Stop();
-
-return Results.Ok(new { oldAvgMs = swOld.Elapsed.TotalMilliseconds / iterations, newAvgMs = swNew.Elapsed.TotalMilliseconds / iterations });
-```
-
-This is how the `CardApiController.MapToApiModels` N+1 fix was validated: HTTP load
-testing swung ±25% between identical-code runs (useless signal), but the in-process A/B
-comparison consistently showed the batched version 1.6-2.2x faster across 3 repeated
-calls, isolated from environment noise.
+**Validated so far with this method:**
+- Sync-over-async fixes (`MemberInfoService`, `CardApiController.Query`,
+  `AccountApiController`): +14-17% throughput, consistent across the concurrency-sensitive
+  endpoints — this is the one category where k6 gave a trustworthy signal on the first try.

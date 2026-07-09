@@ -21,6 +21,11 @@ namespace SkytearHorde.Business.EventHandlers
 
             if (string.IsNullOrWhiteSpace(notification.MetaTags.Title))
                 notification.MetaTags.Title = currentItem.Name;
+
+            if (string.IsNullOrWhiteSpace(notification.MetaTags.MetaDescription) && currentItem.ContentType.Alias == "card")
+            {
+                notification.MetaTags.MetaDescription = $"Discover all the features about the card: {currentItem.Name}";
+            }
         }
     }
 }

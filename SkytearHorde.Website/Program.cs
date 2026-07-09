@@ -20,6 +20,9 @@ using SkytearHorde.Business.Config;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using SeoToolkit.Umbraco.Sitemap.Core.Notifications;
+using SkytearHorde.Business.Startup.NotificationHandlers;
+using SkytearHorde.Business.EventHandlers;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,9 @@ builder.CreateUmbracoBuilder()
     //.AddNotificationHandler<ContentPublishedNotification, CardSetConnectEventHandler>()
     .AddNotificationHandler<ContentPublishedNotification, CardVariantsEventHandler>()
     .AddNotificationHandler<ContentPublishedNotification, CardCreateVariantsEventHandler>()
+    .AddNotificationAsyncHandler<GenerateSitemapNodeNotification, FixSitemapDomainNotificationHandler>()
+    .AddNotificationAsyncHandler<GenerateSitemapNotification, DynamicPagesSitemapNotificationHandler>()
+    .AddNotificationHandler<AfterMetaTagsNotification, SeoMetaFieldsEventHandler>()
     //.AddNotificationHandler<ContentPublishedNotification, CardSortingEventHandler>()
     .AddSlimsy()
     .Build();

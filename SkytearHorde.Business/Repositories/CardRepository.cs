@@ -151,7 +151,7 @@ namespace SkytearHorde.Business.Repositories
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
 
-            return _siteService.GetRoot().FirstChild<Data>()?.FirstChild<SetContainer>()?.Children<Set>() ?? Enumerable.Empty<Set>();
+            return _siteService.GetRoot().FirstChild<Data>()?.FirstChild<SetContainer>()?.Children<Set>()?.ToArray() ?? Array.Empty<Set>();
         }
 
         public IEnumerable<Card> GetAllBySet(int setId, bool includeVariants = false)

@@ -82,43 +82,167 @@ namespace SkytearHorde.Business.Services
                 return;
             }
 
+            // This path (Discord/general) has no way to pair a back side, so every card is front-only.
             foreach (var card in extractedCards)
             {
-                await ProcessSingleCardAsync(card.Base64, siteId, sourceType, sourceUrl, apiKey, promptsRoot, stagingDir, gameConfig);
+                try
+                {
+                    var typeConfig = await DetermineCardType(card.Base64, apiKey, gameConfig);
+                    if (typeConfig is null)
+                    {
+                        _logger.LogWarning("Could not determine card type for a detected card from {SourceType}", sourceType);
+                        continue;
+                    }
+                    await ProcessSingleCardAsync(card.Base64, null, typeConfig, siteId, sourceType, sourceUrl, apiKey, promptsRoot, stagingDir);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to process a detected card from {SourceType}", sourceType);
+                }
             }
         }
 
+        /// <summary>
+        /// Manual pipeline: processes the uploaded images in order. When a card is a double-sided type
+        /// (e.g. Leader), the next uploaded image is consumed as its back side rather than a separate row.
+        /// </summary>
+        public async Task<(int Total, int Succeeded, int Failed)> ProcessManualImagesAsync(
+            IReadOnlyList<(string Base64, string MimeType)> images,
+            int siteId,
+            string? sourceUrl)
+        {
+            var apiKey = _configuration["GeminiApiKey"] ?? string.Empty;
+            var promptsRoot = ResolveContentPath(_configuration["CardImport:PromptsPath"] ?? "prompts");
+            var stagingDir = ResolveContentPath(_configuration["CardImport:StagingPath"] ?? "card-staging");
+            Directory.CreateDirectory(stagingDir);
+
+            var gameConfig = LoadGameConfig(promptsRoot, "StarWarsUnlimited");
+            var extractor = new CardExtractor(gameConfig.CardDetectionPrompt);
+
+            int total = 0, succeeded = 0, failed = 0;
+
+            async Task RunAsync(string front, string? back, CardTypeConfig typeConfig)
+            {
+                total++;
+                try
+                {
+                    await ProcessSingleCardAsync(front, back, typeConfig, siteId, CardImportQueueSource.Manual, sourceUrl, apiKey, promptsRoot, stagingDir);
+                    succeeded++;
+                }
+                catch (Exception ex)
+                {
+                    failed++;
+                    _logger.LogError(ex, "Failed to process a manually submitted card");
+                }
+            }
+
+            var i = 0;
+            while (i < images.Count)
+            {
+                List<ExtractedCard> cards;
+                try
+                {
+                    cards = await extractor.ExtractAsync(apiKey, images[i].Base64, images[i].MimeType);
+                }
+                catch (Exception ex)
+                {
+                    total++; failed++; i++;
+                    _logger.LogError(ex, "Failed to detect cards in manual image {Index}", i - 1);
+                    continue;
+                }
+
+                if (cards.Count == 0) { i++; continue; }
+
+                // A single detected card may be a double-sided front whose back is the next uploaded image.
+                if (cards.Count == 1)
+                {
+                    var typeConfig = await DetermineCardType(cards[0].Base64, apiKey, gameConfig);
+                    if (typeConfig is null)
+                    {
+                        total++; failed++; i++;
+                        _logger.LogWarning("Could not determine card type for manual image {Index}", i - 1);
+                        continue;
+                    }
+
+                    if (typeConfig.IsDoubleSided && i + 1 < images.Count)
+                    {
+                        string? backBase64 = null;
+                        try
+                        {
+                            var backCards = await extractor.ExtractAsync(apiKey, images[i + 1].Base64, images[i + 1].MimeType, typeConfig.ResizeBackSide);
+                            backBase64 = backCards.FirstOrDefault()?.Base64;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to detect the back-side card in manual image {Index}", i + 1);
+                        }
+
+                        await RunAsync(cards[0].Base64, backBase64, typeConfig);
+                        i += 2;
+                        continue;
+                    }
+
+                    await RunAsync(cards[0].Base64, null, typeConfig);
+                    i++;
+                    continue;
+                }
+
+                // Multiple cards in one image (reveal grid) — no pairing; each is its own front-only row.
+                foreach (var card in cards)
+                {
+                    var typeConfig = await DetermineCardType(card.Base64, apiKey, gameConfig);
+                    if (typeConfig is null)
+                    {
+                        total++; failed++;
+                        _logger.LogWarning("Could not determine card type for a detected card in manual image {Index}", i);
+                        continue;
+                    }
+                    await RunAsync(card.Base64, null, typeConfig);
+                }
+                i++;
+            }
+
+            return (total, succeeded, failed);
+        }
+
         private async Task ProcessSingleCardAsync(
-            string cardBase64,
+            string frontBase64,
+            string? backBase64,
+            CardTypeConfig typeConfig,
             int siteId,
             string sourceType,
             string? sourceUrl,
             string apiKey,
             string promptsRoot,
-            string stagingDir,
-            GameConfig gameConfig)
+            string stagingDir)
         {
-            // Step 2: Compute perceptual hash and check for near-duplicates
-            var imageHash = ComputeDHash(cardBase64);
+            // Compute perceptual hash and check for near-duplicates (front image only).
+            var imageHash = ComputeDHash(frontBase64);
             if (_queueRepository.HashExists(siteId, imageHash))
             {
                 _logger.LogInformation("Skipping near-duplicate card image (hash {Hash})", imageHash);
                 return;
             }
 
-            // Step 3: Extract card properties with AI
-            Dictionary<string, string> extractedData;
-            try
+            // Extract front properties.
+            var extractedData = await ExtractProperties(frontBase64, apiKey, promptsRoot, typeConfig.PromptFile, typeConfig.Properties);
+
+            // For a double-sided card with a paired back image, read the back side with its own prompt
+            // and property set and merge the result into the same card's data.
+            string? backImagePath = null;
+            if (typeConfig.IsDoubleSided && backBase64 != null)
             {
-                extractedData = await ExtractCardPropertiesAsync(cardBase64, apiKey, promptsRoot, gameConfig);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to extract card properties");
-                return;
+                var backPromptFile = string.IsNullOrWhiteSpace(typeConfig.BackSidePromptFile) ? typeConfig.PromptFile : typeConfig.BackSidePromptFile;
+                var backData = await ExtractProperties(backBase64, apiKey, promptsRoot, backPromptFile!, typeConfig.BackSideProperties);
+                foreach (var kv in backData)
+                    extractedData[kv.Key] = kv.Value;
+
+                var backFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}_back.png";
+                backImagePath = Path.Combine(stagingDir, backFileName);
+                File.WriteAllBytes(backImagePath, Convert.FromBase64String(backBase64));
             }
 
-            // Step 4: Determine status — check if a card with this name already exists
+            // Determine status — check if a card with this name already exists.
             var status = CardImportQueueStatus.Pending;
             int? potentialDuplicateId = null;
 
@@ -135,12 +259,11 @@ namespace SkytearHorde.Business.Services
                 }
             }
 
-            // Step 5: Save image to staging directory
+            // Save front image to staging directory.
             var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}.png";
             var imagePath = Path.Combine(stagingDir, fileName);
-            File.WriteAllBytes(imagePath, Convert.FromBase64String(cardBase64));
+            File.WriteAllBytes(imagePath, Convert.FromBase64String(frontBase64));
 
-            // Step 6: Insert into queue
             _queueRepository.Insert(new CardImportQueueDBModel
             {
                 SiteId = siteId,
@@ -149,6 +272,7 @@ namespace SkytearHorde.Business.Services
                 SourceType = sourceType,
                 SourceUrl = sourceUrl,
                 ImagePath = imagePath,
+                BackImagePath = backImagePath,
                 ImageHash = imageHash,
                 PotentialDuplicateId = potentialDuplicateId,
                 CreatedAt = DateTime.UtcNow
@@ -157,43 +281,51 @@ namespace SkytearHorde.Business.Services
             _logger.LogInformation("Queued card '{CardName}' with status {Status}", cardName, status);
         }
 
-        private async Task<Dictionary<string, string>> ExtractCardPropertiesAsync(
-            string cardBase64,
+        /// <summary>Identifies the card type from the image via the initial prompt; null when unrecognized.</summary>
+        private async Task<CardTypeConfig?> DetermineCardType(string imageBase64, string apiKey, GameConfig gameConfig)
+        {
+            var googleAI = new GoogleAI(apiKey: apiKey);
+            var model = googleAI.GenerativeModel(model: Model.GeminiFlashLiteLatest);
+
+            var typeRequest = new GenerateContentRequest(gameConfig.InitialPrompt);
+            typeRequest.AddPart(new InlineData { Data = imageBase64, MimeType = "image/png" });
+            var typeResponse = await model.GenerateContent(typeRequest);
+            var typeName = typeResponse?.Text?.Trim() ?? string.Empty;
+
+            return gameConfig.Types.FirstOrDefault(t => t.Type.Equals(typeName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Extracts a card side's properties: AI-reads the given property set with the given prompt, then
+        /// applies mappings, constants, crop-region detectors, TitleCase and Split. Templated fields are
+        /// excluded (computed on approval). Works for either the front or the back side.
+        /// </summary>
+        private async Task<Dictionary<string, string>> ExtractProperties(
+            string imageBase64,
             string apiKey,
             string promptsRoot,
-            GameConfig gameConfig)
+            string promptFile,
+            IReadOnlyList<CardPropertyConfig> props)
         {
             var googleAI = new GoogleAI(apiKey: apiKey);
             var model = googleAI.GenerativeModel(model: Model.GeminiFlashLiteLatest);
             var generationConfig = new GenerationConfig { ResponseMimeType = "application/json" };
 
-            // First call: identify card type
-            var typeRequest = new GenerateContentRequest(gameConfig.InitialPrompt);
-            typeRequest.AddPart(new InlineData { Data = cardBase64, MimeType = "image/png" });
-            var typeResponse = await model.GenerateContent(typeRequest);
-            var typeName = typeResponse?.Text?.Trim() ?? string.Empty;
-
-            var typeConfig = gameConfig.Types.FirstOrDefault(t =>
-                t.Type.Equals(typeName, StringComparison.OrdinalIgnoreCase));
-            if (typeConfig is null)
-                throw new Exception($"Unknown card type: {typeName}");
-
-            // Second call: extract properties (excluding cropRegion properties)
-            var promptTemplate = File.ReadAllText(Path.Combine(promptsRoot, "StarWarsUnlimited", typeConfig.PromptFile));
+            var promptTemplate = File.ReadAllText(Path.Combine(promptsRoot, "StarWarsUnlimited", promptFile));
             var propertiesBuilder = new StringBuilder();
-            foreach (var prop in typeConfig.Properties.Where(p => p.Constant == null && p.CropRegion == null && string.IsNullOrEmpty(p.Templated)))
+            foreach (var prop in props.Where(p => p.Constant == null && p.CropRegion == null && string.IsNullOrEmpty(p.Templated)))
                 propertiesBuilder.AppendLine($"- {prop.Alias} ({prop.Description})");
             var prompt = promptTemplate.Replace("{properties}", propertiesBuilder.ToString());
 
             var request = new GenerateContentRequest(prompt);
             request.GenerationConfig = generationConfig;
-            request.AddPart(new InlineData { Data = cardBase64, MimeType = "image/png" });
+            request.AddPart(new InlineData { Data = imageBase64, MimeType = "image/png" });
             var response = await model.GenerateContent(request);
 
             var result = JsonSerializer.Deserialize<Dictionary<string, string>>(response?.Text ?? "{}") ?? [];
 
             // Apply value mappings to the AI output (case-insensitive exact match on "from").
-            foreach (var prop in typeConfig.Properties.Where(p => p.Mapping is { Count: > 0 }))
+            foreach (var prop in props.Where(p => p.Mapping is { Count: > 0 }))
             {
                 if (result.TryGetValue(prop.Alias, out var val) && !string.IsNullOrWhiteSpace(val))
                 {
@@ -203,13 +335,13 @@ namespace SkytearHorde.Business.Services
             }
 
             // Apply constants
-            foreach (var prop in typeConfig.Properties.Where(p => p.Constant.HasValue))
+            foreach (var prop in props.Where(p => p.Constant.HasValue))
                 result[prop.Alias] = prop.Constant!.Value.ToString();
 
             // Crop-region properties: use local detectors
-            foreach (var prop in typeConfig.Properties.Where(p => p.CropRegion != null && p.Constant == null))
+            foreach (var prop in props.Where(p => p.CropRegion != null && p.Constant == null))
             {
-                var croppedBase64 = CropImageToBase64(cardBase64, prop.CropRegion!);
+                var croppedBase64 = CropImageToBase64(imageBase64, prop.CropRegion!);
                 if (prop.Alias == "Aspects_multiple")
                 {
                     var detected = AspectDetector.Detect(croppedBase64);
@@ -218,12 +350,12 @@ namespace SkytearHorde.Business.Services
             }
 
             // Post-process: TitleCase and Split
-            foreach (var prop in typeConfig.Properties.Where(p => p.ToTitleCase))
+            foreach (var prop in props.Where(p => p.ToTitleCase))
             {
                 if (result.TryGetValue(prop.Alias, out var val) && !string.IsNullOrWhiteSpace(val))
                     result[prop.Alias] = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(val.ToLower());
             }
-            foreach (var prop in typeConfig.Properties.Where(p => !string.IsNullOrWhiteSpace(p.Split)))
+            foreach (var prop in props.Where(p => !string.IsNullOrWhiteSpace(p.Split)))
             {
                 if (result.TryGetValue(prop.Alias, out var val))
                     result[prop.Alias] = string.Join(",", val.Split(prop.Split!)
@@ -316,10 +448,26 @@ namespace SkytearHorde.Business.Services
             return LoadGameConfig(promptsRoot, "StarWarsUnlimited");
         }
 
+        private const string BackImageKey = "back_image_base64";
+
         // Control keys in a preset variant's properties that are not editable card fields.
         private static bool IsControlKey(string key) =>
             key.Equals("VariantTypeId", StringComparison.OrdinalIgnoreCase) ||
-            key.Equals("image_base64", StringComparison.OrdinalIgnoreCase);
+            key.Equals("image_base64", StringComparison.OrdinalIgnoreCase) ||
+            key.Equals(BackImageKey, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>True when the given preset variant declares a back image slot (back_image_base64).</summary>
+        public bool VariantSupportsBackImage(int variantTypeId)
+        {
+            var config = LoadDefaultGameConfig();
+            var variant = config.Presets
+                .SelectMany(p => p.Variants)
+                .FirstOrDefault(v => v.Properties.TryGetValue("VariantTypeId", out var raw)
+                                  && int.TryParse(raw, out var id) && id == variantTypeId);
+
+            return variant is not null &&
+                   variant.Properties.Keys.Any(k => k.Equals(BackImageKey, StringComparison.OrdinalIgnoreCase));
+        }
 
         // A preset field whose configured value starts with '{' is a template computed on approval.
         private static bool IsTemplatedValue(string? value) =>
@@ -531,6 +679,11 @@ namespace SkytearHorde.Business.Services
         {
             public string Type { get; set; } = string.Empty;
             public string PromptFile { get; set; } = string.Empty;
+            public bool IsDoubleSided { get; set; }
+            public string? BackSidePromptFile { get; set; }
+            // Whether the back-side image is resized/padded to the standard size. Some cards have a
+            // differently-sized back, so this can be disabled to keep the back at its natural size.
+            public bool ResizeBackSide { get; set; } = true;
             public List<CardPropertyConfig> Properties { get; set; } = [];
             public List<CardPropertyConfig> BackSideProperties { get; set; } = [];
 

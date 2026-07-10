@@ -29,12 +29,17 @@ namespace SkytearHorde.Business.Extraction
             _detectionPrompt = detectionPrompt;
         }
 
-        public async Task<List<ExtractedCard>> ExtractAsync(string apiKey, string imageBase64, string mimeType = "image/png")
+        /// <param name="resize">
+        /// When true (default) each detected card is padded/resized to the standard <see cref="TargetWidth"/>x
+        /// <see cref="TargetHeight"/>. Set false to keep the cropped card at its natural size — used for
+        /// back sides whose dimensions differ from the front.
+        /// </param>
+        public async Task<List<ExtractedCard>> ExtractAsync(string apiKey, string imageBase64, string mimeType = "image/png", bool resize = true)
         {
             var detections = await DetectBoundingBoxesAsync(apiKey, imageBase64, mimeType);
             if (detections.Count == 0) return [];
 
-            return CropAndNormalize(imageBase64, detections);
+            return CropAndNormalize(imageBase64, detections, resize);
         }
 
         private async Task<List<DetectedRegion>> DetectBoundingBoxesAsync(string apiKey, string imageBase64, string mimeType)
@@ -59,7 +64,7 @@ namespace SkytearHorde.Business.Extraction
             }
         }
 
-        private static List<ExtractedCard> CropAndNormalize(string imageBase64, List<DetectedRegion> detections)
+        private static List<ExtractedCard> CropAndNormalize(string imageBase64, List<DetectedRegion> detections, bool resize)
         {
             var imageBytes = Convert.FromBase64String(imageBase64);
             using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imageBytes);
@@ -86,16 +91,19 @@ namespace SkytearHorde.Business.Extraction
                 w = Math.Clamp(w, 1, image.Width - x);
                 h = Math.Clamp(h, 1, image.Height - y);
 
-                // Pad (letterbox) instead of the default Crop mode so the whole card always fits
-                // the target size without distortion; the leftover space is filled with black.
-                var cropped = image.Clone(ctx => ctx
-                    .Crop(new Rectangle(x, y, w, h))
-                    .Resize(new ResizeOptions
-                    {
-                        Size = new Size(TargetWidth, TargetHeight),
-                        Mode = ResizeMode.Pad,
-                        PadColor = Color.Black
-                    }));
+                // Crop to the detected card. When resizing, pad (letterbox) to the standard target size
+                // so the whole card fits without distortion; otherwise keep the card at its natural size.
+                var cropped = image.Clone(ctx =>
+                {
+                    ctx.Crop(new Rectangle(x, y, w, h));
+                    if (resize)
+                        ctx.Resize(new ResizeOptions
+                        {
+                            Size = new Size(TargetWidth, TargetHeight),
+                            Mode = ResizeMode.Pad,
+                            PadColor = Color.Black
+                        });
+                });
 
                 using var stream = new MemoryStream();
                 cropped.SaveAsPng(stream);

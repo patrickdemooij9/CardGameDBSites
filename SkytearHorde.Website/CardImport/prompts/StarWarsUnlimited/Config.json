@@ -54,6 +54,7 @@
             "SWU Id": "",
             "TTS Id": "{set}_{prop:SWU ID:D3}",
             "image_base64": "[image]",
+            "back_image_base64": "[backimage]",
             "VariantTypeId": "4"
           }
         }
@@ -562,6 +563,7 @@
       "isDoubleSided": true,
       "promptFile": "BasePrompt.txt",
       "backSidePromptFile": "BasePrompt.txt",
+      "resizeBackSide": false,
       "properties": [
         {
           "alias": "Cost",

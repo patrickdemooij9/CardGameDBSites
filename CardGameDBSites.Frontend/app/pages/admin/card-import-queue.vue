@@ -14,6 +14,8 @@ interface QueueItem {
   sourceType: string;
   sourceUrl: string | null;
   imageUrl: string;
+  hasBackImage: boolean;
+  backImageUrl: string | null;
   potentialDuplicateId: number | null;
   matchedCardName: string | null;
   createdAt: string;
@@ -337,9 +339,16 @@ onMounted(async () => {
             class="text-sm"
             @change="onFileChange"
           />
-          <span v-if="submitFiles.length" class="text-xs text-gray-500 mt-1">
-            {{ submitFiles.length }} file(s) selected
-          </span>
+          <p class="text-xs text-gray-400 mt-1">
+            Images are processed in the order shown below. For double-sided cards (Leaders),
+            place the front image immediately before its back image.
+          </p>
+          <ol
+            v-if="submitFiles.length"
+            class="text-xs text-gray-500 mt-2 list-decimal list-inside space-y-0.5"
+          >
+            <li v-for="(file, index) in submitFiles" :key="index">{{ file.name }}</li>
+          </ol>
         </div>
         <div class="flex flex-col">
           <label class="text-xs font-semibold text-gray-500 mb-1">
@@ -379,13 +388,21 @@ onMounted(async () => {
         class="bg-white rounded shadow p-4 flex gap-6"
         :class="{ 'border-l-4 border-yellow-400': item.status === 'PotentialVariant' }"
       >
-        <!-- Card image -->
-        <div class="flex-shrink-0">
+        <!-- Card image(s) -->
+        <div class="flex-shrink-0 flex flex-col gap-2">
           <img
             :src="proxyImageUrl(item.imageUrl)"
-            alt="Card preview"
+            alt="Card front preview"
             class="w-40 rounded shadow-sm object-contain"
           />
+          <div v-if="item.hasBackImage && item.backImageUrl" class="flex flex-col">
+            <img
+              :src="proxyImageUrl(item.backImageUrl)"
+              alt="Card back preview"
+              class="w-40 rounded shadow-sm object-contain"
+            />
+            <span class="text-xs text-gray-400 text-center mt-0.5">Back</span>
+          </div>
         </div>
 
         <!-- Details + editable fields -->

@@ -78,8 +78,9 @@ namespace CardGameDBSites.API.Controllers.Admin
                 if (request.ParentId is null)
                     return BadRequest("A parent card is required to approve variants.");
 
-                // Shared image for every variant of the preset (same art).
-                (int? variantImageId, int? variantBackImageId) = (null, null);
+                // Shared media for every variant of the preset (same art). The back media is only
+                // created when the queued card actually has a back image.
+                var (variantImageId, variantBackImageId) = CreateMediaForItem(item, BaseName(item.ExtractedData) ?? $"card_{id}");
 
                 var models = new List<ImportModel>();
                 foreach (var variant in request.Variants)
@@ -92,15 +93,13 @@ namespace CardGameDBSites.API.Controllers.Admin
                         .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase))
                         .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-                    if (!variantImageId.HasValue)
-                    {
-                        (variantImageId, variantBackImageId) = CreateMediaForItem(item, $"{BaseName(item.ExtractedData)}-{variantName}" ?? $"card_{id}");
-                    }
+                    // Only attach the back image to variants whose preset declares back_image_base64.
+                    var useBackImage = variantBackImageId.HasValue && _queueService.VariantSupportsBackImage(variant.VariantTypeId);
 
                     models.Add(new ImportModel(null, variantName, set.Name, attributes)
                     {
                         ImageId = variantImageId,
-                        BackImageId = variantBackImageId,
+                        BackImageId = useBackImage ? variantBackImageId : null,
                         ParentId = request.ParentId,
                         VariantTypeId = variant.VariantTypeId
                     });
@@ -232,16 +231,37 @@ namespace CardGameDBSites.API.Controllers.Admin
             if (string.IsNullOrWhiteSpace(item.ImagePath) || !System.IO.File.Exists(item.ImagePath))
                 return NotFound();
 
-            var ext = Path.GetExtension(item.ImagePath).ToLowerInvariant();
+            return ServeImageFile(item.ImagePath);
+        }
+
+        /// <summary>GET /umbraco/api/cardimportqueue/getbackimage?id=123</summary>
+        [HttpGet("getbackimage")]
+        public IActionResult GetBackImage(int id)
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            var item = _queueRepository.GetById(id);
+            if (item == null) return NotFound();
+            return ServeImageFile(item.BackImagePath);
+        }
+
+        private IActionResult ServeImageFile(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !System.IO.File.Exists(path))
+                return NotFound();
+
+            var ext = Path.GetExtension(path).ToLowerInvariant();
             var mimeType = ext == ".png" ? "image/png" : ext == ".webp" ? "image/webp" : "image/jpeg";
-            var bytes = System.IO.File.ReadAllBytes(item.ImagePath);
+            var bytes = System.IO.File.ReadAllBytes(path);
             return File(bytes, mimeType);
         }
 
         /// <summary>
         /// POST /umbraco/api/cardimportqueue/submitmanual
-        /// Manually submit one or more reveal images (base64) to the pipeline.
-        /// Body: { "sourceUrl": "...", "images": [ { "imageBase64": "...", "mimeType": "image/png", "sourceUrl": "..." } ] }
+        /// Manually submit one or more reveal images (base64) to the pipeline. Images are processed in
+        /// order; a double-sided card (e.g. Leader) consumes the next image as its back side.
+        /// Body: { "sourceUrl": "...", "images": [ { "imageBase64": "...", "mimeType": "image/png" } ] }
         /// </summary>
         [HttpPost("submitmanual")]
         public async Task<IActionResult> SubmitManual([FromBody] ManualSubmitRequest request)
@@ -249,43 +269,22 @@ namespace CardGameDBSites.API.Controllers.Admin
             if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
                 return Forbid();
 
-            if (request?.Images == null || request.Images.Count == 0)
+            var images = (request?.Images ?? [])
+                .Where(img => !string.IsNullOrWhiteSpace(img.ImageBase64))
+                .Select(img => (Base64: img.ImageBase64, MimeType: img.MimeType ?? "image/png"))
+                .ToList();
+
+            if (images.Count == 0)
                 return BadRequest("No images provided.");
 
             var siteId = _siteAccessor.GetSiteId();
-            var results = new List<ManualSubmitImageResult>();
-
-            for (var i = 0; i < request.Images.Count; i++)
-            {
-                var image = request.Images[i];
-                if (string.IsNullOrWhiteSpace(image.ImageBase64))
-                {
-                    results.Add(new ManualSubmitImageResult { Index = i, Success = false, Error = "Image data is empty." });
-                    continue;
-                }
-
-                try
-                {
-                    await _queueService.ProcessImageAsync(
-                        image.ImageBase64,
-                        siteId,
-                        CardImportQueueSource.Manual,
-                        image.SourceUrl ?? request.SourceUrl,
-                        image.MimeType ?? "image/png");
-                    results.Add(new ManualSubmitImageResult { Index = i, Success = true });
-                }
-                catch (Exception ex)
-                {
-                    results.Add(new ManualSubmitImageResult { Index = i, Success = false, Error = ex.Message });
-                }
-            }
+            var (total, succeeded, failed) = await _queueService.ProcessManualImagesAsync(images, siteId, request?.SourceUrl);
 
             return Ok(new ManualSubmitResult
             {
-                Total = results.Count,
-                Succeeded = results.Count(r => r.Success),
-                Failed = results.Count(r => !r.Success),
-                Results = results
+                Total = total,
+                Succeeded = succeeded,
+                Failed = failed
             });
         }
 
@@ -328,6 +327,8 @@ namespace CardGameDBSites.API.Controllers.Admin
             if (item.PotentialDuplicateId.HasValue)
                 matchedCardName = _cardService.Get(item.PotentialDuplicateId.Value)?.DisplayName;
 
+            var hasBackImage = !string.IsNullOrWhiteSpace(item.BackImagePath);
+
             return new
             {
                 item.Id,
@@ -336,6 +337,8 @@ namespace CardGameDBSites.API.Controllers.Admin
                 item.SourceType,
                 item.SourceUrl,
                 ImageUrl = $"/api/cardimportqueue/getimage?id={item.Id}",
+                HasBackImage = hasBackImage,
+                BackImageUrl = hasBackImage ? $"/api/cardimportqueue/getbackimage?id={item.Id}" : null,
                 item.PotentialDuplicateId,
                 MatchedCardName = matchedCardName,
                 item.CreatedAt,

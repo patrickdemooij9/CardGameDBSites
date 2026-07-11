@@ -1,4 +1,5 @@
 ﻿using SeoToolkit.Umbraco.MetaFields.Core.Notifications;
+using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Web;
 
@@ -16,8 +17,16 @@ namespace SkytearHorde.Business.EventHandlers
         public void Handle(AfterMetaTagsNotification notification)
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            var currentItem = ctx.UmbracoContext.PublishedRequest?.PublishedContent;
+            var currentItem = notification.Content;
             if (currentItem is null) return;
+
+            if (currentItem is CardVariant cardVariant)
+            {
+                var (title, description) = HandleCardVariant(cardVariant);
+                notification.MetaTags.Title = title;
+                notification.MetaTags.MetaDescription = description;
+                return;
+            }
 
             if (string.IsNullOrWhiteSpace(notification.MetaTags.Title))
                 notification.MetaTags.Title = currentItem.Name;
@@ -26,6 +35,12 @@ namespace SkytearHorde.Business.EventHandlers
             {
                 notification.MetaTags.MetaDescription = $"Discover all the features about the card: {currentItem.Name}";
             }
+        }
+
+        private (string title, string description) HandleCardVariant(CardVariant cardVariant)
+        {
+            var card = cardVariant.Parent as Card;
+            return (card!.Name, $"Discover all the features about the card: {card.Name}");
         }
     }
 }

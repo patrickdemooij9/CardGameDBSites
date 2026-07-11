@@ -92,7 +92,7 @@ namespace SkytearHorde.Business.Extraction
                 h = Math.Clamp(h, 1, image.Height - y);
 
                 // Crop to the detected card. When resizing, pad (letterbox) to the standard target size
-                // so the whole card fits without distortion; otherwise keep the card at its natural size.
+                // so the whole card fits without distortion; the leftover space is transparent (PNG alpha).
                 var cropped = image.Clone(ctx =>
                 {
                     ctx.Crop(new Rectangle(x, y, w, h));
@@ -101,7 +101,7 @@ namespace SkytearHorde.Business.Extraction
                         {
                             Size = new Size(TargetWidth, TargetHeight),
                             Mode = ResizeMode.Pad,
-                            PadColor = Color.Black
+                            PadColor = Color.Transparent
                         });
                 });
 

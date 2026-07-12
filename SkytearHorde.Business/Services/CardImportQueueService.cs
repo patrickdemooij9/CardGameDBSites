@@ -93,7 +93,7 @@ namespace SkytearHorde.Business.Services
                         _logger.LogWarning("Could not determine card type for a detected card from {SourceType}", sourceType);
                         continue;
                     }
-                    await ProcessSingleCardAsync(card.Base64, null, typeConfig, siteId, sourceType, sourceUrl, apiKey, promptsRoot, stagingDir);
+                    await ProcessSingleCardAsync(card.Base64, null, typeConfig, siteId, sourceType, sourceUrl, apiKey, promptsRoot, stagingDir, checkNearDuplicates: true);
                 }
                 catch (Exception ex)
                 {
@@ -126,7 +126,7 @@ namespace SkytearHorde.Business.Services
                 total++;
                 try
                 {
-                    await ProcessSingleCardAsync(front, back, typeConfig, siteId, CardImportQueueSource.Manual, sourceUrl, apiKey, promptsRoot, stagingDir);
+                    await ProcessSingleCardAsync(front, back, typeConfig, siteId, CardImportQueueSource.Manual, sourceUrl, apiKey, promptsRoot, stagingDir, checkNearDuplicates: false);
                     succeeded++;
                 }
                 catch (Exception ex)
@@ -214,11 +214,14 @@ namespace SkytearHorde.Business.Services
             string? sourceUrl,
             string apiKey,
             string promptsRoot,
-            string stagingDir)
+            string stagingDir,
+            bool checkNearDuplicates)
         {
-            // Compute perceptual hash and check for near-duplicates (front image only).
+            // Compute the perceptual hash (kept on the row so later automated sources can dedupe against it).
+            // The near-duplicate check is only applied to automated sources (Discord/Reddit reposts); manual
+            // submissions are deliberate, so every chosen image is imported.
             var imageHash = ComputeDHash(frontBase64);
-            if (_queueRepository.HashExists(siteId, imageHash))
+            if (checkNearDuplicates && _queueRepository.HashExists(siteId, imageHash))
             {
                 _logger.LogInformation("Skipping near-duplicate card image (hash {Hash})", imageHash);
                 return;

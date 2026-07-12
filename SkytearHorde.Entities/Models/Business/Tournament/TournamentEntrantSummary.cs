@@ -8,5 +8,6 @@ namespace SkytearHorde.Entities.Models.Business.Tournament
         public int Placement { get; set; }
         public int TournamentDeckId { get; set; }
         public string? DeckName { get; set; }
+        public int? LeaderCardId { get; set; }
     }
 }

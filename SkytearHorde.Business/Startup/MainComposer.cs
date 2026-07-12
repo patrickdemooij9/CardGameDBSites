@@ -12,6 +12,8 @@ using SkytearHorde.Business.ContentFinders;
 using SkytearHorde.Business.CustomCardMaker;
 using SkytearHorde.Business.DataSources.Overview;
 using SkytearHorde.Business.Discord;
+using SkytearHorde.Business.Facts;
+using SkytearHorde.Business.Facts.Generators;
 using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Processors;
@@ -60,6 +62,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<CardPriceService>();
             builder.Services.AddScoped<RandomizeService>();
             builder.Services.AddScoped<TournamentService>();
+            builder.Services.AddScoped<FactService>();
             builder.Services.AddSingleton<CardSearchFieldsFinder>();
             builder.Services.AddSingleton<CardImportQueueService>();
 
@@ -110,6 +113,13 @@ namespace SkytearHorde.Business.Startup
 
             builder.Services
                 .AddScoped<ITournamentConnector, MeleeGGTournamentConnector>();
+
+            builder.Services
+                .AddScoped<IFactGenerator, HighestHealthUnitGenerator>()
+                .AddScoped<IFactGenerator, HighestPowerUnitGenerator>()
+                .AddScoped<IFactGenerator, MostTraitsGenerator>()
+                .AddScoped<IFactGenerator, NewestTraitsGenerator>()
+                .AddScoped<IFactGenerator, FirstToReachHealthGenerator>();
 
             builder.ContentFinders().Append<CardPageContentFinder>();
             builder.ContentFinders().Append<DeckContentFinder>();

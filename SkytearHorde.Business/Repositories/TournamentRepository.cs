@@ -301,17 +301,19 @@ namespace SkytearHorde.Business.Repositories
                 "SELECT COUNT(*) FROM TournamentEntrants WHERE TournamentId = @0", tournamentId);
         }
 
-        public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId)
+        public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId, int leaderGroupId = 1, int leaderSlotId = 0)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
             return scope.Database.Fetch<TournamentEntrantSummary>(
-                "SELECT te.Id, te.TournamentId, te.PlayerName, te.Placement, te.TournamentDeckId, dv.Name AS DeckName " +
+                "SELECT te.Id, te.TournamentId, te.PlayerName, te.Placement, te.TournamentDeckId, dv.Name AS DeckName, lc.CardId AS LeaderCardId " +
                 "FROM TournamentEntrants te " +
                 "LEFT JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "LEFT JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "OUTER APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
+                "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @1 AND dc.SlotId = @2) lc " +
                 "WHERE te.TournamentId = @0 AND te.Placement BETWEEN 1 AND 8 " +
                 "ORDER BY te.Placement ASC",
-                tournamentId);
+                tournamentId, leaderGroupId, leaderSlotId);
         }
 
         // Meta page aggregations.
@@ -385,6 +387,53 @@ namespace SkytearHorde.Business.Repositories
                 "ORDER BY DeckCount DESC",
                 siteId, leaderGroupId, leaderSlotId, periodId);
         }
+
+        // Per-tournament aggregations (whole field) for the infographic slides.
+
+        public IEnumerable<TournamentDeckLeaderRow> GetDeckLeaderAndBaseCards(int tournamentId, int leaderGroupId = 1, int leaderSlotId = 0, int baseSlotId = 1)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<TournamentDeckLeaderRow>(
+                "SELECT l.CardId AS LeaderCardId, b.CardId AS BaseCardId " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "OUTER APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
+                "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @1 AND dc.SlotId = @2) l " +
+                "OUTER APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
+                "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @1 AND dc.SlotId = @3) b " +
+                "WHERE te.TournamentId = @0",
+                tournamentId, leaderGroupId, leaderSlotId, baseSlotId);
+        }
+
+        public IEnumerable<MetaPopularCardRow> GetMostPlayedCards(int tournamentId, int take, int leaderGroupId = 1, int leaderSlotId = 0, int baseSlotId = 1)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<MetaPopularCardRow>(
+                "SELECT TOP(@4) dc.CardId AS CardId, COUNT(DISTINCT dv.Id) AS DeckCount " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId <> 99 " +
+                "WHERE te.TournamentId = @0 " +
+                "  AND NOT (dc.GroupId = @1 AND dc.SlotId = @2) " +
+                "  AND NOT (dc.GroupId = @1 AND dc.SlotId = @3) " +
+                "GROUP BY dc.CardId " +
+                "ORDER BY DeckCount DESC",
+                tournamentId, leaderGroupId, leaderSlotId, baseSlotId, take);
+        }
+
+        public int GetTournamentDeckCount(int tournamentId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.ExecuteScalar<int>(
+                "SELECT COUNT(DISTINCT dv.Id) " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "WHERE te.TournamentId = @0",
+                tournamentId);
+        }
     }
 
     // Raw fetch rows for the meta aggregations. Card ids are resolved to names in the service layer.
@@ -411,5 +460,11 @@ namespace SkytearHorde.Business.Repositories
     {
         public int CardId { get; set; }
         public int DeckCount { get; set; }
+    }
+
+    public class TournamentDeckLeaderRow
+    {
+        public int? LeaderCardId { get; set; }
+        public int? BaseCardId { get; set; }
     }
 }

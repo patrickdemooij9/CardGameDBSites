@@ -34,11 +34,74 @@ namespace SkytearHorde.Business.Services
         public IEnumerable<Tournament> GetRecent(int periodId, int count = 6) =>
             _tournamentRepository.GetRecent(_siteAccessor.GetSiteId(), periodId, count);
 
+        public Tournament? GetById(int id) =>
+            _tournamentRepository.GetById(id);
+
         public int GetPlayerCount(int tournamentId) =>
             _tournamentRepository.GetPlayerCount(tournamentId);
 
-        public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId) =>
-            _tournamentRepository.GetTop8Entrants(tournamentId);
+        public IEnumerable<TournamentEntrantSummary> GetTop8Entrants(int tournamentId, int leaderGroupId = 1, int leaderSlotId = 0) =>
+            _tournamentRepository.GetTop8Entrants(tournamentId, leaderGroupId, leaderSlotId);
+
+        public IReadOnlyList<TournamentAspectStat> GetAspectRepresentation(int tournamentId)
+        {
+            var rows = _tournamentRepository.GetDeckLeaderAndBaseCards(tournamentId).ToArray();
+            if (rows.Length == 0) return [];
+
+            var aspectsByCard = new Dictionary<int, string[]>();
+            string[] GetAspects(int cardId)
+            {
+                if (!aspectsByCard.TryGetValue(cardId, out var aspects))
+                {
+                    aspects = (_cardService.Get(cardId)?.GetMultipleCardAttributeValue("Aspects") ?? [])
+                        // Values may come back comma-joined (e.g. "Vigilance,Villainy"); split and normalise.
+                        .SelectMany(a => a.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        .Where(a => !a.Equals("None", StringComparison.OrdinalIgnoreCase))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
+                    aspectsByCard[cardId] = aspects;
+                }
+                return aspects;
+            }
+
+            var counts = new Dictionary<string, int>();
+            foreach (var row in rows)
+            {
+                var deckAspects = new HashSet<string>();
+                if (row.LeaderCardId.HasValue) deckAspects.UnionWith(GetAspects(row.LeaderCardId.Value));
+                if (row.BaseCardId.HasValue) deckAspects.UnionWith(GetAspects(row.BaseCardId.Value));
+
+                foreach (var aspect in deckAspects)
+                {
+                    counts[aspect] = counts.GetValueOrDefault(aspect) + 1;
+                }
+            }
+
+            var totalDecks = rows.Length;
+            return counts
+                .Select(kv => new TournamentAspectStat
+                {
+                    Name = kv.Key,
+                    Percentage = (int)Math.Round((double)kv.Value / totalDecks * 100)
+                })
+                .OrderByDescending(a => a.Percentage)
+                .ThenBy(a => a.Name)
+                .ToArray();
+        }
+
+        public IReadOnlyList<TournamentCardStat> GetMostPlayedCards(int tournamentId, int take)
+        {
+            var totalDecks = _tournamentRepository.GetTournamentDeckCount(tournamentId);
+            if (totalDecks == 0) return [];
+
+            return _tournamentRepository.GetMostPlayedCards(tournamentId, take)
+                .Select(r => new TournamentCardStat
+                {
+                    CardId = r.CardId,
+                    Percentage = (int)Math.Round((double)r.DeckCount / totalDecks * 100)
+                })
+                .ToArray();
+        }
 
         public IEnumerable<MetaWinningDeck> GetRecentWinningDecks(int periodId, int count, int leaderGroupId, int leaderSlotId)
         {

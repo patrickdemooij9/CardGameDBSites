@@ -85,6 +85,8 @@ onMounted(async () => {
 
 watch([() => props.decks, isLoggedIn], async ([newDecks]) => {
   await loadDecksData(newDecks);
+}, {
+  immediate: true
 });
 
 const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);

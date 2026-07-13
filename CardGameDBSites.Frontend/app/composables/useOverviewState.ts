@@ -16,11 +16,12 @@ export function useOverviewState(
 ) {
   const route = useRoute();
 
+  const defaultSortBy = sortings?.value?.[0]?.Value ?? "";
   const defaultViewMode = views?.value?.[0] ?? 'images';
   const state = reactive({
     search: route.query.search?.toString() ?? "",
     page: Number(route.query.page) || 1,
-    sortBy: route.query.sortBy?.toString() ?? sortings?.value?.[0]?.Value ?? "",
+    sortBy: route.query.sortBy?.toString() ?? defaultSortBy,
     selectedFilters: new Map<OverviewFilterModel, string[]>(),
     viewMode: route.query.view?.toString() ?? defaultViewMode,
   });
@@ -54,7 +55,7 @@ export function useOverviewState(
     const url = new URL(window.location.href.split("?")[0]!);
     if (state.page !== 1) url.searchParams.append("page", String(state.page));
     if (state.search) url.searchParams.append("search", state.search);
-    if (state.sortBy) url.searchParams.append("sortBy", state.sortBy);
+    if (state.sortBy && state.sortBy != defaultSortBy) url.searchParams.append("sortBy", state.sortBy);
     if (state.viewMode && state.viewMode != defaultViewMode) url.searchParams.append("view", state.viewMode);
     state.selectedFilters.forEach((values, filter) =>
       values.forEach((v) => v && url.searchParams.append(filter.Alias, v)),

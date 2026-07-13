@@ -2,11 +2,9 @@
 import {
   DeckStatus,
   type DeckQueryPostModel,
-  type PagedResultDeckApiModel,
 } from "~/api/default";
 import DeckService from "~/services/DeckService";
 import DeckCardCollection from "~/components/cards/deckCards/DeckCardCollection.vue";
-import type OverviewRefreshModel from "./OverviewRefreshModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import Overview from "./Overview.vue";
 import {
@@ -23,12 +21,12 @@ const props = defineProps<{
 
 const deckService = new DeckService();
 
-const defaultSortings: OverviewSortModel[] = [
+const defaultSortings = ref<OverviewSortModel[]>([
   { Name: "Popular", Value: "popular" },
   { Name: "Newest", Value: "newest" },
-];
+]);
 
-const effectiveSortings = computed(() => props.sortings ?? defaultSortings);
+const effectiveSortings = computed(() => props.sortings ?? defaultSortings.value);
 
 const filters: OverviewFilterModel[] = [
   {
@@ -56,7 +54,7 @@ const filters: OverviewFilterModel[] = [
 
 const overviewState = useOverviewState(
   toRef(filters),
-  toRef(props, "sortings"),
+  toRef(effectiveSortings),
   undefined,
   {
     enableQueryStringSync: true,
@@ -106,7 +104,7 @@ onMounted(() => {
   const accountStore = useAccountStore();
   accountStore.checkLogin().then((isLoggedIn) => {
     if (isLoggedIn) {
-      defaultSortings.push({ Name: "Collection", Value: "collection" });
+      defaultSortings.value.push({ Name: "Collection", Value: "collection" });
     }
   });
 });

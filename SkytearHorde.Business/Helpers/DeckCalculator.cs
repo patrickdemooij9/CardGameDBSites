@@ -15,8 +15,8 @@ namespace SkytearHorde.Business.Helpers
                 double weight = 1.0 / (i + 1);
 
                 // Boost recent days more aggressively
-                if (i == 0) weight *= 3;
-                else if (i <= 2) weight *= 2;
+                if (i == 0) weight *= 2;
+                else if (i <= 2) weight *= 1.5;
 
                 score += last7DaysViews[i] * weight;
             }

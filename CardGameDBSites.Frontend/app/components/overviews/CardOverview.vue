@@ -137,11 +137,18 @@ function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
       }
     });
   });
-  if (!isLoggedIn.value) {
-    return;
-  }
-  collectionService.loadCards(cards.items!.map((c) => c.baseId!));
 }
+
+watch(
+  [currentCards, isLoggedIn],
+  ([cards, loggedIn]) => {
+    if (!loggedIn || !cards?.items) {
+      return;
+    }
+    collectionService.loadCards(cards.items.map((c) => c.baseId!));
+  },
+  { immediate: true },
+);
 
 function getMainVariants(card: CardDetailApiModel){
   const cardSetVariants = card.variants?.filter(v => v.setId == card.setId) ?? [];

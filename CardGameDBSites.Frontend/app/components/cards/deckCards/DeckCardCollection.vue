@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { CardDetailApiModel, DeckApiModel, DeckTypeSettingsApiModel, MemberApiModel } from "~/api/default";
+import type {
+  CardDetailApiModel,
+  DeckApiModel,
+  DeckTypeSettingsApiModel,
+  MemberApiModel,
+} from "~/api/default";
 import { useMembers } from "~/composables/useMembers";
 import { useCards } from "~/composables/useCards";
 import { useSite } from "~/composables/useSite";
@@ -13,68 +18,87 @@ const props = defineProps<{
 
 const { loadMembersByIds } = useMembers();
 const { loadCardsByIds } = useCards();
-const { getDeckTypeSettings, getSettings } = useSite();
+const { getDeckTypeSettings } = useSite();
+const accountStore = useAccountStore();
 
 const members = ref<Record<number, MemberApiModel>>({});
 const cards = ref<Record<number, CardDetailApiModel>>({});
 const deckSettings = ref<Record<number, DeckTypeSettingsApiModel>>({});
 const deckProgress = ref<Record<number, number>>({});
+const isLoggedIn = ref(false);
 
-const uniqueTypeIds = [...new Set(props.decks.map(d => d.typeId).filter(Boolean) as number[])];
+async function loadDecksData(decks: DeckApiModel[]) {
+  const uniqueTypeIds = [
+    ...new Set(decks.map((d) => d.typeId).filter(Boolean) as number[]),
+  ];
 
-if (props.decks.length > 0) {
-  const uniqueCreatorIds = [...new Set(props.decks.map(d => d.createdBy).filter((id): id is number => !!id))];
-  if (uniqueCreatorIds.length > 0) {
-    const loadedMembers = await loadMembersByIds(uniqueCreatorIds);
-    loadedMembers.forEach(m => {
-      members.value[m.id] = m;
-    });
-  }
+  if (decks.length > 0) {
+    const uniqueCreatorIds = [
+      ...new Set(
+        decks.map((d) => d.createdBy).filter((id): id is number => !!id),
+      ),
+    ];
+    if (uniqueCreatorIds.length > 0) {
+      const loadedMembers = await loadMembersByIds(uniqueCreatorIds);
+      loadedMembers.forEach((m) => {
+        members.value[m.id] = m;
+      });
+    }
 
-  const allCardIds = props.decks.flatMap(d => d.cards?.map(c => c.cardId!).filter(Boolean) ?? []);
-  const uniqueCardIds = [...new Set(allCardIds)];
-  if (uniqueCardIds.length > 0) {
-    const loadedCards = await loadCardsByIds(uniqueCardIds);
-    loadedCards.forEach(c => {
-      if (c.baseId) {
-        cards.value[c.baseId] = c;
+    const allCardIds = decks.flatMap(
+      (d) => d.cards?.map((c) => c.cardId!).filter(Boolean) ?? [],
+    );
+    const uniqueCardIds = [...new Set(allCardIds)];
+    if (uniqueCardIds.length > 0) {
+      const loadedCards = await loadCardsByIds(uniqueCardIds);
+      loadedCards.forEach((c) => {
+        if (c.baseId) {
+          cards.value[c.baseId] = c;
+        }
+      });
+    }
+
+    for (const typeId of uniqueTypeIds) {
+      const settings = await getDeckTypeSettings(typeId);
+      if (settings) {
+        deckSettings.value[typeId] = settings;
       }
-    });
-  }
+    }
 
-  for (const typeId of uniqueTypeIds) {
-    const settings = await getDeckTypeSettings(typeId);
-    if (settings) {
-      deckSettings.value[typeId] = settings;
+    if (isLoggedIn) {
+      const collectionService = useCollection();
+      const deckIds = decks.map((d) => d.id!);
+      collectionService.loadDecksProgress(deckIds).then((progress) => {
+        progress.forEach((p) => {
+          if (p.deckId) {
+            deckProgress.value[p.deckId] = p.progress ?? 0;
+          }
+        });
+      });
     }
   }
 }
 
 onMounted(async () => {
-  const accountStore = useAccountStore();
-  await accountStore.checkLogin();
-  if (accountStore.isLoggedIn) {
-    const collectionService = useCollection();
-    const deckIds = props.decks.map(d => d.id!);
-    collectionService.loadDecksProgress(deckIds).then(progress => {
-      progress.forEach(p => {
-        if (p.deckId) {
-          deckProgress.value[p.deckId] = p.progress ?? 0;
-        }
-      });
-    });
-  }
+  isLoggedIn.value = await accountStore.checkLogin();
+});
+
+watch([() => props.decks, isLoggedIn], async ([newDecks]) => {
+  await loadDecksData(newDecks);
 });
 
 const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);
 </script>
 
 <template>
-  <div :class="gridClass" class="grid grid-cols-1 auto-rows-fr md:grid-cols-2 gap-4 w-full">
-    <DeckCard 
-      v-for="deck in decks" 
-      :deck="deck" 
-      :member="members[deck.createdBy ?? 0]" 
+  <div
+    :class="gridClass"
+    class="grid grid-cols-1 auto-rows-fr md:grid-cols-2 gap-4 w-full"
+  >
+    <DeckCard
+      v-for="deck in decks"
+      :deck="deck"
+      :member="members[deck.createdBy ?? 0]"
       :cards="cards"
       :settings="deckSettings[deck.typeId ?? 0]"
       :progress="deckProgress[deck.id!]"

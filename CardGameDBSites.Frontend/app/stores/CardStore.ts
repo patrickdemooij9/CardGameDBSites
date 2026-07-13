@@ -37,13 +37,15 @@ export const useCardsStore = defineStore('cards', {
   actions: {
     setCards(cards: CardDetailApiModel[]) {
       const now = Date.now()
+      const updates: Record<string, CachedCard> = {}
       cards.forEach(card => {
         if (!card.baseId) return
-        this.cards[card.baseId] = {
-          data: card,
+        updates[card.baseId] = {
+          data: markRaw(card),
           fetchedAt: now
         }
       })
+      this.cards = { ...this.cards, ...updates }
     },
 
     setVariantTypes(types: CardVariantTypeApiModel[]) {

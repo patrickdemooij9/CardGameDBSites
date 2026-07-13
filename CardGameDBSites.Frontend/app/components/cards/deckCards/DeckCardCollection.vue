@@ -80,13 +80,12 @@ async function loadDecksData(decks: DeckApiModel[]) {
 }
 
 onMounted(async () => {
+  await loadDecksData(props.decks);
   isLoggedIn.value = await accountStore.checkLogin();
 });
 
 watch([() => props.decks, isLoggedIn], async ([newDecks]) => {
   await loadDecksData(newDecks);
-}, {
-  immediate: true
 });
 
 const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);

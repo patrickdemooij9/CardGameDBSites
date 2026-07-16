@@ -5,6 +5,7 @@ namespace CardGameDBSites.API.Models.Settings
     public class DeckCardGroupApiModel
     {
         public required string Header { get; set; }
+        public int GroupId { get; set; }
         public bool HideAmount { get; set; }
         public RequirementApiModel[] Requirements { get; set; }
         public string[] Sorting { get; set; }

@@ -10,6 +10,7 @@ export type SquadSettingsPropertiesModel = {
     typeDescription?: string | null;
     typeImage?: Array<IApiMediaWithCropsModel> | null;
     squads?: ApiBlockListModel;
+    sideboardGroup?: ApiBlockListModel;
     restrictions?: ApiBlockListModel;
     defaultNames?: Array<string> | null;
     specialImageRule?: ApiBlockListModel;

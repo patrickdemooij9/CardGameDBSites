@@ -142,6 +142,7 @@ namespace CardGameDBSites.API.Controllers
                     .Select(it => new DeckCardGroupApiModel
                     {
                         Header = it.Header!,
+                        GroupId = it.GroupId,
                         HideAmount = it.HideAmount,
                         Requirements = [.. it.Conditions.ToItems<ISquadRequirementConfig>()
                             .Select(r => new RequirementApiModel(r))],
@@ -157,7 +158,9 @@ namespace CardGameDBSites.API.Controllers
                     .Select(it => new RequirementApiModel(it))],
                 DeckDisplay = deckDisplay,
                 CostImageUrl = deckTypeSettings.CostIcon?.Url(mode: UrlMode.Absolute),
-                RenderCostOnImage = deckTypeSettings.RenderCostInIcon
+                RenderCostOnImage = deckTypeSettings.RenderCostInIcon,
+                HideHeader = deckDetail.HideHeader,
+                AllowedDisplays = deckDetail.DisplayOptions?.ToArray() ?? []
             });
         }
 

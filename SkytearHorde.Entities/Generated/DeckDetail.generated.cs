@@ -50,6 +50,14 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
+		/// Display options
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("displayOptions")]
+		public virtual global::System.Collections.Generic.IEnumerable<string> DisplayOptions => this.Value<global::System.Collections.Generic.IEnumerable<string>>(_publishedValueFallback, "displayOptions");
+
+		///<summary>
 		/// Enable Forcetable
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
@@ -78,6 +86,13 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("groups")]
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Groups => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "groups");
+
+		///<summary>
+		/// Hide header
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[ImplementPropertyType("hideHeader")]
+		public virtual bool HideHeader => this.Value<bool>(_publishedValueFallback, "hideHeader");
 
 		///<summary>
 		/// Show list option

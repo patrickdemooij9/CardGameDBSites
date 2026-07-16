@@ -11,5 +11,7 @@ export type DeckDetailPropertiesModel = {
     enableSquadTooltips?: boolean | null;
     enableForcetable?: boolean | null;
     useNewDisplay?: boolean | null;
+    hideHeader?: boolean | null;
+    displayOptions?: Array<string> | null;
 };
 

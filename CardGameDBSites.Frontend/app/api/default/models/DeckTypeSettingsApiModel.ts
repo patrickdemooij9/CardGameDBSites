@@ -18,5 +18,7 @@ export type DeckTypeSettingsApiModel = {
     deckDisplay: IDeckDisplayApiModel;
     costImageUrl?: string | null;
     renderCostOnImage?: boolean;
+    hideHeader?: boolean;
+    allowedDisplays?: Array<string>;
 };
 

@@ -17,6 +17,7 @@ export type SiteSettingsPropertiesModel = {
     forgotPasswordContent?: RichTextModel;
     cardImageRoot?: Array<IApiMediaWithCropsModel> | null;
     siteName?: string | null;
+    baseUrl?: string | null;
     navigation?: ApiBlockListModel;
     showLogin?: boolean | null;
     navigationLogo?: Array<IApiMediaWithCropsModel> | null;

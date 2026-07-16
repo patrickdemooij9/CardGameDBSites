@@ -58,6 +58,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Conditions => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "conditions");
 
 		///<summary>
+		/// Group Id
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[ImplementPropertyType("groupId")]
+		public virtual int GroupId => this.Value<int>(_publishedValueFallback, "groupId");
+
+		///<summary>
 		/// Header
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]

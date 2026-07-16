@@ -192,7 +192,7 @@ const hasPassiveRequirements = computed(() => {
         </div>
 
         <!-- Sideboard section -->
-        <div class="squad-column mt-4" v-if="deck.hasSideboard && deck.sideboardSlot">
+        <div class="squad-column mt-4" v-if="deck.hasSideboard && deck.sideboardSlot && deck.sideboardGroup">
           <button
             type="button"
             class="w-full flex items-center justify-between text-left"
@@ -210,15 +210,16 @@ const hasPassiveRequirements = computed(() => {
               Sideboard
             </h3>
             <div class="flex items-center gap-2">
-              <p>{{ deck.getSideboardAmount() }} / {{ deck.sideboardGroup?.getMaxAmount() }}</p>
+              <p>{{ deck.getSideboardAmount() }} / {{ deck.sideboardGroup.getMaxAmount() }}</p>
             </div>
           </button>
           <hr />
           <div class="mt-2" v-if="isSideboardOpen">
-            <DeckBuilderSlot
+            <div class="mt-2" v-for="slot in deck.sideboardGroup.slots" :key="slot.id">
+              <DeckBuilderSlot
               :deck="deck"
               :group="deck.sideboardGroup!"
-              :slot="deck.sideboardSlot"
+              :slot="slot"
               :deck-type-settings="deckTypeSettings!"
               :selected-area="selectedArea"
               :collection-only-mode="collectionOnlyMode"
@@ -226,6 +227,7 @@ const hasPassiveRequirements = computed(() => {
               @select-card="$emit('selectCard', $event)"
               @click-slot="clickSlot"
             />
+            </div>
           </div>
         </div>
 

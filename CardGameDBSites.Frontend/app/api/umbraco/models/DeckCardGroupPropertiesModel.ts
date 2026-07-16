@@ -8,5 +8,6 @@ export type DeckCardGroupPropertiesModel = {
     sorting?: ApiBlockListModel;
     conditions?: ApiBlockListModel;
     hideAmount?: boolean | null;
+    groupId?: number | null;
 };
 

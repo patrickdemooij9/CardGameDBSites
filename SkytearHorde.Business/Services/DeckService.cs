@@ -135,7 +135,7 @@ namespace SkytearHorde.Business.Services
                         })]
                     });
                 })).WhereNotNull().ToList(),
-                Sideboard = postModel.Sideboard?.Slots.SelectMany((slot) => slot.Cards.Select(it => new DeckCard(it.CardId, postModel.Sideboard.Id, 0, it.Amount)
+                Sideboard = postModel.Sideboard?.Slots.SelectMany((slot) => slot.Cards.Select(it => new DeckCard(it.CardId, postModel.Sideboard.Id, slot.Id, it.Amount)
                 {
                     Children = [.. it.Children.Select(c => new DeckCardChild
                     {

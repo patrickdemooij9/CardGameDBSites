@@ -18,5 +18,7 @@ namespace CardGameDBSites.API.Models
 
         public string? CostImageUrl { get; set; }
         public bool RenderCostOnImage { get; set; }
+        public bool HideHeader { get; set; }
+        public string[] AllowedDisplays { get; set; } = [];
     }
 }

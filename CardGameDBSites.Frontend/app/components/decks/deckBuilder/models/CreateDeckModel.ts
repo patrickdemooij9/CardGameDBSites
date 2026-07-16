@@ -19,7 +19,10 @@ export class CreateDeckModel {
   sideboardSlot: CreateDeckSlot | undefined;
   sideboardGroup: CreateDeckGroup | undefined;
 
-  pickDefaultName(defaultNames: string[] | undefined, random: () => number = Math.random) {
+  pickDefaultName(
+    defaultNames: string[] | undefined,
+    random: () => number = Math.random,
+  ) {
     if (this.name || !defaultNames || defaultNames.length === 0) {
       return;
     }
@@ -27,7 +30,11 @@ export class CreateDeckModel {
     this.name = defaultNames[index];
   }
 
-  moveCard(fromSlot: CreateDeckSlot, toSlot: CreateDeckSlot, card: CardDetailApiModel) {
+  moveCard(
+    fromSlot: CreateDeckSlot,
+    toSlot: CreateDeckSlot,
+    card: CardDetailApiModel,
+  ) {
     if (!toSlot || !fromSlot) {
       return;
     }
@@ -40,7 +47,7 @@ export class CreateDeckModel {
     const slots: CreateDeckSlot[] = [];
     this.groups.forEach((group) => {
       group.slots.forEach((slot) => {
-        if (IsValid([card], slot.requirements, true)){
+        if (IsValid([card], slot.requirements, true)) {
           slots.push(slot);
         }
         // Also check child slots of cards already in this slot
@@ -55,10 +62,12 @@ export class CreateDeckModel {
         });
       });
     });
-    if (this.hasSideboard && this.sideboardSlot) {
-      if (IsValid([card], this.sideboardSlot.requirements, true)) {
-        slots.push(this.sideboardSlot);
-      }
+    if (this.hasSideboard && this.sideboardGroup) {
+      this.sideboardGroup.slots.forEach((slot) => {
+        if (IsValid([card], slot.requirements, true)) {
+          slots.push(slot);
+        }
+      });
     }
     return slots;
   }
@@ -70,21 +79,26 @@ export class CreateDeckModel {
         total += slot.getCardAmount(card);
       });
     });
-    if (this.sideboardSlot) {
-      total += this.sideboardSlot.getCardAmount(card);
+    if (this.sideboardGroup) {
+      this.sideboardGroup.slots.forEach((slot) => {
+        total += slot.getCardAmount(card);
+      });
     }
     return total;
   }
 
-  getCardAmountInOtherSlots(excludeSlot: CreateDeckSlot, card: CardDetailApiModel): number {
+  getCardAmountInOtherSlots(
+    excludeSlot: CreateDeckSlot,
+    card: CardDetailApiModel,
+  ): number {
     return this.getTotalCardAmount(card) - excludeSlot.getCardAmount(card);
   }
 
   getSideboardAmount(): number {
-    return this.sideboardSlot?.getAmount() ?? 0;
+    return this.sideboardGroup?.getAmount() ?? 0;
   }
 
-  getDeckAmount(){
+  getDeckAmount() {
     let amount = 0;
     this.groups.forEach((group) => {
       amount += group.getAmount();
@@ -92,7 +106,7 @@ export class CreateDeckModel {
     return amount;
   }
 
-  getDeckMaxAmount(){
+  getDeckMaxAmount() {
     let maxAmount = 0;
     this.groups.forEach((group) => {
       maxAmount += group.getMaxAmount();
@@ -117,10 +131,12 @@ export class CreateDeckModel {
         });
       });
     });
-    if (this.sideboardSlot) {
-      this.sideboardSlot.cardGroups.forEach((cardGroup) => {
-        cardGroup.cards.forEach((cardWrapper) => {
-          allCards.push(cardWrapper);
+    if (this.sideboardGroup) {
+      this.sideboardGroup.slots.forEach((slot) => {
+        slot.cardGroups.forEach((cardGroup) => {
+          cardGroup.cards.forEach((cardWrapper) => {
+            allCards.push(cardWrapper);
+          });
         });
       });
     }
@@ -128,7 +144,9 @@ export class CreateDeckModel {
   }
 
   getIllegalCards(): CardDetailApiModel[] {
-    return this.getCards().map((card) => card.card).filter(card => !this.isLegalCard(card));
+    return this.getCards()
+      .map((card) => card.card)
+      .filter((card) => !this.isLegalCard(card));
   }
 
   isLegalDeck(): boolean {
@@ -139,7 +157,7 @@ export class CreateDeckModel {
     var result = new CreateDeckValidation([]);
     this.groups.forEach((group) => {
       result.combine(group.validateGroup());
-    })
+    });
     return result;
   }
 }

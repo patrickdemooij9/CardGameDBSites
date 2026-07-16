@@ -8,8 +8,14 @@ const props = defineProps<{
   group: DeckCardGroupApiModel;
   cards: CardDetailApiModel[];
   settings: DeckTypeSettingsApiModel;
-  deckCards?: { cardId?: number | null; amount?: number | null }[] | null;
-  deckDisplayMode: "text" | "images";
+  deckCards?:
+    | {
+        cardId?: number | null;
+        amount?: number | null;
+        groupId?: number | null;
+      }[]
+    | null;
+  deckDisplayMode: string;
   collectionMode: boolean;
   costImageUrl?: string | null;
   renderCostOnImage?: boolean;
@@ -20,7 +26,21 @@ const emit = defineEmits<{
 }>();
 
 const groupCards = computed(() => {
-  const groupCards = GetValidCards(props.cards, props.group.requirements ?? []);
+  let baseCards = props.cards;
+  // When the group is bound to a specific deck group id, only show the cards
+  // that belong to that group; otherwise fall back to requirement filtering.
+  const targetGroupId = props.group.groupId ?? 0;
+  if (targetGroupId) {
+    const cardIdsInGroup = new Set(
+      (props.deckCards ?? [])
+        .filter((deckCard) => (deckCard.groupId ?? 0) === targetGroupId)
+        .map((deckCard) => deckCard.cardId),
+    );
+    baseCards = baseCards.filter(
+      (card) => card.baseId != null && cardIdsInGroup.has(card.baseId),
+    );
+  }
+  const groupCards = GetValidCards(baseCards, props.group.requirements ?? []);
   if (props.group.sorting && props.group.sorting.length > 0) {
     return groupCards.sort((a, b) => {
       const aValue = GetCardValue<string>(a, props.group.sorting![0]!);
@@ -75,9 +95,9 @@ function handleCardClick(card: CardDetailApiModel) {
 
 <template>
   <div v-if="groupCards.length > 0">
-      <h3 class="text-sm mt-4 mb-2">{{ props.group.header }}</h3>
+      <h3 v-if="props.group.header" class="text-sm mt-4 mb-2">{{ props.group.header }}</h3>
       <div
-        v-if="deckDisplayMode === 'text'"
+        v-if="deckDisplayMode === 'Text'"
         class="md:grid grid-flow-col grid-cols-2 gap-2"
         :style="{
           'grid-template-rows': `repeat(${Math.ceil(groupCards.length / 2)}, 1fr)`,

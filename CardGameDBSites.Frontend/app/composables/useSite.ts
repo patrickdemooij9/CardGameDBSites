@@ -208,10 +208,15 @@ export function useSite() {
         if (deck.sideboard) {
           deck.sideboard.forEach((deckCard) => {
             const card = cards.find((c) => c.baseId === deckCard.cardId);
-            if (!card || !model.sideboardSlot) {
+            if (!card || !model.sideboardGroup) {
               return;
             }
-            const actualDeckCard = model.sideboardSlot.addCard(card, deckCard.amount ?? 1);
+            const sideboardSlot = model.sideboardGroup.slots.find((slot) => slot.id === deckCard.slotId);
+            if (!sideboardSlot){
+              return;
+            }
+
+            const actualDeckCard = sideboardSlot.addCard(card, deckCard.amount ?? 1);
             if (!actualDeckCard) {
               return;
             }

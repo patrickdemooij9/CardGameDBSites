@@ -15,7 +15,7 @@ export default class DeckService {
         query: {
           id,
         },
-      }
+      },
     );
     return result!;
   }
@@ -26,7 +26,7 @@ export default class DeckService {
       {
         method: "POST",
         body: model,
-      }
+      },
     );
     return result!;
   }
@@ -51,68 +51,54 @@ export default class DeckService {
                 children: key.children.flatMap((childSlot) =>
                   childSlot.cardGroups
                     .flatMap((card) => card.cards)
-                    .map((key) => key.card.baseId!)
+                    .map((key) => key.card.baseId!),
                 ),
               })),
-          }))
+          })),
         ],
       })),
-      sideboard: model.sideboardSlot && model.hasSideboard ? {
-            id: 99,
-            slots: [
-              {
-                id: model.sideboardSlot.id,
-                cards: model.sideboardSlot.cardGroups
-                .flatMap((cg) => cg.cards)
-                .map((key) => ({
-                  cardId: key.card.baseId!,
-                  amount: key.amount,
-                  children: [],
-                }))
-              }
-            ]
-          } : undefined
+      sideboard:
+        model.sideboardGroup && model.hasSideboard
+          ? {
+              id: 99,
+              slots: model.sideboardGroup.slots.map((slot) => ({
+                id: slot.id,
+                cards: slot.cardGroups
+                  .flatMap((cg) => cg.cards)
+                  .map((key) => ({
+                    cardId: key.card.baseId!,
+                    amount: key.amount,
+                    children: [],
+                  })),
+              })),
+            }
+          : undefined,
     };
-    const result = DoOptionalServerFetch<number>(
-      '/api/deckbuilder/submit',
-      {
-        method: "POST",
-        body: modelToPost,
-      }
-    );
+    const result = DoOptionalServerFetch<number>("/api/deckbuilder/submit", {
+      method: "POST",
+      body: modelToPost,
+    });
     return result;
   }
 
   async likeDeck(deckId: number) {
-    const result = DoServerFetch<boolean>(
-      "/api/decks/likeDeck",
-      true,
-      {
-        method: "POST",
-        body: JSON.stringify(deckId),
-      },
-    );
+    const result = DoServerFetch<boolean>("/api/decks/likeDeck", true, {
+      method: "POST",
+      body: JSON.stringify(deckId),
+    });
     return result!;
   }
 
   async viewDeck(deckId: number) {
-    DoServerFetch<boolean>(
-      "/api/decks/viewDeck",
-      true,
-      {
-        method: "POST",
-        body: JSON.stringify(deckId),
-      },
-    );
+    DoServerFetch<boolean>("/api/decks/viewDeck", true, {
+      method: "POST",
+      body: JSON.stringify(deckId),
+    });
   }
 
   async deleteDeck(deckId: number) {
-    await DoServerFetch(
-      `/api/decks/deleteDeck?deckId=${deckId}`,
-      true,
-      {
-        method: "DELETE",
-      }
-    );
+    await DoServerFetch(`/api/decks/deleteDeck?deckId=${deckId}`, true, {
+      method: "DELETE",
+    });
   }
 }

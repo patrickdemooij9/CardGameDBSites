@@ -16,5 +16,6 @@ export type SquadSlotConfigPropertiesModel = {
     additionalRequirementFilters?: ApiBlockListModel;
     groupings?: ApiBlockListModel;
     defaultValue?: Array<IApiContentModel> | null;
+    allowMovingToSideboard?: boolean | null;
 };
 

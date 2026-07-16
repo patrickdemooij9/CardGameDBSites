@@ -6,6 +6,7 @@ import DeckLike from "../decks/DeckLike.vue";
 import type {
   CardDetailApiModel,
   CommentViewModel,
+  DeckCardApiModel,
   DeckCardGroupApiModel,
   SetViewModel,
 } from "~/api/default";
@@ -120,7 +121,7 @@ console.timeEnd("member");
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
-const deckDisplayMode = ref<"text" | "images">("text");
+const deckDisplayMode = ref(deckSettings.allowedDisplays?.[0] ?? 'text');
 const isCreatingPreset = ref(false);
 const showActionsDropdown = ref(false);
 const selectedCardIndex = ref<number | undefined>(undefined);
@@ -131,12 +132,12 @@ const isOwner = computed(() => {
 });
 const groupedDeckCards = computed(() =>
   (deckSettings?.groupings ?? []).flatMap((group) =>
-    getCardsInGroup(group, cards),
+    getCardsInGroup(group, cards, deck.cards),
   ),
 );
 const hasDecklistCards = computed(() =>
   (deckSettings?.groupings ?? []).some(
-    (group) => getCardsInGroup(group, cards).length > 0,
+    (group) => getCardsInGroup(group, cards, deck.cards).length > 0,
   ),
 );
 const hasSideboardCards = computed(
@@ -144,7 +145,7 @@ const hasSideboardCards = computed(
     deck.sideboard != null &&
     deck.sideboard.length > 0 &&
     (deckSettings?.groupings ?? []).some(
-      (group) => getCardsInGroup(group, sideboardCards).length > 0,
+      (group) => getCardsInGroup(group, sideboardCards, deck.sideboard).length > 0,
     ),
 );
 const showDecklistSection = computed(
@@ -204,8 +205,22 @@ function handleOutsideClick(event: MouseEvent) {
 function getCardsInGroup(
   group: DeckCardGroupApiModel,
   cardsList: CardDetailApiModel[],
+  deckCards?: DeckCardApiModel[] | null,
 ): CardDetailApiModel[] {
-  const groupCards = GetValidCards(cardsList, group.requirements ?? []);
+  let baseCards = cardsList;
+  // When the group is bound to a specific deck group id, only show the cards
+  // that belong to that group; otherwise fall back to requirement filtering.
+  if (group.groupId) {
+    const cardIdsInGroup = new Set(
+      (deckCards ?? [])
+        .filter((deckCard) => (deckCard.groupId ?? 0) === group.groupId)
+        .map((deckCard) => deckCard.cardId),
+    );
+    baseCards = baseCards.filter(
+      (card) => card.baseId != null && cardIdsInGroup.has(card.baseId),
+    );
+  }
+  const groupCards = GetValidCards(baseCards, group.requirements ?? []);
   if (group.sorting && group.sorting.length > 0) {
     return groupCards.sort((a, b) => {
       const aValue = GetCardValue<string>(a, group.sorting![0]!);
@@ -377,7 +392,7 @@ console.timeEnd("page-render");
         </div>
       </div>
 
-      <div class="flex flex-wrap justify-center gap-4 mt-8">
+      <div class="flex flex-wrap justify-center gap-4 mt-8" v-if="!deckSettings.hideHeader">
         <div
           v-for="mainCardWithChildren in mainCardsWithChildren"
           :class="{ 'w-2/5': mainCards.length > 1 }"
@@ -417,15 +432,14 @@ console.timeEnd("page-render");
           >
             <h2 class="text-lg">Decklist</h2>
             <div class="flex gap-4 flex-col md:flex-row md:items-center">
-              <div class="flex gap-2 items-center">
+              <div class="flex gap-2 items-center" v-if="(deckSettings.allowedDisplays ?? []).length > 1">
                 <label for="deck-display-mode">Display</label>
                 <select
                   id="deck-display-mode"
                   v-model="deckDisplayMode"
                   class="border rounded px-2 py-1"
                 >
-                  <option value="text">Text</option>
-                  <option value="images">Images</option>
+                  <option v-for="option in deckSettings.allowedDisplays ?? []" :value="option">{{ option }}</option>
                 </select>
               </div>
               <div v-if="isLoggedIn" class="flex gap-2 items-center">

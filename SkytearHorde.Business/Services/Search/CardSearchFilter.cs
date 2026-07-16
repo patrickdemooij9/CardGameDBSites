@@ -6,6 +6,8 @@
         public string[] Values { get; set; }
         public CardSearchFilterMode Mode { get; set; }
 
+        public bool Negate { get; set; }
+
         public CardSearchFilter()
         {
             Values = [];

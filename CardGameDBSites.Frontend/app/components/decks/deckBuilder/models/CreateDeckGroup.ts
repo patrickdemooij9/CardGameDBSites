@@ -3,7 +3,6 @@ import type CreateDeckSlot from "./CreateDeckSlot";
 import CreateDeckValidation from "./CreateDeckValidation";
 import {
   GetInvalidRequirements,
-  IsValid,
 } from "~/services/requirements/RequirementService";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
 

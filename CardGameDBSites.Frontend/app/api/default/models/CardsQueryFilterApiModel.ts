@@ -7,5 +7,6 @@ export type CardsQueryFilterApiModel = {
     alias: string;
     values?: Array<string>;
     mode?: CardSearchFilterMode;
+    negate?: boolean;
 };
 

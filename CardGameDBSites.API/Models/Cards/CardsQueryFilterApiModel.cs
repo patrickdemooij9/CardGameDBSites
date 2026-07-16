@@ -7,6 +7,7 @@ namespace CardGameDBSites.API.Models.Cards
         public required string Alias { get; set; }
         public string[] Values { get; set; }
         public CardSearchFilterMode Mode { get; set; }
+        public bool Negate { get; set; }
 
         public CardsQueryFilterApiModel()
         {

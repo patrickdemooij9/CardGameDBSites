@@ -88,6 +88,13 @@ function getInternalFilters() {
       props.ignorePassiveFilters,
     ));
   }
+  if (props.deck.requirements.length > 0){
+    filters.push(...GetFilters(
+      props.deck.getCards().map((card) => card.card),
+      props.deck.requirements.filter((req) => req.restrictionType !== RestrictionType.FILTER),
+      props.ignorePassiveFilters
+    ));
+  }
 
   return [
     ...filters,

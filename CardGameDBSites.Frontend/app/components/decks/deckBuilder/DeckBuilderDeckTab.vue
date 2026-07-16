@@ -159,7 +159,7 @@ const hasPassiveRequirements = computed(() => {
                                 <label for="collectionMode">Match with collection</label>
                             </div>
                         </template>-->
-        <div class="squad-column mt-4" v-for="group in deck.groups">
+        <div class="squad-column mt-4" v-for="group in deck.groups.filter((group) => group.getMaxAmount() > 0)">
           <div class="flex items-center justify-between">
             <h3 class="text-base">{{ group.name }}</h3>
             <div class="flex items-center gap-2">

@@ -204,6 +204,7 @@ namespace CardGameDBSites.API.Controllers
                 Id = deckTypeSettings.TypeID,
                 DefaultNames = [.. deckTypeSettings.DefaultNames ?? []],
                 OverwriteAmount = deckTypeSettings.OverwriteAmount > 0 ? deckTypeSettings.OverwriteAmount : null,
+                Requirements = deckTypeSettings.Restrictions.ToItems<ISquadRequirementConfig>().Select(it => new RequirementApiModel(it)).ToArray(),
                 Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel(it, false))],
                 SideboardGroup = sideboardGroup is null ? null : new DeckBuilderGroupApiModel(sideboardGroup, true)
             });

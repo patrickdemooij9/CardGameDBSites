@@ -1,4 +1,4 @@
-import type { CardDetailApiModel } from "~/api/default";
+import type { CardDetailApiModel, RequirementApiModel } from "~/api/default";
 import type CreateDeckGroup from "./CreateDeckGroup";
 import type CreateDeckSlot from "./CreateDeckSlot";
 import { IsValid } from "~/services/requirements/RequirementService";
@@ -12,6 +12,7 @@ export class CreateDeckModel {
   description?: string;
   typeId?: number;
   overwriteAmount?: number;
+  requirements: RequirementApiModel[] = [];
   groups: CreateDeckGroup[] = [];
 
   hasSideboard: boolean = false;

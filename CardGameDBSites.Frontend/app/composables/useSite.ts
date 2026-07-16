@@ -130,7 +130,7 @@ export function useSite() {
       const deckSlot = new CreateDeckSlot(slot.id, slot.name);
       deckSlot.cardGroups = slot.cardGroups?.map(mapDeckCardGroup) ?? [];
       deckSlot.minCards = slot.minCards ?? 0;
-      deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount);
+      deckSlot.maxCardAmount = getDeckAmount(slot.maxCardAmount, model);
       deckSlot.overwriteAmount = model.overwriteAmount;
       deckSlot.disableRemoval = slot.disableRemoval!;
       deckSlot.displaySize = slot.displaySize! as DisplaySize;
@@ -150,6 +150,7 @@ export function useSite() {
       return deckGroup;
     };
 
+    model.requirements = result?.requirements ?? [];
     model.groups = result?.groups?.map(mapDeckGroup) ?? [];
     model.sideboardGroup = result?.sideboardGroup
       ? mapDeckGroup(result.sideboardGroup)
@@ -233,12 +234,12 @@ export function useSite() {
     return model;
   };
 
-  const getDeckAmount = (model: DeckBuilderSlotAmountApiModel) => {
+  const getDeckAmount = (model: DeckBuilderSlotAmountApiModel, deck: CreateDeckModel) => {
     if (model.type === "fixed") {
       return new FixedDeckAmountConfig(model.config!["amount"]);
     }
     if (model.type === "dynamic") {
-      return new DynamicDeckAmountConfig(model.config!["requirements"]);
+      return new DynamicDeckAmountConfig(deck, model.config!["requirements"]);
     }
     return new FixedDeckAmountConfig(0);
   };

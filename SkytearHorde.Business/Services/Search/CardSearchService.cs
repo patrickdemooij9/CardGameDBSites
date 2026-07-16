@@ -242,42 +242,83 @@ namespace SkytearHorde.Business.Services.Search
             }
         }*/
 
+        // Every card document is indexed with __IndexType:content (see the base NativeQuery above),
+        // so it's a safe "match all cards" anchor for scoping negations.
+        private const string AnchorField = "__IndexType";
+        private const string AnchorValue = "content";
+
         private Func<INestedQuery, INestedBooleanOperation> GetFiltersOperation(CardSearchFilter[] filters)
         {
+            // Filters within a clause are OR'd together. Positive filters are added as plain terms.
+            // A negated filter can't just be a MUST_NOT term: in Lucene a purely-negative clause
+            // matches nothing (and would poison the whole OR group). Instead each negated filter is
+            // expressed as an anchored sub-group (+__IndexType:content -term) so the exclusion is
+            // scoped to that term while still matching every other card, letting it OR correctly with
+            // the positive filters. Because a sub-group can't be the first element of the group, we
+            // always emit the positive filters first.
+            var positives = filters.Where(f => !f.Negate).ToArray();
+            var negatives = filters.Where(f => f.Negate).ToArray();
+
             return it =>
             {
                 INestedBooleanOperation? nestedBoolean = null;
-                foreach (var filter in filters)
+                foreach (var filter in positives)
                 {
                     var query = nestedBoolean is null ? it : nestedBoolean.Or();
-                    var actualValue = filter.Values.Select(it => it.Replace(" ", "")).ToArray();
-                    switch (filter.Mode)
-                    {
-                        case CardSearchFilterMode.Contains:
-                            nestedBoolean = query.GroupedOr([$"CustomField.{filter.Alias}"], actualValue);
-                            break;
-                        case CardSearchFilterMode.Higher:
-                            foreach (var value in actualValue)
-                            {
-                                nestedBoolean = query.RangeQuery<int>([$"CustomField.{filter.Alias}"], min: int.Parse(value), null);
-                            }
-                            break;
-                        case CardSearchFilterMode.Lower:
-                            foreach (var value in actualValue)
-                            {
-                                nestedBoolean = query.RangeQuery<int>([$"CustomField.{filter.Alias}"], null, max: int.Parse(value));
-                            }
-                            break;
-                        case CardSearchFilterMode.Range:
-                            var minValue = int.Parse(actualValue[0]);
-                            var maxValue = int.Parse(actualValue[1]);
-                            //nestedBoolean = query.ManagedQuery($"CustomField.{filter.Alias}:[{minValue} TO {maxValue}]")
-                            nestedBoolean = query.RangeQuery<int>([$"CustomField.{filter.Alias}"], minValue, maxValue);
-                            break;
-                    }
+                    nestedBoolean = ApplyTerm(query, filter);
                 }
-                return nestedBoolean!;
+
+                if (nestedBoolean is null)
+                {
+                    // Only negated filters: anchor to all cards, then exclude each negated term.
+                    // This resolves to "all cards except those matching any negated filter".
+                    nestedBoolean = it.Field(AnchorField, AnchorValue);
+                    foreach (var filter in negatives)
+                    {
+                        nestedBoolean = ApplyTerm(nestedBoolean.Not(), filter);
+                    }
+                    return nestedBoolean;
+                }
+
+                foreach (var filter in negatives)
+                {
+                    nestedBoolean = nestedBoolean.Or(
+                        inner => ApplyTerm(inner.Field(AnchorField, AnchorValue).Not(), filter),
+                        BooleanOperation.And);
+                }
+
+                return nestedBoolean;
             };
+        }
+
+        private static INestedBooleanOperation ApplyTerm(INestedQuery query, CardSearchFilter filter)
+        {
+            var field = $"CustomField.{filter.Alias}";
+            var actualValue = filter.Values.Select(it => it.Replace(" ", "")).ToArray();
+            switch (filter.Mode)
+            {
+                case CardSearchFilterMode.Higher:
+                    INestedBooleanOperation? higher = null;
+                    foreach (var value in actualValue)
+                    {
+                        higher = query.RangeQuery<int>([field], min: int.Parse(value), null);
+                    }
+                    return higher!;
+                case CardSearchFilterMode.Lower:
+                    INestedBooleanOperation? lower = null;
+                    foreach (var value in actualValue)
+                    {
+                        lower = query.RangeQuery<int>([field], null, max: int.Parse(value));
+                    }
+                    return lower!;
+                case CardSearchFilterMode.Range:
+                    var minValue = int.Parse(actualValue[0]);
+                    var maxValue = int.Parse(actualValue[1]);
+                    return query.RangeQuery<int>([field], minValue, maxValue);
+                case CardSearchFilterMode.Contains:
+                default:
+                    return query.GroupedOr([field], actualValue);
+            }
         }
     }
 }

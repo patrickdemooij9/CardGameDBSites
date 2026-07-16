@@ -154,6 +154,7 @@ namespace CardGameDBSites.API.Controllers
                         Alias = f.Alias,
                         Values = f.Values,
                         Mode = f.Mode,
+                        Negate = f.Negate,
                     })]
                 })],
                 OrderBy = sorting,

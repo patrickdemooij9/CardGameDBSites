@@ -5,6 +5,7 @@
 import type { RestrictionType } from './RestrictionType';
 export type RequirementApiModel = {
     alias?: string;
+    type?: string;
     restrictionType?: RestrictionType;
     errorMessage?: string | null;
     filterDisplayName?: string | null;

@@ -115,7 +115,7 @@ export default class ResourceRequirement implements IRequirement {
         const filters: CardsQueryFilterApiModel[] = possibleValues
           .filter((value) => resourcePool[value])
           .map((value) => ({
-            alias: `${config.ability}.${value}.Amount`,
+            alias: `${config.ability}.${value.replaceAll(' ', '')}.Amount`,
             values: ["1"],
             mode: CardSearchFilterMode.HIGHER,
           }));
@@ -139,7 +139,7 @@ export default class ResourceRequirement implements IRequirement {
         const mainBudget = config["mainAbilityMaxSize"] ?? 6;
         config.possibleValues.forEach((value: string) => {
           filters.push({
-            alias: `${config.ability}.${value}.Amount`,
+            alias: `${config.ability}.${value.replaceAll(' ', '')}.Amount`,
             values: [
               "1",
               (
@@ -151,7 +151,7 @@ export default class ResourceRequirement implements IRequirement {
             mode: CardSearchFilterMode.RANGE,
           });
           filters.push({
-            alias: `${config.mainAbility}.${value}.Amount`,
+            alias: `${config.mainAbility}.${value.replaceAll(' ', '')}.Amount`,
             values: ["1", mainBudget.toString()], //TODO: Need to figure out how this will work
             mode: CardSearchFilterMode.RANGE,
           });
@@ -175,7 +175,7 @@ export default class ResourceRequirement implements IRequirement {
               clauseType: CardSearchFilterClauseType.AND,
               filters: [
                 {
-                  alias: `${config.ability}.${value}.Amount`,
+                  alias: `${config.ability}.${value.replaceAll(' ', '')}.Amount`,
                   values: ["0"],
                   mode: CardSearchFilterMode.LOWER,
                 },
@@ -184,7 +184,7 @@ export default class ResourceRequirement implements IRequirement {
             return;
           }
           yesFilters.push({
-            alias: `${config.ability}.${value}.Amount`,
+            alias: `${config.ability}.${value.replaceAll(' ', '')}.Amount`,
             values: ["1", resourcePool[value].length.toString()],
             mode: CardSearchFilterMode.RANGE,
           });

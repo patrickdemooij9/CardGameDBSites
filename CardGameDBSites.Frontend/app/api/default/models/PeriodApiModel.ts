@@ -2,11 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type TournamentEntrantApiModel = {
+export type PeriodApiModel = {
     id?: number;
-    playerName?: string;
-    placement?: number;
-    deckId?: number;
-    deckName?: string | null;
+    name?: string;
+    startingDateUtc?: string;
+    endDateUtc?: string | null;
+    isCurrent?: boolean;
 };
 

@@ -8,6 +8,10 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
         [JsonProperty("type")]
         public string Type { get; set; }
 
+
+        [JsonProperty("alias")]
+        public string Alias { get; set; } //Legacy
+
         [JsonProperty("config")]
         public Dictionary<string, object> Config { get; set; }
 
@@ -19,6 +23,7 @@ namespace SkytearHorde.Entities.Models.ViewModels.Squad
         public CreateSquadRequirement(ISquadRequirementConfig config)
         {
             Type = config.GetRequirement().Alias;
+            Alias = config.GetRequirement().Alias;
             Config = config.GetConfig();
         }
     }

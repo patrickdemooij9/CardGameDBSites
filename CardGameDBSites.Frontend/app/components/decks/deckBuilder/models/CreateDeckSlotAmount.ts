@@ -1,27 +1,38 @@
 import type { RequirementApiModel } from "~/api/default";
+import type { CreateDeckModel } from "./CreateDeckModel";
+import { GetValidCards } from "~/services/requirements/RequirementService";
 
 export interface CreateDeckSlotAmount {
-    GetAmount(): number | undefined;
+  GetAmount(): number | undefined;
 }
 
 export class FixedDeckAmountConfig implements CreateDeckSlotAmount {
-    amount?: number;
+  amount?: number;
 
-    constructor(amount: number) {
-        this.amount = amount == 0 ? undefined : amount;
-    }
-    GetAmount(): number | undefined {
-        return this.amount;
-    }
+  constructor(amount: number) {
+    this.amount = amount == 0 ? undefined : amount;
+  }
+
+  GetAmount(): number | undefined {
+    return this.amount;
+  }
 }
 
 export class DynamicDeckAmountConfig implements CreateDeckSlotAmount {
-    requirements: RequirementApiModel[];
+  requirements: RequirementApiModel[];
+  deck: CreateDeckModel;
 
-    constructor(requirements: RequirementApiModel[]) {
-        this.requirements = requirements;
-    }
-    GetAmount(): number | undefined {
-        throw new Error("Method not implemented.");
-    }
+  constructor(deck: CreateDeckModel, requirements: RequirementApiModel[]) {
+    this.requirements = requirements;
+    this.deck = deck;
+  }
+
+  GetAmount(): number | undefined {
+    var allCards = this.deck.getCards();
+
+    return GetValidCards(
+      allCards.map((deckCard) => deckCard.card),
+      this.requirements,
+    ).length;
+  }
 }

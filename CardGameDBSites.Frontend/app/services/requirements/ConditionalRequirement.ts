@@ -9,6 +9,8 @@ import EqualValueRequirement from "./EqualValueRequirement";
 import NotEqualValueRequirement from "./NotEqualValueRequirement";
 import ResourceRequirement from "./ResourceRequirement";
 import SameValueRequirement from "./SameValueRequirement";
+import type { IInvertRequirement } from "./IInvertRequirement";
+import { GetValidCards, IsValid } from "./RequirementService";
 
 //TODO: Move to better location
 const requirementHandlers: IRequirement[] = [
@@ -17,6 +19,11 @@ const requirementHandlers: IRequirement[] = [
   new ResourceRequirement(),
   new SameValueRequirement(),
 ];
+
+const invertedRequirementHandlers: IInvertRequirement[] = [
+  new EqualValueRequirement(),
+  new NotEqualValueRequirement(),
+]
 
 interface IConditionalRequirementConfig {
   type: string;
@@ -70,29 +77,26 @@ export default class ConditionalRequirement implements IRequirement {
     config: Record<string, any>,
   ): CardsQueryFilterClauseApiModel[] | undefined {
     const conditions = config["condition"] as IConditionalRequirementConfig[];
-    let conditionMet = true;
-    for (const condition of conditions) {
-      if (!conditionMet) {
-        break;
-      }
+    var requirements = config["requirements"] as IConditionalRequirementConfig[];
 
-      const requirementHandler = requirementHandlers.find(
+    const conditionFilters: CardsQueryFilterClauseApiModel[] = [];
+    const filters: CardsQueryFilterClauseApiModel[] = [];
+
+    for (const condition of conditions) {
+      const requirementHandler = invertedRequirementHandlers.find(
         (handler) => handler.RequirementType === condition.type,
       );
       if (!requirementHandler) {
-        console.warn(`No handler found for requirement type ${condition.type}`);
-        conditionMet = false;
+        console.warn(`No inverted handler found for requirement type ${condition.type}`);
         continue;
       }
-      if (!requirementHandler.IsValid(cards, condition.config)) {
-        conditionMet = false;
+      const requirementFilterClause = requirementHandler.InvertFilter(cards, condition.config);
+      if (requirementFilterClause){
+        conditionFilters.push(...requirementFilterClause)
       }
     }
-    if (!conditionMet) {
-      return undefined;
-    }
-    var requirements = config["requirements"] as IConditionalRequirementConfig[];
-    const filters: CardsQueryFilterClauseApiModel[] = [];
+
+    const cardsMatchingCondition = GetValidCards(cards, requirements);
     for (const requirement of requirements) {
         const requirementHandler = requirementHandlers.find(
             (handler) => handler.RequirementType === requirement.type,
@@ -101,14 +105,22 @@ export default class ConditionalRequirement implements IRequirement {
             console.warn(`No handler found for requirement type ${requirement.type}`);
             continue;
         }
-        const requirementFilterClause = requirementHandler.ToFilters(cards, requirement.config);
+        const requirementFilterClause = requirementHandler.ToFilters(cardsMatchingCondition, requirement.config);
         if (requirementFilterClause) {
             filters.push(...requirementFilterClause);
         }
     }
-    if (filters.length === 0) {
+    if (conditionFilters.length === 0 || filters.length === 0) {
         return undefined;
     }
-    return filters;
+
+    // NOTE: when there are multiple requirements they are OR'd in alongside the conditions rather
+    // than AND'd as their own group. That is correct for the common single-requirement case; a
+    // faithful `(NOT c1 OR NOT c2) OR (r1 AND r2)` would need nested clause groups, which the flat
+    // filter model intentionally does not support.
+    return [{
+      clauseType: CardSearchFilterClauseType.AND,
+      filters: [...conditionFilters.flatMap(c => c.filters ?? []), ...filters.flatMap(c => c.filters ?? [])]
+    }];
   }
 }

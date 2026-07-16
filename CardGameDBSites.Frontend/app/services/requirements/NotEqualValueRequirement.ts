@@ -8,8 +8,12 @@ import {
 import type { IRequirement } from "./IRequirement";
 import RequirementType from "./RequirementType";
 import type OverviewFilterValueModel from "~/components/overviews/OverviewFilterValueModel";
+import EqualValueRequirement from "./EqualValueRequirement";
+import type { IInvertRequirement } from "./IInvertRequirement";
 
-export default class NotEqualValueRequirement implements IRequirement {
+export default class NotEqualValueRequirement
+  implements IRequirement, IInvertRequirement
+{
   RequirementType: RequirementType = RequirementType.NotEqualValue;
 
   IsValid(cards: CardDetailApiModel[], config: Record<string, any>): boolean {
@@ -20,17 +24,30 @@ export default class NotEqualValueRequirement implements IRequirement {
     });
   }
 
-  ToFilters(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel[] {
+  ToFilters(
+    cards: CardDetailApiModel[],
+    config: Record<string, any>,
+  ): CardsQueryFilterClauseApiModel[] {
     const values = config.values as string[];
-    return [{
-      clauseType: CardSearchFilterClauseType.NOT,
-      filters: [
-        {
-          alias: config.ability,
-          values: values,
-          mode: CardSearchFilterMode.CONTAINS,
-        },
-      ],
-    }];
+    return [
+      {
+        clauseType: CardSearchFilterClauseType.AND,
+        filters: [
+          {
+            alias: config.ability,
+            values: values,
+            mode: CardSearchFilterMode.CONTAINS,
+            negate: true,
+          },
+        ],
+      },
+    ];
+  }
+
+  InvertFilter(
+    cards: CardDetailApiModel[],
+    config: Record<string, any>,
+  ): CardsQueryFilterClauseApiModel[] {
+    return new EqualValueRequirement().ToFilters(cards, config);
   }
 }

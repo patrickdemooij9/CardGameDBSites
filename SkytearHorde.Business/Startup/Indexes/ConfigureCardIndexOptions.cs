@@ -60,6 +60,24 @@ namespace SkytearHorde.Business.Startup.Indexes
             options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Ram.Red.Amount", FieldDefinitionTypes.Integer));
             options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Ram.Blue.Amount", FieldDefinitionTypes.Integer));
 
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.Common.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.InfiniteDivine.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.OnryokiNoh.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.ZodiacReliquary.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.Benobasa'sFist.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.ChaosVerve.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.ScrapBrigade.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.MegaByte.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.ArkTotem.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.Feralesque.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.Bloom&Never.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.De-Crypt.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.DataNation.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.EndlessChain.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.HostileRewrite.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.ForbiddenArchives.Amount", FieldDefinitionTypes.Integer));
+            options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Brand.Masquerade.Amount", FieldDefinitionTypes.Integer));
+
             options.UnlockIndex = true;
 
             if (_settings.Value.LuceneDirectoryFactory == LuceneDirectoryFactory.SyncedTempFileSystemDirectoryFactory)

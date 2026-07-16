@@ -7,6 +7,8 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { ApproveRequest } from './models/ApproveRequest';
+export type { ApproveVariant } from './models/ApproveVariant';
 export type { CardDetailApiModel } from './models/CardDetailApiModel';
 export type { CardPriceApiModel } from './models/CardPriceApiModel';
 export type { CardPriceChangeApiModel } from './models/CardPriceChangeApiModel';
@@ -71,7 +73,12 @@ export type { ImportTournamentResult } from './models/ImportTournamentResult';
 export type { KeywordImageApiModel } from './models/KeywordImageApiModel';
 export type { LinkApiModel } from './models/LinkApiModel';
 export type { LoginPostModel } from './models/LoginPostModel';
+export type { ManualSubmitImage } from './models/ManualSubmitImage';
+export type { ManualSubmitRequest } from './models/ManualSubmitRequest';
 export type { MemberApiModel } from './models/MemberApiModel';
+export type { MetaLeaderApiModel } from './models/MetaLeaderApiModel';
+export type { MetaPopularCardApiModel } from './models/MetaPopularCardApiModel';
+export type { MetaWinningDeckApiModel } from './models/MetaWinningDeckApiModel';
 export type { NavigationItemApiModel } from './models/NavigationItemApiModel';
 export type { OverviewFilterApiModel } from './models/OverviewFilterApiModel';
 export type { OverviewFilterOptionApiModel } from './models/OverviewFilterOptionApiModel';
@@ -84,6 +91,7 @@ export type { PackVerifySuccessApiModel } from './models/PackVerifySuccessApiMod
 export type { PagedCommunityBlogPostsApiModel } from './models/PagedCommunityBlogPostsApiModel';
 export type { PagedResultCardDetailApiModel } from './models/PagedResultCardDetailApiModel';
 export type { PagedResultDeckApiModel } from './models/PagedResultDeckApiModel';
+export type { PeriodApiModel } from './models/PeriodApiModel';
 export type { PresetApiModel } from './models/PresetApiModel';
 export type { ProblemDetails } from './models/ProblemDetails';
 export type { ProxyExportCard } from './models/ProxyExportCard';
@@ -101,6 +109,7 @@ export type { TournamentEntrantApiModel } from './models/TournamentEntrantApiMod
 export type { TournamentSummaryApiModel } from './models/TournamentSummaryApiModel';
 
 export { AccountResource } from './services/AccountResource';
+export { AdminResource } from './services/AdminResource';
 export { CardsResource } from './services/CardsResource';
 export { CollectionResource } from './services/CollectionResource';
 export { CommentsResource } from './services/CommentsResource';
@@ -109,8 +118,10 @@ export { DailyGameResource } from './services/DailyGameResource';
 export { DeckbuilderResource } from './services/DeckbuilderResource';
 export { DecksResource } from './services/DecksResource';
 export { ExportResource } from './services/ExportResource';
+export { InfographicsResource } from './services/InfographicsResource';
 export { ManagementResource } from './services/ManagementResource';
 export { MembersResource } from './services/MembersResource';
 export { SetsResource } from './services/SetsResource';
 export { SettingsResource } from './services/SettingsResource';
+export { TournamentsResource } from './services/TournamentsResource';
 export { V1Resource } from './services/V1Resource';

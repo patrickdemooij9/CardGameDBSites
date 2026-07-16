@@ -7,8 +7,10 @@ import {
 import type { IRequirement } from "./IRequirement";
 import RequirementType from "./RequirementType";
 import type OverviewFilterValueModel from "~/components/overviews/OverviewFilterValueModel";
+import type { IInvertRequirement } from "./IInvertRequirement";
+import NotEqualValueRequirement from "./NotEqualValueRequirement";
 
-export default class EqualValueRequirement implements IRequirement {
+export default class EqualValueRequirement implements IRequirement, IInvertRequirement {
   RequirementType: RequirementType = RequirementType.EqualValue;
 
   IsValid(cards: CardDetailApiModel[], config: Record<string, any>): boolean {
@@ -31,5 +33,9 @@ export default class EqualValueRequirement implements IRequirement {
         },
       ],
     }];
+  }
+
+  InvertFilter(cards: CardDetailApiModel[], config: Record<string, any>): CardsQueryFilterClauseApiModel[] {
+    return new NotEqualValueRequirement().ToFilters(cards, config);
   }
 }

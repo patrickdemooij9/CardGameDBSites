@@ -66,7 +66,7 @@ namespace CardGameDBSites.API.Models.Settings.DeckBuilder
             }
             else if (firstItem.Content is DynamicSquadSlotAmount dynamicSquadSlotAmount)
             {
-                return new DeckBuilderDynamicAmountViewModel(dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>().Select(sr => new CreateSquadRequirement(sr)).ToArray());
+                return new DeckBuilderDynamicAmountViewModel(dynamicSquadSlotAmount.Requirements.ToItems<ISquadRequirementConfig>().Select(sr => new RequirementApiModel(sr)).ToArray());
             }
 
             return new DeckBuilderFixedAmountViewModel(0);

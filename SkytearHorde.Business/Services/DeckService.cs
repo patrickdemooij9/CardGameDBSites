@@ -81,9 +81,9 @@ namespace SkytearHorde.Business.Services
                     throw new InvalidOperationException("Not valid");
             }
             
-            if (postModel.Sideboard != null)
+            if (postModel.SideboardGroups.Length > 0)
             {
-                var sideboardCharacterIds = postModel.Sideboard.Slots.SelectMany(s => s.Cards.Select(c => c.CardId)).ToArray();
+                var sideboardCharacterIds = postModel.SideboardGroups.SelectMany(g => g.Slots.SelectMany(s => s.Cards.Select(c => c.CardId))).ToArray();
                 if (sideboardCharacterIds.Any(c => !allCards.ContainsKey(c))) throw new InvalidOperationException("Could not find card.");
             }
 
@@ -101,12 +101,14 @@ namespace SkytearHorde.Business.Services
                 filledChildSlots += filledChildSlotsInSquad;
             }
 
-            var sideboardGroup = squadSettings.SideboardGroup.ToItems<SquadConfig>().FirstOrDefault();
-            if (sideboardGroup != null && postModel.Sideboard != null)
+            var sideboardGroups = squadSettings.SideboardGroup.ToItems<SquadConfig>().ToArray();
+            foreach (var sideboardGroup in sideboardGroups)
             {
-                if (postModel.Sideboard.Id != 99) throw new InvalidOperationException("Sideboard should have id 99");
+                var postedGroup = postModel.SideboardGroups.FirstOrDefault(it => it.Id == sideboardGroup.SquadId);
+                if (postedGroup is null) throw new InvalidOperationException("Could not match posted sideboard group");
+                if (postedGroup.Id < 99) throw new InvalidOperationException("Sideboard should have an id higher than 99");
 
-                ValidateSquad(sideboardGroup, postModel.Sideboard, allCards, postModel.TypeId, squadSettings, publish, out var isLegalLocal, out var filledChildSlotsInSquad);
+                ValidateSquad(sideboardGroup, postedGroup, allCards, postModel.TypeId, squadSettings, publish, out var isLegalLocal, out var filledChildSlotsInSquad);
                 if (!isLegalLocal)
                 {
                     isLegal = false;
@@ -124,7 +126,7 @@ namespace SkytearHorde.Business.Services
                 Description = postModel.Description,
                 CreatedBy = userId,
                 Source = DeckSource.DeckBuilder,
-                Cards = postModel.Squads.SelectMany((squad) => squad.Slots.SelectMany((c, index) =>
+                Cards = [.. postModel.Squads.SelectMany((squad) => squad.Slots.SelectMany((c, index) =>
                 {
                     return c.Cards.Select(it => new DeckCard(it.CardId, squad.Id, index, it.Amount)
                     {
@@ -134,15 +136,15 @@ namespace SkytearHorde.Business.Services
                             Amount = 1
                         })]
                     });
-                })).WhereNotNull().ToList(),
-                Sideboard = postModel.Sideboard?.Slots.SelectMany((slot) => slot.Cards.Select(it => new DeckCard(it.CardId, postModel.Sideboard.Id, slot.Id, it.Amount)
+                })).WhereNotNull()],
+                Sideboard = postModel.SideboardGroups?.SelectMany(g => g.Slots.SelectMany((slot) => slot.Cards.Select(it => new DeckCard(it.CardId, g.Id, slot.Id, it.Amount)
                 {
                     Children = [.. it.Children.Select(c => new DeckCardChild
                     {
                         CardId = c,
                         Amount = 1
                     })]
-                })).WhereNotNull().ToList() ?? [],
+                }))).WhereNotNull().ToList() ?? [],
                 CreatedDate = createdDate,
                 IsPublished = publish,
                 SiteId = _siteAccessor.GetSiteId(),

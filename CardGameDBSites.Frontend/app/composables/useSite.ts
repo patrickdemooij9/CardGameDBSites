@@ -152,10 +152,8 @@ export function useSite() {
 
     model.requirements = result?.requirements ?? [];
     model.groups = result?.groups?.map(mapDeckGroup) ?? [];
-    model.sideboardGroup = result?.sideboardGroup
-      ? mapDeckGroup(result.sideboardGroup)
-      : undefined;
-    model.sideboardSlot = model.sideboardGroup?.slots?.[0];
+    model.sideboardGroups = result?.sideboardGroups?.map(mapDeckGroup) ?? [];
+    model.sideboardSlot = model.sideboardGroups?.[0]?.slots?.[0];
     model.hasSideboard = !!model.sideboardSlot;
 
     if (deckId) {
@@ -165,8 +163,9 @@ export function useSite() {
         const allCardIds = [
           ...deck.cards!.map((deckCard) => deckCard.cardId!),
           ...deck.cards!.flatMap((deckCard) => deckCard.children ?? []),
-          ...deck.sideboard?.map((deckCard) => deckCard.cardId!) ?? [],
-          ...deck.sideboard?.flatMap((deckCard) => deckCard.children ?? []) ?? [],
+          ...(deck.sideboard?.map((deckCard) => deckCard.cardId!) ?? []),
+          ...(deck.sideboard?.flatMap((deckCard) => deckCard.children ?? []) ??
+            []),
         ];
         const cards = await useCards().loadCardsByIds([...new Set(allCardIds)]);
         model.id = deckId;
@@ -208,15 +207,21 @@ export function useSite() {
         if (deck.sideboard) {
           deck.sideboard.forEach((deckCard) => {
             const card = cards.find((c) => c.baseId === deckCard.cardId);
-            if (!card || !model.sideboardGroup) {
-              return;
-            }
-            const sideboardSlot = model.sideboardGroup.slots.find((slot) => slot.id === deckCard.slotId);
-            if (!sideboardSlot){
+            if (!card || model.sideboardGroups.length == 0) {
               return;
             }
 
-            const actualDeckCard = sideboardSlot.addCard(card, deckCard.amount ?? 1);
+            const group = model.sideboardGroups.find(
+              (group) => group.id === deckCard.groupId,
+            );
+            const slot = group?.slots.find(
+              (slot) => slot.id === deckCard.slotId,
+            );
+            if (!slot) {
+              return;
+            }
+
+            const actualDeckCard = slot.addCard(card, deckCard.amount ?? 1);
             if (!actualDeckCard) {
               return;
             }
@@ -239,7 +244,10 @@ export function useSite() {
     return model;
   };
 
-  const getDeckAmount = (model: DeckBuilderSlotAmountApiModel, deck: CreateDeckModel) => {
+  const getDeckAmount = (
+    model: DeckBuilderSlotAmountApiModel,
+    deck: CreateDeckModel,
+  ) => {
     if (model.type === "fixed") {
       return new FixedDeckAmountConfig(model.config!["amount"]);
     }

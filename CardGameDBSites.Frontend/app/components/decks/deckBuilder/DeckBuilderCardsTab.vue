@@ -42,7 +42,7 @@ const markdownPreviewText = ref("");
 
 const collectionService = useCollection();
 
-function getUserFilters() {
+const userFilters = computed(() => {
   if (!props.currentArea) {
     return [];
   }
@@ -71,9 +71,9 @@ function getUserFilters() {
         },
       };
     }).concat(props.filters);
-}
+});
 
-function getInternalFilters() {
+const internalFilters = computed(() => {
   if (!props.currentArea) {
     return [];
   }
@@ -106,7 +106,7 @@ function getInternalFilters() {
       props.ignorePassiveFilters,
     ),
   ];
-}
+});
 
 function getSlotsForCard(card: CardDetailApiModel) {
   return props.deck
@@ -185,8 +185,8 @@ async function toggleMarkdownPreview() {
       }"
     >
       <BaseCardOverview
-        :filters="getUserFilters()"
-        :internal-filters="getInternalFilters()"
+        :filters="userFilters"
+        :internal-filters="internalFilters"
         :white-background="false"
         :enable-query-string-sync="false"
         :collection-mode="collectionOnlyMode ? CardSearchCollectionMode.IN_COLLECTION : CardSearchCollectionMode.IGNORE"

@@ -380,7 +380,7 @@ namespace SkytearHorde.Business.Repositories
                 "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
                 "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
-                "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId <> 99 " +
+                "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId < 99 " +
                 "WHERE te.Placement = 1 AND t.SiteId = @0 AND t.PeriodId = @3 " +
                 "  AND NOT (dc.GroupId = @1 AND dc.SlotId = @2) " +
                 "GROUP BY dc.CardId " +
@@ -414,7 +414,7 @@ namespace SkytearHorde.Business.Repositories
                 "FROM TournamentEntrants te " +
                 "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
-                "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId <> 99 " +
+                "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId < 99 " +
                 "WHERE te.TournamentId = @0 " +
                 "  AND NOT (dc.GroupId = @1 AND dc.SlotId = @2) " +
                 "  AND NOT (dc.GroupId = @1 AND dc.SlotId = @3) " +

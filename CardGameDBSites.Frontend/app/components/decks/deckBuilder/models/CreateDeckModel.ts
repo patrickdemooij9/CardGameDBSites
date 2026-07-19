@@ -17,7 +17,7 @@ export class CreateDeckModel {
 
   hasSideboard: boolean = false;
   sideboardSlot: CreateDeckSlot | undefined;
-  sideboardGroup: CreateDeckGroup | undefined;
+  sideboardGroups: CreateDeckGroup[] = [];
 
   pickDefaultName(
     defaultNames: string[] | undefined,
@@ -62,11 +62,13 @@ export class CreateDeckModel {
         });
       });
     });
-    if (this.hasSideboard && this.sideboardGroup) {
-      this.sideboardGroup.slots.forEach((slot) => {
-        if (IsValid([card], slot.requirements, true)) {
-          slots.push(slot);
-        }
+    if (this.hasSideboard) {
+      this.sideboardGroups.forEach((group) => {
+        group.slots.forEach((slot) => {
+          if (IsValid([card], slot.requirements, true)) {
+            slots.push(slot);
+          }
+        });
       });
     }
     return slots;
@@ -79,11 +81,12 @@ export class CreateDeckModel {
         total += slot.getCardAmount(card);
       });
     });
-    if (this.sideboardGroup) {
-      this.sideboardGroup.slots.forEach((slot) => {
+
+    this.sideboardGroups.forEach((group) => {
+      group.slots.forEach((slot) => {
         total += slot.getCardAmount(card);
       });
-    }
+    });
     return total;
   }
 
@@ -95,7 +98,19 @@ export class CreateDeckModel {
   }
 
   getSideboardAmount(): number {
-    return this.sideboardGroup?.getAmount() ?? 0;
+    let amount = 0;
+    this.sideboardGroups.forEach((group) => {
+      amount += group.getAmount();
+    });
+    return amount;
+  }
+
+  getSideboardMaxAmount() {
+    let maxAmount = 0;
+    this.sideboardGroups.forEach((group) => {
+      maxAmount += group.getMaxAmount();
+    });
+    return maxAmount;
   }
 
   getDeckAmount() {
@@ -131,15 +146,15 @@ export class CreateDeckModel {
         });
       });
     });
-    if (this.sideboardGroup) {
-      this.sideboardGroup.slots.forEach((slot) => {
+    this.sideboardGroups.forEach((group) => {
+      group.slots.forEach((slot) => {
         slot.cardGroups.forEach((cardGroup) => {
           cardGroup.cards.forEach((cardWrapper) => {
             allCards.push(cardWrapper);
           });
         });
       });
-    }
+    });
     return allCards;
   }
 

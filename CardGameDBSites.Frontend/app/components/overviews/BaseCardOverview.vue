@@ -28,8 +28,11 @@ const emit = defineEmits<{
   (e: "reloaded", value: PagedResultCardDetailApiModel): void;
 }>();
 
+const reactiveFilters = reactive(props.filters);
+const filtersRef = computed(() => reactiveFilters);
+
 const overviewState = useOverviewState(
-  toRef(props, "filters"),
+  filtersRef,
   toRef(props, "sortings"),
   toRef(props, "availableViews"),
   {
@@ -44,6 +47,19 @@ const queryModel = computed<CardsQueryPostApiModel>(() => {
     }
     if (key.ToFiltersHandler) {
       filters.push(...key.ToFiltersHandler(values));
+      return;
+    }
+
+    // "all" mode: the card must have every selected value. Since values within a
+    // single clause are OR'd server-side, emit one AND clause per value so they
+    // combine as AND. "any" mode keeps the single multi-value (OR) clause.
+    if (overviewState.getMatchMode(key) === "all" && values.length > 1) {
+      values.forEach((value) => {
+        filters.push({
+          clauseType: CardSearchFilterClauseType.AND,
+          filters: [{ alias: key.Alias, values: [value] }],
+        });
+      });
       return;
     }
 
@@ -76,6 +92,8 @@ const queryModel = computed<CardsQueryPostApiModel>(() => {
 
 const page = computed(() => overviewState.state.page);
 
+const queryKey = computed(() => JSON.stringify(queryModel.value));
+
 //TODO: this needs to be reworked otherwise we keep on resetting stuff
 watch(
   () => props.internalFilters,
@@ -99,7 +117,7 @@ const id = useId();
 const { data: pagedCards, pending } = await useAsyncData(
   `card-overview-${id}`,
   () => useCards().queryCards(queryModel.value),
-  { watch: [queryModel] },
+  { watch: [queryKey] },
 );
 
 watch(
@@ -129,7 +147,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :hide-search="false"
     :hide-filters="false"
     :white-background="whiteBackground"
-    :filters="filters"
+    :filters="reactiveFilters"
     :sortings="sortings"
     :available-views="availableViews"
     :is-loading="pending"

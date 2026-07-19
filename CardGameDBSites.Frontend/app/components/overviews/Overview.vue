@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import {
   PhBooks,
-  PhCaretDown,
   PhFaders,
   PhList,
   PhMagnifyingGlass,
   PhSquaresFour,
-  PhX,
 } from "@phosphor-icons/vue";
 import {
   OverviewFilterType,
   type OverviewFilterModel,
 } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
-import Dropdown from "../shared/Dropdown.vue";
-import CardSearchInput from "~/components/shared/CardSearchInput.vue";
-import type { CardDetailApiModel } from "~/api/default";
+import FilterDrawer from "./filters/FilterDrawer.vue";
+import FilterIconGroup from "./filters/FilterIconGroup.vue";
+import FilterSentence from "./filters/FilterSentence.vue";
 
 const props = defineProps<{
   overviewState: ReturnType<typeof useOverviewState>,
@@ -26,46 +24,19 @@ const props = defineProps<{
   whiteBackground: boolean;
   availableViews?: string[];
   isLoading: boolean;
+  entityName?: string;
 }>();
 
 const emit = defineEmits<{
   (e: "loadLazyFilter", filter: OverviewFilterModel): void;
 }>();
 
-const filtersOpen = ref(false);
+const drawerOpen = ref(false);
 const search = ref(props.overviewState.state.search);
 
-function clickFilters() {
-  filtersOpen.value = !filtersOpen.value;
-}
-
-function loadLazyDropdownItemsIfNeeded(filter: OverviewFilterModel) {
-  if (filter.Items.length > 0 || !filter.AutoFillValues) return;
-  emit("loadLazyFilter", filter);
-}
-
-function setFilter(filter: OverviewFilterModel, value: string) {
-  props.overviewState.setFilter(filter, value);
-}
-
-function selectFilter(filter: OverviewFilterModel, value: string) {
-  props.overviewState.selectFilter(filter, value);
-}
-
-function isSelectedFilter(filter: OverviewFilterModel, value: string) {
-  return props.overviewState.isSelectedFilter(filter, value);
-}
-
-function getFilterValue(filter: OverviewFilterModel): string | undefined {
-  return props.overviewState.getFilterValue(filter);
-}
-
-function onTextInputFilterSelect(
-  filter: OverviewFilterModel,
-  card: CardDetailApiModel,
-) {
-  selectFilter(filter, card.baseId!.toString());
-}
+const inlineFilters = computed(() =>
+  props.filters.filter((filter) => filter.Type === OverviewFilterType.INLINE),
+);
 
 function handleSubmit(event: Event) {
   event.preventDefault();
@@ -99,157 +70,37 @@ function handleSubmit(event: Event) {
         </div>
         <button
           v-if="!hideFilters"
-          class="flex justify-center items-center w-10 text-lg p-2 bg-main-color text-white rounded hover:bg-main-color-hover"
+          class="relative flex justify-center items-center gap-2 px-3 h-10 text-lg bg-main-color text-white rounded hover:bg-main-color-hover"
           type="button"
-          @click="clickFilters"
+          @click="drawerOpen = true"
         >
           <PhFaders />
+          <span class="hidden sm:inline text-base">Filters</span>
+          <span
+            v-if="overviewState.activeFilterCount.value > 0"
+            class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full bg-white text-main-color"
+          >
+            {{ overviewState.activeFilterCount.value }}
+          </span>
         </button>
       </div>
-      <div v-if="filtersOpen" class="py-4 border-b-2 border-gray-300">
-        <div class="flex gap-4">
-          <div
-            v-for="filter in filters.filter(
-              (filter) => filter.Type === OverviewFilterType.INLINE,
-            )"
-          >
-            <p class="font-bold">{{ filter.DisplayName }}</p>
-            <div
-              class="flex flex-wrap items-center md:gap-2 bg-gray-300 rounded"
-            >
-              <div v-for="item in filter.Items" class="flex">
-                <input
-                  type="checkbox"
-                  class="peer invisible w-0 h-0"
-                  :id="`${filter.Alias}-${item.Value}`"
-                  :value="item.Value"
-                  :checked="isSelectedFilter(filter, item.Value)"
-                  @change="() => selectFilter(filter, item.Value)"
-                />
-                <label
-                  :for="`${filter.Alias}-${item.Value}`"
-                  class="p-0.5 rounded cursor-pointer overflow-hidden hover:bg-main-color peer-checked:bg-main-color"
-                >
-                  <img class="w-12" :src="item.IconUrl" />
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div class="flex gap-4 mt-4">
-          <Dropdown
-            v-for="filter in filters.filter(
-              (filter) => filter.Type === OverviewFilterType.DROPDOWN,
-            )"
-            @open="() => loadLazyDropdownItemsIfNeeded(filter)"
-          >
-            <template #button>
-              <span>{{ filter.DisplayName }}</span>
-              <PhCaretDown />
-            </template>
-            <template #content>
-              <label
-                v-for="item in filter.Items"
-                :for="`${filter.Alias}-${item.Value}`"
-                class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-main-color-hover"
-              >
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 bg-white rounded appearance-none checked:bg-checked checked:bg-black"
-                  :id="`${filter.Alias}-${item.Value}`"
-                  :value="item.Value"
-                  :checked="isSelectedFilter(filter, item.Value)"
-                  @change="() => selectFilter(filter, item.Value)"
-                />
-                <p>
-                  {{ item.DisplayName }}
-                  <img
-                    v-if="item.IconUrl"
-                    class="class-image"
-                    :src="item.IconUrl"
-                  />
-                </p>
-              </label>
-            </template>
-          </Dropdown>
-          <div
-            v-if="filters.some((f) => f.Type === OverviewFilterType.DATE)"
-            class="flex flex-wrap gap-4"
-          >
-            <div
-              v-for="filter in filters.filter(
-                (f) => f.Type === OverviewFilterType.DATE,
-              )"
-              :key="filter.Alias"
-              class="flex gap-2 items-center"
-            >
-              <p class="font-bold text-sm">{{ filter.DisplayName }}</p>
-              <input
-                type="date"
-                class="border border-gray-300 rounded px-3 py-2 text-sm"
-                :value="getFilterValue(filter)"
-                @change="
-                  ($event) =>
-                    setFilter(
-                      filter,
-                      ($event.target as HTMLInputElement).value,
-                    )
-                "
-              />
-            </div>
-          </div>
-          <button
-            v-for="filter in filters.filter(
-              (filter) => filter.Type === OverviewFilterType.CHECKBOX,
-            )"
-            :key="filter.Alias"
-            type="button"
-            class="px-3 py-1 rounded border text-sm"
-            :class="
-              isSelectedFilter(filter, 'true')
-                ? 'bg-main-color text-white border-main-color'
-                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
-            "
-            @click="() => selectFilter(filter, 'true')"
-          >
-            {{ filter.DisplayName }}
-          </button>
-          <div
-            v-for="filter in filters.filter(
-              (filter) => filter.Type === OverviewFilterType.TEXT_INPUT,
-            )"
-            :key="filter.Alias"
-          >
-            <CardSearchInput
-              @select="(card) => onTextInputFilterSelect(filter, card)"
-            />
-          </div>
-        </div>
+      <!-- Desktop-only inline quick filters (icon groups) -->
+      <div
+        v-if="!hideFilters && inlineFilters.length > 0"
+        class="hidden md:flex flex-wrap gap-4 mt-4"
+      >
+        <FilterIconGroup
+          v-for="filter in inlineFilters"
+          :key="filter.Alias"
+          :overview-state="overviewState"
+          :filter="filter"
+          :show-label="true"
+        />
       </div>
 
       <div class="flex flex-col-reverse gap-8 justify-between pt-4 md:flex-row">
-        <div class="flex flex-wrap items-center gap-2">
-          <template v-for="filter in overviewState.state.selectedFilters">
-            <div
-              v-for="filterItem in filter[1]"
-              class="flex gap-2 rounded-md border-2 border-main-color p-1 cursor-pointer"
-              x-on:click="removeFilter(filterItem)"
-            >
-              <p class="text-xs">
-                <span>{{ filter[0].DisplayName }}</span>
-                :
-                <span>{{ filterItem }}</span>
-              </p>
-              <button
-                type="button"
-                @click="selectFilter(filter[0], filterItem)"
-              >
-                <PhX class="items-center"></PhX>
-              </button>
-            </div>
-          </template>
-        </div>
+        <FilterSentence :overview-state="overviewState" :entity-name="entityName" />
         <div class="flex self-end gap-4">
           <div
             v-if="sortings && sortings.length > 0"
@@ -326,6 +177,16 @@ function handleSubmit(event: Event) {
         </div>
       </div>
     </form>
+
+    <FilterDrawer
+      v-if="!hideFilters"
+      :open="drawerOpen"
+      :overview-state="overviewState"
+      :filters="filters"
+      @close="drawerOpen = false"
+      @loadLazyFilter="(filter) => emit('loadLazyFilter', filter)"
+    />
+
     <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative min-h-20">
       <div id="card-overview" :aria-busy="isLoading" :class="{ 'opacity-40': isLoading }">
         <slot :viewMode="overviewState.state.viewMode"></slot>

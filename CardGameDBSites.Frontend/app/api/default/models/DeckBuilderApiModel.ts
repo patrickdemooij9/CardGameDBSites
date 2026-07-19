@@ -10,6 +10,6 @@ export type DeckBuilderApiModel = {
     overwriteAmount?: number | null;
     requirements?: Array<RequirementApiModel>;
     groups?: Array<DeckBuilderGroupApiModel>;
-    sideboardGroup?: DeckBuilderGroupApiModel;
+    sideboardGroups?: Array<DeckBuilderGroupApiModel>;
 };
 

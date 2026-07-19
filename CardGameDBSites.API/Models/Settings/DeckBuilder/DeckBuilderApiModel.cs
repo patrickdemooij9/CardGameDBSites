@@ -9,13 +9,14 @@ namespace CardGameDBSites.API.Models.Settings.DeckBuilder
         public int? OverwriteAmount { get; set; }
         public RequirementApiModel[] Requirements { get; set; }
         public DeckBuilderGroupApiModel[] Groups { get; set; }
-        public DeckBuilderGroupApiModel? SideboardGroup { get; set; }
+        public DeckBuilderGroupApiModel[] SideboardGroups { get; set; }
 
         public DeckBuilderApiModel()
         {
             DefaultNames = [];
             Requirements = [];
             Groups = [];
+            SideboardGroups = [];
         }
     }
 }

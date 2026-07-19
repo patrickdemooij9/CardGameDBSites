@@ -120,6 +120,7 @@ onMounted(() => {
     :sortings="effectiveSortings"
     :filters="filters"
     :is-loading="pending"
+    entity-name="decks"
     ref="overview"
   >
     <div v-if="pagedDecks">

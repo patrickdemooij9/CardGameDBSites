@@ -329,7 +329,7 @@ namespace SkytearHorde.Business.Services
                     }
                     if (resolvedCard is null) continue;
 
-                    var isMainDeck = card.Component != 99;
+                    var isMainDeck = card.Component < 99;
                     var target = isMainDeck ? deck.Cards : deck.Sideboard;
 
                     // This is not really correct as we could have multiple groupings (See shatterpoint), but for now we just support SW-Unlimited

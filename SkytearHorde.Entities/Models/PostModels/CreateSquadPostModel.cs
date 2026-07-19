@@ -19,15 +19,16 @@ namespace SkytearHorde.Entities.Models.PostModels
         [JsonPropertyName("squads")]
         public CreateSquadSquadPostModel[] Squads { get; set; }
 
-        [JsonPropertyName("sideboard")]
-        public CreateSquadSquadPostModel? Sideboard { get; set; }
+        [JsonPropertyName("sideboardGroups")]
+        public CreateSquadSquadPostModel[] SideboardGroups { get; set; }
 
         [JsonPropertyName("publish")]
         public bool Publish { get; set; }
 
         public CreateSquadPostModel()
         {
-            Squads = Array.Empty<CreateSquadSquadPostModel>();
+            Squads = [];
+            SideboardGroups = [];
         }
     }
 }

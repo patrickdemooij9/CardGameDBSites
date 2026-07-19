@@ -57,22 +57,25 @@ export default class DeckService {
           })),
         ],
       })),
-      sideboard:
-        model.sideboardGroup && model.hasSideboard
-          ? {
-              id: 99,
-              slots: model.sideboardGroup.slots.map((slot) => ({
-                id: slot.id,
-                cards: slot.cardGroups
-                  .flatMap((cg) => cg.cards)
-                  .map((key) => ({
-                    cardId: key.card.baseId!,
-                    amount: key.amount,
-                    children: [],
-                  })),
+      sideboardGroups: model.sideboardGroups.map((group) => ({
+        id: group.id,
+        slots: [
+          ...group.slots.map((slot) => ({
+            id: slot.id,
+            cards: slot.cardGroups
+              .flatMap((card) => card.cards)
+              .map((key) => ({
+                cardId: key.card.baseId!,
+                amount: key.amount,
+                children: key.children.flatMap((childSlot) =>
+                  childSlot.cardGroups
+                    .flatMap((card) => card.cards)
+                    .map((key) => key.card.baseId!),
+                ),
               })),
-            }
-          : undefined,
+          })),
+        ],
+      })),
     };
     const result = DoOptionalServerFetch<number>("/api/deckbuilder/submit", {
       method: "POST",

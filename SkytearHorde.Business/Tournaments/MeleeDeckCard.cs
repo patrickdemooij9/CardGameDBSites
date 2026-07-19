@@ -20,7 +20,7 @@ namespace SkytearHorde.Business.Tournaments
         public int Quantity { get; set; }
 
         [JsonPropertyName("c")]
-        public int Component { get; set; } // 0 = Main deck, 99 = Sideboard
+        public int Component { get; set; } // 0 = Main deck, 99+ = Sideboard
 
         [JsonPropertyName("t")]
         public string Type { get; set; } = string.Empty;

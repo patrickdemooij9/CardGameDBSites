@@ -118,6 +118,10 @@ nav + .container{
         border-color: var(--main-color);
     }
 
+    .text-main-color {
+        color: var(--main-color);
+    }
+
     .border-nav-color {
         border-color: var(--nav-border-color);
     }

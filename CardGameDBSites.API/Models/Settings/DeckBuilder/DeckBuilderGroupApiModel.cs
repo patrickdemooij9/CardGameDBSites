@@ -21,7 +21,7 @@ namespace CardGameDBSites.API.Models.Settings.DeckBuilder
 
         public DeckBuilderGroupApiModel(SquadConfig config, bool isSideboard)
         {
-            Id = isSideboard ? 99 : config.SquadId;
+            Id = config.SquadId;
             Name = config.Label;
             Requirements = [.. config.Requirements.ToItems<ISquadRequirementConfig>().Select(r => new RequirementApiModel(r))];
             Slots = [.. config.Slots.ToItems<SquadSlotConfig>().Select((slot, index) => new DeckBuilderSlotApiModel {

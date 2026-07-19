@@ -465,8 +465,8 @@ namespace SkytearHorde.Business.Repositories
 
         private Deck ToModel(DeckFetchModel deck, DeckCardDBModel[] cards, DeckCardChildDBModel[] cardChildren)
         {
-            var normalCards = cards.Where(it => it.GroupId != 99).ToArray();
-            var sideboardCards = cards.Where(it => it.GroupId == 99).ToArray();
+            var normalCards = cards.Where(it => it.GroupId < 99).ToArray();
+            var sideboardCards = cards.Where(it => it.GroupId >= 99).ToArray();
             return new Deck(deck.Id, deck.Name)
             {
                 Description = deck.Description,

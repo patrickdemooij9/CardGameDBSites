@@ -201,7 +201,6 @@ namespace CardGameDBSites.API.Controllers
             var deckTypeSettings = _settingsService.GetSquadSettings(typeId);
             if (deckTypeSettings is null) return NotFound();
 
-            var sideboardGroup = deckTypeSettings.SideboardGroup.ToItems<SquadConfig>().FirstOrDefault();
             return Ok(new DeckBuilderApiModel
             {
                 Id = deckTypeSettings.TypeID,
@@ -209,7 +208,7 @@ namespace CardGameDBSites.API.Controllers
                 OverwriteAmount = deckTypeSettings.OverwriteAmount > 0 ? deckTypeSettings.OverwriteAmount : null,
                 Requirements = deckTypeSettings.Restrictions.ToItems<ISquadRequirementConfig>().Select(it => new RequirementApiModel(it)).ToArray(),
                 Groups = [.. deckTypeSettings.Squads.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel(it, false))],
-                SideboardGroup = sideboardGroup is null ? null : new DeckBuilderGroupApiModel(sideboardGroup, true)
+                SideboardGroups = [.. deckTypeSettings.SideboardGroup.ToItems<SquadConfig>().Select(it => new DeckBuilderGroupApiModel(it, true))]
             });
         }
 

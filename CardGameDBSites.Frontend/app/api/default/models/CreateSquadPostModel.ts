@@ -9,7 +9,7 @@ export type CreateSquadPostModel = {
     name?: string;
     description?: string | null;
     squads?: Array<CreateSquadSquadPostModel>;
-    sideboard?: CreateSquadSquadPostModel;
+    sideboardGroups?: Array<CreateSquadSquadPostModel>;
     publish?: boolean;
 };
 

@@ -18,6 +18,10 @@ jobs:
             worker_name: sw-unlimited-db
             site_id: sw-unlimited-db
             api_base_url: https://api.sw-unlimited-db.com
+          - name: singularity-db
+            worker_name: singularity-db
+            site_id: singularity-db
+            api_base_url: https://api.singularity-db.com
 
     name: Deploy ${{ matrix.site.name }}
     defaults:

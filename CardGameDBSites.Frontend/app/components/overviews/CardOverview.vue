@@ -277,6 +277,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :internal-filters="internalFilters"
     :white-background="true"
     :enable-query-string-sync="true"
+    :hide-inline-filters="false"
     :available-views="availableViews"
     :page-size="pageSize"
     :collection-mode="collectionMode"

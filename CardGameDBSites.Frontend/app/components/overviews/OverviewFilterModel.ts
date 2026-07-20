@@ -18,6 +18,9 @@ export interface OverviewFilterModel {
     AutoFillValues: boolean;
     DefaultEnabled?: boolean;
 
+    /** Transient UI flag: true while AutoFillValues options are being fetched. */
+    Loading?: boolean;
+
     ToFiltersHandler?: (values: string[]) => CardsQueryFilterClauseApiModel[];
 }
 

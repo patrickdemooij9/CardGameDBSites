@@ -189,6 +189,7 @@ async function toggleMarkdownPreview() {
         :internal-filters="internalFilters"
         :white-background="false"
         :enable-query-string-sync="false"
+        :hide-inline-filters="true"
         :collection-mode="collectionOnlyMode ? CardSearchCollectionMode.IN_COLLECTION : CardSearchCollectionMode.IGNORE"
         :hide-reprinted-cards="true"
         :legal-for-deck-type-id="deck.typeId"

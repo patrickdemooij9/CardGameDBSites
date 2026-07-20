@@ -22,6 +22,7 @@ const props = defineProps<{
   availableViews?: string[];
   pageSize?: number;
   variantTypeIds?: number[];
+  hideInlineFilters: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -131,13 +132,18 @@ watch(
 );
 
 async function loadLazyFilter(filter: OverviewFilterModel) {
-  const values = await useCards().getAbilityValues(filter.Alias);
-  filter.Items = values.map((item) => {
-    return {
-      DisplayName: item,
-      Value: item,
-    };
-  });
+  filter.Loading = true;
+  try {
+    const values = await useCards().getAbilityValues(filter.Alias);
+    filter.Items = values.map((item) => {
+      return {
+        DisplayName: item,
+        Value: item,
+      };
+    });
+  } finally {
+    filter.Loading = false;
+  }
 }
 </script>
 
@@ -146,6 +152,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :overview-state="overviewState"
     :hide-search="false"
     :hide-filters="false"
+    :hide-inline-filters="hideInlineFilters"
     :white-background="whiteBackground"
     :filters="reactiveFilters"
     :sortings="sortings"

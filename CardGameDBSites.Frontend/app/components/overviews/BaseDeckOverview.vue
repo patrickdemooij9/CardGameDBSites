@@ -115,6 +115,7 @@ onMounted(() => {
     :overview-state="overviewState"
     :hide-search="true"
     :hide-filters="false"
+    :hide-inline-filters="false"
     :white-background="false"
     :enable-query-string-sync="true"
     :sortings="effectiveSortings"

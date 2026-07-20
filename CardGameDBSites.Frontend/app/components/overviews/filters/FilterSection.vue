@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhCaretDown } from "@phosphor-icons/vue";
+import { PhCaretDown, PhCircleNotch } from "@phosphor-icons/vue";
 import {
   OverviewFilterType,
   type OverviewFilterModel,
@@ -140,7 +140,17 @@ function onCardSelect(card: CardDetailApiModel) {
               />
             </span>
           </label>
-          <p v-if="filter.Items.length === 0" class="text-sm text-gray-500 px-1 py-2">
+          <p
+            v-if="filter.Loading"
+            class="flex items-center gap-2 text-sm text-gray-500 px-1 py-2"
+          >
+            <PhCircleNotch class="animate-spin" />
+            Loading options…
+          </p>
+          <p
+            v-else-if="filter.Items.length === 0"
+            class="text-sm text-gray-500 px-1 py-2"
+          >
             No options available.
           </p>
           <p

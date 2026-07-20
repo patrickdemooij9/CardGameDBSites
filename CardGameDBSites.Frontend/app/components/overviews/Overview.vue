@@ -19,6 +19,7 @@ const props = defineProps<{
   overviewState: ReturnType<typeof useOverviewState>,
   hideSearch: boolean;
   hideFilters: boolean;
+  hideInlineFilters: boolean;
   filters: OverviewFilterModel[];
   sortings?: OverviewSortModel[];
   whiteBackground: boolean;
@@ -87,7 +88,7 @@ function handleSubmit(event: Event) {
 
       <!-- Desktop-only inline quick filters (icon groups) -->
       <div
-        v-if="!hideFilters && inlineFilters.length > 0"
+        v-if="!hideFilters && !hideInlineFilters && inlineFilters.length > 0"
         class="hidden md:flex flex-wrap gap-4 mt-4"
       >
         <FilterIconGroup

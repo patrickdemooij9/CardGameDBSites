@@ -6,7 +6,8 @@ import type {
   DeckTypeSettingsApiModel,
 } from "~/api/default";
 import { GetCardValue } from "~/helpers/CardHelper";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import { GetWebpUrl } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import DeckService from "~/services/DeckService";
 import { GetValidCards } from "~/services/requirements/RequirementService";
@@ -124,11 +125,11 @@ function getImagesForCard(card: CardDetailApiModel) {
     <div class="flex flex-col gap-6 lg:flex-row">
       <aside class="lg:w-52 lg:shrink-0">
         <div class="mb-4 flex gap-2 lg:flex-col">
-          <img
+          <CmsImage
             v-for="mainCard in mainCards.slice(0, 3)"
             :key="mainCard.baseId"
             class="w-1/3 rounded border border-gray-200 lg:w-full"
-            :src="GetCrop(mainCard.imageUrl, undefined) ?? '#'"
+            :src="mainCard.imageUrl"
             :alt="mainCard.displayName"
           />
         </div>
@@ -171,7 +172,7 @@ function getImagesForCard(card: CardDetailApiModel) {
                       <div
                         class="flex h-5 w-[18px] justify-center bg-contain bg-no-repeat font-bold text-white"
                         :style="{
-                          'background-image': `url(${deckSettings.costImageUrl})`,
+                          'background-image': `url(${GetWebpUrl(deckSettings.costImageUrl)})`,
                         }"
                       >
                         <span>{{ GetCardValue(card, "Cost") }}</span>
@@ -182,15 +183,16 @@ function getImagesForCard(card: CardDetailApiModel) {
                       v-else
                     >
                       <span>{{ GetCardValue(card, "Shard Cost") }}</span>
-                      <img :src="deckSettings.costImageUrl" />
+                      <CmsImage :src="deckSettings.costImageUrl" alt="Cost" />
                     </div>
                   </div>
                   <div class="flex shrink-0 gap-1">
-                    <img
+                    <CmsImage
                       v-for="image in getImagesForCard(card)"
                       :key="image"
                       :src="image"
                       class="h-5 w-5"
+                      alt=""
                     />
                   </div>
                   <span class="truncate text-blue-700">{{ card.displayName }}</span>

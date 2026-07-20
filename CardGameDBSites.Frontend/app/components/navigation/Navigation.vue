@@ -2,6 +2,7 @@
 import { PhCaretDown, PhSignIn, PhUser } from "@phosphor-icons/vue";
 import type NavigationModel from "./NavigationModel";
 import { useAccountStore } from "~/stores/AccountStore";
+import CmsImage from "~/components/shared/CmsImage.vue";
 
 defineProps<{
   content: NavigationModel;
@@ -36,7 +37,7 @@ function logout() {
     <div class="container md:px-8">
       <div class="flex justify-between overflow-auto items-center">
         <NuxtLink to="/" class="ml-2 no-underline" @click="closeMenu">
-          <img :src="content.navigationLogoUrl" class="h-14 py-2 pr-8" />
+          <CmsImage :src="content.navigationLogoUrl" class="h-14 py-2 pr-8" loading="eager" alt="Logo" />
         </NuxtLink>
 
         <div

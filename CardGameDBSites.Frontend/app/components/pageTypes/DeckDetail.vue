@@ -12,7 +12,7 @@ import type {
 } from "~/api/default";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 import DeckAction from "../decks/DeckAction.vue";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { useCards } from "~/composables/useCards";
 import { useCollection } from "~/composables/useCollection";
 import { useMembers } from "~/composables/useMembers";
@@ -399,11 +399,11 @@ console.timeEnd("page-render");
           :key="mainCardWithChildren.mainCard.baseId"
           class="md:w-max"
         >
-          <img
+          <CmsImage
             class="w-48"
-            :src="
-              GetCrop(mainCardWithChildren.mainCard.imageUrl, undefined) ?? '#'
-            "
+            width="192"
+            :src="mainCardWithChildren.mainCard.imageUrl"
+            :alt="mainCardWithChildren.mainCard.displayName"
           />
           <p class="text-center">
             <small>{{ mainCardWithChildren.mainCard.displayName }}</small>

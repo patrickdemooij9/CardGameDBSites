@@ -7,7 +7,7 @@ import type {
   DeckTypeSettingsApiModel,
 } from "~/api/default";
 import type CreateDeckGroup from "./models/CreateDeckGroup";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import { GetCardValue } from "~/helpers/CardHelper";
 import { PhArrowDown, PhArrowUp, PhMinus, PhPlus, PhTrash } from "@phosphor-icons/vue";
@@ -103,18 +103,21 @@ function getFirstSlotForCard(card: CardDetailApiModel): CreateDeckSlot | undefin
           ]"
           v-on:click.prevent="emit('selectCard', item.card)"
         >
-          <template v-for="imageUrl in getImagesForCard(item.card)">
-            <img
+          <template v-for="imageUrl in getImagesForCard(item.card)" :key="imageUrl">
+            <CmsImage
               :src="imageUrl"
               class="rounded-md"
               :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
+              :alt="item.card.displayName"
             />
           </template>
-          <img
+          <CmsImage
             v-if="getImagesForCard(item.card).length === 0"
-            :src="GetCrop(item.card.imageUrl, 'icon')!"
+            :src="item.card.imageUrl"
+            crop="icon"
             class="rounded-md"
             :class="slot.displaySize == 'Medium' ? 'h-12' : 'h-4 pl-1'"
+            :alt="item.card.displayName"
           />
           <div class="flex grow justify-between px-4">
             <div

@@ -5,6 +5,7 @@ import CardOverview from "../overviews/CardOverview.vue";
 import { OverviewFilterType, type OverviewFilterModel } from "../overviews/OverviewFilterModel";
 import { useSite } from "~/composables/useSite";
 import SetPriceHistoryChart from "../cards/SetPriceHistoryChart.vue";
+import CmsImage from "../shared/CmsImage.vue";
 
 const props = defineProps<{
   content: IApiContentModel;
@@ -76,7 +77,7 @@ onMounted(async () => {
     <div class="container px-4 md:px-8 mb-12">
       <div class="flex md:flex-row flex-col gap-6">
         <div class="" v-if="set.imageUrl">
-          <img :src="set.imageUrl" />
+          <CmsImage :src="set.imageUrl" :alt="set.displayName" />
         </div>
         <div class="w-full">
           <h1 class="mb-2">{{ set.displayName }}</h1>

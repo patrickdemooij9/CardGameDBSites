@@ -2,7 +2,7 @@
 import { PhX } from "@phosphor-icons/vue";
 import type { CardDetailApiModel } from "~/api/default";
 import CardDetailAbility from "~/components/cards/CardDetailAbility.vue";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { useSite } from "~/composables/useSite";
 
 const emit = defineEmits<{
@@ -36,7 +36,7 @@ const siteSettings = await useSite().getSettings();
             <div
               class="md:w-72 mb-4 flex items-center justify-center bg-gray-100 rounded shadow-inner"
             >
-              <img :src="GetCrop(selectedCard.imageUrl, undefined)!" />
+              <CmsImage :src="selectedCard.imageUrl" :alt="selectedCard.displayName" />
             </div>
             <!--<div v-if="selectedCharacter.images.length > 1" class="switcher mt-4">
                         <div v-for="image in selectedCharacter.images" class="switch-item" :class="selectedCharacterImage === image ? 'active' : ''" v-on:click="selectImage(image)">

@@ -7,7 +7,7 @@ import type {
   MemberApiModel,
 } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
-import { GetCrop, GetCropUrl } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 
@@ -57,10 +57,15 @@ const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
       </p>
       <div class="flex items-center justify-between mt-4">
         <div class="flex gap-2">
-          <img
+          <CmsImage
             v-for="card in mainCards"
-            class="w-12 rounded-full"
-            :src="GetCrop(card.imageUrl!, 'icon')"
+            :key="card.baseId"
+            class="w-12 h-12 rounded-full"
+            width="96"
+            height="96"
+            :src="card.imageUrl"
+            crop="icon"
+            :alt="card.displayName"
           />
         </div>
         <div class="text-right">

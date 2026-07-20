@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CardDetailApiModel } from "~/api/default";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 
 const emit = defineEmits<{
   (e: "select", card: CardDetailApiModel): void;
@@ -91,10 +91,13 @@ function handleBlur() {
         class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
         @click="selectCard(card)"
       >
-        <img
+        <CmsImage
           v-if="card.imageUrl"
-          :src="GetCrop(card.imageUrl, 'icon')"
+          :src="card.imageUrl"
+          crop="icon"
+          width="32"
           class="w-8 h-8 object-cover rounded"
+          :alt="card.displayName"
         />
         <span>{{ card.displayName }}</span>
       </div>

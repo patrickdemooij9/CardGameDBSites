@@ -3,7 +3,7 @@ import type { BlogOverviewContentModel } from "~/api/umbraco";
 import type { CommunityBlogPostApiModel } from "~/api/default";
 import CommunityService from "~/services/CommunityService";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
-import { GetAbsoluteUrl } from "~/helpers/CropUrlHelper";
+import CmsImage from "../shared/CmsImage.vue";
 
 const props = defineProps<{
   content: BlogOverviewContentModel;
@@ -59,13 +59,9 @@ await loadPosts();
         :href="post.url"
         class="bg-white rounded hover:shadow-md transition-shadow no-underline"
       >
-        <img
+        <CmsImage
           v-if="post.imageUrl"
-          :src="
-            post.imageUrl.startsWith('/')
-              ? GetAbsoluteUrl(post.imageUrl)
-              : post.imageUrl
-          "
+          :src="post.imageUrl"
           :alt="post.title"
           class="w-full h-48 object-cover"
         />

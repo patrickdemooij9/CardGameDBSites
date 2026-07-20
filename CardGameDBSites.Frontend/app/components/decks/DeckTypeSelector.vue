@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SquadSettingsOptionApiModel } from "~/api/default";
+import CmsImage from "~/components/shared/CmsImage.vue";
 
 defineProps<{
   options: SquadSettingsOptionApiModel[];
@@ -37,7 +38,7 @@ const emit = defineEmits<{
           <div
             class="shrink-0 w-20 h-20 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden"
           >
-            <img
+            <CmsImage
               v-if="option.imageUrl"
               :src="option.imageUrl"
               :alt="option.name"

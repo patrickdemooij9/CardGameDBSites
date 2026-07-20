@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { OverviewFilterModel } from "../OverviewFilterModel";
+import CmsImage from "~/components/shared/CmsImage.vue";
 
 const props = defineProps<{
   overviewState: ReturnType<typeof useOverviewState>;
@@ -40,7 +41,7 @@ function toggle(value: string) {
           class="p-0.5 rounded cursor-pointer overflow-hidden hover:bg-main-color peer-checked:bg-main-color"
           :title="item.DisplayName"
         >
-          <img v-if="item.IconUrl" class="w-12" :src="item.IconUrl" :alt="item.DisplayName" />
+          <CmsImage v-if="item.IconUrl" class="w-12" :src="item.IconUrl" :alt="item.DisplayName" />
           <span v-else class="inline-block px-3 py-1">{{ item.DisplayName }}</span>
         </label>
       </div>

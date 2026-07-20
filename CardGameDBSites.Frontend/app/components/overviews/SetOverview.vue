@@ -7,6 +7,7 @@ import type { SetProgressApiModel } from "~/api/default";
 import { useAccountStore } from "~/stores/AccountStore";
 import Button from "~/components/shared/Button.vue";
 import ButtonType from "~/components/shared/ButtonType";
+import CmsImage from "~/components/shared/CmsImage.vue";
 
 type CollectionSettingsResponse = {
   allowSetCollecting: boolean;
@@ -137,7 +138,7 @@ onMounted(async () => {
             </p>
           </NuxtLink>
           <div class="flex justify-between">
-            <img class="h-16" v-if="set.imageUrl" :src="set.imageUrl" />
+            <CmsImage class="h-16" v-if="set.imageUrl" :src="set.imageUrl" :alt="set.displayName" />
             <div class="flex flex-col justify-center">
               <span v-for="info in set.extraInformation" class="text-sm">{{
                 info

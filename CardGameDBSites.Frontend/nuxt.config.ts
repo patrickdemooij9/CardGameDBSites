@@ -17,7 +17,18 @@ export default defineNuxtConfig({
     global: true,
     dirs: ["~/components/pageTypes"]
   },
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'floating-vue/nuxt'],
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'floating-vue/nuxt', '@nuxt/image'],
+  image: {
+    provider: 'umbraco',
+    providers: {
+      umbraco: {
+        provider: '~/providers/umbraco.ts',
+        options: { baseURL: process.env.NUXT_PUBLIC_API_BASE_URL }
+      }
+    },
+    format: ['webp'],
+    quality: 70
+  },
   runtimeConfig: {
     public: {
       API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL

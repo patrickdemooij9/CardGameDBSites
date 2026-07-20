@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { CardDetailApiModel, DeckCardGroupApiModel, DeckTypeSettingsApiModel } from "~/api/default";
 import { GetCardValue } from "~/helpers/CardHelper";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import { GetWebpUrl } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 
 const props = defineProps<{
@@ -131,7 +132,7 @@ function handleCardClick(card: CardDetailApiModel) {
                 <div
                   class="flex justify-center bg-contain bg-no-repeat h-5 w-[18px] text-white font-bold"
                   :style="{
-                    'background-image': `url(${costImageUrl})`,
+                    'background-image': `url(${GetWebpUrl(costImageUrl)})`,
                   }"
                 >
                   <span>{{ GetCardValue(card, "Cost") }}</span>
@@ -139,15 +140,16 @@ function handleCardClick(card: CardDetailApiModel) {
               </div>
               <div v-else class="flex items-center h-5 w-[18px] text-black font-bold">
                 <span>{{ GetCardValue(card, "Shard Cost") }}</span>
-                <img :src="costImageUrl" />
+                <CmsImage :src="costImageUrl" alt="Cost" />
               </div>
             </div>
             <div class="flex gap-2">
-              <img
+              <CmsImage
                 v-for="image in getImagesForCard(card)"
                 :key="image"
                 :src="image"
                 class="w-5 h-5"
+                alt=""
               />
             </div>
           </div>
@@ -162,9 +164,9 @@ function handleCardClick(card: CardDetailApiModel) {
           v-cursor-image="card.imageUrl?.url"
           @click="handleCardClick(card)"
         >
-          <img
+          <CmsImage
             class="rounded"
-            :src="GetCrop(card.imageUrl, undefined) ?? '#'"
+            :src="card.imageUrl"
             :alt="card.displayName ?? ''"
           />
           <span

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CardDetailApiModel, DeckTypeSettingsApiModel, DeckApiModel, MemberApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 
@@ -31,7 +32,7 @@ const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
       <div
         class="overflow-hidden h-full before:content-[''] before:bg-gradient-to-b before:from-black before:to-white before:absolute before:w-full before:h-full"
       >
-        <img class="opacity-50 w-full" :src="mainCard?.imageUrl + '?width=380&height=210'" />
+        <CmsImage class="opacity-50 w-full" :src="mainCard?.imageUrl" width="380" height="210" :alt="mainCard?.displayName" />
       </div>
       <div class="absolute p-2 top-0 w-full">
         <div class="flex align-center justify-between gap-4">

@@ -6,6 +6,7 @@ import {
 } from "../OverviewFilterModel";
 import type { CardDetailApiModel } from "~/api/default";
 import CardSearchInput from "~/components/shared/CardSearchInput.vue";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import FilterIconGroup from "./FilterIconGroup.vue";
 
 const props = defineProps<{
@@ -132,7 +133,7 @@ function onCardSelect(card: CardDetailApiModel) {
             />
             <span class="flex items-center gap-2">
               {{ item.DisplayName }}
-              <img
+              <CmsImage
                 v-if="item.IconUrl"
                 class="class-image"
                 :src="item.IconUrl"

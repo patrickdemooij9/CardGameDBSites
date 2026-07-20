@@ -3,7 +3,7 @@ import { PhNotepad } from "@phosphor-icons/vue";
 import type { DeckTypeSettingsApiModel, DeckApiModel, MemberApiModel, CardDetailApiModel, IDeckDisplayApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
 import { useCards } from "~/composables/useCards";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 
@@ -61,9 +61,11 @@ const groupsOf = computed(() => (props.settings.deckDisplay as SquadDisplay)?.am
       </div>
       <div class="grid grid-row-2 gap-2 mt-2">
         <div class="grid gap-2" v-for="groupIndex in Math.ceil(mainCards.length / groupsOf)" :style="{ gridTemplateColumns: `repeat(${groupsOf}, 1fr)` }">
-          <img
+          <CmsImage
             v-for="card in mainCards.slice((groupIndex - 1) * groupsOf, groupIndex * groupsOf)"
-            :src="card.imageUrl?.url!"
+            :key="card.baseId"
+            :src="card.imageUrl"
+            :alt="card.displayName"
           />
         </div>
       </div>

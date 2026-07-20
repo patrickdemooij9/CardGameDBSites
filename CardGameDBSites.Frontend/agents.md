@@ -142,6 +142,19 @@ CMS configuration: The restriction type is set per requirement in Umbraco via th
 
 The frontend has **no hardcoded site-specific logic**. All differentiation (colors, card sections, filters, navigation, keyword images) comes from the backend via `/api/settings/site`. The `wrangler.jsonc` config sets the API base URL for Cloudflare Pages deployment.
 
+## Images (WebP via @nuxt/image)
+
+Images are served through `@nuxt/image` using a custom **`umbraco`** provider (`app/providers/umbraco.ts`, registered in `nuxt.config.ts`). The provider does no processing itself — it rewrites URLs to hit the backend's SixLabors.ImageSharp middleware (`?width=&height=&format=webp&quality=&rmode=`), which works on Cloudflare Pages with zero runtime cost. The module default is `format: ['webp']`, so everything is served as WebP with responsive `srcset`.
+
+**Rendering images:**
+- Use the `<CmsImage>` wrapper (`app/components/shared/CmsImage.vue`) instead of raw `<img>`. It normalizes the two backend shapes (`ImageCropsApiModel` object or plain URL `string`) and renders `<NuxtImg>`.
+  - `<CmsImage :src="card.imageUrl" />` — object shape.
+  - `<CmsImage :src="card.imageUrl" crop="icon" width="48" />` — named crop.
+  - Provide a `#fallback` slot for the missing-image placeholder.
+- For cases that can't use a component — CSS `background-image`, HTML-string-injected `<img>` (see `SpecialTextFormatter.vue`) — wrap the URL with `GetWebpUrl(url, { width, height })` from `app/helpers/CropUrlHelper.ts`.
+
+**Migration status:** all CMS/media `<img>` tags across the codebase now render through `<CmsImage>` (or `GetWebpUrl` for CSS background-images, injected HTML, and the same-origin admin `/api/proxy` previews). The only deliberate raw `<img>` left is `DailyCardGame.vue`, whose `imageDataUrl` is a base64 `data:` URI (obscured daily-game card) that must not be transformed. New image markup should use `<CmsImage>`, not a raw `<img>`.
+
 ## Key Data Models
 
 - `CardDetailApiModel`: `baseId`, `displayName`, `imageUrl` (ImageCropsApiModel), `backImageUrl`, `attributes` (Record<string, string[]>), `price`, `variants`

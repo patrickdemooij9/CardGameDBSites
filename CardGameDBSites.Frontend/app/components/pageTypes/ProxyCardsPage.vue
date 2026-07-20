@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CardDetailApiModel } from "~/api/default";
 import CardSearchInput from "~/components/shared/CardSearchInput.vue";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { useAppToast } from "~/composables/useAppToast";
 import { PhTrash, PhPlus, PhMinus } from "@phosphor-icons/vue";
 
@@ -163,18 +163,19 @@ const totalCards = computed(() =>
           class="flex flex-col items-center gap-2"
         >
           <div class="relative w-full">
-            <img
-              v-if="entry.card.imageUrl"
-              :src="GetCrop(entry.card.imageUrl, undefined)"
+            <CmsImage
+              :src="entry.card.imageUrl"
               :alt="entry.card.displayName ?? ''"
               class="w-full rounded"
-            />
-            <div
-              v-else
-              class="w-full aspect-[2/3] bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs text-center p-2"
             >
-              {{ entry.card.displayName }}
-            </div>
+              <template #fallback>
+                <div
+                  class="w-full aspect-[2/3] bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs text-center p-2"
+                >
+                  {{ entry.card.displayName }}
+                </div>
+              </template>
+            </CmsImage>
             <button
               class="absolute top-1 right-1 bg-red-600 text-white rounded-full p-2 hover:bg-red-700"
               :aria-label="`Remove ${entry.card.displayName}`"

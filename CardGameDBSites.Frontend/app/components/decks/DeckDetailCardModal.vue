@@ -2,8 +2,8 @@
 import { PhX } from "@phosphor-icons/vue";
 import type { CardDetailApiModel } from "~/api/default";
 import CardDetailAbility from "~/components/cards/CardDetailAbility.vue";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import { useSite } from "~/composables/useSite";
-import { GetCrop } from "~/helpers/CropUrlHelper";
 
 const props = defineProps<{
   selectedCard: CardDetailApiModel;
@@ -18,9 +18,6 @@ const emit = defineEmits<{
 }>();
 
 const siteSettings = await useSite().getSettings();
-const selectedCardImage = computed(() =>
-  GetCrop(props.selectedCard.imageUrl, undefined),
-);
 </script>
 
 <template>
@@ -45,12 +42,14 @@ const selectedCardImage = computed(() =>
           <div
             class="md:w-72 mb-4 flex items-center justify-center bg-gray-100 rounded shadow-inner"
           >
-            <img
-              v-if="selectedCardImage"
-              :src="selectedCardImage"
+            <CmsImage
+              :src="selectedCard.imageUrl"
               :alt="selectedCard.displayName ?? 'Card image'"
-            />
-            <div v-else class="text-sm text-gray-600">No image available</div>
+            >
+              <template #fallback>
+                <div class="text-sm text-gray-600">No image available</div>
+              </template>
+            </CmsImage>
           </div>
 
           <div>

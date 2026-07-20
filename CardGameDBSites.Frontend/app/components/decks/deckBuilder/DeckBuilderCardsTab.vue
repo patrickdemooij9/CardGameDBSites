@@ -14,7 +14,7 @@ import Button from "~/components/shared/Button.vue";
 import ButtonType from "~/components/shared/ButtonType";
 import { GetMarkdown } from "~/services/MarkdownService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
-import { GetCrop } from "~/helpers/CropUrlHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 import {
   OverviewFilterType,
   type OverviewFilterModel,
@@ -203,17 +203,18 @@ async function toggleMarkdownPreview() {
               v-on:click.prevent="emit('selectCard', character)"
             >
               <div class="image wiggle hover:shadow-[0px_0px_8px_3px_#b0b0b0]">
-                <img
-                  v-if="character.imageUrl"
-                  height="300"
-                  width="200"
-                  :src="GetCrop(character.imageUrl, undefined)"
-                  loading="lazy"
-                />
-                <div v-if="!character.imageUrl" class="missing-card-image">
-                  <h2 v-text="character.displayName"></h2>
-                  <p>No image yet</p>
-                </div>
+                <CmsImage
+                  :src="character.imageUrl"
+                  width="300"
+                  :alt="character.displayName"
+                >
+                  <template #fallback>
+                    <div class="missing-card-image">
+                      <h2 v-text="character.displayName"></h2>
+                      <p>No image yet</p>
+                    </div>
+                  </template>
+                </CmsImage>
               </div>
               <div class="overlay">
                 <div class="info-bar">

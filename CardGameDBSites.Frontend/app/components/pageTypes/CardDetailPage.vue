@@ -2,7 +2,7 @@
 import type { CardDetailContentModel } from '~/api/umbraco';
 import CardDetailAbility from '../cards/CardDetailAbility.vue';
 import PriceHistoryChart from '../cards/PriceHistoryChart.vue';
-import { GetCrop } from '~/helpers/CropUrlHelper';
+import CmsImage from '../shared/CmsImage.vue';
 import { useCards } from '~/composables/useCards';
 import { useSite } from '~/composables/useSite';
 import type { CommentViewModel } from '~/api/default';
@@ -36,11 +36,11 @@ function handleCommentDeleted(comment: CommentViewModel) {
         <div class="flex flex-col sm:flex-row gap-8">
           <div class="flex flex-col gap-4 shrink-0">
             <div>
-              <img v-if="card.imageUrl" class="sm:h-80" :src="GetCrop(card.imageUrl, undefined)" />
+              <CmsImage v-if="card.imageUrl" class="sm:h-80" :src="card.imageUrl" :alt="card.displayName" />
             </div>
-  
+
             <div v-if="card.backImageUrl">
-              <img class="sm:h-80" :src="GetCrop(card.backImageUrl, undefined)" />
+              <CmsImage class="sm:h-80" :src="card.backImageUrl" :alt="card.displayName" />
             </div>
           </div>
           <div class="w-full">

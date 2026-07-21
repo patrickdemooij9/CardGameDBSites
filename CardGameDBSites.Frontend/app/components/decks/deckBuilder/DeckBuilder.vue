@@ -191,6 +191,7 @@ onUnmounted(() => {
           v-model:current-tab="currentTab"
           :current-area="selectedArea"
           :deck="deck"
+          :deck-type-settings="deckTypeSettings"
           @select-card="selectCard"
           :preselect-first-slot="true"
           :ignore-passive-filters="ignorePassiveFilters"

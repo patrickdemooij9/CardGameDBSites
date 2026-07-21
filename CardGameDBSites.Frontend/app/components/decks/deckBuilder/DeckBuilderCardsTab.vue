@@ -5,6 +5,7 @@ import {
   CardSearchCollectionMode,
   RestrictionType,
   type CardDetailApiModel,
+  type DeckTypeSettingsApiModel,
   type RequirementApiModel,
 } from "~/api/default";
 import type CreateDeckSlot from "./models/CreateDeckSlot";
@@ -29,6 +30,7 @@ const emit = defineEmits<{
 const props = defineProps<{
   currentTab: DeckBuilderTab;
   currentArea?: CreateDeckSelectedArea;
+  deckTypeSettings?: DeckTypeSettingsApiModel;
   filters: OverviewFilterModel[];
   deck: CreateDeckModel;
   preselectFirstSlot: boolean;
@@ -193,6 +195,7 @@ async function toggleMarkdownPreview() {
         :collection-mode="collectionOnlyMode ? CardSearchCollectionMode.IN_COLLECTION : CardSearchCollectionMode.IGNORE"
         :hide-reprinted-cards="true"
         :legal-for-deck-type-id="deck.typeId"
+        :page-size="deckTypeSettings?.overviewPaginationCards"
         v-slot="{cards}"
       >
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-5">

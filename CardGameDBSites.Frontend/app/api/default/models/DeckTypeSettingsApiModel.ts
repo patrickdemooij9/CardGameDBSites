@@ -20,5 +20,6 @@ export type DeckTypeSettingsApiModel = {
     renderCostOnImage?: boolean;
     hideHeader?: boolean;
     allowedDisplays?: Array<string>;
+    overviewPaginationCards?: number;
 };
 

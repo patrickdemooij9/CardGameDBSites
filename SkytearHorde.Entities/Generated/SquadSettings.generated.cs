@@ -104,6 +104,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual int MaxDynamicSlots => this.Value<int>(_publishedValueFallback, "maxDynamicSlots");
 
 		///<summary>
+		/// Overview pagination cards: Default = 30 cards for each page
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[ImplementPropertyType("overviewPaginationCards")]
+		public virtual int OverviewPaginationCards => this.Value<int>(_publishedValueFallback, "overviewPaginationCards");
+
+		///<summary>
 		/// Overwrite Amount: If filled in, this overwrites the amounts for all cards
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]

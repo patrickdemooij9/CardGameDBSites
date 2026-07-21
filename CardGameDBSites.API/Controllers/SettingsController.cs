@@ -160,7 +160,8 @@ namespace CardGameDBSites.API.Controllers
                 CostImageUrl = deckTypeSettings.CostIcon?.Url(mode: UrlMode.Absolute),
                 RenderCostOnImage = deckTypeSettings.RenderCostInIcon,
                 HideHeader = deckDetail.HideHeader,
-                AllowedDisplays = deckDetail.DisplayOptions?.ToArray() ?? []
+                AllowedDisplays = deckDetail.DisplayOptions?.ToArray() ?? [],
+                OverviewPaginationCards = deckTypeSettings.OverviewPaginationCards == 0 ? 30 : deckTypeSettings.OverviewPaginationCards
             });
         }
 

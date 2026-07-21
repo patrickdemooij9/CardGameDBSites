@@ -126,7 +126,7 @@ function handleCardClick(card: CardDetailApiModel) {
               <span>/</span>
               <span>{{ getDeckCardAmount(card.baseId!) }}</span>
             </span>
-            <span v-else class="js-collection-info">{{ getDeckCardAmount(card.baseId!) }} x</span>
+            <span v-else-if="!group.hideAmount" class="js-collection-info">{{ getDeckCardAmount(card.baseId!) }} x</span>
             <div v-if="costImageUrl">
               <div v-if="renderCostOnImage">
                 <div
@@ -183,7 +183,7 @@ function handleCardClick(card: CardDetailApiModel) {
             <span>/</span>
             <span>{{ getDeckCardAmount(card.baseId!) }}</span>
           </span>
-          <span v-else class="text-xs font-semibold js-collection-info">
+          <span v-else-if="!group.hideAmount" class="text-xs font-semibold js-collection-info">
             {{ getDeckCardAmount(card.baseId!) }} x
           </span>
         </div>

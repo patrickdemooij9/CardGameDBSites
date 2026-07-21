@@ -45,5 +45,9 @@ namespace SkytearHorde.Entities.Models.Database
 
         [Column("Source")]
         public int Source { get; set; } = 0;
+
+        [Column("FolderId")]
+        [NullSetting(NullSetting = NullSettings.Null)]
+        public int? FolderId { get; set; }
     }
 }

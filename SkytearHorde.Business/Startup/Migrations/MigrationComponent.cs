@@ -80,7 +80,8 @@ namespace SkytearHorde.Business.Startup.Migrations
                 .To<DeckSourceMigration>("v41")
                 .To<CardImportQueueMigration>("v42")
                 .To<CardImportQueueSetMigration>("v43")
-                .To<PeriodMigration>("v44");
+                .To<PeriodMigration>("v44")
+                .To<DeckFolderMigration>("v45");
 
             var upgrader = new Upgrader(migrationPlan);
             upgrader.Execute(_migrationPlanExecutor, _coreScopeProvider, _keyValueService);

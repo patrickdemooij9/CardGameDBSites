@@ -15,6 +15,7 @@ namespace SkytearHorde.Entities.Models.ViewModels
         public int TypeId { get; set; }
         public int AmountOfLikes { get; set; }
         public int Score { get; set; }
+        public int? FolderId { get; set; }
         public DeckCardApiModel[] Cards { get; set; }
         public DeckCardApiModel[] Sideboard { get; set; }
         public DeckPriceApiModel? Price { get; set; }
@@ -31,6 +32,7 @@ namespace SkytearHorde.Entities.Models.ViewModels
             TypeId = deck.TypeId;
             AmountOfLikes = deck.AmountOfLikes;
             Score = deck.Score;
+            FolderId = deck.FolderId;
             Cards = [.. deck.Cards.Select(it => new DeckCardApiModel
             {
                 CardId = it.CardId,

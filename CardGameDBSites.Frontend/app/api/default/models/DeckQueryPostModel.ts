@@ -13,5 +13,7 @@ export type DeckQueryPostModel = {
     orderBy?: string | null;
     dateFrom?: string | null;
     dateTo?: string | null;
+    folderId?: number | null;
+    unfiled?: boolean | null;
 };
 

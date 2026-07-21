@@ -10,11 +10,29 @@ import { useCards } from "~/composables/useCards";
 import { useSite } from "~/composables/useSite";
 import DeckCard from "./DeckCard.vue";
 import { useAccountStore } from "~/stores/AccountStore";
+import {
+  PhPencilSimple,
+  PhTrash,
+  PhFolderSimplePlus,
+  PhCheck,
+} from "@phosphor-icons/vue";
 
 const props = defineProps<{
   decks: DeckApiModel[];
   decksPerRow?: number;
+  showOwnerActions?: boolean;
+  selectionMode?: boolean;
+  selectedDeckIds?: number[];
 }>();
+
+const emit = defineEmits<{
+  edit: [deckId: number];
+  delete: [deckId: number];
+  move: [deckId: number];
+  toggleSelect: [deckId: number];
+}>();
+
+const selectedSet = computed(() => new Set(props.selectedDeckIds ?? []));
 
 const { loadMembersByIds } = useMembers();
 const { loadCardsByIds } = useCards();
@@ -58,14 +76,19 @@ async function loadDecksData(decks: DeckApiModel[]) {
       });
     }
 
-    for (const typeId of uniqueTypeIds) {
-      const settings = await getDeckTypeSettings(typeId);
+    const loadedSettings = await Promise.all(
+      uniqueTypeIds.map(async (typeId) => ({
+        typeId,
+        settings: await getDeckTypeSettings(typeId),
+      })),
+    );
+    loadedSettings.forEach(({ typeId, settings }) => {
       if (settings) {
         deckSettings.value[typeId] = settings;
       }
-    }
+    });
 
-    if (isLoggedIn) {
+    if (isLoggedIn.value) {
       const collectionService = useCollection();
       const deckIds = decks.map((d) => d.id!);
       collectionService.loadDecksProgress(deckIds).then((progress) => {
@@ -96,13 +119,68 @@ const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);
     :class="gridClass"
     class="grid grid-cols-1 auto-rows-fr md:grid-cols-2 gap-4 w-full"
   >
-    <DeckCard
+    <div
       v-for="deck in decks"
-      :deck="deck"
-      :member="members[deck.createdBy ?? 0]"
-      :cards="cards"
-      :settings="deckSettings[deck.typeId ?? 0]"
-      :progress="deckProgress[deck.id!]"
-    ></DeckCard>
+      :key="deck.id"
+      class="relative flex flex-col rounded"
+      :class="{
+        'ring-2 ring-main-color ring-offset-2': selectedSet.has(deck.id!),
+      }"
+    >
+      <DeckCard
+        :deck="deck"
+        :member="members[deck.createdBy ?? 0]"
+        :cards="cards"
+        :settings="deckSettings[deck.typeId ?? 0]"
+        :progress="deckProgress[deck.id!]"
+      ></DeckCard>
+
+      <button
+        v-if="selectionMode"
+        type="button"
+        class="absolute inset-0 z-20 cursor-pointer"
+        :aria-pressed="selectedSet.has(deck.id!)"
+        :aria-label="`Select ${deck.name}`"
+        @click.prevent="emit('toggleSelect', deck.id!)"
+      >
+        <span
+          class="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded border bg-white"
+          :class="
+            selectedSet.has(deck.id!)
+              ? 'bg-main-color border-main-color text-white'
+              : 'border-gray-400 text-transparent'
+          "
+        >
+          <PhCheck :size="16" weight="bold" />
+        </span>
+      </button>
+
+      <div
+        v-else-if="showOwnerActions"
+        class="mt-2 flex justify-end gap-2"
+      >
+        <button
+          type="button"
+          class="flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:border-main-color"
+          @click.stop.prevent="emit('move', deck.id!)"
+        >
+          <PhFolderSimplePlus :size="16" /> Move
+        </button>
+        <button
+          type="button"
+          class="flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:border-main-color"
+          @click.stop.prevent="emit('edit', deck.id!)"
+        >
+          <PhPencilSimple :size="16" /> Edit
+        </button>
+        <button
+          type="button"
+          class="flex items-center gap-1 rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-600 hover:border-red-500"
+          @click.stop.prevent="emit('delete', deck.id!)"
+        >
+          <PhTrash :size="16" /> Delete
+        </button>
+      </div>
+    </div>
   </div>
 </template>

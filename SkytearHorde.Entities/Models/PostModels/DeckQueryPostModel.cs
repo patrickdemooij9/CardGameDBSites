@@ -32,6 +32,12 @@ namespace SkytearHorde.Entities.Models.PostModels
         [JsonPropertyName("dateTo")]
         public DateTime? DateTo { get; set; }
 
+        [JsonPropertyName("folderId")]
+        public int? FolderId { get; set; }
+
+        [JsonPropertyName("unfiled")]
+        public bool? Unfiled { get; set; }
+
         public DeckQueryPostModel()
         {
             Cards = Array.Empty<int>();

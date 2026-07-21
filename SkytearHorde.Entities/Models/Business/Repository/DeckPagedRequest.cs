@@ -23,6 +23,9 @@ namespace SkytearHorde.Entities.Models.Business.Repository
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
 
+        public int? FolderId { get; set; }
+        public bool Unfiled { get; set; }
+
         public DeckPagedRequest(int? typeId = null)
         {
             TypeId = typeId;
@@ -39,7 +42,7 @@ namespace SkytearHorde.Entities.Models.Business.Repository
 
         public string ToCacheKey()
         {
-            return $"{SiteId}-{TypeId}-{Status}-{Take}-{Page}-{OrderBy}-{UserId}-{Source}-{DateFrom}-{DateTo}";
+            return $"{SiteId}-{TypeId}-{Status}-{Take}-{Page}-{OrderBy}-{UserId}-{Source}-{DateFrom}-{DateTo}-{FolderId}-{Unfiled}";
         }
     }
 }

@@ -88,18 +88,24 @@ namespace CardGameDBSites.API.Controllers
             var status = DeckStatus.Published;
             var currentUser = await _memberManager.GetCurrentMemberAsync();
             int? useUserCollection = null;
+            var isOwnerRequest = false;
             if (_memberManager.IsLoggedIn() && currentUser != null)
             {
                 if (query.UserId.HasValue && currentUser.Id == query.UserId.ToString())
                 {
                     status = query.Status;
+                    isOwnerRequest = true;
                 }
-                
+
                 if (query.OrderBy == "collection")
                 {
                     useUserCollection = int.Parse(currentUser.Id);
                 }
             }
+
+            // Folders are private, so only apply folder scoping when the user is querying their own decks.
+            var folderId = isOwnerRequest ? query.FolderId : null;
+            var unfiled = isOwnerRequest && (query.Unfiled ?? false);
 
             var decks = _deckService.GetAll(new DeckPagedRequest(query.TypeId)
             {
@@ -113,7 +119,9 @@ namespace CardGameDBSites.API.Controllers
                 Source = DeckSource.DeckBuilder,
                 DateFrom = query.DateFrom,
                 DateTo = query.DateTo,
-                UseUserCollectionId = useUserCollection
+                UseUserCollectionId = useUserCollection,
+                FolderId = folderId,
+                Unfiled = unfiled
             });
 
             var allowPricing = _settingsService.GetSiteSettings().AllowPricing;

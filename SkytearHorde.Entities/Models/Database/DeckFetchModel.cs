@@ -18,5 +18,6 @@
         public int AmountOfLikes { get; set; }
         public double CollectionCompare { get; set; }
         public int TotalViews { get; set; }
+        public int? FolderId { get; set; }
     }
 }

@@ -59,5 +59,10 @@ namespace SkytearHorde.Business.Cache
             base.ClearBaseCache();
             _cache.ClearByKey($"{_entityTypeCacheKey}-GetPaged");
         }
+
+        public void ClearPaged()
+        {
+            _cache.ClearByKey($"{_entityTypeCacheKey}-GetPaged");
+        }
     }
 }

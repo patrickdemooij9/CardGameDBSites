@@ -11,12 +11,18 @@ import {
   OverviewFilterType,
   type OverviewFilterModel,
 } from "./OverviewFilterModel";
+import { useSite } from "~/composables/useSite";
 
 const props = defineProps<{
   decksPerRow: number;
   typeId?: number;
   userId?: number;
   sortings?: OverviewSortModel[];
+  showFormatFilter?: boolean;
+  folderId?: number | null;
+  unfiled?: boolean;
+  /** Bump this value from the parent to force a refetch (e.g. after deleting/moving a deck). */
+  refreshKey?: number;
 }>();
 
 const deckService = new DeckService();
@@ -28,7 +34,27 @@ const defaultSortings = ref<OverviewSortModel[]>([
 
 const effectiveSortings = computed(() => props.sortings ?? defaultSortings.value);
 
+// The format filter is only useful when the parent isn't already pinned to one type.
+const formatOptions =
+  props.showFormatFilter && !props.typeId
+    ? await useSite().getSquadSettingsOptions()
+    : [];
+
 const filters: OverviewFilterModel[] = [
+  ...(formatOptions.length > 0
+    ? [
+        {
+          Alias: "typeId",
+          DisplayName: "Format",
+          Type: OverviewFilterType.DROPDOWN,
+          Items: formatOptions.map((o) => ({
+            DisplayName: o.name ?? "",
+            Value: String(o.typeId),
+          })),
+          AutoFillValues: false,
+        } as OverviewFilterModel,
+      ]
+    : []),
   {
     Alias: "card",
     DisplayName: "Contains card",
@@ -52,6 +78,9 @@ const filters: OverviewFilterModel[] = [
   },
 ];
 
+const cardFilterRef = filters.find((f) => f.Alias === "card")!;
+const formatFilterRef = filters.find((f) => f.Alias === "typeId");
+
 const overviewState = useOverviewState(
   toRef(filters),
   toRef(effectiveSortings),
@@ -72,32 +101,56 @@ const queryModel = computed<DeckQueryPostModel>(() => {
     }
   });
 
-  const cardFilter = overviewState.state.selectedFilters.get(filters[0]!);
+  const cardFilter = overviewState.state.selectedFilters.get(cardFilterRef);
   const cardIds =
     cardFilter && cardFilter.length > 0
       ? cardFilter.map((v) => parseInt(v))
       : undefined;
 
+  const selectedType = formatFilterRef
+    ? overviewState.getFilterValue(formatFilterRef)
+    : undefined;
+  const typeId =
+    props.typeId ?? (selectedType ? parseInt(selectedType) : undefined);
+
   return {
     page: page.value,
     take: 20,
     userId: props.userId,
-    typeId: props.typeId,
+    typeId: typeId,
     status: props.userId ? DeckStatus.NONE : DeckStatus.PUBLISHED,
     dateFrom: dateFrom || null,
     dateTo: dateTo || null,
     orderBy: overviewState.state.sortBy,
     cards: cardIds,
+    folderId: props.folderId ?? null,
+    unfiled: props.unfiled ?? null,
   };
 });
 
 const page = computed(() => overviewState.state.page);
 
 const id = useId();
-const { data: pagedDecks, pending } = await useAsyncData(
+const { data: pagedDecks, pending, refresh } = await useAsyncData(
   `deck-overview-${id}`,
   () => deckService.query(queryModel.value),
   { watch: [queryModel] },
+);
+
+// Force a refetch when the parent bumps refreshKey (delete / move don't change the query).
+//TODO: See if can find a better way of doing this....
+watch(
+  () => props.refreshKey,
+  () => refresh(),
+);
+
+// Reset to the first page whenever the folder scope changes so we never land on an
+// out-of-range page (changing the scope itself already triggers a refetch via queryModel).
+watch(
+  [() => props.folderId, () => props.unfiled],
+  () => {
+    if (overviewState.state.page !== 1) overviewState.setPage(1);
+  },
 );
 
 onMounted(() => {

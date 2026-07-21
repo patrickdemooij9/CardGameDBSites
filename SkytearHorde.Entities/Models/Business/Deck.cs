@@ -22,6 +22,7 @@ namespace SkytearHorde.Entities.Models.Business
         public int Score { get; set; }
         public bool IsLegal { get; set; }
         public int TotalViews { get; set; }
+        public int? FolderId { get; set; }
 
         public Deck(string name) : this(0, name){}
 

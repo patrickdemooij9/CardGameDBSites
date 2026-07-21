@@ -184,6 +184,12 @@ namespace SkytearHorde.Business.Repositories
                 var isPublished = request.Status == DeckStatus.Published;
                 result = result.Where(it => it.IsPublished == isPublished);
             }
+            else
+            {
+                result = result
+                    .GroupBy(it => it.Id)
+                    .Select(it => it.OrderByDescending(d => d.UpdatedDate).First());
+            }
 
             if (request.Cards.Length > 0)
             {
@@ -275,6 +281,15 @@ namespace SkytearHorde.Business.Repositories
             if (request.UserId.HasValue)
             {
                 sql = sql.Where<DeckDBModel>(it => it.CreatedBy == request.UserId, "d");
+            }
+
+            if (request.FolderId.HasValue)
+            {
+                sql = sql.Where<DeckDBModel>(it => it.FolderId == request.FolderId, "d");
+            }
+            else if (request.Unfiled)
+            {
+                sql = sql.Where<DeckDBModel>(it => it.FolderId == null, "d");
             }
 
             if (request.Source.HasValue)
@@ -451,10 +466,73 @@ namespace SkytearHorde.Business.Repositories
             return requestedIds.ToDictionary(it => it, existingIds.Contains);
         }
 
+        /// <summary>
+        /// Assigns the given decks to a folder (or unfiles them when <paramref name="folderId"/> is null).
+        /// Ownership and site are enforced in the update so a caller can only move their own decks.
+        /// This only touches the stable Deck row (no new version is created).
+        /// </summary>
+        public void SetFolder(IEnumerable<int> deckIds, int? folderId, int userId, int siteId)
+        {
+            var ids = deckIds.Distinct().ToArray();
+            if (ids.Length == 0) return;
+
+            using (var scope = _scopeProvider.CreateScope())
+            {
+                var sql = scope.SqlContext.Sql()
+                    .Append("UPDATE Deck SET FolderId = @0", folderId)
+                    .Where<DeckDBModel>(it => ids.Contains(it.Id) && it.CreatedBy == userId && it.SiteId == siteId);
+                scope.Database.Execute(sql);
+                scope.Complete();
+            }
+
+            foreach (var id in ids)
+            {
+                ClearCache(id);
+            }
+            ClearPagedCache();
+        }
+
+        /// <summary>
+        /// Returns the number of (non-deleted) decks the user has in each of their folders, keyed by FolderId.
+        /// </summary>
+        public Dictionary<int, int> GetFolderDeckCounts(int userId, int siteId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            var rows = scope.Database.Fetch<FolderDeckCountRow>(
+                "SELECT FolderId, COUNT(*) as 'Count' FROM Deck" +
+                " WHERE CreatedBy = @0 AND SiteId = @1 AND IsDeleted = 0 AND FolderId IS NOT NULL" +
+                " GROUP BY FolderId", userId, siteId);
+
+            return rows.ToDictionary(it => it.FolderId, it => it.Count);
+        }
+
+        private class FolderDeckCountRow
+        {
+            public int FolderId { get; set; }
+            public int Count { get; set; }
+        }
+
+        public IEnumerable<int> GetDeckIdsByFolder(int folderId, int userId, int siteId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            return scope.Database.Fetch<int>(scope.SqlContext.Sql()
+                .Select<DeckDBModel>(it => it.Id)
+                .From<DeckDBModel>()
+                .Where<DeckDBModel>(it => it.FolderId == folderId && it.CreatedBy == userId && it.SiteId == siteId));
+        }
+
         public void ClearCache(int id)
         {
             _publishedCachePolicy.ClearCache(id);
             _unpublishedCachePolicy.ClearCache(id);
+        }
+
+        public void ClearPagedCache()
+        {
+            _publishedCachePolicy.ClearPaged();
+            _unpublishedCachePolicy.ClearPaged();
         }
 
         public void ClearEntityCache(int id)
@@ -481,6 +559,7 @@ namespace SkytearHorde.Business.Repositories
                 IsLegal = deck.IsLegal,
                 Score = deck.Score,
                 TotalViews = deck.TotalViews,
+                FolderId = deck.FolderId,
                 Cards = [.. normalCards.Select(it => new DeckCard(it.CardId, it.GroupId, it.SlotId, it.Amount)
                 {
                     Children = [.. cardChildren.Where(c => c.ParentId == it.Id).Select(c => new DeckCardChild
@@ -505,7 +584,7 @@ namespace SkytearHorde.Business.Repositories
         private Sql<ISqlContext> BaseQuery(ISqlContext sqlContext, bool isPublished)
         {
             return sqlContext.Sql()
-                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.Source, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, d.TotalLikes as 'AmountOfLikes'")
+                .Select("d.Id, dv.Id as LatestVersionId, dv.Name, dv.Description, d.CreatedDate, dv.CreatedDate as UpdatedDate, d.CreatedBy, dv.Published, d.SiteId, d.DeckType, d.Source, d.IsDeleted, d.IsLegal, d.Score, d.TotalViews, d.TotalLikes as 'AmountOfLikes', d.FolderId")
                 .From<DeckDBModel>("d")
                 .LeftJoin<DeckVersionDBModel>("dv").On<DeckDBModel, DeckVersionDBModel>((left, right) => left.Id == right.DeckId && right.IsCurrent, "d", "dv");
         }

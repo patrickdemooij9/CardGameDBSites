@@ -9,20 +9,15 @@ import Button from "~/components/shared/Button.vue";
 import ButtonType from "~/components/shared/ButtonType";
 import CmsImage from "~/components/shared/CmsImage.vue";
 
-type CollectionSettingsResponse = {
-  allowSetCollecting: boolean;
-  allowCardCollecting: boolean;
-  showProgressBar: boolean;
-};
-
 const sets = await new SetService().getAllSets();
+const siteSettings = await useSite().getSettings();
 const setsProgress = ref<SetProgressApiModel[]>([]);
 const collectionSetIds = ref<number[]>([]);
-const collectionSettings = ref({
-  allowSetCollecting: false,
-  allowCardCollecting: true,
-  showProgressBar: true,
-});
+const collectionSettings = computed(() => ({
+  allowSetCollecting: siteSettings.collection?.allowSetCollecting ?? false,
+  allowCardCollecting: siteSettings.collection?.allowCardCollecting ?? false,
+  showProgressBar: siteSettings.collection?.showProgressBar ?? false,
+}));
 const processingSetIds = ref<number[]>([]);
 const isLoading = ref(true);
 const emit = defineEmits<{
@@ -89,9 +84,6 @@ async function updateSetCollection(setId: number) {
 
 onMounted(async () => {
   if (isLoggedIn) {
-    collectionSettings.value = await DoServerFetch<CollectionSettingsResponse>(
-      "/api/collection/settings"
-    );
     if (collectionSettings.value.allowSetCollecting) {
       collectionSetIds.value = await DoServerFetch<number[]>("/api/collection/sets");
     } else if (

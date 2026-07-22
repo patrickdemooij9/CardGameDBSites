@@ -1,4 +1,5 @@
 ﻿using CardGameDBSites.API.Models;
+using CardGameDBSites.API.Models.Collection;
 using CardGameDBSites.API.Models.Decks;
 using CardGameDBSites.API.Models.Requirements;
 using CardGameDBSites.API.Models.Settings;
@@ -45,6 +46,7 @@ namespace CardGameDBSites.API.Controllers
         {
             var settings = _settingsService.GetSiteSettings();
             var cardSettings = _settingsService.GetCardSettings();
+            var collectionSettings = _settingsService.GetCollectionSettings();
 
             var loginPageUrl = _siteService.GetRoot().FirstChild<Login>()?.Url(mode: UrlMode.Relative);
             var createDeckUrl = _siteService.GetRoot().FirstChild<CreateSquad>()?.Url(mode: UrlMode.Relative);
@@ -77,7 +79,13 @@ namespace CardGameDBSites.API.Controllers
                     Keyword = it.Keyword,
                     ImageUrl = it.Image ?? "#",
                 })],
-                CardOverviewIdentifier = settings.CardOverviewIdentifier
+                CardOverviewIdentifier = settings.CardOverviewIdentifier,
+                Collection = new CollectionSettingsApiModel
+                {
+                    AllowSetCollecting = collectionSettings.AllowSetCollecting,
+                    AllowCardCollecting = collectionSettings.AllowCardCollecting,
+                    ShowProgressBar = collectionSettings.ShowProgressBar
+                }
             });
         }
 

@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CardSectionApiModel } from './CardSectionApiModel';
+import type { CollectionSettingsApiModel } from './CollectionSettingsApiModel';
 import type { KeywordImageApiModel } from './KeywordImageApiModel';
 import type { LinkApiModel } from './LinkApiModel';
 import type { NavigationItemApiModel } from './NavigationItemApiModel';
@@ -24,5 +25,6 @@ export type SiteSettingsApiModel = {
     cardSections?: Array<CardSectionApiModel>;
     keywordImages?: Array<KeywordImageApiModel>;
     cardOverviewIdentifier?: string | null;
+    collection: CollectionSettingsApiModel;
 };
 

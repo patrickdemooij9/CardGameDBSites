@@ -1,4 +1,5 @@
-﻿using CardGameDBSites.API.Models.Settings;
+﻿using CardGameDBSites.API.Models.Collection;
+using CardGameDBSites.API.Models.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace CardGameDBSites.API.Models
         public CardSectionApiModel[] CardSections { get; set; }
         public KeywordImageApiModel[] KeywordImages { get; set; } = [];
         public string? CardOverviewIdentifier { get; set; }
+        public required CollectionSettingsApiModel Collection { get; set; }
 
         public SiteSettingsApiModel()
         {

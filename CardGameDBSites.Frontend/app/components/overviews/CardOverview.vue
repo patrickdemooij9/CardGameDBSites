@@ -62,7 +62,7 @@ const availableViews = computed(() => {
     views.push("rows");
   }
 
-  if (props.setId && isLoggedIn.value) {
+  if (props.setId && canCollectCards.value) {
     views.push("collection");
   }
 
@@ -114,6 +114,9 @@ const collectionColumns = computed<CollectionColumn[]>(() => [
 ]);
 const collectionSelectedCard = ref<CardDetailApiModel | null>(null);
 const isLoggedIn = ref(false);
+const canCollectCards = computed(
+  () => isLoggedIn.value && (siteSettings.collection?.allowCardCollecting ?? false),
+);
 const collectionStore = useCollectionStore();
 const updatingCollectionKeys = ref(new Set<string>());
 const collectionVariantBadgeBaseWidth = 16;
@@ -140,9 +143,9 @@ function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
 }
 
 watch(
-  [currentCards, isLoggedIn],
-  ([cards, loggedIn]) => {
-    if (!loggedIn || !cards?.items) {
+  [currentCards, canCollectCards],
+  ([cards, canCollect]) => {
+    if (!canCollect || !cards?.items) {
       return;
     }
     collectionService.loadCards(cards.items.map((c) => c.baseId!));
@@ -289,7 +292,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     <CardOverviewImageView
       v-if="viewMode === 'images'"
       :cards="cards.items ?? []"
-      :is-logged-in="isLoggedIn"
+      :show-collection="canCollectCards"
       :show-card-identifier="Boolean(siteSettings.cardOverviewIdentifier)"
       :get-card-identifier="getCardIdentifier"
       :get-main-variants="getMainVariants"
@@ -301,7 +304,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     />
 
     <CardOverviewCollectionView
-      v-else-if="viewMode === 'collection' && setId && isLoggedIn"
+      v-else-if="viewMode === 'collection' && setId && canCollectCards"
       :cards="cards.items ?? []"
       :columns="collectionColumns"
       :get-collection-cells="getCollectionCells"
@@ -313,7 +316,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
       v-else-if="viewMode === 'rows' && tableColumns && tableColumns.length > 0"
       :cards="cards.items ?? []"
       :table-columns="tableColumns"
-      :is-logged-in="isLoggedIn"
+      :show-collection="canCollectCards"
       :get-amount-for-set="collectionService.getAmountForSet"
       @open-collection="collectionSelectedCard = $event"
     />

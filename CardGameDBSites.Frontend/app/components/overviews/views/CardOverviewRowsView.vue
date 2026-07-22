@@ -12,7 +12,7 @@ type CardOverviewTableColumn = {
 defineProps<{
   cards: CardDetailApiModel[];
   tableColumns: CardOverviewTableColumn[];
-  isLoggedIn: boolean;
+  showCollection: boolean;
   getAmountForSet: (card: CardDetailApiModel) => number;
 }>();
 
@@ -34,7 +34,7 @@ const emit = defineEmits<{
           >
             {{ col.displayName }}
           </th>
-          <th v-if="isLoggedIn" class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10">Collection</th>
+          <th v-if="showCollection" class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10">Collection</th>
         </tr>
       </thead>
       <tbody>
@@ -59,7 +59,7 @@ const emit = defineEmits<{
           >
             {{ card.attributes?.[col.alias]?.join(", ") ?? "-" }}
           </td>
-          <td v-if="isLoggedIn" class="py-2 pr-4">
+          <td v-if="showCollection" class="py-2 pr-4">
             <div class="flex items-center gap-2">
               <span :aria-label="`${getAmountForSet(card)} copies`">
                 {{ getAmountForSet(card) }}

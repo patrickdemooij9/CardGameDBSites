@@ -7,7 +7,7 @@ import CmsImage from "~/components/shared/CmsImage.vue";
 
 const props = defineProps<{
   cards: CardDetailApiModel[];
-  isLoggedIn: boolean;
+  showCollection: boolean;
   showCardIdentifier: boolean;
   getCardIdentifier: (card: CardDetailApiModel) => string;
   getMainVariants: (card: CardDetailApiModel) => CardVariantTypeApiModel[];
@@ -53,7 +53,7 @@ const emit = defineEmits<{
           <p>$ {{ card.price.marketPrice }}</p>
         </a>
       </div>
-      <div v-if="isLoggedIn">
+      <div v-if="showCollection">
         <hr class="mt-2" />
         <div class="flex mt-2 gap-2 items-center justify-between">
           <p

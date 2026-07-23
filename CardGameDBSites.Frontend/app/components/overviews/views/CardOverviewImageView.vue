@@ -24,11 +24,12 @@ const emit = defineEmits<{
 
 <template>
   <div class="container px-4 md:px-8 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6">
-    <div class="relative" v-for="card in cards" :key="card.baseId">
+    <div class="relative min-h-80" v-for="(card, index) in cards" :key="card.baseId">
       <NuxtLink :href="card.urlSegment" class="no-underline">
         <CmsImage
           :src="card.imageUrl"
           :alt="card.displayName"
+          :loading="(index < 12 ? 'eager' : 'lazy')"
           sizes="50vw sm:25vw md:16vw"
           class="w-full object-cover"
         >

@@ -17,16 +17,23 @@ console.time("fetching content");
 const { data } = await useAsyncData('mainContentFetch-' + slug, () => DoFetch<ApiContentModel>("/umbraco/delivery/api/v2/content/item/" + slug));
 console.timeEnd("fetching content");
 
+if (!data.value) {
+    throw createError({
+    statusCode: 404,
+    statusMessage: "Resource Not Found",
+  });
+}
+
 const config = useRuntimeConfig();
 
 useHead({
-    title: data.value?.seoToolkit.title,
+    title: data.value.seoToolkit.title,
     meta: [
-        { name: 'description', content: data.value?.seoToolkit.metaDescription },
-        { property: 'og:title', content: data.value?.seoToolkit.openGraphTitle || data.value?.seoToolkit.title },
-        { property: 'og:description', content: data.value?.seoToolkit.metaDescription },
-        { property: 'og:image', content: data.value?.seoToolkit.openGraphImage },
-        { property: 'og:url', content: data.value?.seoToolkit.canonicalUrl }
+        { name: 'description', content: data.value.seoToolkit.metaDescription },
+        { property: 'og:title', content: data.value.seoToolkit.openGraphTitle || data.value?.seoToolkit.title },
+        { property: 'og:description', content: data.value.seoToolkit.metaDescription },
+        { property: 'og:image', content: data.value.seoToolkit.openGraphImage },
+        { property: 'og:url', content: data.value.seoToolkit.canonicalUrl }
     ],
     link: [
         { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` }
@@ -37,7 +44,7 @@ onMounted(() => {
     useAccountStore().checkLogin();
 });
 
-const componentName = data.value!.contentType;
+const componentName = data.value.contentType;
 const pageComponents: {[key: string]: Component} = {
     'cardOverview': defineAsyncComponent(() => import('~/components/pageTypes/CardOverviewPage.vue')),
     'contentPage': defineAsyncComponent(() => import('~/components/pageTypes/contentPage.vue')),

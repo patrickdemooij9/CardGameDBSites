@@ -30,6 +30,8 @@ namespace SkytearHorde.Business.EventHandlers
 
             if (string.IsNullOrWhiteSpace(notification.MetaTags.Title))
                 notification.MetaTags.Title = currentItem.Name;
+            if (!string.IsNullOrWhiteSpace(notification.MetaTags.OpenGraphImage))
+                notification.MetaTags.OpenGraphImage = notification.MetaTags.OpenGraphImage.Replace("api.", "");
 
             if (string.IsNullOrWhiteSpace(notification.MetaTags.MetaDescription) && currentItem.ContentType.Alias == "card")
             {

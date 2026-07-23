@@ -83,6 +83,15 @@ namespace SkytearHorde.Business.Services
             var cards = _cardRepository.Get([.. allChanges.Distinct().Select(it => it.VariantId!.Value)]).ToDictionary(it => it.VariantId, it => it);
             return allChanges.Where(it => cards.TryGetValue(it.VariantId!.Value, out var variant) && variant.VariantTypeId == variantTypeId).Take(count).ToList();
         }
+        public DateTime? GetLatestPriceDate() => _cardPriceRepository.GetLatestPriceDate();
+
+        public List<CardPriceChangeResult> GetTopWeeklyPriceChanges(int count, bool descending, int? variantTypeId = null)
+        {
+            var allChanges = _cardPriceRepository.GetWeeklyPriceChanges(descending);
+            var cards = _cardRepository.Get([.. allChanges.Distinct().Select(it => it.VariantId!.Value)]).ToDictionary(it => it.VariantId, it => it);
+            return allChanges.Where(it => cards.TryGetValue(it.VariantId!.Value, out var variant) && variant.VariantTypeId == variantTypeId).Take(count).ToList();
+        }
+
         public List<CardPrice> GetPriceHistory(int cardId, int? variantId)
         {
             return _cardPriceRepository.GetPriceHistory(cardId, variantId)

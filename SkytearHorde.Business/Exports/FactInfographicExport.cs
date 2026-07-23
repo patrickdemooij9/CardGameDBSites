@@ -16,7 +16,8 @@ namespace SkytearHorde.Business.Exports
     /// </summary>
     public class FactInfographicExport : InfographicRendererBase
     {
-        public FactInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment)
+        // 1080x1350 (4:5) so TikTok's bottom UI overlay doesn't clip the content.
+        public FactInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment, 1350)
         {
         }
 
@@ -35,15 +36,15 @@ namespace SkytearHorde.Business.Exports
         {
             using var image = NewCanvas();
             RenderBackground(image);
-            await RenderLogo(image, 150);
+            await RenderLogo(image, 110);
 
-            DrawCenteredText(image, "DID YOU KNOW?", SemiBold.CreateFont(40), Accent, 540, letterSpacing: 8f);
+            DrawCenteredText(image, "DID YOU KNOW?", SemiBold.CreateFont(40), Accent, 420, letterSpacing: 8f);
 
             // Hook sentence, auto-fit + wrapped, vertically centred-ish.
-            var hookFont = FitFont(data.Hook, ExtraBold, Width - Margin * 2, 720, startSize: 104, minSize: 46);
+            var hookFont = FitFont(data.Hook, ExtraBold, Width - Margin * 2, 500, startSize: 96, minSize: 44);
             var hookOptions = new RichTextOptions(hookFont)
             {
-                Origin = new Vector2(Width / 2f, 720),
+                Origin = new Vector2(Width / 2f, 540),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 TextAlignment = TextAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
@@ -52,7 +53,7 @@ namespace SkytearHorde.Business.Exports
             };
             image.Mutate(ctx => ctx.DrawText(hookOptions, data.Hook, TextColor));
 
-            RenderCtaPill(image, "Swipe to see", 1700);
+            RenderCtaPill(image, "Swipe to see", 1160);
             RenderFooter(image, data.FooterText);
 
             return await ToPng(image);
@@ -67,7 +68,7 @@ namespace SkytearHorde.Business.Exports
 
             if (!string.IsNullOrWhiteSpace(slide.Heading))
             {
-                DrawCenteredText(image, slide.Heading!, SemiBold.CreateFont(40), Accent, 140, letterSpacing: 6f);
+                DrawCenteredText(image, slide.Heading!, SemiBold.CreateFont(40), Accent, 110, letterSpacing: 6f);
             }
 
             if (slide.Kind == FactSlideKind.HeroCard)
@@ -86,18 +87,18 @@ namespace SkytearHorde.Business.Exports
         private async Task RenderHeroCard(Image<Rgba32> image, InfographicFactSlide slide)
         {
             // Hero card image, whole card fitted (uncropped), centred.
-            var cardBox = new Size(560, 784); // ~0.716 ratio
+            var cardBox = new Size(400, 560); // ~0.716 ratio
             var cardX = (Width - cardBox.Width) / 2;
-            const int cardY = 250;
+            const int cardY = 180;
             await RenderCardImage(image, slide.ImageUrl, new Point(cardX, cardY), cardBox, crop: false);
 
             // Card name
             if (!string.IsNullOrWhiteSpace(slide.Title))
             {
-                var nameFont = FitFont(slide.Title!, Bold, Width - Margin * 2, 150, startSize: 60, minSize: 34);
+                var nameFont = FitFont(slide.Title!, Bold, Width - Margin * 2, 96, startSize: 52, minSize: 30);
                 var nameOptions = new RichTextOptions(nameFont)
                 {
-                    Origin = new Vector2(Width / 2f, 1080),
+                    Origin = new Vector2(Width / 2f, 762),
                     HorizontalAlignment = HorizontalAlignment.Center,
                     TextAlignment = TextAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Top,
@@ -109,19 +110,19 @@ namespace SkytearHorde.Business.Exports
             // Big stat
             if (!string.IsNullOrWhiteSpace(slide.BigValue))
             {
-                DrawCenteredText(image, slide.BigValue!, ExtraBold.CreateFont(150), Accent, 1250);
+                DrawCenteredText(image, slide.BigValue!, ExtraBold.CreateFont(118), Accent, 905);
             }
             if (!string.IsNullOrWhiteSpace(slide.BigLabel))
             {
-                DrawCenteredText(image, slide.BigLabel!, Bold.CreateFont(52), TextColor, 1450, letterSpacing: 10f);
+                DrawCenteredText(image, slide.BigLabel!, Bold.CreateFont(44), TextColor, 1060, letterSpacing: 10f);
             }
 
             // Optional caption (e.g. the list of traits)
             if (!string.IsNullOrWhiteSpace(slide.Caption))
             {
-                var captionOptions = new RichTextOptions(Medium.CreateFont(36))
+                var captionOptions = new RichTextOptions(Medium.CreateFont(30))
                 {
-                    Origin = new Vector2(Width / 2f, 1560),
+                    Origin = new Vector2(Width / 2f, 1130),
                     HorizontalAlignment = HorizontalAlignment.Center,
                     TextAlignment = TextAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Top,
@@ -137,18 +138,18 @@ namespace SkytearHorde.Business.Exports
             // Big count
             if (!string.IsNullOrWhiteSpace(slide.BigValue))
             {
-                DrawCenteredText(image, slide.BigValue!, ExtraBold.CreateFont(160), Accent, 300);
+                DrawCenteredText(image, slide.BigValue!, ExtraBold.CreateFont(140), Accent, 230);
             }
             if (!string.IsNullOrWhiteSpace(slide.BigLabel))
             {
-                DrawCenteredText(image, slide.BigLabel!, Bold.CreateFont(52), TextColor, 500, letterSpacing: 8f);
+                DrawCenteredText(image, slide.BigLabel!, Bold.CreateFont(48), TextColor, 410, letterSpacing: 8f);
             }
 
             var items = slide.Items ?? [];
             if (items.Count == 0) return;
 
-            const int listTop = 640;
-            const int listBottom = 1770;
+            const int listTop = 550;
+            const int listBottom = 1240;
             var slot = (listBottom - listTop) / items.Count;
             var fontSize = Math.Clamp(slot * 0.5f, 34f, 64f);
 

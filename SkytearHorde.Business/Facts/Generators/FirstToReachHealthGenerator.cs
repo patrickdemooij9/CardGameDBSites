@@ -35,7 +35,7 @@ namespace SkytearHorde.Business.Facts.Generators
             return new GameFact
             {
                 Key = Key,
-                Hook = $"Did you know {first.DisplayName} was the first card to reach {threshold} health?",
+                Hook = $"Do you know which card was the first to reach {threshold} health?",
                 Slides =
                 [
                     new FactSlide

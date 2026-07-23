@@ -20,8 +20,10 @@ namespace SkytearHorde.Business.Exports
     public abstract class InfographicRendererBase
     {
         protected const int Width = 1080;
-        protected const int Height = 1920;
         protected const int Margin = 80;
+
+        /// <summary>Canvas height. Defaults to 1920 (9:16); a renderer can request e.g. 1350 (4:5) via the ctor.</summary>
+        protected readonly int Height;
 
         // Dark & dramatic palette
         protected static readonly Color BgTop = Color.ParseHex("#0B1020");
@@ -46,9 +48,10 @@ namespace SkytearHorde.Business.Exports
         protected readonly FontFamily SemiBold;
         protected readonly FontFamily Medium;
 
-        protected InfographicRendererBase(IWebHostEnvironment webHostEnvironment)
+        protected InfographicRendererBase(IWebHostEnvironment webHostEnvironment, int height = 1920)
         {
             _webHostEnvironment = webHostEnvironment;
+            Height = height;
 
             ExtraBold = LoadFont("Barlow-ExtraBold.ttf");
             Bold = LoadFont("Barlow-Bold.ttf");
@@ -64,7 +67,7 @@ namespace SkytearHorde.Business.Exports
 
         // ---- Canvas / layout ---------------------------------------------
 
-        protected static Image<Rgba32> NewCanvas() => new(Width, Height);
+        protected Image<Rgba32> NewCanvas() => new(Width, Height);
 
         protected void RenderBackground(Image<Rgba32> image)
         {

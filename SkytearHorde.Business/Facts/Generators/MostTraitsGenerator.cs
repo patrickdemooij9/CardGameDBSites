@@ -18,7 +18,7 @@ namespace SkytearHorde.Business.Facts.Generators
             return new GameFact
             {
                 Key = Key,
-                Hook = $"Did you know {top.card.DisplayName} has more traits than any other card, with {top.traits.Length}?",
+                Hook = "Do you know which card has the most traits in the game?",
                 Slides =
                 [
                     new FactSlide

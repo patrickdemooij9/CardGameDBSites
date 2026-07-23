@@ -19,7 +19,7 @@ namespace SkytearHorde.Business.Facts.Generators
             return new GameFact
             {
                 Key = Key,
-                Hook = $"Did you know {top.card.DisplayName} is the highest-power unit in the game, with {top.power} power?",
+                Hook = "Do you know which unit has the most power in the game?",
                 Slides =
                 [
                     new FactSlide

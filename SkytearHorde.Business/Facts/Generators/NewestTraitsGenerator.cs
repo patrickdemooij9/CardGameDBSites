@@ -33,7 +33,7 @@ namespace SkytearHorde.Business.Facts.Generators
             return new GameFact
             {
                 Key = Key,
-                Hook = $"Did you know {newTraits.Length} new traits were added in the {setLabel} set?",
+                Hook = $"Do you know how many new traits the {setLabel} set introduced?",
                 Slides =
                 [
                     new FactSlide

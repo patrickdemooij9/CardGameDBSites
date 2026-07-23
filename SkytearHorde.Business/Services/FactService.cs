@@ -13,21 +13,31 @@ namespace SkytearHorde.Business.Services
             _cardService = cardService;
         }
 
-        private FactContext BuildContext()
+        private FactContext BuildContext(string? setCode)
         {
-            var cards = _cardService.GetAll().ToArray();
-            var sets = _cardService.GetAllSets()
+            var allSets = _cardService.GetAllSets().ToArray();
+            var released = allSets
                 .Where(s => s.HasBeenReleased)
                 .OrderBy(s => s.SortOrder)
                 .ToArray();
 
-            return new FactContext { Cards = cards, ReleasedSetsOldToNew = sets };
+            IEnumerable<SkytearHorde.Entities.Models.Business.Card> cards = _cardService.GetAll();
+            if (!string.IsNullOrWhiteSpace(setCode))
+            {
+                // Filter to the requested set (no match => empty, so generators return nothing).
+                var set = allSets.FirstOrDefault(s => string.Equals(s.SetCode, setCode, StringComparison.OrdinalIgnoreCase));
+                var setId = set?.Id ?? -1;
+                cards = cards.Where(c => c.SetId == setId);
+            }
+
+            return new FactContext { Cards = cards.ToArray(), ReleasedSetsOldToNew = released };
         }
 
         /// <summary>Runs every automatic generator over a single shared context, dropping any that can't produce a fact.</summary>
-        public IReadOnlyList<GameFact> GetFacts()
+        /// <param name="setCode">Optional set code (e.g. "jtl") to scope the cards to; null uses all cards.</param>
+        public IReadOnlyList<GameFact> GetFacts(string? setCode = null)
         {
-            var context = BuildContext();
+            var context = BuildContext(setCode);
             return _generators
                 .Where(g => g.IsAutomatic)
                 .Select(g => TryGenerate(g, context, null))
@@ -36,10 +46,11 @@ namespace SkytearHorde.Business.Services
         }
 
         /// <summary>Runs a single named generator (used for on-demand / parameterized facts). Null if unknown or not produced.</summary>
-        public GameFact? GetFact(string key, IReadOnlyDictionary<string, string>? parameters)
+        /// <param name="setCode">Optional set code (e.g. "jtl") to scope the cards to; null uses all cards.</param>
+        public GameFact? GetFact(string key, IReadOnlyDictionary<string, string>? parameters, string? setCode = null)
         {
             var generator = _generators.FirstOrDefault(g => g.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
-            return generator is null ? null : TryGenerate(generator, BuildContext(), parameters);
+            return generator is null ? null : TryGenerate(generator, BuildContext(setCode), parameters);
         }
 
         private static GameFact? TryGenerate(IFactGenerator generator, FactContext context, IReadOnlyDictionary<string, string>? parameters)

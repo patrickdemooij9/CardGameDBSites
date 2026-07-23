@@ -18,37 +18,41 @@ namespace CardGameDBSites.API.Controllers
         private readonly SettingsService _settingsService;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly FactService _factService;
+        private readonly CardPriceService _cardPriceService;
 
         public InfographicsController(TournamentService tournamentService,
             CardService cardService,
             SettingsService settingsService,
             IWebHostEnvironment webHostEnvironment,
-            FactService factService)
+            FactService factService,
+            CardPriceService cardPriceService)
         {
             _tournamentService = tournamentService;
             _cardService = cardService;
             _settingsService = settingsService;
             _webHostEnvironment = webHostEnvironment;
             _factService = factService;
+            _cardPriceService = cardPriceService;
         }
 
         // ---- "Did you know?" facts ----------------------------------------
 
         [HttpGet("facts")]
-        public IActionResult GetFacts()
+        public IActionResult GetFacts([FromQuery] string? setCode = null)
         {
-            var result = _factService.GetFacts().Select(ToApiModel).ToArray();
+            var result = _factService.GetFacts(setCode).Select(ToApiModel).ToArray();
             return Ok(result);
         }
 
         [HttpGet("fact/{key}")]
-        public async Task<IActionResult> GetFactInfographic(string key, [FromQuery] int slide = 1)
+        public async Task<IActionResult> GetFactInfographic(string key, [FromQuery] int slide = 1, [FromQuery] string? setCode = null)
         {
             var parameters = Request.Query
-                .Where(q => !q.Key.Equals("slide", StringComparison.OrdinalIgnoreCase))
+                .Where(q => !q.Key.Equals("slide", StringComparison.OrdinalIgnoreCase)
+                         && !q.Key.Equals("setCode", StringComparison.OrdinalIgnoreCase))
                 .ToDictionary(q => q.Key, q => q.Value.ToString(), StringComparer.OrdinalIgnoreCase);
 
-            var fact = _factService.GetFact(key, parameters);
+            var fact = _factService.GetFact(key, parameters, setCode);
             if (fact is null) return NotFound();
 
             var data = MapFact(fact);
@@ -96,6 +100,56 @@ namespace CardGameDBSites.API.Controllers
                 items = s.Items
             })
         };
+
+        // ---- Weekly price trends ------------------------------------------
+
+        [HttpGet("price-trends")]
+        public async Task<IActionResult> GetPriceTrends([FromQuery] int slide = 1)
+        {
+            if (slide < 1 || slide > PriceTrendInfographicExport.SlideCount)
+                return BadRequest($"slide must be between 1 and {PriceTrendInfographicExport.SlideCount}");
+
+            if (!_settingsService.GetSiteSettings().AllowPricing)
+                return NotFound();
+
+            var end = (_cardPriceService.GetLatestPriceDate() ?? DateTime.UtcNow).Date;
+            var data = new PriceTrendInfographicData
+            {
+                DateRangeLabel = $"{end.AddDays(-7):MMM d} – {end:MMM d}",
+                Risers = BuildMovers(descending: true),
+                Fallers = BuildMovers(descending: false),
+                FooterText = GetFooterText()
+            };
+
+            var exporter = new PriceTrendInfographicExport(_webHostEnvironment);
+            var bytes = await exporter.Render(data, slide);
+            return File(bytes, "image/png");
+        }
+
+        private PriceTrendEntry[] BuildMovers(bool descending)
+        {
+            // Small buffer over the 5 we show, so the site filter below can still fill 5.
+            var changes = _cardPriceService.GetTopWeeklyPriceChanges(15, descending);
+            var cards = _cardService.Get(changes.Select(c => c.CardId).Distinct().ToArray())
+                .ToDictionary(c => c.BaseId);
+
+            return changes
+                .Where(c => cards.ContainsKey(c.CardId))
+                .Take(5)
+                .Select((c, index) =>
+                {
+                    var card = cards[c.CardId];
+                    return new PriceTrendEntry
+                    {
+                        Rank = index + 1,
+                        Name = card.DisplayName ?? "Unknown",
+                        ImageUrl = card.Image is null ? null : ImageCropHelper.ToApiModels(card.Image).Url,
+                        OldPrice = c.PreviousPrice,
+                        NewPrice = c.CurrentPrice
+                    };
+                })
+                .ToArray();
+        }
 
         [HttpGet("tournament/{id}")]
         public async Task<IActionResult> GetTournamentInfographic(int id, [FromQuery] int slide = 1)

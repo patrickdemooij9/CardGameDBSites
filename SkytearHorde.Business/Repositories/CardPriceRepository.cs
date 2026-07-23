@@ -136,6 +136,51 @@ namespace SkytearHorde.Business.Repositories
             return result;
         }
 
+        /// <summary>
+        /// Weekly movers: compares each variant's latest price to the most recent price recorded
+        /// on or before 7 days before the latest sync. Anchoring on the latest recorded date (rather
+        /// than "now") keeps it correct on Sunday when the sync is fresh and robust if the sync lags.
+        /// Ordered by absolute change (descending = risers, ascending = fallers).
+        /// </summary>
+        public List<CardPriceChangeResult> GetWeeklyPriceChanges(bool descending)
+        {
+            var cacheKey = $"uRepo_WeeklyPriceChanges_{descending}";
+            var cached = _cache.GetCacheItem<List<CardPriceChangeResult>>(cacheKey);
+            if (cached != null)
+                return cached;
+
+            using var scope = _scopeProvider.CreateScope();
+            var orderDirection = descending ? "DESC" : "ASC";
+            // Single window-function pass over the pre-cutoff rows, joined to the current (IsLatest)
+            // rows. Derived tables (not CTEs) keep NPoco happy and avoid a per-card correlated scan.
+            // TOP(@0) keeps the caller from having to resolve every changed card (only the movers).
+            var sql = $@"
+                SELECT l.CardId, l.VariantId, l.MainPrice AS CurrentPrice, w.PreviousPrice
+                FROM CardPriceRecord l
+                INNER JOIN (
+                    SELECT CardId, VariantId, MainPrice AS PreviousPrice
+                    FROM (
+                        SELECT CardId, VariantId, MainPrice,
+                               ROW_NUMBER() OVER (PARTITION BY CardId, VariantId ORDER BY DateUtc DESC, Id DESC) AS rn
+                        FROM CardPriceRecord
+                        WHERE DateUtc <= DATEADD(day, -7, (SELECT MAX(DateUtc) FROM CardPriceRecord))
+                    ) ranked
+                    WHERE ranked.rn = 1
+                ) w ON w.CardId = l.CardId AND w.VariantId = l.VariantId
+                WHERE l.IsLatest = 1 AND w.PreviousPrice > 0 AND l.MainPrice <> w.PreviousPrice
+                ORDER BY (l.MainPrice - w.PreviousPrice) {orderDirection}";
+            var result = scope.Database.Fetch<CardPriceChangeResult>(sql);
+            _cache.Insert(cacheKey, () => result, TimeSpan.FromHours(1));
+            return result;
+        }
+
+        /// <summary>The most recent price record date (the anchor for the weekly window). Null if there are no records.</summary>
+        public DateTime? GetLatestPriceDate()
+        {
+            using var scope = _scopeProvider.CreateScope();
+            return scope.Database.ExecuteScalar<DateTime?>("SELECT MAX(DateUtc) FROM CardPriceRecord");
+        }
+
         public List<CardPriceRecordDBModel> GetPriceHistory(int cardId, int? variantId)
         {
             using var scope = _scopeProvider.CreateScope();

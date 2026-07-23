@@ -30,7 +30,7 @@ namespace SkytearHorde.Entities.Generated
 
         public string[] GetValues()
         {
-            return Array.Empty<string>();
+            return (Items?.OfType<BlockListItem<HeaderTextItem>>() ?? []).Select(it => $"{it.Content.Header};{it.Content.Text}").ToArray();
         }
     }
 }

@@ -310,7 +310,7 @@
         },
         {
           "alias": "SWU Id",
-          "constant": "Todo"
+          "description": "Located on the bottom right to the right of the rarity. Indicated as [card number]/[total cards]. Only return the value indicated as [card number]."
         },
         {
           "alias": "TTS Id",
@@ -386,7 +386,7 @@
         },
         {
           "alias": "SWU Id",
-          "constant": "Todo"
+          "description": "Located on the bottom right to the right of the rarity. Indicated as [card number]/[total cards]. Only return the value indicated as [card number]."
         },
         {
           "alias": "TTS Id",
@@ -475,7 +475,7 @@
         },
         {
           "alias": "SWU Id",
-          "constant": "Todo"
+          "description": "Located on the bottom right to the right of the rarity. Indicated as [card number]/[total cards]. Only return the value indicated as [card number]."
         },
         {
           "alias": "TTS Id",
@@ -550,7 +550,7 @@
         },
         {
           "alias": "SWU Id",
-          "constant": "Todo"
+          "description": "Located on the bottom right to the right of the rarity. Indicated as [card number]/[total cards]. Only return the value indicated as [card number]."
         },
         {
           "alias": "TTS Id",
@@ -664,7 +664,7 @@
         },
         {
           "alias": "SWU Id",
-          "constant": "Todo"
+          "description": "Located on the bottom right to the right of the rarity. Indicated as [card number]/[total cards]. Only return the value indicated as [card number]."
         },
         {
           "alias": "TTS Id",

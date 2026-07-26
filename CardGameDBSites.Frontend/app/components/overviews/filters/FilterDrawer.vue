@@ -126,23 +126,3 @@ watch(
     </Transition>
   </Teleport>
 </template>
-
-<style scoped>
-.drawer-fade-enter-active,
-.drawer-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.drawer-fade-enter-from,
-.drawer-fade-leave-to {
-  opacity: 0;
-}
-
-.drawer-slide-enter-active,
-.drawer-slide-leave-active {
-  transition: transform 0.25s ease;
-}
-.drawer-slide-enter-from,
-.drawer-slide-leave-to {
-  transform: translateX(100%);
-}
-</style>

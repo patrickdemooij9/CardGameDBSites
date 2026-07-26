@@ -67,6 +67,7 @@ const resolvedUrl = computed<string | undefined>(() => {
     :src="resolvedUrl"
     :alt="alt"
     :loading="loading"
+    :preload="loading == 'eager' ? { fetchPriority: 'high' } : undefined"
     :sizes="sizes"
     :densities="sizes ? undefined : '1x'"
     format="webp"

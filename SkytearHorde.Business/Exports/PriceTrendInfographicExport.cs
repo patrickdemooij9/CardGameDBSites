@@ -20,7 +20,8 @@ namespace SkytearHorde.Business.Exports
         private static readonly Color UpColor = Color.ParseHex("#46D17F");
         private static readonly Color DownColor = Color.ParseHex("#FF5C5C");
 
-        public PriceTrendInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment)
+        // 1080x1350 (4:5) so TikTok's bottom UI overlay doesn't clip the content.
+        public PriceTrendInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment, 1350)
         {
         }
 
@@ -39,14 +40,14 @@ namespace SkytearHorde.Business.Exports
         {
             using var image = NewCanvas();
             RenderBackground(image);
-            await RenderLogo(image, 150);
+            await RenderLogo(image, 110);
 
-            DrawCenteredText(image, "WEEKLY PRICE WATCH", SemiBold.CreateFont(40), Accent, 560, letterSpacing: 8f);
+            DrawCenteredText(image, "WEEKLY PRICE WATCH", SemiBold.CreateFont(40), Accent, 420, letterSpacing: 8f);
 
-            var titleFont = FitFont("This week's biggest movers", ExtraBold, Width - Margin * 2, 480, startSize: 108, minSize: 60);
+            var titleFont = FitFont("This week's biggest movers", ExtraBold, Width - Margin * 2, 420, startSize: 96, minSize: 50);
             var titleOptions = new RichTextOptions(titleFont)
             {
-                Origin = new Vector2(Width / 2f, 720),
+                Origin = new Vector2(Width / 2f, 540),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 TextAlignment = TextAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
@@ -57,11 +58,11 @@ namespace SkytearHorde.Business.Exports
 
             if (!string.IsNullOrWhiteSpace(data.DateRangeLabel))
             {
-                DrawCenteredText(image, data.DateRangeLabel!, Medium.CreateFont(44), MutedColor, 1160);
+                DrawCenteredText(image, data.DateRangeLabel!, Medium.CreateFont(44), MutedColor, 1020);
             }
 
-            RenderCtaPill(image, "Swipe to see", 1700);
-            RenderFooter(image, data.FooterText);
+            RenderCtaPill(image, "Swipe to see", 1160);
+            //RenderFooter(image, data.FooterText);
 
             return await ToPng(image);
         }
@@ -74,8 +75,8 @@ namespace SkytearHorde.Business.Exports
             RenderBackground(image);
             RenderHeader(image, heading, data.DateRangeLabel, 66);
 
-            const int rowsTop = 400;
-            const int rowsBottom = 1780;
+            const int rowsTop = 380;
+            const int rowsBottom = 1240;
             var count = Math.Max(entries.Count, 1);
             var rowHeight = (rowsBottom - rowsTop) / count;
 
@@ -84,7 +85,7 @@ namespace SkytearHorde.Business.Exports
                 await RenderMoverRow(image, entries[i], rowsTop + i * rowHeight, rowHeight, rising);
             }
 
-            RenderFooter(image, data.FooterText);
+            //RenderFooter(image, data.FooterText);
             return await ToPng(image);
         }
 

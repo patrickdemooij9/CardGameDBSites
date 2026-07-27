@@ -1,32 +1,24 @@
-using Mscc.GenerativeAI;
-using Mscc.GenerativeAI.Types;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace SkytearHorde.Business.Extraction
 {
     public record ExtractedCard(string Label, string Base64);
 
     /// <summary>
-    /// Detects individual trading cards within a reveal image (e.g. a spoiler banner
-    /// with multiple cards), then crops and normalizes each one to a standard size.
+    /// Detects individual trading cards within an image (a single card or a multi-card reveal) using
+    /// deterministic OpenCV contour detection, then crops and normalizes each one.
     /// </summary>
     public class CardExtractor
     {
         public const int TargetWidth = 595;
         public const int TargetHeight = 828;
 
-        // Percentage to grow the detected bounding box on each side, giving the card breathing room.
-        private const double CropMarginPercent = 4.0;
-
-        private readonly string _detectionPrompt;
-
+        // The detection prompt is no longer used (detection is deterministic); the parameter is kept
+        // so existing call sites don't need to change.
         public CardExtractor(string detectionPrompt)
         {
-            _detectionPrompt = detectionPrompt;
         }
 
         /// <param name="resize">
@@ -34,88 +26,48 @@ namespace SkytearHorde.Business.Extraction
         /// <see cref="TargetHeight"/>. Set false to keep the cropped card at its natural size — used for
         /// back sides whose dimensions differ from the front.
         /// </param>
-        public async Task<List<ExtractedCard>> ExtractAsync(string apiKey, string imageBase64, string mimeType = "image/png", bool resize = true)
-        {
-            var detections = await DetectBoundingBoxesAsync(apiKey, imageBase64, mimeType);
-            if (detections.Count == 0) return [];
-
-            return CropAndNormalize(imageBase64, detections, resize);
-        }
-
-        private async Task<List<DetectedRegion>> DetectBoundingBoxesAsync(string apiKey, string imageBase64, string mimeType)
-        {
-            var googleAI = new GoogleAI(apiKey: apiKey);
-            var model = googleAI.GenerativeModel(model: Model.GeminiFlashLiteLatest);
-
-            var request = new GenerateContentRequest(_detectionPrompt);
-            request.GenerationConfig = new GenerationConfig { ResponseMimeType = "application/json" };
-            request.AddPart(new InlineData { Data = imageBase64, MimeType = mimeType });
-
-            var response = await model.GenerateContent(request);
-            if (string.IsNullOrWhiteSpace(response?.Text)) return [];
-
-            try
-            {
-                return JsonSerializer.Deserialize<List<DetectedRegion>>(response.Text) ?? [];
-            }
-            catch
-            {
-                return [];
-            }
-        }
-
-        private static List<ExtractedCard> CropAndNormalize(string imageBase64, List<DetectedRegion> detections, bool resize)
+        public Task<List<ExtractedCard>> ExtractAsync(string apiKey, string imageBase64, string mimeType = "image/png", bool resize = true)
         {
             var imageBytes = Convert.FromBase64String(imageBase64);
+            var rects = CardDetector.DetectCards(imageBytes);
+            return Task.FromResult(CropAndNormalize(imageBytes, rects, resize));
+        }
+
+        private static List<ExtractedCard> CropAndNormalize(byte[] imageBytes, List<(int X, int Y, int W, int H)> rects, bool resize)
+        {
             using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imageBytes);
 
+            // Fallback: if detection found nothing, treat the whole image as one card rather than dropping it.
+            if (rects.Count == 0)
+                rects = [(0, 0, image.Width, image.Height)];
+
             var results = new List<ExtractedCard>();
-            foreach (var detection in detections)
+            foreach (var (rx, ry, rw, rh) in rects)
             {
-                // Gemini returns [ymin, xmin, ymax, xmax] on a 0-1000 scale
-                int x = (int)(image.Width  * detection.Box[1] / 1000.0);
-                int y = (int)(image.Height * detection.Box[0] / 1000.0);
-                int w = (int)(image.Width  * (detection.Box[3] - detection.Box[1]) / 1000.0);
-                int h = (int)(image.Height * (detection.Box[2] - detection.Box[0]) / 1000.0);
+                var x = Math.Clamp(rx, 0, image.Width - 1);
+                var y = Math.Clamp(ry, 0, image.Height - 1);
+                var w = Math.Clamp(rw, 1, image.Width - x);
+                var h = Math.Clamp(rh, 1, image.Height - y);
 
-                // Expand the detected box by a small margin so tight detections don't clip the card edges.
-                int marginX = (int)(w * CropMarginPercent / 100.0);
-                int marginY = (int)(h * CropMarginPercent / 100.0);
-                x -= marginX;
-                y -= marginY;
-                w += marginX * 2;
-                h += marginY * 2;
-
-                x = Math.Clamp(x, 0, image.Width - 1);
-                y = Math.Clamp(y, 0, image.Height - 1);
-                w = Math.Clamp(w, 1, image.Width - x);
-                h = Math.Clamp(h, 1, image.Height - y);
-
-                // Crop to the detected card. When resizing, pad (letterbox) to the standard target size
-                // so the whole card fits without distortion; the leftover space is transparent (PNG alpha).
-                var cropped = image.Clone(ctx =>
+                using var cropped = image.Clone(ctx =>
                 {
                     ctx.Crop(new Rectangle(x, y, w, h));
+                    // Scale to fit within the target box preserving aspect ratio — no padding, so the
+                    // output never gets letterbox/whitespace bands. Backs (resize: false) keep natural size.
                     if (resize)
                         ctx.Resize(new ResizeOptions
                         {
                             Size = new Size(TargetWidth, TargetHeight),
-                            Mode = ResizeMode.Pad,
-                            PadColor = Color.Transparent
+                            Mode = ResizeMode.Max
                         });
                 });
 
                 using var stream = new MemoryStream();
                 cropped.SaveAsPng(stream);
-                results.Add(new ExtractedCard(detection.Label, Convert.ToBase64String(stream.ToArray())));
+                results.Add(new ExtractedCard("card", Convert.ToBase64String(stream.ToArray())));
             }
 
             return results;
         }
-
-        private record DetectedRegion(
-            [property: JsonPropertyName("label")] string Label,
-            [property: JsonPropertyName("box")]   int[]  Box
-        );
     }
 }

@@ -70,6 +70,7 @@ namespace SkytearHorde.Business.Services
             var promptsRoot = ResolveContentPath(_configuration["CardImport:PromptsPath"] ?? "prompts");
             var stagingDir = ResolveContentPath(_configuration["CardImport:StagingPath"] ?? "card-staging");
             Directory.CreateDirectory(stagingDir);
+            ConfigureDetectionDebug(stagingDir);
 
             // Step 1: Detect and normalize cards from the reveal image
             var gameConfig = LoadGameConfig(promptsRoot, "StarWarsUnlimited");
@@ -115,6 +116,7 @@ namespace SkytearHorde.Business.Services
             var promptsRoot = ResolveContentPath(_configuration["CardImport:PromptsPath"] ?? "prompts");
             var stagingDir = ResolveContentPath(_configuration["CardImport:StagingPath"] ?? "card-staging");
             Directory.CreateDirectory(stagingDir);
+            ConfigureDetectionDebug(stagingDir);
 
             var gameConfig = LoadGameConfig(promptsRoot, "StarWarsUnlimited");
             var extractor = new CardExtractor(gameConfig.CardDetectionPrompt);
@@ -449,6 +451,14 @@ namespace SkytearHorde.Business.Services
         {
             var promptsRoot = ResolveContentPath(_configuration["CardImport:PromptsPath"] ?? "prompts");
             return LoadGameConfig(promptsRoot, "StarWarsUnlimited");
+        }
+
+        // When CardImport:DebugDetection is true, card detection writes edge/contour debug images to a
+        // "detection-debug" folder next to the staging directory. Off by default.
+        private void ConfigureDetectionDebug(string stagingDir)
+        {
+            var enabled = bool.TryParse(_configuration["CardImport:DebugDetection"], out var d) && d;
+            CardDetector.DebugOutputDirectory = enabled ? Path.Combine(stagingDir, "detection-debug") : null;
         }
 
         private const string BackImageKey = "back_image_base64";

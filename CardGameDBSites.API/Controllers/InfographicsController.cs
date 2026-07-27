@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Exports;
+using SkytearHorde.Business.Facts;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Entities.Generated;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -227,6 +229,23 @@ namespace CardGameDBSites.API.Controllers
                     };
                 })
                 .ToArray();
+        }
+
+        [HttpGet("custom")]
+        public async Task<IActionResult> CustomInfographic([FromQuery]InfographicFactSlide slideData)
+        {
+            var exporter = new FactInfographicExport(_webHostEnvironment);
+            if (slideData.Kind == FactSlideKind.Hook)
+            {
+                var bytes = await exporter.RenderHookSlide(new FactInfographicData
+                {
+                    Hook = slideData.Title,
+                    Slides = []
+                });
+                return File(bytes, "image/png");
+            }
+            var bytes2 = await exporter.RenderFactSlide(slideData, null);
+            return File(bytes2, "image/png");
         }
 
         private string? GetFooterText()

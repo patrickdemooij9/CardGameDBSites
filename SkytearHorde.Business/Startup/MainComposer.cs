@@ -121,7 +121,8 @@ namespace SkytearHorde.Business.Startup
                 .AddScoped<IFactGenerator, HighestPowerUnitGenerator>()
                 .AddScoped<IFactGenerator, MostTraitsGenerator>()
                 .AddScoped<IFactGenerator, NewestTraitsGenerator>()
-                .AddScoped<IFactGenerator, FirstToReachHealthGenerator>();
+                .AddScoped<IFactGenerator, FirstToReachHealthGenerator>()
+                .AddScoped<IFactGenerator, MostCommonTraitGenerator>();
 
             builder.ContentFinders().Append<CardPageContentFinder>();
             builder.ContentFinders().Append<DeckContentFinder>();

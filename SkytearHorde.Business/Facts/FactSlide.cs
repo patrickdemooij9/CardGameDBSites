@@ -2,6 +2,7 @@ namespace SkytearHorde.Business.Facts
 {
     public enum FactSlideKind
     {
+        Hook,
         /// <summary>A single hero card image with a big stat.</summary>
         HeroCard,
         /// <summary>A titled list of string items (e.g. trait names).</summary>

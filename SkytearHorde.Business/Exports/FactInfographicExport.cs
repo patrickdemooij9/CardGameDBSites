@@ -7,6 +7,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Facts;
 using System.Numerics;
+using Umbraco.Extensions;
 
 namespace SkytearHorde.Business.Exports
 {
@@ -32,7 +33,7 @@ namespace SkytearHorde.Business.Exports
 
         // ---- Slide 1: Hook -------------------------------------------------
 
-        private async Task<byte[]> RenderHookSlide(FactInfographicData data)
+        public async Task<byte[]> RenderHookSlide(FactInfographicData data)
         {
             using var image = NewCanvas();
             RenderBackground(image);
@@ -54,14 +55,14 @@ namespace SkytearHorde.Business.Exports
             image.Mutate(ctx => ctx.DrawText(hookOptions, data.Hook, TextColor));
 
             RenderCtaPill(image, "Swipe to see", 1160);
-            RenderFooter(image, data.FooterText);
+            //RenderFooter(image, data.FooterText);
 
             return await ToPng(image);
         }
 
         // ---- Data slides ---------------------------------------------------
 
-        private async Task<byte[]> RenderFactSlide(InfographicFactSlide slide, string? footerText)
+        public async Task<byte[]> RenderFactSlide(InfographicFactSlide slide, string? footerText)
         {
             using var image = NewCanvas();
             RenderBackground(image);
@@ -80,7 +81,7 @@ namespace SkytearHorde.Business.Exports
                 RenderList(image, slide);
             }
 
-            RenderFooter(image, footerText);
+            //RenderFooter(image, footerText);
             return await ToPng(image);
         }
 
@@ -88,9 +89,20 @@ namespace SkytearHorde.Business.Exports
         {
             // Hero card image, whole card fitted (uncropped), centred.
             var cardBox = new Size(400, 560); // ~0.716 ratio
+            var secondCardBox = new Size(450, 320);
             var cardX = (Width - cardBox.Width) / 2;
+            var card2X = (Width - secondCardBox.Width) / 2;
             const int cardY = 180;
-            await RenderCardImage(image, slide.ImageUrl, new Point(cardX, cardY), cardBox, crop: false);
+
+            if (string.IsNullOrWhiteSpace(slide.SecondImageUrl))
+            {
+                await RenderCardImage(image, slide.ImageUrl, new Point(cardX, cardY), cardBox, crop: false);
+            }
+            else
+            {
+                await RenderCardImage(image, slide.ImageUrl, new Point(cardX - cardBox.Width / 2, cardY), cardBox, crop: false);
+                await RenderCardImage(image, slide.SecondImageUrl, new Point(cardX + secondCardBox.Width / 2, cardY), cardBox, crop: false);
+            }
 
             // Card name
             if (!string.IsNullOrWhiteSpace(slide.Title))
@@ -184,6 +196,7 @@ namespace SkytearHorde.Business.Exports
         public string? BigLabel { get; set; }
         public string? Caption { get; set; }
         public string? ImageUrl { get; set; }
+        public string? SecondImageUrl { get; set; }
         public IReadOnlyList<string>? Items { get; set; }
     }
 }

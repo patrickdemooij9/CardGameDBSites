@@ -94,7 +94,7 @@ namespace SkytearHorde.Business.Exports
             var card2X = (Width - secondCardBox.Width) / 2;
             const int cardY = 180;
 
-            if (string.IsNullOrWhiteSpace(slide.ImageUrl))
+            if (!string.IsNullOrWhiteSpace(slide.ImageUrl))
             {
                 if (string.IsNullOrWhiteSpace(slide.SecondImageUrl))
                 {

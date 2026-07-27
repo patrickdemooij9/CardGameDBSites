@@ -1,4 +1,6 @@
-﻿namespace SkytearHorde.Business.Facts.Generators
+﻿using Humanizer;
+
+namespace SkytearHorde.Business.Facts.Generators
 {
     public class MostCommonTraitGenerator : FactGeneratorBase
     {
@@ -26,6 +28,7 @@
                         Title = top3[0].Key,
                         BigValue = top3[0].Count().ToString(),
                         BigLabel = "TIMES IN THE GAME",
+                        ImageUrl = ImageRel(context.Cards.First(it => GetTraits(it).Contains(top3[0].Key)))
                     },
                     new FactSlide
                     {
@@ -34,6 +37,7 @@
                         Title = top3[1].Key,
                         BigValue = top3[1].Count().ToString(),
                         BigLabel = "TIMES IN THE GAME",
+                        ImageUrl = ImageRel(context.Cards.First(it => GetTraits(it).Contains(top3[1].Key)))
                     },
                     new FactSlide
                     {
@@ -42,6 +46,7 @@
                         Title = top3[2].Key,
                         BigValue = top3[2].Count().ToString(),
                         BigLabel = "TIMES IN THE GAME",
+                        ImageUrl = ImageRel(context.Cards.First(it => GetTraits(it).Contains(top3[2].Key)))
                     },
                 ]
             };

@@ -94,14 +94,17 @@ namespace SkytearHorde.Business.Exports
             var card2X = (Width - secondCardBox.Width) / 2;
             const int cardY = 180;
 
-            if (string.IsNullOrWhiteSpace(slide.SecondImageUrl))
+            if (string.IsNullOrWhiteSpace(slide.ImageUrl))
             {
-                await RenderCardImage(image, slide.ImageUrl, new Point(cardX, cardY), cardBox, crop: false);
-            }
-            else
-            {
-                await RenderCardImage(image, slide.ImageUrl, new Point(cardX - cardBox.Width / 2, cardY), cardBox, crop: false);
-                await RenderCardImage(image, slide.SecondImageUrl, new Point(cardX + secondCardBox.Width / 2, cardY), cardBox, crop: false);
+                if (string.IsNullOrWhiteSpace(slide.SecondImageUrl))
+                {
+                    await RenderCardImage(image, slide.ImageUrl, new Point(cardX, cardY), cardBox, crop: false);
+                }
+                else
+                {
+                    await RenderCardImage(image, slide.ImageUrl, new Point(cardX - cardBox.Width / 2, cardY), cardBox, crop: false);
+                    await RenderCardImage(image, slide.SecondImageUrl, new Point(cardX + secondCardBox.Width / 2, cardY), cardBox, crop: false);
+                }
             }
 
             // Card name

@@ -1,6 +1,6 @@
 {
-  "initialPrompt": "You are a bot able to read cards. I need you to read the attached card and provide me the type of card. You'll find it on the top and should be either Unit, Event, Upgrade, Base or Leader. Only return the type.",
-  "cardDetectionPrompt": "You are a precise object detector. The attached image is a Star Wars: Unlimited card reveal or spoiler image that may contain one or more individual trading cards, arranged side by side or in a grid. Detect every complete, individual trading card in the image. Return ONLY a JSON array with no markdown fences and no surrounding text. Each element must be an object with exactly two fields: \"label\", a short string naming the card (use the card's printed name if you can read it, otherwise \"card\"), and \"box\", an array of four integers [ymin, xmin, ymax, xmax] giving the card's bounding box normalized to a 0-1000 scale relative to the image's height (y) and width (x). Include only actual cards; ignore the background, logos, watermarks, decorative borders, and any card that is heavily cut off at the image edge. If the image contains a single card filling most of the frame, return that one card with a box covering it. If no cards are visible, return an empty array [].",
+  "initialPrompt": "You are a bot able to read cards. I need you to read the attached card and provide me the type of card. You'll find it on the top and should be either Unit, Event, Upgrade, Base or Leader Unit. Only return the type.",
+  "cardDetectionPrompt": "You are a precise object detector. The attached image is a Star Wars: Unlimited card reveal or spoiler image that may contain one or more individual trading cards, arranged side by side or in a grid. Detect every complete, individual trading card in the image. Return ONLY a JSON array with no markdown fences and no surrounding text. Each element must be an object with exactly two fields: \"label\", a short string naming the card (use the card's printed name if you can read it, otherwise \"card\"), and \"box\", an array of four integers [ymin, xmin, ymax, xmax] giving the card's bounding box normalized to a 0-1000 scale relative to the image's height (y) and width (x). Include only actual cards; ignore the background, logos, watermarks, decorative borders, shadows, and any card that is heavily cut off at the image edge. If the image contains a single card filling most of the frame, return that one card with a box covering it. If no cards are visible, return an empty array [].",
   "presets": [
     {
       "name": "Organized play",
@@ -559,7 +559,7 @@
       ]
     },
     {
-      "type": "Leader",
+      "type": "Leader Unit",
       "isDoubleSided": true,
       "promptFile": "BasePrompt.txt",
       "backSidePromptFile": "BasePrompt.txt",
@@ -572,8 +572,7 @@
         },
         {
           "alias": "Card Type",
-          "description": "Top, should be Leader",
-          "toTitleCase": true
+          "constant": "Leader"
         },
         {
           "alias": "Name",

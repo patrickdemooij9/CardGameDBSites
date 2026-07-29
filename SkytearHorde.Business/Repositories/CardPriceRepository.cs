@@ -203,15 +203,25 @@ namespace SkytearHorde.Business.Repositories
             return scope.Database.First<int>("select count(*) from (select distinct CardId, VariantId from CardPriceRecord group by CardId, VariantId) c");
         }
 
+        // SQL Server caps a single statement at 2100 parameters, and each id becomes one
+        // parameter in the generated IN clause. Batch the ids so large collections don't blow it.
+        private const int MaxIdsPerQuery = 2000;
+
         private List<CardPriceRecordDBModel> GetRecords(int[] ids)
         {
-            using var scope = _scopeProvider.CreateScope();
             if (ids.Length == 0) return [];
-            return [.. scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql()
-                .SelectAll()
-                .From<CardPriceRecordDBModel>()
-                .Where<CardPriceRecordDBModel>(it => ids.Contains(it.CardId) && it.IsLatest)
-            )];
+
+            using var scope = _scopeProvider.CreateScope();
+            var result = new List<CardPriceRecordDBModel>();
+            foreach (var batch in ids.Chunk(MaxIdsPerQuery))
+            {
+                result.AddRange(scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql()
+                    .SelectAll()
+                    .From<CardPriceRecordDBModel>()
+                    .Where<CardPriceRecordDBModel>(it => batch.Contains(it.CardId) && it.IsLatest)
+                ));
+            }
+            return result;
         }
     }
 }

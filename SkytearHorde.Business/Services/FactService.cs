@@ -22,15 +22,16 @@ namespace SkytearHorde.Business.Services
                 .ToArray();
 
             IEnumerable<SkytearHorde.Entities.Models.Business.Card> cards = _cardService.GetAll();
+            SkytearHorde.Entities.Generated.Set? scopedSet = null;
             if (!string.IsNullOrWhiteSpace(setCode))
             {
                 // Filter to the requested set (no match => empty, so generators return nothing).
-                var set = allSets.FirstOrDefault(s => string.Equals(s.SetCode, setCode, StringComparison.OrdinalIgnoreCase));
-                var setId = set?.Id ?? -1;
+                scopedSet = allSets.FirstOrDefault(s => string.Equals(s.SetCode, setCode, StringComparison.OrdinalIgnoreCase));
+                var setId = scopedSet?.Id ?? -1;
                 cards = cards.Where(c => c.SetId == setId);
             }
 
-            return new FactContext { Cards = cards.ToArray(), ReleasedSetsOldToNew = released };
+            return new FactContext { Cards = cards.ToArray(), ReleasedSetsOldToNew = released, Set = scopedSet };
         }
 
         /// <summary>Runs every automatic generator over a single shared context, dropping any that can't produce a fact.</summary>

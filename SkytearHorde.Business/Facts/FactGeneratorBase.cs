@@ -27,5 +27,21 @@ namespace SkytearHorde.Business.Facts
 
         protected static string? ImageRel(Card card)
             => card.Image?.Url(mode: UrlMode.Relative);
+
+        /// <summary>
+        /// The scope the fact covers, phrased for a hook sentence: "the game" when unscoped,
+        /// or e.g. "the LOF set" when the facts are limited to a single set. Lets a hook read
+        /// naturally in both cases ("… the most traits in {ScopeLabel}?").
+        /// </summary>
+        protected static string ScopeLabel(FactContext context)
+        {
+            var set = context.Set;
+            if (set is null) return "the game";
+            var code = string.IsNullOrWhiteSpace(set.SetCode) ? set.DisplayName : set.SetCode.ToUpperInvariant();
+            return $"the {code} set";
+        }
+
+        protected static string Money(double value)
+            => "$" + value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
     }
 }

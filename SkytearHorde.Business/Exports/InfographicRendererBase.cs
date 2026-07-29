@@ -13,7 +13,7 @@ using File = System.IO.File;
 namespace SkytearHorde.Business.Exports
 {
     /// <summary>
-    /// Shared drawing primitives for the 1080x1920 dark/dramatic infographic carousels
+    /// Shared drawing primitives for the 1080x1350 dark/dramatic infographic carousels
     /// (background, logo, footer, headers, CTA, bars, card images, text helpers).
     /// Concrete renderers (tournament, facts) subclass this and add slide methods.
     /// </summary>
@@ -22,7 +22,7 @@ namespace SkytearHorde.Business.Exports
         protected const int Width = 1080;
         protected const int Margin = 80;
 
-        /// <summary>Canvas height. Defaults to 1920 (9:16); a renderer can request e.g. 1350 (4:5) via the ctor.</summary>
+        /// <summary>Canvas height. Defaults to 1350 (4:5, TikTok-safe); a renderer can request another size via the ctor.</summary>
         protected readonly int Height;
 
         // Dark & dramatic palette
@@ -48,7 +48,7 @@ namespace SkytearHorde.Business.Exports
         protected readonly FontFamily SemiBold;
         protected readonly FontFamily Medium;
 
-        protected InfographicRendererBase(IWebHostEnvironment webHostEnvironment, int height = 1920)
+        protected InfographicRendererBase(IWebHostEnvironment webHostEnvironment, int height = 1350)
         {
             _webHostEnvironment = webHostEnvironment;
             Height = height;

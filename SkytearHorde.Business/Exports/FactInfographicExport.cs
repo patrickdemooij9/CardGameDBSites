@@ -12,13 +12,13 @@ using Umbraco.Extensions;
 namespace SkytearHorde.Business.Exports
 {
     /// <summary>
-    /// Renders "Did you know?" fact carousels (1080x1920) in the same style as the tournament ones.
+    /// Renders "Did you know?" fact carousels (1080x1350) in the same style as the tournament ones.
     /// Slide 1 is the hook; the remaining slides render each <see cref="InfographicFactSlide"/>.
     /// </summary>
     public class FactInfographicExport : InfographicRendererBase
     {
-        // 1080x1350 (4:5) so TikTok's bottom UI overlay doesn't clip the content.
-        public FactInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment, 1350)
+        // 1080x1350 (4:5, the shared default) so TikTok's bottom UI overlay doesn't clip the content.
+        public FactInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment)
         {
         }
 

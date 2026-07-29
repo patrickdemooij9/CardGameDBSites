@@ -11,7 +11,7 @@ using Image = SixLabors.ImageSharp.Image;
 namespace SkytearHorde.Business.Exports
 {
     /// <summary>
-    /// Renders shareable tournament infographic slides (1080x1920, TikTok carousel format).
+    /// Renders shareable tournament infographic slides (1080x1350, TikTok carousel format).
     /// Shared drawing primitives live in <see cref="InfographicRendererBase"/>.
     /// </summary>
     public class TournamentInfographicExport : InfographicRendererBase
@@ -36,14 +36,14 @@ namespace SkytearHorde.Business.Exports
         {
             using var image = NewCanvas();
             RenderBackground(image);
-            await RenderLogo(image, 150);
+            await RenderLogo(image, 110);
 
-            DrawCenteredText(image, "TOURNAMENT RESULTS", SemiBold.CreateFont(38), Accent, 520, letterSpacing: 8f);
+            DrawCenteredText(image, "TOURNAMENT RESULTS", SemiBold.CreateFont(38), Accent, 360, letterSpacing: 8f);
 
-            var nameFont = FitFont(data.TournamentName, ExtraBold, Width - Margin * 2, 620, startSize: 120, minSize: 54);
+            var nameFont = FitFont(data.TournamentName, ExtraBold, Width - Margin * 2, 260, startSize: 100, minSize: 46);
             var nameOptions = new RichTextOptions(nameFont)
             {
-                Origin = new Vector2(Width / 2f, 620),
+                Origin = new Vector2(Width / 2f, 450),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 TextAlignment = TextAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Top,
@@ -52,14 +52,14 @@ namespace SkytearHorde.Business.Exports
             };
             image.Mutate(ctx => ctx.DrawText(nameOptions, data.TournamentName, TextColor));
 
-            image.Mutate(ctx => ctx.Fill(Accent, new RectangularPolygon(Width / 2f - 60, 1180, 120, 6)));
+            image.Mutate(ctx => ctx.Fill(Accent, new RectangularPolygon(Width / 2f - 60, 780, 120, 6)));
 
-            DrawCenteredText(image, data.PlayerCount.ToString(), ExtraBold.CreateFont(150), Accent, 1240);
-            DrawCenteredText(image, "PLAYERS", Bold.CreateFont(52), TextColor, 1420, letterSpacing: 10f);
-            DrawCenteredText(image, data.DateUtc.ToString("MMMM d, yyyy"), Medium.CreateFont(44), MutedColor, 1510);
+            DrawCenteredText(image, data.PlayerCount.ToString(), ExtraBold.CreateFont(130), Accent, 815);
+            DrawCenteredText(image, "PLAYERS", Bold.CreateFont(48), TextColor, 980, letterSpacing: 10f);
+            DrawCenteredText(image, data.DateUtc.ToString("MMMM d, yyyy"), Medium.CreateFont(42), MutedColor, 1055);
 
-            RenderCtaPill(image, "Swipe to see what won", 1690);
-            RenderFooter(image, data.FooterText);
+            RenderCtaPill(image, "Swipe to see what won", 1175);
+            //RenderFooter(image, data.FooterText);
 
             return await ToPng(image);
         }
@@ -74,9 +74,9 @@ namespace SkytearHorde.Business.Exports
 
             var entries = data.Entries.OrderBy(e => e.Placement).Take(8).ToArray();
 
-            const int rowsTop = 380;
-            const int rowsBottom = 1780;
-            const int winnerHeight = 320;
+            const int rowsTop = 360;
+            const int rowsBottom = 1240;
+            const int winnerHeight = 240;
             var restRowHeight = entries.Length > 1 ? (rowsBottom - rowsTop - winnerHeight) / (entries.Length - 1) : 0;
 
             for (var i = 0; i < entries.Length; i++)
@@ -88,7 +88,7 @@ namespace SkytearHorde.Business.Exports
                 await RenderTop8Row(image, entry, rowY, rowHeight, isWinner);
             }
 
-            RenderFooter(image, data.FooterText);
+            //RenderFooter(image, data.FooterText);
             return await ToPng(image);
         }
 
@@ -110,11 +110,11 @@ namespace SkytearHorde.Business.Exports
                 3 => Bronze,
                 _ => ChipColor
             };
-            var badgeRadius = isWinner ? 62f : 46f;
+            var badgeRadius = isWinner ? 46f : 32f;
             var badgeX = Margin + badgeRadius;
             var badgeTextColor = entry.Placement <= 3 ? Ink : TextColor;
             image.Mutate(ctx => ctx.Fill(badgeColor, new EllipsePolygon(badgeX, centerY, badgeRadius)));
-            var badgeOptions = new RichTextOptions(ExtraBold.CreateFont(isWinner ? 62f : 48f))
+            var badgeOptions = new RichTextOptions(ExtraBold.CreateFont(isWinner ? 46f : 32f))
             {
                 Origin = new Vector2(badgeX, centerY),
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -122,8 +122,8 @@ namespace SkytearHorde.Business.Exports
             };
             image.Mutate(ctx => ctx.DrawText(badgeOptions, entry.Placement.ToString(), badgeTextColor));
 
-            var thumbW = isWinner ? 160 : 116;
-            var thumbH = isWinner ? 224 : 162;
+            var thumbW = isWinner ? 130 : 62;
+            var thumbH = isWinner ? 182 : 86;
             var thumbX = (int)(badgeX + badgeRadius + 40);
             var thumbY = (int)(centerY - thumbH / 2f);
             await RenderCardImage(image, entry.ChampionImageUrl, new Point(thumbX, thumbY), new Size(thumbW, thumbH), crop: true);
@@ -133,15 +133,15 @@ namespace SkytearHorde.Business.Exports
 
             if (isWinner)
             {
-                var kickerOptions = new RichTextOptions(Bold.CreateFont(34))
+                var kickerOptions = new RichTextOptions(Bold.CreateFont(30))
                 {
-                    Origin = new Vector2(textX, centerY - 78),
+                    Origin = new Vector2(textX, centerY - 70),
                     HorizontalAlignment = HorizontalAlignment.Left,
                     VerticalAlignment = VerticalAlignment.Center
                 };
                 image.Mutate(ctx => ctx.DrawText(kickerOptions, "WINNER", Gold));
 
-                var champOptions = new RichTextOptions(ExtraBold.CreateFont(64))
+                var champOptions = new RichTextOptions(ExtraBold.CreateFont(46))
                 {
                     Origin = new Vector2(textX, centerY - 6),
                     HorizontalAlignment = HorizontalAlignment.Left,
@@ -150,9 +150,9 @@ namespace SkytearHorde.Business.Exports
                 };
                 image.Mutate(ctx => ctx.DrawText(champOptions, championName, TextColor));
 
-                var playerOptions = new RichTextOptions(Medium.CreateFont(40))
+                var playerOptions = new RichTextOptions(Medium.CreateFont(32))
                 {
-                    Origin = new Vector2(textX, centerY + 66),
+                    Origin = new Vector2(textX, centerY + 58),
                     HorizontalAlignment = HorizontalAlignment.Left,
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -160,18 +160,18 @@ namespace SkytearHorde.Business.Exports
                 return;
             }
 
-            var normalChampOptions = new RichTextOptions(Bold.CreateFont(50))
+            var normalChampOptions = new RichTextOptions(Bold.CreateFont(38))
             {
-                Origin = new Vector2(textX, centerY - 30),
+                Origin = new Vector2(textX, centerY - 22),
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
                 WrappingLength = Width - textX - Margin
             };
             image.Mutate(ctx => ctx.DrawText(normalChampOptions, championName, TextColor));
 
-            var normalPlayerOptions = new RichTextOptions(Medium.CreateFont(34))
+            var normalPlayerOptions = new RichTextOptions(Medium.CreateFont(26))
             {
-                Origin = new Vector2(textX, centerY + 32),
+                Origin = new Vector2(textX, centerY + 24),
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -192,8 +192,8 @@ namespace SkytearHorde.Business.Exports
             var aspects = data.Aspects ?? [];
             if (aspects.Count > 0)
             {
-                const int barsTop = 440;
-                const int barsBottom = 1770;
+                const int barsTop = 380;
+                const int barsBottom = 1240;
                 var slot = (barsBottom - barsTop) / aspects.Count;
                 var trackWidth = Width - Margin * 2;
 
@@ -228,7 +228,7 @@ namespace SkytearHorde.Business.Exports
                 }
             }
 
-            RenderFooter(image, data.FooterText);
+            //RenderFooter(image, data.FooterText);
             return await ToPng(image);
         }
 
@@ -245,8 +245,8 @@ namespace SkytearHorde.Business.Exports
             const int cols = 3;
             const int rows = 3;
             const int gap = 34;
-            const int gridTop = 420;
-            const int gridBottom = 1770;
+            const int gridTop = 360;
+            const int gridBottom = 1240;
             const float cardRatio = 0.716f; // width / height
 
             var areaWidth = Width - Margin * 2;
@@ -275,7 +275,7 @@ namespace SkytearHorde.Business.Exports
                 image.Mutate(ctx => ctx.DrawText(pctOptions, $"{card.Percentage}%", Accent));
             }
 
-            RenderFooter(image, data.FooterText);
+            //RenderFooter(image, data.FooterText);
             return await ToPng(image);
         }
     }

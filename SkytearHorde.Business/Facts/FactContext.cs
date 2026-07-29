@@ -11,5 +11,8 @@ namespace SkytearHorde.Business.Facts
     {
         public required IReadOnlyList<Card> Cards { get; init; }
         public required IReadOnlyList<Set> ReleasedSetsOldToNew { get; init; }
+
+        /// <summary>The set the facts are scoped to, or null when they cover the whole game.</summary>
+        public Set? Set { get; init; }
     }
 }

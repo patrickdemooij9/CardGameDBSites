@@ -15,10 +15,12 @@ namespace SkytearHorde.Business.Facts.Generators
                 .Take(3)
                 .ToArray();
 
+            var timesLabel = $"TIMES IN {ScopeLabel(context).ToUpperInvariant()}";
+
             return new GameFact
             {
                 Key = Key,
-                Hook = "Do you know which trait is the most common in the game?",
+                Hook = $"Do you know which trait is the most common in {ScopeLabel(context)}?",
                 Slides =
                 [
                     new FactSlide
@@ -27,7 +29,7 @@ namespace SkytearHorde.Business.Facts.Generators
                         Heading = "MOST COMMON TRAIT",
                         Title = top3[0].Key,
                         BigValue = top3[0].Count().ToString(),
-                        BigLabel = "TIMES IN THE GAME",
+                        BigLabel = timesLabel,
                         ImageUrl = ImageRel(context.Cards.First(it => GetTraits(it).Contains(top3[0].Key)))
                     },
                     new FactSlide
@@ -36,7 +38,7 @@ namespace SkytearHorde.Business.Facts.Generators
                         Heading = "SECOND MOST COMMON",
                         Title = top3[1].Key,
                         BigValue = top3[1].Count().ToString(),
-                        BigLabel = "TIMES IN THE GAME",
+                        BigLabel = timesLabel,
                         ImageUrl = ImageRel(context.Cards.First(it => GetTraits(it).Contains(top3[1].Key)))
                     },
                     new FactSlide
@@ -45,7 +47,7 @@ namespace SkytearHorde.Business.Facts.Generators
                         Heading = "THIRD MOST COMMON TRAIT",
                         Title = top3[2].Key,
                         BigValue = top3[2].Count().ToString(),
-                        BigLabel = "TIMES IN THE GAME",
+                        BigLabel = timesLabel,
                         ImageUrl = ImageRel(context.Cards.First(it => GetTraits(it).Contains(top3[2].Key)))
                     },
                 ]

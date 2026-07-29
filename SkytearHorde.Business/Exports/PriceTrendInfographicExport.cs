@@ -12,7 +12,7 @@ using Image = SixLabors.ImageSharp.Image;
 namespace SkytearHorde.Business.Exports
 {
     /// <summary>
-    /// Renders the weekly price-trend carousel (1080x1920): a hook, then the top rising
+    /// Renders the weekly price-trend carousel (1080x1350): a hook, then the top rising
     /// and top dropping cards of the week.
     /// </summary>
     public class PriceTrendInfographicExport : InfographicRendererBase
@@ -20,8 +20,8 @@ namespace SkytearHorde.Business.Exports
         private static readonly Color UpColor = Color.ParseHex("#46D17F");
         private static readonly Color DownColor = Color.ParseHex("#FF5C5C");
 
-        // 1080x1350 (4:5) so TikTok's bottom UI overlay doesn't clip the content.
-        public PriceTrendInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment, 1350)
+        // 1080x1350 (4:5, the shared default) so TikTok's bottom UI overlay doesn't clip the content.
+        public PriceTrendInfographicExport(IWebHostEnvironment webHostEnvironment) : base(webHostEnvironment)
         {
         }
 

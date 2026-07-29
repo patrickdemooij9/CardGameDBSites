@@ -22,7 +22,8 @@ namespace SkytearHorde.Business.Facts.Generators
             var prices = _cardPriceService.GetPrices([.. context.Cards]);
 
             var top = context.Cards
-                .Select(card => (card, price: prices.TryGetValue(card.VariantId, out var p) ? p.MainPrice : 0))
+                .SelectMany(card => card.VariantReferences.Where(r => r.VariantTypeId is null).Select(r => (card, r)))
+                .Select(cardVariant => (cardVariant.card, price: prices.TryGetValue(cardVariant.r.CardVariantId, out var p) ? p.MainPrice : 0))
                 .Where(x => x.price > 0)
                 .OrderByDescending(x => x.price)
                 .ThenBy(x => x.card.DisplayName)
@@ -33,7 +34,7 @@ namespace SkytearHorde.Business.Facts.Generators
             return new GameFact
             {
                 Key = Key,
-                Hook = $"Do you know which card is the most expensive in {ScopeLabel(context)}?",
+                Hook = $"Do you know which base card is the most expensive in {ScopeLabel(context)}?",
                 Slides =
                 [
                     new FactSlide

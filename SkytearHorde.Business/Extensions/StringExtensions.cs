@@ -18,7 +18,8 @@
                 .Replace("“", "")
                 .Replace("”", "")
                 .Replace("…", "")
-                .Replace("0", "O");
+                .Replace("0", "O")
+                .Replace("’", "");
         }
     }
 }

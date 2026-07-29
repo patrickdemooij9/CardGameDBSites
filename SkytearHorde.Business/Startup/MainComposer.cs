@@ -88,6 +88,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<DailyCardGameSessionRepository>();
             builder.Services.AddSingleton<DailyCardGameGuessRepository>();
             builder.Services.AddSingleton<TournamentRepository>();
+            builder.Services.AddSingleton<TournamentImportQueueRepository>();
             builder.Services.AddSingleton<PeriodRepository>();
             builder.Services.AddSingleton<CardImportQueueRepository>();
 
@@ -122,7 +123,9 @@ namespace SkytearHorde.Business.Startup
                 .AddScoped<IFactGenerator, MostTraitsGenerator>()
                 .AddScoped<IFactGenerator, NewestTraitsGenerator>()
                 .AddScoped<IFactGenerator, FirstToReachHealthGenerator>()
-                .AddScoped<IFactGenerator, MostCommonTraitGenerator>();
+                .AddScoped<IFactGenerator, MostCommonTraitGenerator>()
+                .AddScoped<IFactGenerator, MostExpensiveCardGenerator>()
+                .AddScoped<IFactGenerator, LeastExpensiveCardGenerator>();
 
             builder.ContentFinders().Append<CardPageContentFinder>();
             builder.ContentFinders().Append<DeckContentFinder>();
@@ -147,6 +150,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddHostedService<RedditBotTask>();
             builder.Services.AddHostedService<DeckViewCleanupTask>();
             builder.Services.AddHostedService<CardImportQueueCleanupTask>();
+            builder.Services.AddHostedService<TournamentImportQueueTask>();
 
             builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();
 

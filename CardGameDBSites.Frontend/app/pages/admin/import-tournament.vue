@@ -42,10 +42,10 @@ async function importTournament() {
           missingCards.value = response.missingCards;
         }
       } else {
-        successMessage.value = response.message || "Tournament imported successfully.";
+        successMessage.value = response.message || "Tournament import queued. It will be processed shortly.";
       }
     } else {
-      successMessage.value = "Tournament imported successfully.";
+      successMessage.value = "Tournament import queued. It will be processed shortly.";
     }
   } catch (error) {
     errorMessage.value = "Failed to import tournament. Please check the details and try again.";

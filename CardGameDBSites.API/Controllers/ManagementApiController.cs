@@ -134,9 +134,9 @@ namespace CardGameDBSites.API.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ImportTournamentResult), 200)]
         [ProducesResponseType(typeof(ImportTournamentResult), 400)]
-        public async Task<IActionResult> ImportTournament(ImportTournament model)
+        public IActionResult ImportTournament(ImportTournament model)
         {
-            var result = await _tournamentService.ImportTournament(model);
+            var result = _tournamentService.QueueImport(model);
             if (!result.Success)
             {
                 return BadRequest(result);

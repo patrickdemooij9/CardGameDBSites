@@ -47,6 +47,14 @@ namespace SkytearHorde.Business.Repositories
             return tournamentDBModel != null ? Map(tournamentDBModel) : null;
         }
 
+        public bool Exists(int siteId, string source, string externalId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM Tournaments WHERE SiteId = @0 AND Source = @1 AND ExternalId = @2",
+                siteId, source, externalId) > 0;
+        }
+
         private TournamentDBModel Map(Tournament tournament)
         {
             return new TournamentDBModel

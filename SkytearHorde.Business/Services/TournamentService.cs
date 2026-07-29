@@ -13,6 +13,7 @@ namespace SkytearHorde.Business.Services
     public class TournamentService
     {
         private readonly TournamentRepository _tournamentRepository;
+        private readonly TournamentImportQueueRepository _importQueueRepository;
         private readonly PeriodRepository _periodRepository;
         private readonly ITournamentConnector[] _tournamentConnectors;
         private readonly CardService _cardService;
@@ -20,15 +21,48 @@ namespace SkytearHorde.Business.Services
         private readonly ISiteAccessor _siteAccessor;
         private readonly SettingsService _settingsService;
 
-        public TournamentService(TournamentRepository tournamentRepository, PeriodRepository periodRepository, IEnumerable<ITournamentConnector> tournamentConnectors, CardService cardService, DeckRepository deckRepository, ISiteAccessor siteAccessor, SettingsService settingsService)
+        public TournamentService(TournamentRepository tournamentRepository, TournamentImportQueueRepository importQueueRepository, PeriodRepository periodRepository, IEnumerable<ITournamentConnector> tournamentConnectors, CardService cardService, DeckRepository deckRepository, ISiteAccessor siteAccessor, SettingsService settingsService)
         {
             _tournamentRepository = tournamentRepository;
+            _importQueueRepository = importQueueRepository;
             _periodRepository = periodRepository;
             _tournamentConnectors = tournamentConnectors.ToArray();
             _cardService = cardService;
             _deckRepository = deckRepository;
             _siteAccessor = siteAccessor;
             _settingsService = settingsService;
+        }
+
+        /// <summary>
+        /// Validates and enqueues a tournament import for background processing. Returns immediately
+        /// (no external calls); the actual import is performed later by <see cref="Business.BackgroundRunners.TournamentImportQueueTask"/>.
+        /// Blocks re-imports of a tournament that is already imported or already queued.
+        /// </summary>
+        public ImportTournamentResult QueueImport(ImportTournament model)
+        {
+            var connector = _tournamentConnectors.FirstOrDefault(c => c.Source == model.Source);
+            if (connector is null) return new ImportTournamentResult { Success = false, Message = "Tournament connector not found" };
+
+            var siteId = _siteAccessor.GetSiteId();
+
+            if (_tournamentRepository.Exists(siteId, model.Source, model.ExternalId))
+                return new ImportTournamentResult { Success = false, Message = "Tournament has already been imported." };
+
+            if (_importQueueRepository.ExistsPending(siteId, model.Source, model.ExternalId))
+                return new ImportTournamentResult { Success = false, Message = "Tournament import is already queued." };
+
+            _importQueueRepository.Insert(new Entities.Models.Database.Tournament.TournamentImportQueueDBModel
+            {
+                SiteId = siteId,
+                FormatId = model.FormatId,
+                Type = model.Type,
+                Source = model.Source,
+                ExternalId = model.ExternalId,
+                Status = Entities.Models.Database.Tournament.TournamentImportQueueStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            return new ImportTournamentResult { Success = true, Message = "Tournament import queued. It will be processed shortly." };
         }
 
         public IEnumerable<Tournament> GetRecent(int periodId, int count = 6) =>

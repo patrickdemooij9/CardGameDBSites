@@ -1,3 +1,4 @@
+using CardGameDBSites.API.Helpers;
 using CardGameDBSites.API.Models.Tournaments;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,12 @@ namespace CardGameDBSites.API.Controllers
     public class TournamentApiController : Controller
     {
         private readonly TournamentService _tournamentService;
+        private readonly CardService _cardService;
 
-        public TournamentApiController(TournamentService tournamentService)
+        public TournamentApiController(TournamentService tournamentService, CardService cardService)
         {
             _tournamentService = tournamentService;
+            _cardService = cardService;
         }
 
         [HttpGet("periods")]
@@ -108,15 +111,36 @@ namespace CardGameDBSites.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("meta/leader-usage")]
+        [ProducesResponseType(typeof(MetaLeaderUsageApiModel[]), 200)]
+        public IActionResult GetLeaderUsage([FromQuery] int tournamentId, [FromQuery] int take = 5, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
+        {
+            var result = _tournamentService.GetLeaderUsage(tournamentId, take, leaderGroupId, leaderSlotId)
+                .Select(l => new MetaLeaderUsageApiModel
+                {
+                    LeaderName = l.LeaderName,
+                    Count = l.Count
+                })
+                .ToArray();
+
+            return Ok(result);
+        }
+
         [HttpGet("meta/popular-cards")]
         [ProducesResponseType(typeof(MetaPopularCardApiModel[]), 200)]
         public IActionResult GetPopularCards([FromQuery] int periodId, [FromQuery] int take = 8, [FromQuery] int leaderGroupId = 1, [FromQuery] int leaderSlotId = 0)
         {
             var result = _tournamentService.GetPopularCards(periodId, take, leaderGroupId, leaderSlotId)
-                .Select(c => new MetaPopularCardApiModel
+                .Select(c =>
                 {
-                    CardName = c.CardName,
-                    Percentage = c.Percentage
+                    var card = _cardService.Get(c.CardId);
+                    return new MetaPopularCardApiModel
+                    {
+                        CardId = c.CardId,
+                        CardName = c.CardName,
+                        Percentage = c.Percentage,
+                        ImageUrl = card?.Image is null ? null : ImageCropHelper.ToApiModels(card.Image, "icon")
+                    };
                 })
                 .ToArray();
 

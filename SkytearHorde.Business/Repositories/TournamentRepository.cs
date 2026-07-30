@@ -415,6 +415,21 @@ namespace SkytearHorde.Business.Repositories
 
         // Per-tournament aggregations (whole field) for the infographic slides.
 
+        public IEnumerable<MetaLeaderUsageRow> GetLeaderUsage(int tournamentId, int leaderGroupId, int leaderSlotId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<MetaLeaderUsageRow>(
+                "SELECT lc.CardId AS LeaderCardId, COUNT(*) AS UsageCount " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @1 AND lc.SlotId = @2 " +
+                "WHERE te.TournamentId = @0 " +
+                "GROUP BY lc.CardId " +
+                "ORDER BY UsageCount DESC",
+                tournamentId, leaderGroupId, leaderSlotId);
+        }
+
         public IEnumerable<TournamentDeckLeaderRow> GetDeckLeaderAndBaseCards(int tournamentId, int leaderGroupId = 1, int leaderSlotId = 0, int baseSlotId = 1)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
@@ -479,6 +494,12 @@ namespace SkytearHorde.Business.Repositories
         public int LeaderCardId { get; set; }
         public int Wins { get; set; }
         public int Top8Count { get; set; }
+    }
+
+    public class MetaLeaderUsageRow
+    {
+        public int LeaderCardId { get; set; }
+        public int UsageCount { get; set; }
     }
 
     public class MetaPopularCardRow

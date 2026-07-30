@@ -170,6 +170,22 @@ namespace SkytearHorde.Business.Services
                 .ToArray();
         }
 
+        public IEnumerable<MetaLeaderUsage> GetLeaderUsage(int tournamentId, int take, int leaderGroupId, int leaderSlotId)
+        {
+            var rows = _tournamentRepository.GetLeaderUsage(tournamentId, leaderGroupId, leaderSlotId).ToArray();
+            var names = ResolveCardNames(rows.Select(r => r.LeaderCardId));
+
+            return rows
+                .Select(r => new MetaLeaderUsage
+                {
+                    LeaderName = names.GetValueOrDefault(r.LeaderCardId) ?? "Unknown",
+                    Count = r.UsageCount
+                })
+                .Where(it => it.LeaderName != "Unknown")
+                .Take(take)
+                .ToArray();
+        }
+
         public IEnumerable<MetaPopularCard> GetPopularCards(int periodId, int take, int leaderGroupId, int leaderSlotId)
         {
             var siteId = _siteAccessor.GetSiteId();
@@ -183,6 +199,7 @@ namespace SkytearHorde.Business.Services
 
             return rows.Select(r => new MetaPopularCard
             {
+                CardId = r.CardId,
                 CardName = names.GetValueOrDefault(r.CardId) ?? "Unknown",
                 Percentage = (int)Math.Round((double)r.DeckCount / totalWinningDecks * 100)
             }).ToArray();

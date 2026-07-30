@@ -7,10 +7,12 @@ import type {
 import TournamentService, {
   type MetaWinningDeckApiModel,
   type MetaLeaderApiModel,
+  type MetaLeaderUsageApiModel,
   type MetaPopularCardApiModel,
   type PeriodApiModel,
 } from "~/services/TournamentService";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
+import CmsImage from "~/components/shared/CmsImage.vue";
 
 // ── Leader configuration ─────────────────────────────────────────────────────
 // A deck's leader is the card in this group/slot. This differs per game type;
@@ -24,7 +26,7 @@ const service = new TournamentService();
 const periods = ref<PeriodApiModel[]>([]);
 const selectedPeriodId = ref<number | undefined>(undefined);
 const recentTournaments = ref<TournamentSummaryApiModel[]>([]);
-const featuredTop8Leaders = ref<MetaLeaderApiModel[]>([]);
+const featuredLeaderUsage = ref<MetaLeaderUsageApiModel[]>([]);
 const recentWinnersData = ref<MetaWinningDeckApiModel[]>([]);
 const topLeadersData = ref<MetaLeaderApiModel[]>([]);
 const popularCardsData = ref<MetaPopularCardApiModel[]>([]);
@@ -33,9 +35,9 @@ async function loadMetaData(periodId: number) {
   try {
     recentTournaments.value = await service.getRecent(periodId, 6);
     const firstId = recentTournaments.value[0]?.id;
-    featuredTop8Leaders.value =
+    featuredLeaderUsage.value =
       recentTournaments.value.length > 0 && firstId != null
-        ? await service.getTopLeaders(periodId, 5, LEADER_GROUP_ID, LEADER_SLOT_ID, firstId)
+        ? await service.getLeaderUsage(firstId, 5, LEADER_GROUP_ID, LEADER_SLOT_ID)
         : [];
 
     [recentWinnersData.value, topLeadersData.value, popularCardsData.value] =
@@ -77,18 +79,19 @@ const featuredTournamentData = hasTournaments
   ? recentTournaments.value[0]
   : null;
 
-// Top-8 distribution grouped by deck name for the bar chart
-const top8Distribution = computed(() => {
-  const source = hasTournaments ? featuredTop8Leaders.value : [];
-  const grouped: Record<string, number> = {};
-  for (const e of source) {
-    const key = e.leaderName ?? "Unknown";
-    grouped[key] = (grouped[key] ?? 0) + 1;
-  }
-  return Object.entries(grouped)
-    .map(([leader, count]) => ({ leader, count }))
+// The 5 most-used leaders across the featured tournament's whole field, with
+// how many entrants played each. The API already returns them ordered by usage
+// descending, but we sort defensively so the bar chart stays consistent.
+const mostUsedLeaders = computed(() => {
+  const source = hasTournaments ? featuredLeaderUsage.value : [];
+  return source
+    .map((e) => ({ leader: e.leaderName ?? "Unknown", count: e.count }))
     .sort((a, b) => b.count - a.count);
 });
+
+const maxLeaderUsage = computed(() =>
+  Math.max(1, ...mostUsedLeaders.value.map((e) => e.count)),
+);
 
 const displayedTournaments = computed(() =>
   hasTournaments ? recentTournaments.value : [],
@@ -131,6 +134,7 @@ const popularCards = computed(() => {
   return popularCardsData.value.map((c) => ({
     name: c.cardName,
     percentage: c.percentage,
+    imageUrl: c.imageUrl,
   }));
 });
 </script>
@@ -213,16 +217,16 @@ const popularCards = computed(() => {
               </a>
             </div>
           </div>
-          <!-- Top 8 Distribution -->
+          <!-- Most Used Leaders -->
           <div>
             <p
               class="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-3"
             >
-              Top 8 Leaders
+              Top 5 Most Used Leaders
             </p>
             <div class="space-y-2">
               <div
-                v-for="entry in top8Distribution"
+                v-for="entry in mostUsedLeaders"
                 :key="entry.leader"
                 class="flex items-center gap-3"
               >
@@ -234,7 +238,7 @@ const popularCards = computed(() => {
                 >
                   <div
                     class="h-4 bg-yellow-400 rounded-full"
-                    :style="`width: ${(entry.count / 8) * 100}%`"
+                    :style="`width: ${(entry.count / maxLeaderUsage) * 100}%`"
                   ></div>
                 </div>
                 <span class="text-sm text-gray-500 w-4">{{ entry.count }}</span>
@@ -368,11 +372,21 @@ const popularCards = computed(() => {
             :key="card.name"
             class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
           >
-            <div
-              class="bg-gray-100 h-28 flex items-center justify-center text-gray-400 text-xs font-medium"
+            <CmsImage
+              :src="card.imageUrl"
+              :alt="card.name"
+              crop="icon"
+              loading="lazy"
+              class="bg-gray-100 w-full h-28 object-cover object-top"
             >
-              Card Image
-            </div>
+              <template #fallback>
+                <div
+                  class="bg-gray-100 h-28 flex items-center justify-center text-gray-400 text-xs font-medium text-center px-2"
+                >
+                  {{ card.name }}
+                </div>
+              </template>
+            </CmsImage>
             <div class="p-3">
               <div class="font-semibold text-sm leading-tight mb-1">
                 {{ card.name }}

@@ -1,3 +1,5 @@
+using CardGameDBSites.API.Models;
+
 namespace CardGameDBSites.API.Models.Tournaments
 {
     public class MetaWinningDeckApiModel
@@ -19,9 +21,17 @@ namespace CardGameDBSites.API.Models.Tournaments
         public int Top8Count { get; set; }
     }
 
+    public class MetaLeaderUsageApiModel
+    {
+        public string LeaderName { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
     public class MetaPopularCardApiModel
     {
+        public int CardId { get; set; }
         public string CardName { get; set; } = string.Empty;
         public int Percentage { get; set; }
+        public ImageCropsApiModel? ImageUrl { get; set; }
     }
 }

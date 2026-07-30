@@ -20,13 +20,13 @@ namespace CardGameDBSites.API.Helpers
 
         public static ImageCropsApiModel ToApiModels(MediaWithCrops mediaItem, params string[] crops)
         {
-            var result = new ImageCropsApiModel { Url = $"https://api.aidalon-db.com" + mediaItem.Url(mode: UrlMode.Relative) };
+            var result = new ImageCropsApiModel { Url = mediaItem.Url(mode: UrlMode.Absolute) };
             foreach (var crop in crops)
             {
                 result.Crops.Add(new ImageCropApiModel
                 {
                     CropAlias = crop,
-                    Url = $"https://api.aidalon-db.com" + mediaItem.GetCropUrl(crop, UrlMode.Relative)!
+                    Url = mediaItem.GetCropUrl(crop, UrlMode.Absolute)!
                 });
             }
             return result;

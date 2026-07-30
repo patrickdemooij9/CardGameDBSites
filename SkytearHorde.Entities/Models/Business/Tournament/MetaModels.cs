@@ -26,10 +26,20 @@ namespace SkytearHorde.Entities.Models.Business.Tournament
     }
 
     /// <summary>
+    /// How many entrants in a single tournament's field used a given leader.
+    /// </summary>
+    public class MetaLeaderUsage
+    {
+        public string LeaderName { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
+    /// <summary>
     /// A card and the percentage of winning decks it appears in.
     /// </summary>
     public class MetaPopularCard
     {
+        public int CardId { get; set; }
         public string CardName { get; set; } = string.Empty;
         public int Percentage { get; set; }
     }

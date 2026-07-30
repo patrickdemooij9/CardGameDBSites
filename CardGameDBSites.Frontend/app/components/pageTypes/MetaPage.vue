@@ -370,35 +370,28 @@ const popularCards = computed(() => {
           <div
             v-for="card in popularCards"
             :key="card.name"
-            class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+            class="flex flex-col"
           >
             <CmsImage
               :src="card.imageUrl"
               :alt="card.name"
-              crop="icon"
               loading="lazy"
-              class="bg-gray-100 w-full h-28 object-cover object-top"
+              class="w-full rounded-lg object-cover"
             >
               <template #fallback>
                 <div
-                  class="bg-gray-100 h-28 flex items-center justify-center text-gray-400 text-xs font-medium text-center px-2"
+                  class="aspect-[2/3] rounded-lg flex items-center justify-center bg-gray-100 text-gray-400 text-xs font-medium text-center px-2"
                 >
                   {{ card.name }}
                 </div>
               </template>
             </CmsImage>
-            <div class="p-3">
-              <div class="font-semibold text-sm leading-tight mb-1">
+            <div class="pt-2">
+              <div class="font-semibold text-sm leading-tight">
                 {{ card.name }}
               </div>
-              <div class="text-xs text-gray-500 mb-2">
+              <div class="text-xs text-gray-500 mt-0.5">
                 {{ card.percentage }}% of winning decks
-              </div>
-              <div class="bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                <div
-                  class="h-1.5 bg-green-500 rounded-full"
-                  :style="`width: ${card.percentage}%`"
-                ></div>
               </div>
             </div>
           </div>

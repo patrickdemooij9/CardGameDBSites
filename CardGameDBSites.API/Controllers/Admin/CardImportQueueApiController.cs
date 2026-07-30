@@ -90,7 +90,7 @@ namespace CardGameDBSites.API.Controllers.Admin
                     if (string.IsNullOrWhiteSpace(variantName)) return BadRequest("A variant has no name.");
 
                     var attributes = props
-                        .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                        .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(kv.Value))
                         .ToDictionary(kv => kv.Key, kv => kv.Value);
 
                     // Only attach the back image to variants whose preset declares back_image_base64.
@@ -126,7 +126,7 @@ namespace CardGameDBSites.API.Controllers.Admin
                 name = $"{name}, {subname}";
 
             var properties = withTemplates
-                .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(kv.Value))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
             var (imageId, backImageId) = CreateMediaForItem(item, name);

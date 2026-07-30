@@ -36,7 +36,8 @@ namespace SkytearHorde.Business.Services
         /// <summary>
         /// Validates and enqueues a tournament import for background processing. Returns immediately
         /// (no external calls); the actual import is performed later by <see cref="Business.BackgroundRunners.TournamentImportQueueTask"/>.
-        /// Blocks re-imports of a tournament that is already imported or already queued.
+        /// A tournament that was already imported is re-synced (its data is replaced) rather than blocked;
+        /// only an import that is already queued/processing is rejected, to avoid double-processing.
         /// </summary>
         public ImportTournamentResult QueueImport(ImportTournament model)
         {
@@ -44,9 +45,6 @@ namespace SkytearHorde.Business.Services
             if (connector is null) return new ImportTournamentResult { Success = false, Message = "Tournament connector not found" };
 
             var siteId = _siteAccessor.GetSiteId();
-
-            if (_tournamentRepository.Exists(siteId, model.Source, model.ExternalId))
-                return new ImportTournamentResult { Success = false, Message = "Tournament has already been imported." };
 
             if (_importQueueRepository.ExistsPending(siteId, model.Source, model.ExternalId))
                 return new ImportTournamentResult { Success = false, Message = "Tournament import is already queued." };
@@ -244,7 +242,23 @@ namespace SkytearHorde.Business.Services
             var matchingPeriod = _periodRepository.FindMatchingPeriod(tournament.SiteId, tournament.FormatId, tournament.DateUtc);
             tournament.PeriodId = matchingPeriod?.Id;
 
-            // Save tournament only after validation passes
+            var existing = _tournamentRepository.GetBySourceAndExternalId(tournament.SiteId, tournament.Source, tournament.ExternalId);
+            var existingEntrantsByExternalId = new Dictionary<string, TournamentEntrant>();
+            if (existing is not null)
+            {
+                tournament.Id = existing.Id;
+
+                foreach (var oldEntrant in _tournamentRepository.GetEntrantsByTournamentId(existing.Id))
+                {
+                    if (!string.IsNullOrWhiteSpace(oldEntrant.ExternalId))
+                        existingEntrantsByExternalId[oldEntrant.ExternalId] = oldEntrant;
+                }
+
+                // Rounds and matches are regenerated, so clear the old ones first.
+                _tournamentRepository.DeleteRoundsAndMatches(existing.Id);
+            }
+
+            // Save tournament only after validation passes (insert when new, update when re-importing)
             _tournamentRepository.Save(tournament);
 
             foreach (var round in otherData.RoundsByExternalId.Values)
@@ -253,26 +267,51 @@ namespace SkytearHorde.Business.Services
                 _tournamentRepository.Save(round);
             }
 
-            // Create and save decks before entrants, so we can attach deck IDs
             var deckIdsByEntrantExternalId = new Dictionary<int, int>();
             foreach (var kvp in decks)
             {
                 var entrantExternalId = kvp.Key;
                 var deck = kvp.Value;
 
+                if (existingEntrantsByExternalId.TryGetValue(entrantExternalId.ToString(), out var existingWithDeck)
+                    && existingWithDeck.TournamentDeckId is > 0)
+                {
+                    deck.Id = existingWithDeck.TournamentDeckId.Value;
+                    // Only write a new version when the decklist actually changed.
+                    var currentDeck = _deckRepository.Get(DeckStatus.Published, deck.Id).FirstOrDefault();
+                    if (!deck.HasSameCards(currentDeck))
+                        _deckRepository.Update(deck);
+                    deckIdsByEntrantExternalId[entrantExternalId] = deck.Id;
+                    continue;
+                }
+
                 _deckRepository.Create(deck);
                 deckIdsByEntrantExternalId[entrantExternalId] = deck.Id;
             }
 
-            // Attach deck IDs to entrants before saving
+            // Upsert entrants: update the existing row (matched by external id) in place, or insert a new one.
+            // Every entrant is saved — including players without a decklist — so that matches can safely
+            // reference them (matches carry a FK to the entrant). Their deck is simply left null.
             foreach (var kvp in otherData.EntrantsByExternalId)
             {
                 var entrantExternalId = kvp.Key;
                 var entrant = kvp.Value;
 
+                existingEntrantsByExternalId.TryGetValue(entrantExternalId.ToString(), out var existingEntrant);
+                if (existingEntrant is not null)
+                    entrant.Id = existingEntrant.Id; // preserve the entrant row (and any match references to it)
+
                 if (deckIdsByEntrantExternalId.TryGetValue(entrantExternalId, out var deckId))
                 {
                     entrant.TournamentDeckId = deckId;
+                }
+                else if (existingEntrant is not null)
+                {
+                    entrant.TournamentDeckId = existingEntrant.TournamentDeckId; // keep whatever deck it had (may be null)
+                }
+                else
+                {
+                    entrant.TournamentDeckId = null; // brand-new entrant without a decklist
                 }
 
                 entrant.TournamentId = tournament.Id;
@@ -300,7 +339,7 @@ namespace SkytearHorde.Business.Services
                 _tournamentRepository.Save(match);
             }
 
-            return new ImportTournamentResult { Success = true, Message = "Tournament imported successfully" };
+            return new ImportTournamentResult { Success = true, Message = existing is not null ? "Tournament updated successfully" : "Tournament imported successfully" };
         }
 
         private Dictionary<int, Deck> CreateDecksFromData(SquadSettings deckSettings, TournamentConnectorData data, out List<string> missingCards)

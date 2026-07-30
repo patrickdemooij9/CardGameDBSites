@@ -59,7 +59,17 @@ namespace SkytearHorde.Business.Tournaments
             var data = new TournamentConnectorData();
             var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            var lastRoundStandings = await GetRoundStandings(_matchesIds.Last());
+            Dictionary<int, MeleeRoundStanding> standings = [];
+            _matchesIds.Reverse();
+            foreach (var matchId in _matchesIds)
+            {
+                standings = await GetRoundStandings(matchId);
+                if (standings.Count > 0) break;
+            }
+            if (standings.Count == 0)
+            {
+                throw new ApplicationException($"Could not find standings for tournament {tournament.Id}");
+            }
 
             foreach (var matchId in _matchesIds)
             {
@@ -114,7 +124,7 @@ namespace SkytearHorde.Business.Tournaments
 
                         if (!data.EntrantsByExternalId.TryGetValue(player.ID, out var entrant))
                         {
-                            var standing = lastRoundStandings.TryGetValue(player.ID, out var roundStanding) ? roundStanding : null;
+                            var standing = standings.TryGetValue(player.ID, out var roundStanding) ? roundStanding : null;
 
                             entrant = new TournamentEntrant
                             {
@@ -206,32 +216,48 @@ namespace SkytearHorde.Business.Tournaments
 
         private async Task<Dictionary<int, MeleeRoundStanding>> GetRoundStandings(string roundId)
         {
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            const int pageLength = 500;
+
+            var standings = new Dictionary<int, MeleeRoundStanding>();
+            var start = 0;
+
+            while (true)
             {
-                { "draw", "1" },
-                { "start", "0" },
-                { "length", "1000" },
-                { "columns[0][data]", "Rank" },
-                { "columns[0][name]", "Rank" },
-                { "columns[0][searchable]", "true" },
-                { "columns[0][orderable]", "true" },
-                { "columns[0][search][value]", "" },
-                { "columns[0][search][regex]", "false" },
-                { "order[0][column]", "0" },
-                { "order[0][dir]", "asc" },
-                { "search[value]", "" },
-                { "search[regex]", "false" },
-                { "roundId", roundId }
-            });
-            var matchResponse = await _httpClient.PostAsync($"https://melee.gg/Standing/GetRoundStandings", content);
-            if (!matchResponse.IsSuccessStatusCode)
-                return [];
+                var content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "draw", "1" },
+                    { "start", start.ToString() },
+                    { "length", pageLength.ToString() },
+                    { "columns[0][data]", "Rank" },
+                    { "columns[0][name]", "Rank" },
+                    { "columns[0][searchable]", "true" },
+                    { "columns[0][orderable]", "true" },
+                    { "columns[0][search][value]", "" },
+                    { "columns[0][search][regex]", "false" },
+                    { "order[0][column]", "0" },
+                    { "order[0][dir]", "asc" },
+                    { "search[value]", "" },
+                    { "search[regex]", "false" },
+                    { "roundId", roundId }
+                });
+                var matchResponse = await _httpClient.PostAsync($"https://melee.gg/Standing/GetRoundStandings", content);
+                if (!matchResponse.IsSuccessStatusCode)
+                    break;
 
-            var response = await matchResponse.Content.ReadFromJsonAsync<MeleeRoundResponse>();
-            if (response?.Data == null)
-                return [];
+                var response = await matchResponse.Content.ReadFromJsonAsync<MeleeRoundResponse>();
+                if (response?.Data == null || response.Data.Count == 0)
+                    break;
 
-            return response.Data.ToDictionary(s => s.Team?.Players?.FirstOrDefault()?.ID ?? 0, s => s);
+                foreach (var standing in response.Data)
+                {
+                    var playerId = standing.Team?.Players?.FirstOrDefault()?.ID ?? 0;
+                    standings[playerId] = standing;
+                }
+
+                start += response.Data.Count;
+            }
+
+            return standings;
         }
 
 

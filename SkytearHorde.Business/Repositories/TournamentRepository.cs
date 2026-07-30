@@ -47,12 +47,29 @@ namespace SkytearHorde.Business.Repositories
             return tournamentDBModel != null ? Map(tournamentDBModel) : null;
         }
 
-        public bool Exists(int siteId, string source, string externalId)
+        public Tournament? GetBySourceAndExternalId(int siteId, string source, string externalId)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);
-            return scope.Database.ExecuteScalar<int>(
-                "SELECT COUNT(*) FROM Tournaments WHERE SiteId = @0 AND Source = @1 AND ExternalId = @2",
-                siteId, source, externalId) > 0;
+            var tournamentDBModel = scope.Database.FirstOrDefault<TournamentDBModel>(scope.SqlContext.Sql()
+                .SelectAll()
+                .From<TournamentDBModel>()
+                .Where<TournamentDBModel>(x => x.SiteId == siteId && x.Source == source && x.ExternalId == externalId));
+            return tournamentDBModel != null ? Map(tournamentDBModel) : null;
+        }
+
+        /// <summary>
+        /// Removes a tournament's rounds and matches so they can be regenerated on re-import. Entrants
+        /// (and their decks) are preserved — they are matched by external id and updated in place.
+        /// Runs in a single scope so the deletes commit together.
+        /// </summary>
+        public void DeleteRoundsAndMatches(int tournamentId)
+        {
+            using var scope = _scopeProvider.CreateScope();
+            scope.Database.Execute(
+                "DELETE FROM TournamentMatches WHERE RoundId IN (SELECT Id FROM TournamentRounds WHERE TournamentId = @0)",
+                tournamentId);
+            scope.Database.Execute("DELETE FROM TournamentRounds WHERE TournamentId = @0", tournamentId);
+            scope.Complete();
         }
 
         private TournamentDBModel Map(Tournament tournament)

@@ -56,7 +56,7 @@ const missingCardsString = computed(() => {
   deck.value?.cards?.forEach((deckCard) => {
     const card = cards.value.find((c) => c.baseId === deckCard.cardId);
     if (!card) return;
-    parts.push(`${deckCard.amount ?? 0} ${card.displayName} [${card.setCode ?? ""}]`);
+    parts.push(`${deckCard.amount ?? 0} ${card.displayName?.replace(',', ' -')} [${card.setCode ?? ""}]`);
   });
   return parts.join("||");
 });

@@ -82,7 +82,8 @@ namespace SkytearHorde.Business.Startup.Migrations
                 .To<CardImportQueueSetMigration>("v43")
                 .To<PeriodMigration>("v44")
                 .To<DeckFolderMigration>("v45")
-                .To<TournamentImportQueueMigration>("v46");
+                .To<TournamentImportQueueMigration>("v46")
+                .To<TournamentEntrantDeckNullableMigration>("v47");
 
             var upgrader = new Upgrader(migrationPlan);
             upgrader.Execute(_migrationPlanExecutor, _coreScopeProvider, _keyValueService);

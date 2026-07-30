@@ -254,7 +254,7 @@ const missingCardsString = computed(() => {
     if (missing > 0) {
       const set = sets.value.find((s) => s.id === card.setId);
       const setCode = set?.code ?? "";
-      parts.push(`${missing} ${card.displayName} [${setCode}]`);
+      parts.push(`${missing} ${card.displayName?.replace(',', ' -')} [${setCode}]`);
     }
   });
   return parts.join("||");

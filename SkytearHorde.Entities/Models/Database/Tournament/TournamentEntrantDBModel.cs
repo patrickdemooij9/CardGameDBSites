@@ -39,6 +39,7 @@ namespace SkytearHorde.Entities.Models.Database.Tournament
 
         [Column("TournamentDeckId")]
         [ForeignKey(typeof(DeckDBModel))]
-        public int TournamentDeckId { get; set; }
+        [NullSetting(NullSetting = NullSettings.Null)]
+        public int? TournamentDeckId { get; set; }
     }
 }

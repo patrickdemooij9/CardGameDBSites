@@ -11,6 +11,6 @@
         public required int Draws { get; set; }
         public string? ExternalId { get; set; }
         public required string Source { get; set; }
-        public int TournamentDeckId { get; set; }
+        public int? TournamentDeckId { get; set; }
     }
 }

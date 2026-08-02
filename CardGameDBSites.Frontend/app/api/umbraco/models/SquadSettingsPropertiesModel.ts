@@ -17,6 +17,7 @@ export type SquadSettingsPropertiesModel = {
     slotOnlyMode?: boolean | null;
     overwriteAmount?: number | null;
     maxDynamicSlots?: number | null;
+    overviewPaginationCards?: number | null;
     mainCard?: ApiBlockListModel;
     useDeckDisplay?: boolean | null;
     useCompactDeckDisplay?: boolean | null;

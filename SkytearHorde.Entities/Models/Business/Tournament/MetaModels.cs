@@ -43,4 +43,17 @@ namespace SkytearHorde.Entities.Models.Business.Tournament
         public string CardName { get; set; } = string.Empty;
         public int Percentage { get; set; }
     }
+
+    /// <summary>
+    /// A single card's persisted meta stats for a period, read from a snapshot. A card with no
+    /// snapshot row reports zeros.
+    /// </summary>
+    public class MetaCardStat
+    {
+        public int CardId { get; set; }
+        public int DeckCount { get; set; }
+        // Unrounded percentages so the frontend can distinguish a true 0% from a sub-1% value ("<1%").
+        public double UsagePercentage { get; set; }
+        public double WinratePercentage { get; set; }
+    }
 }

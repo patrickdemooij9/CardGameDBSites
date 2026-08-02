@@ -35,7 +35,9 @@ namespace SkytearHorde.Business.Startup.Indexes
 
             options.FieldDefinitions = new(
                 new("id", FieldDefinitionTypes.Integer),
-                new("name", FieldDefinitionTypes.FullText)
+                new("name", FieldDefinitionTypes.FullText),
+                new("CustomField.Usage", FieldDefinitionTypes.Double),
+                new("CustomField.Winrate", FieldDefinitionTypes.Double)
             );
 
             options.FieldDefinitions.AddOrUpdate(new FieldDefinition("CustomField.Pip Requirement.OldAidalon.Amount", FieldDefinitionTypes.Integer));

@@ -7,6 +7,7 @@ import { useCards } from '~/composables/useCards';
 import { useSite } from '~/composables/useSite';
 import type { CommentViewModel } from '~/api/default';
 import CommentSection from '../comments/CommentSection.vue';
+import MetaService from '~/services/MetaService';
 
 const props = defineProps<{
   content: CardDetailContentModel;
@@ -15,6 +16,16 @@ const props = defineProps<{
 const card = await useCards().loadCardById(props.content.id!);
 const siteSettings = await useSite().getSettings();
 const comments = ref<CommentViewModel[]>(await useComments().loadCommentsByCardId(card.baseId!));
+
+// Leader cards have a meta page; link to it when one exists.
+const { data: metaUrl } = await useAsyncData(
+  `card-meta-url:${card.baseId}`,
+  () =>
+    card.baseId != null
+      ? new MetaService().getCardMetaUrl(card.baseId).catch(() => null)
+      : Promise.resolve(null),
+  { default: () => null as string | null }
+);
 
 function handleCommentAdded(comment: string) {
   useComments()
@@ -44,6 +55,18 @@ function handleCommentDeleted(comment: CommentViewModel) {
             </div>
           </div>
           <div class="w-full">
+            <div v-if="metaUrl" class="bg-yellow-100 rounded mb-4">
+              <div class="p-4 flex flex-wrap items-center justify-between gap-2">
+                <p class="mb-0">See the competitive meta for {{ card.displayName }}: usage, winrate and the best decks.</p>
+                <NuxtLink
+                  :href="metaUrl"
+                  class="no-underline inline-block bg-gray-900 text-white hover:bg-gray-700 font-semibold px-4 py-2 rounded transition-colors"
+                >
+                  View meta
+                </NuxtLink>
+              </div>
+            </div>
+
             <div class="bg-white rounded">
               <div class="p-4">
                 <h1 class="text-lg">{{ card.displayName }}</h1>

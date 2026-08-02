@@ -15,13 +15,15 @@ namespace SkytearHorde.Business.ContentFinders
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly CardService _cardService;
         private readonly CardPageService _cardPageService;
+        private readonly MetaCardPageService _metaCardPageService;
 
-        public CustomApiContentPathResolver(IRequestRoutingService requestRoutingService, IApiPublishedContentCache apiPublishedContentCache, ISiteService siteService, IUmbracoContextFactory umbracoContextFactory, CardService cardService, CardPageService cardPageService) : base(requestRoutingService, apiPublishedContentCache)
+        public CustomApiContentPathResolver(IRequestRoutingService requestRoutingService, IApiPublishedContentCache apiPublishedContentCache, ISiteService siteService, IUmbracoContextFactory umbracoContextFactory, CardService cardService, CardPageService cardPageService, MetaCardPageService metaCardPageService) : base(requestRoutingService, apiPublishedContentCache)
         {
             _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
             _cardService = cardService;
             _cardPageService = cardPageService;
+            _metaCardPageService = metaCardPageService;
         }
 
         public override IPublishedContent? ResolveContentPath(string path)
@@ -48,6 +50,9 @@ namespace SkytearHorde.Business.ContentFinders
             var setPage = TryGetSetPage(path, context);
             if (setPage != null) return setPage;
 
+            var metaCardDetailPage = _metaCardPageService.GetDetailNode(path);
+            if (metaCardDetailPage != null) return metaCardDetailPage;
+
             var cardPage = TryGetCardPage(path, context);
             return cardPage;
         }
@@ -70,37 +75,11 @@ namespace SkytearHorde.Business.ContentFinders
             if (cardOverview is null || !path.StartsWith(cardOverview.Url(mode: UrlMode.Relative)))
                 return null;
 
-            var card = FindCard(path.Split('/').Skip(2).ToArray(), out var _);
+            var card = _cardPageService.GetBySegments(path.Split('/').Skip(2).ToArray());
             if (card is null)
                 return null;
 
             return context.UmbracoContext.Content.GetById(card.VariantId);
-        }
-
-        private Entities.Models.Business.Card? FindCard(string[] segments, out bool redirectCard)
-        {
-            redirectCard = false;
-            if (segments.Length == 0) return null;
-
-            var sets = _cardService.GetAllSets().Where(it => !string.IsNullOrWhiteSpace(it.SetCode));
-            var potentialSet = sets.FirstOrDefault(it => it.SetCode?.Equals(segments[0], StringComparison.InvariantCultureIgnoreCase) is true);
-
-            string urlSegment;
-            if (potentialSet is null)
-            {
-                urlSegment = segments.Length == 1 ? segments[0] : $"{segments[0]}/{segments[1]}";
-            }
-            else
-            {
-                urlSegment = segments.Length == 2 ? segments[1] : $"{segments[1]}/{segments[2]}";
-            }
-            var card = _cardPageService.GetByUrl(urlSegment, potentialSet?.SetCode);
-            if (card is null) return null;
-
-            var cardSet = sets.FirstOrDefault(it => it.Id == card.SetId);
-            redirectCard = !string.IsNullOrWhiteSpace(cardSet?.SetCode) && potentialSet is null;
-
-            return card;
         }
 
         private IPublishedContent? TryGetSetPage(string path, UmbracoContextReference context)

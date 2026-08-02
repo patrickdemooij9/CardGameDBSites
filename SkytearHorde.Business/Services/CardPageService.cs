@@ -40,6 +40,30 @@ namespace SkytearHorde.Business.Services
             return allCards.FirstOrDefault(it => it.VariantId > 0 && it.UrlSegment.Equals(urlSegment, StringComparison.InvariantCultureIgnoreCase));
         }
 
+        /// <summary>
+        /// Resolves a card from the URL path segments that follow an overview page (e.g. the parts after
+        /// "/cards/"). Handles an optional leading set-code segment, mirroring how card page URLs are built.
+        /// </summary>
+        public Card? GetBySegments(string[] segments)
+        {
+            if (segments.Length == 0) return null;
+
+            var sets = _cardService.GetAllSets().Where(it => !string.IsNullOrWhiteSpace(it.SetCode));
+            var potentialSet = sets.FirstOrDefault(it => it.SetCode?.Equals(segments[0], StringComparison.InvariantCultureIgnoreCase) is true);
+
+            string urlSegment;
+            if (potentialSet is null)
+            {
+                urlSegment = segments.Length == 1 ? segments[0] : $"{segments[0]}/{segments[1]}";
+            }
+            else
+            {
+                urlSegment = segments.Length == 2 ? segments[1] : $"{segments[1]}/{segments[2]}";
+            }
+
+            return GetByUrl(urlSegment, potentialSet?.SetCode);
+        }
+
         private CardOverview GetOverview()
         {
             return _siteService.GetRoot().FirstChild<CardOverview>();

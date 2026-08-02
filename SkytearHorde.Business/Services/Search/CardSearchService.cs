@@ -155,9 +155,10 @@ namespace SkytearHorde.Business.Services.Search
                 {
                     foreach (var orderBy in query.OrderBy)
                     {
+                        var isDoubleField = orderBy.Field == "CustomField.Usage"; //TODO: FIX!
                         if (orderBy.IsDescending)
                         {
-                            searcher.OrderByDescending(new SortableField(orderBy.Field, SortType.Int));
+                            searcher.OrderByDescending(new SortableField(orderBy.Field, isDoubleField ? SortType.Double : SortType.Int));
                         }
                         else
                         {
@@ -295,20 +296,36 @@ namespace SkytearHorde.Business.Services.Search
         {
             var field = $"CustomField.{filter.Alias}";
             var actualValue = filter.Values.Select(it => it.Replace(" ", "")).ToArray();
+            var isDoubleField = field == "CustomField.Usage"; //TODO: FIX!
             switch (filter.Mode)
             {
                 case CardSearchFilterMode.Higher:
                     INestedBooleanOperation? higher = null;
                     foreach (var value in actualValue)
                     {
-                        higher = query.RangeQuery<int>([field], min: int.Parse(value), null);
+                        if (isDoubleField)
+                        {
+                            higher = query.RangeQuery<double>([field], min: double.Parse(value), null);
+                        }
+                        else
+                        {
+                            higher = query.RangeQuery<int>([field], min: int.Parse(value), null);
+                        }
+                        
                     }
                     return higher!;
                 case CardSearchFilterMode.Lower:
                     INestedBooleanOperation? lower = null;
                     foreach (var value in actualValue)
                     {
-                        lower = query.RangeQuery<int>([field], null, max: int.Parse(value));
+                        if (isDoubleField)
+                        {
+                            lower = query.RangeQuery<double>([field], null, max: double.Parse(value));
+                        }
+                        else
+                        {
+                            lower = query.RangeQuery<int>([field], null, max: int.Parse(value));
+                        }
                     }
                     return lower!;
                 case CardSearchFilterMode.Range:

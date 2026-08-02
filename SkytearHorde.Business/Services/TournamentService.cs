@@ -20,8 +20,9 @@ namespace SkytearHorde.Business.Services
         private readonly DeckRepository _deckRepository;
         private readonly ISiteAccessor _siteAccessor;
         private readonly SettingsService _settingsService;
+        private readonly MetaSnapshotService _metaSnapshotService;
 
-        public TournamentService(TournamentRepository tournamentRepository, TournamentImportQueueRepository importQueueRepository, PeriodRepository periodRepository, IEnumerable<ITournamentConnector> tournamentConnectors, CardService cardService, DeckRepository deckRepository, ISiteAccessor siteAccessor, SettingsService settingsService)
+        public TournamentService(TournamentRepository tournamentRepository, TournamentImportQueueRepository importQueueRepository, PeriodRepository periodRepository, IEnumerable<ITournamentConnector> tournamentConnectors, CardService cardService, DeckRepository deckRepository, ISiteAccessor siteAccessor, SettingsService settingsService, MetaSnapshotService metaSnapshotService)
         {
             _tournamentRepository = tournamentRepository;
             _importQueueRepository = importQueueRepository;
@@ -31,6 +32,7 @@ namespace SkytearHorde.Business.Services
             _deckRepository = deckRepository;
             _siteAccessor = siteAccessor;
             _settingsService = settingsService;
+            _metaSnapshotService = metaSnapshotService;
         }
 
         /// <summary>
@@ -205,6 +207,9 @@ namespace SkytearHorde.Business.Services
             }).ToArray();
         }
 
+        public IEnumerable<int> GetTopDeckIdsForLeader(int periodId, int cardId, int count, int leaderGroupId = 1, int leaderSlotId = 0) =>
+            _tournamentRepository.GetTopDeckIdsForLeader(_siteAccessor.GetSiteId(), periodId, cardId, leaderGroupId, leaderSlotId, count);
+
         public IEnumerable<Period> GetPeriods(int formatId) =>
             _periodRepository.GetBySiteAndFormat(_siteAccessor.GetSiteId(), formatId);
 
@@ -354,6 +359,13 @@ namespace SkytearHorde.Business.Services
                     match.WinnerEntrantId = winner.Id;
 
                 _tournamentRepository.Save(match);
+            }
+
+            // Refresh the meta snapshot for this tournament's period so usage/winrate stay current.
+            // Skipped when the tournament fell outside any configured period.
+            if (tournament.PeriodId.HasValue)
+            {
+                _metaSnapshotService.RecomputeForPeriod(tournament.SiteId, tournament.FormatId, tournament.PeriodId.Value);
             }
 
             return new ImportTournamentResult { Success = true, Message = existing is not null ? "Tournament updated successfully" : "Tournament imported successfully" };

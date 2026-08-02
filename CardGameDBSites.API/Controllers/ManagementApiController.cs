@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SkytearHorde.Business.Helpers;
+using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
@@ -30,14 +31,18 @@ namespace CardGameDBSites.API.Controllers
         private readonly IContentService _contentService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly TournamentService _tournamentService;
+        private readonly MetaSnapshotService _metaSnapshotService;
+        private readonly PeriodRepository _periodRepository;
 
-        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService)
+        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, MetaSnapshotService metaSnapshotService, PeriodRepository periodRepository)
         {
             _deckService = deckService;
             _siteService = siteService;
             _contentService = contentService;
             _umbracoContextFactory = umbracoContextFactory;
             _tournamentService = tournamentService;
+            _metaSnapshotService = metaSnapshotService;
+            _periodRepository = periodRepository;
         }
 
         [HttpPost("decks/{deckId}/createPreset")]
@@ -141,6 +146,22 @@ namespace CardGameDBSites.API.Controllers
             {
                 return BadRequest(result);
             }
+            return Ok(result);
+        }
+
+        [HttpPost("meta/recreate")]
+        [ProducesResponseType(typeof(MetaSnapshotResult), 200)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
+        public IActionResult RecreateMetaSnapshot([FromQuery] int periodId)
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            var period = _periodRepository.GetById(periodId);
+            if (period is null) return NotFound();
+
+            var result = _metaSnapshotService.RecomputeForPeriod(period.SiteId, period.FormatId, period.Id);
             return Ok(result);
         }
     }

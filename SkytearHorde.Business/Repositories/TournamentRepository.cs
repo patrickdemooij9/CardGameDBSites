@@ -463,6 +463,25 @@ namespace SkytearHorde.Business.Repositories
                 tournamentId, leaderGroupId, leaderSlotId, baseSlotId, take);
         }
 
+        /// <summary>
+        /// Tournament deck ids piloting a given leader in a period, best finish first (then most recent).
+        /// Used for the "Top meta decks" section on the MetaCardDetail page.
+        /// </summary>
+        public IEnumerable<int> GetTopDeckIdsForLeader(int siteId, int periodId, int leaderCardId, int leaderGroupId, int leaderSlotId, int count)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<int>(
+                "SELECT TOP(@5) te.TournamentDeckId " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @3 AND lc.SlotId = @4 AND lc.CardId = @2 " +
+                "WHERE t.SiteId = @0 AND t.PeriodId = @1 AND te.TournamentDeckId IS NOT NULL " +
+                "ORDER BY te.Placement ASC, t.DateUtc DESC",
+                siteId, periodId, leaderCardId, leaderGroupId, leaderSlotId, count);
+        }
+
         public int GetTournamentDeckCount(int tournamentId)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);

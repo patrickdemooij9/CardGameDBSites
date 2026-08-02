@@ -2,6 +2,7 @@
 import { useAccountStore } from "~/stores/AccountStore";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
 import type { ImportTournamentResult } from "~/api/default";
+import Button from "~/components/shared/Button.vue";
 
 const accountStore = useAccountStore();
 
@@ -54,6 +55,12 @@ async function importTournament() {
   }
 }
 
+async function recomputeSnapshot(){
+  await DoServerFetch("/api/management/meta/recreate?periodId=1", true, {
+    method: "POST"
+  });
+}
+
 onMounted(async () => {
   await accountStore.checkLogin();
 
@@ -66,6 +73,7 @@ onMounted(async () => {
 <template>
   <div class="container mx-auto px-4 py-8 max-w-2xl">
     <h1 class="text-2xl font-bold mb-6">Import Tournament</h1>
+    <Button @click="recomputeSnapshot">Recompute snapshot</Button>
 
     <div class="bg-white rounded shadow p-6">
       <div class="mb-4">

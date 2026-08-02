@@ -1,7 +1,11 @@
 ﻿using Examine;
+using Microsoft.Extensions.DependencyInjection;
 using SkytearHorde.Business.Extensions;
+using SkytearHorde.Business.Middleware;
+using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Generated;
+using SkytearHorde.Entities.Models.Business.Tournament;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Infrastructure.Examine;
 using Umbraco.Extensions;
@@ -13,15 +17,26 @@ namespace SkytearHorde.Business.Startup.Indexes
     {
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly CardPriceService _cardPriceService;
+        private readonly MetaSnapshotService _metaSnapshotService;
+        private readonly ISiteAccessor _siteAccessor;
+        private readonly IServiceProvider _serviceProvider;
 
-        public CardIndexValueSetBuilder(IUmbracoContextFactory umbracoContextFactory, CardPriceService cardPriceService)
+        public CardIndexValueSetBuilder(IUmbracoContextFactory umbracoContextFactory, CardPriceService cardPriceService, MetaSnapshotService metaSnapshotService, ISiteAccessor siteAccessor, IServiceProvider serviceProvider)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _cardPriceService = cardPriceService;
+            _metaSnapshotService = metaSnapshotService;
+            _siteAccessor = siteAccessor;
+            _serviceProvider = serviceProvider;
         }
 
         public IEnumerable<ValueSet> GetValueSets(params Card[] contents)
         {
+            using var scope = _serviceProvider.CreateScope();
+            var tournamentService = scope.ServiceProvider.GetRequiredService<TournamentService>();
+
+            var snapshotPerSite = new Dictionary<int, Dictionary<int, MetaCardStat>>();
+
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
             foreach (var content in contents)
             {
@@ -35,7 +50,26 @@ namespace SkytearHorde.Business.Startup.Indexes
                 };
 
                 HandleCardValues(indexValues, content, ctx.UmbracoContext);
-                HandleSiteId(indexValues, content, ctx.UmbracoContext);
+                var siteId = HandleSiteId(indexValues, content, ctx.UmbracoContext);
+
+                if (siteId != null)
+                {
+                    _siteAccessor.SetSiteId(siteId.Value);
+
+                    if (!snapshotPerSite.ContainsKey(siteId.Value))
+                    {
+                        var currentPeriod = tournamentService.GetCurrentPeriod(1); // TODO: This needs to change somehow...
+                        var snapshot = currentPeriod is null ? null : _metaSnapshotService.GetCardStats(siteId.Value, 1, currentPeriod.Id, contents.Select(it => it.BaseId)).ToDictionary(it => it.CardId, it => it);
+
+                        if (snapshot != null)
+                            snapshotPerSite.Add(siteId.Value, snapshot);
+                    }
+
+                    if (snapshotPerSite.TryGetValue(siteId.Value, out var currentSnapshot) && currentSnapshot?.TryGetValue(content.BaseId, out var metaStat) is true)
+                    {
+                        HandleMetaStats(indexValues, content, metaStat);
+                    }
+                }
 
                 yield return new ValueSet(content.VariantId.ToString(), IndexTypes.Content, indexValues);
             }
@@ -93,15 +127,22 @@ namespace SkytearHorde.Business.Startup.Indexes
             }
         }
 
-        private void HandleSiteId(Dictionary<string, IEnumerable<object>> updatedValues, Card card, IUmbracoContext ctx)
+        private int? HandleSiteId(Dictionary<string, IEnumerable<object>> updatedValues, Card card, IUmbracoContext ctx)
         {
             var content = ctx.Content!.GetById(card.BaseId);
-            if (content is null) return;
+            if (content is null) return null;
 
             var siteId = content.Root().FirstChild<Settings>()?.FirstChild<SiteSettings>()?.SiteId;
-            if (siteId is null) return;
+            if (siteId is null) return null;
 
             updatedValues["siteId"] = [siteId];
+            return siteId;
+        }
+
+        private void HandleMetaStats(Dictionary<string, IEnumerable<object>> updatedValues, Card card, MetaCardStat stats)
+        {
+            updatedValues["CustomField.Winrate"] = [stats.WinratePercentage];
+            updatedValues["CustomField.Usage"] = [stats.UsagePercentage];
         }
     }
 }

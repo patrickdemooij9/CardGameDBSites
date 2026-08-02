@@ -115,7 +115,8 @@ namespace CardGameDBSites.API.Controllers
             else
             {
                 model.CollectionMode = CardSearchCollectionMode.Ignore;
-                model.SortBy = string.Empty;
+
+                if (model.SortBy == "collection") model.SortBy = string.Empty;
             }
 
             var sorting = new List<CardSorting>();

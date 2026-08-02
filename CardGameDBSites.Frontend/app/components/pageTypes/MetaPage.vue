@@ -44,7 +44,7 @@ async function loadMetaData(periodId: number) {
       await Promise.all([
         service.getRecentWinners(periodId, 6, LEADER_GROUP_ID, LEADER_SLOT_ID),
         service.getTopLeaders(periodId, 5, LEADER_GROUP_ID, LEADER_SLOT_ID),
-        service.getPopularCards(periodId, 8, LEADER_GROUP_ID, LEADER_SLOT_ID),
+        service.getPopularCards(periodId, 6, LEADER_GROUP_ID, LEADER_SLOT_ID),
       ]);
   } catch {
     // API not available – fall back to mock data below
@@ -328,10 +328,18 @@ const popularCards = computed(() => {
 
     <!-- Most Successful Leaders Section -->
     <section class="container px-4 md:px-8 py-12">
-      <h2 class="mb-6">
-        Most Successful Leaders
-        <span class="text-gray-500 text-lg font-normal">({{ selectedPeriodLabel }})</span>
-      </h2>
+      <div class="flex items-center justify-between gap-4 mb-6">
+        <h2 class="mb-0">
+          Most Successful Leaders
+          <span class="text-gray-500 text-lg font-normal">({{ selectedPeriodLabel }})</span>
+        </h2>
+        <NuxtLink
+          href="/meta/leaders"
+          class="no-underline shrink-0 text-sm font-medium bg-gray-900 text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors"
+        >
+          View all leaders
+        </NuxtLink>
+      </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div
           v-for="(leader, index) in topLeaders"
@@ -366,7 +374,7 @@ const popularCards = computed(() => {
     <section class="bg-white py-12">
       <div class="container px-4 md:px-8">
         <h2 class="mb-6">Cards Driving Recent Success</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           <div
             v-for="card in popularCards"
             :key="card.name"

@@ -41,12 +41,12 @@ namespace SkytearHorde.Business.Services
                     BorderColor = settings.BorderColor,
                     SiteName = settings.SiteName,
                     ShowLogin = settings.ShowLogin,
-                    NavigationLogoUrl = settings.NavigationLogo?.Url(mode: UrlMode.Absolute) ?? "#",
+                    NavigationLogoUrl = settings.NavigationLogo?.Url(mode: UrlMode.Relative) ?? "#",
                     TextColorWhite = settings.TextColorWhite,
                     Navigation = settings.Navigation.ToItems<NavigationItem>().ToArray(),
                     FooterText = settings.FooterText,
                     FooterLinks = settings.FooterLinks?.ToArray() ?? [],
-                    Keywords = settings.KeywordImages.ToItems<KeywordImage>().Select(it => new KeywordImageConfig(it.Keyword, it.Image?.Url(mode: UrlMode.Absolute))
+                    Keywords = settings.KeywordImages.ToItems<KeywordImage>().Select(it => new KeywordImageConfig(it.Keyword, it.Image?.Url(mode: UrlMode.Relative))
                     {
                         DiscordIcon = $"<:{it.DiscordIconName}:{it.DiscordIconID}>"
                     }).ToArray(),

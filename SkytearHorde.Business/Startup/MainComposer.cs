@@ -128,7 +128,8 @@ namespace SkytearHorde.Business.Startup
                 .AddScoped<IFactGenerator, FirstToReachHealthGenerator>()
                 .AddScoped<IFactGenerator, MostCommonTraitGenerator>()
                 .AddScoped<IFactGenerator, MostExpensiveCardGenerator>()
-                .AddScoped<IFactGenerator, LeastExpensiveCardGenerator>();
+                .AddScoped<IFactGenerator, LeastExpensiveCardGenerator>()
+                .AddScoped<IFactGenerator, LongestAbilityGenerator>();
 
             builder.ContentFinders().Append<CardPageContentFinder>();
             builder.ContentFinders().Append<DeckContentFinder>();

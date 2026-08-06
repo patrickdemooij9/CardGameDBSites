@@ -37,6 +37,7 @@ const selectedSet = computed(() => new Set(props.selectedDeckIds ?? []));
 const { loadMembersByIds } = useMembers();
 const { loadCardsByIds } = useCards();
 const { getDeckTypeSettings } = useSite();
+const collectionService = useCollection();
 const accountStore = useAccountStore();
 
 const members = ref<Record<number, MemberApiModel>>({});
@@ -89,7 +90,6 @@ async function loadDecksData(decks: DeckApiModel[]) {
     });
 
     if (isLoggedIn.value) {
-      const collectionService = useCollection();
       const deckIds = decks.map((d) => d.id!);
       collectionService.loadDecksProgress(deckIds).then((progress) => {
         progress.forEach((p) => {
@@ -103,10 +103,10 @@ async function loadDecksData(decks: DeckApiModel[]) {
 }
 
 onMounted(async () => {
-  await loadDecksData(props.decks);
   isLoggedIn.value = await accountStore.checkLogin();
 });
 
+await loadDecksData(props.decks);
 watch([() => props.decks, isLoggedIn], async ([newDecks]) => {
   await loadDecksData(newDecks);
 });

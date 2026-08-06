@@ -5,6 +5,9 @@ import { resolve } from 'path';
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-04-29',
+  experimental: {
+    asyncContext: true,
+  },
   devtools: { enabled: true, 
     timeline: {
       enabled: true,

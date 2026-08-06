@@ -103,10 +103,10 @@ async function loadDecksData(decks: DeckApiModel[]) {
 }
 
 onMounted(async () => {
+  await loadDecksData(props.decks);
   isLoggedIn.value = await accountStore.checkLogin();
 });
 
-await loadDecksData(props.decks);
 watch([() => props.decks, isLoggedIn], async ([newDecks]) => {
   await loadDecksData(newDecks);
 });

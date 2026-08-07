@@ -43,14 +43,15 @@ describe("NotEqualValueRequirement", () => {
   });
 
   describe("ToFilters", () => {
-    it("returns a NOT clause with the correct filter", () => {
+    it("returns a negated AND clause with the correct filter", () => {
       const card = makeCard({ Type: ["Unit"] });
       const filters = requirement.ToFilters([card], { ability: "Type", values: ["Leader"] });
       expect(filters).toHaveLength(1);
-      expect(filters[0].clauseType).toBe("NOT");
+      expect(filters[0].clauseType).toBe("AND");
       expect(filters[0].filters).toHaveLength(1);
       expect(filters[0].filters![0].alias).toBe("Type");
       expect(filters[0].filters![0].values).toEqual(["Leader"]);
+      expect(filters[0].filters![0].negate).toBe(true);
     });
   });
 });

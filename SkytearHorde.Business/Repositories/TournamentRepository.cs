@@ -482,6 +482,64 @@ namespace SkytearHorde.Business.Repositories
                 siteId, periodId, leaderCardId, leaderGroupId, leaderSlotId, count);
         }
 
+        // Per-leader aggregations over a whole period, for the leader showcase infographic.
+        // Same leader filter as GetTopDeckIdsForLeader: the deck's leader-slot card must be @leaderCardId.
+
+        /// <summary>Tournament decks in the period piloting a given leader — the denominator for the per-leader stats.</summary>
+        public int GetDeckCountForLeader(int siteId, int periodId, int leaderCardId, int leaderGroupId, int leaderSlotId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.ExecuteScalar<int>(
+                "SELECT COUNT(DISTINCT dv.Id) " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @3 AND lc.SlotId = @4 AND lc.CardId = @2 " +
+                "WHERE t.SiteId = @0 AND t.PeriodId = @1",
+                siteId, periodId, leaderCardId, leaderGroupId, leaderSlotId);
+        }
+
+        /// <summary>Cards most often played alongside a leader in the period. Excludes the leader and base slots.</summary>
+        public IEnumerable<MetaPopularCardRow> GetMostPlayedCardsWithLeader(int siteId, int periodId, int leaderCardId, int take, int leaderGroupId = 1, int leaderSlotId = 0, int baseSlotId = 1)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<MetaPopularCardRow>(
+                "SELECT TOP(@6) dc.CardId AS CardId, COUNT(DISTINCT dv.Id) AS DeckCount " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @3 AND lc.SlotId = @4 AND lc.CardId = @2 " +
+                "INNER JOIN DeckCard dc ON dc.VersionId = dv.Id AND dc.GroupId < 99 " +
+                "WHERE t.SiteId = @0 AND t.PeriodId = @1 " +
+                "  AND NOT (dc.GroupId = @3 AND dc.SlotId = @4) " +
+                "  AND NOT (dc.GroupId = @3 AND dc.SlotId = @5) " +
+                "GROUP BY dc.CardId " +
+                "ORDER BY DeckCount DESC",
+                siteId, periodId, leaderCardId, leaderGroupId, leaderSlotId, baseSlotId, take);
+        }
+
+        /// <summary>
+        /// One row per period deck piloting a given leader, carrying the base card it was paired with.
+        /// Feeds the per-leader aspect breakdown (which bases players take with this leader).
+        /// </summary>
+        public IEnumerable<TournamentDeckLeaderRow> GetBaseCardsForLeader(int siteId, int periodId, int leaderCardId, int leaderGroupId = 1, int leaderSlotId = 0, int baseSlotId = 1)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<TournamentDeckLeaderRow>(
+                "SELECT lc.CardId AS LeaderCardId, b.CardId AS BaseCardId " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @3 AND lc.SlotId = @4 AND lc.CardId = @2 " +
+                "OUTER APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
+                "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @3 AND dc.SlotId = @5) b " +
+                "WHERE t.SiteId = @0 AND t.PeriodId = @1",
+                siteId, periodId, leaderCardId, leaderGroupId, leaderSlotId, baseSlotId);
+        }
+
         public int GetTournamentDeckCount(int tournamentId)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);

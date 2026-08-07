@@ -35,6 +35,19 @@ function makeGroupWithSlot(
   return group;
 }
 
+// Mirrors useSite: sideboardGroups is the source of truth, sideboardSlot just points at the first slot.
+function attachSideboard(
+  deck: CreateDeckModel,
+  cards: { card: CardDetailApiModel; amount: number }[] = [],
+  maxAmount = 15,
+): CreateDeckSlot {
+  const group = makeGroupWithSlot(99, cards, maxAmount);
+  deck.sideboardGroups.push(group);
+  deck.sideboardSlot = group.slots[0];
+  deck.hasSideboard = true;
+  return deck.sideboardSlot!;
+}
+
 describe("CreateDeckModel", () => {
   describe("pickDefaultName", () => {
     it("sets a default name when no name exists", () => {
@@ -212,13 +225,7 @@ describe("CreateDeckModel", () => {
 
     it("includes the sideboard slot for cards that pass sideboard requirements", () => {
       const deck = new CreateDeckModel();
-      deck.hasSideboard = true;
-      const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
-      sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(15);
-      sideboardSlot.requirements = [];
-      const sideboardCardGroup = new CreateDeckCardGroup("Default");
-      sideboardSlot.cardGroups.push(sideboardCardGroup);
-      deck.sideboardSlot = sideboardSlot;
+      const sideboardSlot = attachSideboard(deck);
 
       const card = makeCard(1);
       const slots = deck.getSlotsForCard(card);
@@ -227,12 +234,8 @@ describe("CreateDeckModel", () => {
 
     it("does not include the sideboard slot when hasSideboard is false", () => {
       const deck = new CreateDeckModel();
+      const sideboardSlot = attachSideboard(deck);
       deck.hasSideboard = false;
-      const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
-      sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(15);
-      const sideboardCardGroup = new CreateDeckCardGroup("Default");
-      sideboardSlot.cardGroups.push(sideboardCardGroup);
-      deck.sideboardSlot = sideboardSlot;
 
       const card = makeCard(1);
       expect(deck.getSlotsForCard(card)).not.toContain(sideboardSlot);
@@ -259,13 +262,7 @@ describe("CreateDeckModel", () => {
       const deck = new CreateDeckModel();
       const card = makeCard(1);
       deck.groups.push(makeGroupWithSlot(1, [{ card, amount: 2 }]));
-
-      const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
-      sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(15);
-      const sideboardCardGroup = new CreateDeckCardGroup("Default");
-      sideboardCardGroup.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
-      sideboardSlot.cardGroups.push(sideboardCardGroup);
-      deck.sideboardSlot = sideboardSlot;
+      attachSideboard(deck, [{ card, amount: 1 }]);
 
       expect(deck.getTotalCardAmount(card)).toBe(3);
     });
@@ -278,13 +275,7 @@ describe("CreateDeckModel", () => {
       const group = makeGroupWithSlot(1, [{ card, amount: 2 }]);
       deck.groups.push(group);
       const mainSlot = group.slots[0];
-
-      const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
-      sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(15);
-      const sideboardCardGroup = new CreateDeckCardGroup("Default");
-      sideboardCardGroup.cards.push({ card, amount: 1, allowRemoval: true, children: [] });
-      sideboardSlot.cardGroups.push(sideboardCardGroup);
-      deck.sideboardSlot = sideboardSlot;
+      const sideboardSlot = attachSideboard(deck, [{ card, amount: 1 }]);
 
       // Excluding mainSlot: only sideboard has 1
       expect(deck.getCardAmountInOtherSlots(mainSlot, card)).toBe(1);
@@ -301,12 +292,7 @@ describe("CreateDeckModel", () => {
 
     it("returns the total amount in the sideboard slot", () => {
       const deck = new CreateDeckModel();
-      const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
-      sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(15);
-      const sideboardCardGroup = new CreateDeckCardGroup("Default");
-      sideboardCardGroup.cards.push({ card: makeCard(1), amount: 3, allowRemoval: true, children: [] });
-      sideboardSlot.cardGroups.push(sideboardCardGroup);
-      deck.sideboardSlot = sideboardSlot;
+      attachSideboard(deck, [{ card: makeCard(1), amount: 3 }]);
       expect(deck.getSideboardAmount()).toBe(3);
     });
   });
@@ -317,13 +303,7 @@ describe("CreateDeckModel", () => {
       const card1 = makeCard(1);
       const card2 = makeCard(2);
       deck.groups.push(makeGroupWithSlot(1, [{ card: card1, amount: 1 }]));
-
-      const sideboardSlot = new CreateDeckSlot(99, "Sideboard");
-      sideboardSlot.maxCardAmount = new FixedDeckAmountConfig(15);
-      const sideboardCardGroup = new CreateDeckCardGroup("Default");
-      sideboardCardGroup.cards.push({ card: card2, amount: 2, allowRemoval: true, children: [] });
-      sideboardSlot.cardGroups.push(sideboardCardGroup);
-      deck.sideboardSlot = sideboardSlot;
+      attachSideboard(deck, [{ card: card2, amount: 2 }]);
 
       const allCards = deck.getCards();
       expect(allCards).toHaveLength(2);

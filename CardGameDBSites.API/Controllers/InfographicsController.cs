@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Exports;
 using SkytearHorde.Business.Facts;
+using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Generated;
 
@@ -21,13 +22,17 @@ namespace CardGameDBSites.API.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly FactService _factService;
         private readonly CardPriceService _cardPriceService;
+        private readonly MetaSnapshotService _metaSnapshotService;
+        private readonly PeriodRepository _periodRepository;
 
         public InfographicsController(TournamentService tournamentService,
             CardService cardService,
             SettingsService settingsService,
             IWebHostEnvironment webHostEnvironment,
             FactService factService,
-            CardPriceService cardPriceService)
+            CardPriceService cardPriceService,
+            MetaSnapshotService metaSnapshotService,
+            PeriodRepository periodRepository)
         {
             _tournamentService = tournamentService;
             _cardService = cardService;
@@ -35,6 +40,8 @@ namespace CardGameDBSites.API.Controllers
             _webHostEnvironment = webHostEnvironment;
             _factService = factService;
             _cardPriceService = cardPriceService;
+            _metaSnapshotService = metaSnapshotService;
+            _periodRepository = periodRepository;
         }
 
         // ---- "Did you know?" facts ----------------------------------------
@@ -218,6 +225,77 @@ namespace CardGameDBSites.API.Controllers
         private InfographicCard[] BuildTopCards(int tournamentId, int take)
         {
             return _tournamentService.GetMostPlayedCards(tournamentId, take)
+                .Select(c =>
+                {
+                    var card = _cardService.Get(c.CardId);
+                    return new InfographicCard
+                    {
+                        Name = card?.DisplayName ?? "Unknown",
+                        ImageUrl = card?.Image is null ? null : ImageCropHelper.ToApiModels(card.Image).Url,
+                        Percentage = c.Percentage
+                    };
+                })
+                .ToArray();
+        }
+
+        // ---- Leader showcase ----------------------------------------------
+
+        /// <summary>
+        /// The leader showcase carousel: the leader itself, its meta numbers for the period, the cards
+        /// most played alongside it, and the aspects its decks pair with. Defaults to the current period.
+        /// </summary>
+        [HttpGet("leader/{cardId}")]
+        public async Task<IActionResult> GetLeaderInfographic(int cardId, [FromQuery] int slide = 1, [FromQuery] int? periodId = null, [FromQuery] int formatId = 1)
+        {
+            if (slide < 1 || slide > LeaderInfographicExport.SlideCount)
+                return BadRequest($"slide must be between 1 and {LeaderInfographicExport.SlideCount}");
+
+            var card = _cardService.Get(cardId);
+            if (card is null) return NotFound();
+
+            var period = periodId.HasValue
+                ? _periodRepository.GetById(periodId.Value)
+                : _tournamentService.GetCurrentPeriod(formatId);
+            if (period is null) return NotFound();
+
+            var data = new LeaderInfographicData
+            {
+                LeaderName = card.DisplayName,
+                LeaderImageUrl = card.Image is null ? null : ImageCropHelper.ToApiModels(card.Image).Url,
+                SetName = card.SetName,
+                PeriodLabel = period.Name,
+                FooterText = GetFooterText()
+            };
+
+            var exporter = new LeaderInfographicExport(_webHostEnvironment);
+            switch (slide)
+            {
+                case 2:
+                    var stats = _metaSnapshotService.GetCardStats(period.SiteId, period.FormatId, period.Id, [cardId]).FirstOrDefault();
+                    if (stats is not null)
+                    {
+                        data.WinratePercentage = stats.WinratePercentage;
+                        data.UsagePercentage = stats.UsagePercentage;
+                        data.DeckCount = stats.DeckCount;
+                    }
+                    break;
+                case 3:
+                    data.TopCards = BuildTopCardsForLeader(period.Id, cardId, 9);
+                    break;
+                case 4:
+                    data.Aspects = _tournamentService.GetAspectRepresentationForLeader(period.Id, cardId)
+                        .Select(a => new InfographicAspect { Name = a.Name, Percentage = a.Percentage })
+                        .ToArray();
+                    break;
+            }
+
+            var bytes = await exporter.Render(data, slide);
+            return File(bytes, "image/png");
+        }
+
+        private InfographicCard[] BuildTopCardsForLeader(int periodId, int leaderCardId, int take)
+        {
+            return _tournamentService.GetMostPlayedCardsWithLeader(periodId, leaderCardId, take)
                 .Select(c =>
                 {
                     var card = _cardService.Get(c.CardId);

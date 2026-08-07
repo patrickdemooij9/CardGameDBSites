@@ -34,6 +34,7 @@
 - Vue 3 Composition API with `<script setup>`
 - TailwindCSS for styling
 - ESLint with Vue plugin enabled
+- **Keep comments minimal.** No comments is usually the right amount — write code that explains itself instead. When something genuinely needs explaining (a non-obvious workaround, a subtle reactivity trap), one line is the budget. Never add multi-line comment blocks that restate what the code already says.
 
 ## Development Server
 

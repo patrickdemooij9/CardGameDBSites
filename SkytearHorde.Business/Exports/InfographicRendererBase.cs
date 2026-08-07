@@ -39,6 +39,17 @@ namespace SkytearHorde.Business.Exports
         protected static readonly Color ChipColor = Color.ParseHex("#2A3358");
         protected static readonly Color TrackColor = Color.ParseHex("#232B4A");
 
+        /// <summary>Star Wars Unlimited aspect colours, used by any slide that breaks results down by aspect.</summary>
+        protected static readonly IReadOnlyDictionary<string, Color> AspectColors = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Vigilance"] = Color.ParseHex("#3B7BBF"),
+            ["Command"] = Color.ParseHex("#3E9F4E"),
+            ["Aggression"] = Color.ParseHex("#D2232A"),
+            ["Cunning"] = Color.ParseHex("#F4B223"),
+            ["Heroism"] = Color.ParseHex("#E8E4D4"),
+            ["Villainy"] = Color.ParseHex("#4B4453")
+        };
+
         private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(10) };
 
         private readonly IWebHostEnvironment _webHostEnvironment;
@@ -160,6 +171,90 @@ namespace SkytearHorde.Business.Exports
             image.Mutate(ctx => ctx.Fill(color, new EllipsePolygon(x + radius, y + radius, radius)));
             image.Mutate(ctx => ctx.Fill(color, new EllipsePolygon(x + w - radius, y + radius, radius)));
             image.Mutate(ctx => ctx.Fill(color, new RectangularPolygon(x + radius, y, w - radius * 2, height)));
+        }
+
+        /// <summary>
+        /// A labelled aspect bar per entry, stacked to fill the body of a slide: name on the left,
+        /// percentage on the right in the aspect's colour, and a filled track underneath.
+        /// </summary>
+        protected void RenderAspectBars(Image<Rgba32> image, IReadOnlyList<InfographicAspect> aspects)
+        {
+            if (aspects.Count == 0) return;
+
+            const int barsTop = 380;
+            const int barsBottom = 1240;
+            var slot = (barsBottom - barsTop) / aspects.Count;
+            var trackWidth = Width - Margin * 2;
+
+            for (var i = 0; i < aspects.Count; i++)
+            {
+                var aspect = aspects[i];
+                var color = AspectColors.GetValueOrDefault(aspect.Name, MutedColor);
+                var blockY = barsTop + i * slot;
+
+                var labelY = blockY + 26;
+                var nameOptions = new RichTextOptions(Bold.CreateFont(46))
+                {
+                    Origin = new Vector2(Margin, labelY),
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                image.Mutate(ctx => ctx.DrawText(nameOptions, aspect.Name, TextColor));
+
+                var pctOptions = new RichTextOptions(ExtraBold.CreateFont(46))
+                {
+                    Origin = new Vector2(Width - Margin, labelY),
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                image.Mutate(ctx => ctx.DrawText(pctOptions, $"{aspect.Percentage}%", color));
+
+                var trackY = blockY + 68;
+                var trackH = 44f;
+                RenderRoundedBar(image, Margin, trackY, trackWidth, trackH, TrackColor);
+                var fillWidth = trackWidth * Math.Clamp(aspect.Percentage, 0, 100) / 100f;
+                if (fillWidth > 0) RenderRoundedBar(image, Margin, trackY, fillWidth, trackH, color);
+            }
+        }
+
+        /// <summary>
+        /// A 3x3 grid of card thumbnails with a gold percentage under each. Renders however many cards are
+        /// supplied (up to 9) — a short list simply leaves the trailing cells empty.
+        /// </summary>
+        protected async Task RenderCardGrid(Image<Rgba32> image, IReadOnlyList<InfographicCard> cards)
+        {
+            const int cols = 3;
+            const int rows = 3;
+            const int gap = 34;
+            const int gridTop = 360;
+            const int gridBottom = 1240;
+            const float cardRatio = 0.716f; // width / height
+
+            var areaWidth = Width - Margin * 2;
+            var cellW = (areaWidth - gap * (cols - 1)) / cols;
+            var cellH = (gridBottom - gridTop - gap * (rows - 1)) / rows;
+            var cardH = cellH - 54; // reserve space for the percentage label
+            var cardW = cardH * cardRatio;
+
+            for (var i = 0; i < Math.Min(cards.Count, cols * rows); i++)
+            {
+                var card = cards[i];
+                var col = i % cols;
+                var row = i / cols;
+                var cellX = Margin + col * (cellW + gap);
+                var cellY = gridTop + row * (cellH + gap);
+
+                var cardX = (int)(cellX + (cellW - cardW) / 2f);
+                await RenderCardImage(image, card.ImageUrl, new Point(cardX, cellY), new Size((int)cardW, (int)cardH), crop: true);
+
+                var pctOptions = new RichTextOptions(ExtraBold.CreateFont(40))
+                {
+                    Origin = new Vector2(cellX + cellW / 2f, cellY + cardH + 30),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                image.Mutate(ctx => ctx.DrawText(pctOptions, $"{card.Percentage}%", Accent));
+            }
         }
 
         // ---- Text --------------------------------------------------------

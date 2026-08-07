@@ -54,7 +54,7 @@ export function useOverviewState(
   }
   initFromRoute();
 
- watch(
+  watch(
     () => filters.value,
     () => initFromRoute(),
   );

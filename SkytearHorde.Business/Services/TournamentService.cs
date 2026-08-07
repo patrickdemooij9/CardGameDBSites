@@ -79,9 +79,27 @@ namespace SkytearHorde.Business.Services
 
         public IReadOnlyList<TournamentAspectStat> GetAspectRepresentation(int tournamentId)
         {
-            var rows = _tournamentRepository.GetDeckLeaderAndBaseCards(tournamentId).ToArray();
-            if (rows.Length == 0) return [];
+            var rows = _tournamentRepository.GetDeckLeaderAndBaseCards(tournamentId);
+            return CountAspectsPerDeck(rows.Select(r => new[] { r.LeaderCardId, r.BaseCardId }));
+        }
 
+        /// <summary>
+        /// Which aspects the decks piloting a leader in a period pair with it. Counts the aspects of each
+        /// deck's base card only — the leader's own aspects are identical on every one of those decks and
+        /// would always read 100%.
+        /// </summary>
+        public IReadOnlyList<TournamentAspectStat> GetAspectRepresentationForLeader(int periodId, int leaderCardId, int leaderGroupId = 1, int leaderSlotId = 0)
+        {
+            var rows = _tournamentRepository.GetBaseCardsForLeader(_siteAccessor.GetSiteId(), periodId, leaderCardId, leaderGroupId, leaderSlotId);
+            return CountAspectsPerDeck(rows.Select(r => new[] { r.BaseCardId }));
+        }
+
+        /// <summary>
+        /// Percentage of decks featuring each aspect. A deck contributes the union of its cards' aspects,
+        /// so it counts once per aspect however many of its cards carry that aspect.
+        /// </summary>
+        private TournamentAspectStat[] CountAspectsPerDeck(IEnumerable<IEnumerable<int?>> cardIdsPerDeck)
+        {
             var aspectsByCard = new Dictionary<int, string[]>();
             string[] GetAspects(int cardId)
             {
@@ -99,11 +117,16 @@ namespace SkytearHorde.Business.Services
             }
 
             var counts = new Dictionary<string, int>();
-            foreach (var row in rows)
+            var totalDecks = 0;
+            foreach (var deck in cardIdsPerDeck)
             {
+                totalDecks++;
+
                 var deckAspects = new HashSet<string>();
-                if (row.LeaderCardId.HasValue) deckAspects.UnionWith(GetAspects(row.LeaderCardId.Value));
-                if (row.BaseCardId.HasValue) deckAspects.UnionWith(GetAspects(row.BaseCardId.Value));
+                foreach (var cardId in deck)
+                {
+                    if (cardId.HasValue) deckAspects.UnionWith(GetAspects(cardId.Value));
+                }
 
                 foreach (var aspect in deckAspects)
                 {
@@ -111,7 +134,8 @@ namespace SkytearHorde.Business.Services
                 }
             }
 
-            var totalDecks = rows.Length;
+            if (totalDecks == 0) return [];
+
             return counts
                 .Select(kv => new TournamentAspectStat
                 {
@@ -129,6 +153,22 @@ namespace SkytearHorde.Business.Services
             if (totalDecks == 0) return [];
 
             return _tournamentRepository.GetMostPlayedCards(tournamentId, take)
+                .Select(r => new TournamentCardStat
+                {
+                    CardId = r.CardId,
+                    Percentage = (int)Math.Round((double)r.DeckCount / totalDecks * 100)
+                })
+                .ToArray();
+        }
+
+        /// <summary>Cards most often played alongside a leader in a period, as a percentage of that leader's decks.</summary>
+        public IReadOnlyList<TournamentCardStat> GetMostPlayedCardsWithLeader(int periodId, int leaderCardId, int take, int leaderGroupId = 1, int leaderSlotId = 0)
+        {
+            var siteId = _siteAccessor.GetSiteId();
+            var totalDecks = _tournamentRepository.GetDeckCountForLeader(siteId, periodId, leaderCardId, leaderGroupId, leaderSlotId);
+            if (totalDecks == 0) return [];
+
+            return _tournamentRepository.GetMostPlayedCardsWithLeader(siteId, periodId, leaderCardId, take, leaderGroupId, leaderSlotId)
                 .Select(r => new TournamentCardStat
                 {
                     CardId = r.CardId,

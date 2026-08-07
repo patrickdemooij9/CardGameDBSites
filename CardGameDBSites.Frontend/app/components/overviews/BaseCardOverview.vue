@@ -29,8 +29,7 @@ const emit = defineEmits<{
   (e: "reloaded", value: PagedResultCardDetailApiModel): void;
 }>();
 
-const reactiveFilters = reactive(props.filters);
-const filtersRef = computed(() => reactiveFilters);
+const filtersRef = computed(() => reactive(props.filters));
 
 const overviewState = useOverviewState(
   filtersRef,
@@ -154,7 +153,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
     :hide-filters="false"
     :hide-inline-filters="hideInlineFilters"
     :white-background="whiteBackground"
-    :filters="reactiveFilters"
+    :filters="filtersRef"
     :sortings="sortings"
     :available-views="availableViews"
     :is-loading="pending"

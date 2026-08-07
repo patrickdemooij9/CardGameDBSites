@@ -54,12 +54,8 @@ export function useOverviewState(
   }
   initFromRoute();
 
-  // Re-initialise only when the *set* of filters changes (aliases added/removed),
-  // not when a filter's options are lazily loaded onto it. A deep watch here would
-  // fire on lazy option loading and wipe selections that haven't been re-read from
-  // the route yet.
-  watch(
-    () => filters.value.map((f) => f.Alias).join("|"),
+ watch(
+    () => filters.value,
     () => initFromRoute(),
   );
 

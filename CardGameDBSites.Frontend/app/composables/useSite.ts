@@ -19,7 +19,6 @@ import {
   DynamicDeckAmountConfig,
   FixedDeckAmountConfig,
 } from "~/components/decks/deckBuilder/models/CreateDeckSlotAmount";
-import { DoFetch } from "~/helpers/RequestsHelper";
 import DeckService from "~/services/DeckService";
 import { useCards } from "~/composables/useCards";
 import type { DisplaySize } from "~/components/decks/deckBuilder/DeckBuilderModels";
@@ -27,19 +26,19 @@ import { useSiteStore } from "~/stores/SiteStore";
 
 export function useSite() {
   const store = useSiteStore();
+  const { $api } = useNuxtApp();
+  const { loadCardsByIds } = useCards();
 
   const getSettings = async () => {
     if (!store.isExpired(store.siteSettings)) {
       return store.siteSettings!.data;
     }
 
-    const { data } = await useAsyncData("site-settings", () =>
-      DoFetch<SiteSettingsApiModel>("/api/settings/site"),
-    );
-    if (data.value) {
-      store.setSiteSettings(data.value);
+    const data = await $api<SiteSettingsApiModel>("/api/settings/site");
+    if (data) {
+      store.setSiteSettings(data);
     }
-    return data.value!;
+    return data;
   };
 
   const getNavigation = async () => {
@@ -76,15 +75,13 @@ export function useSite() {
       return cached!.data;
     }
 
-    const { data } = await useAsyncData(`deck-type-settings-${typeId}`, () =>
-      DoFetch<DeckTypeSettingsApiModel>("/api/settings/deckType", {
-        query: { typeId },
-      }),
-    );
-    if (data.value) {
-      store.setDeckTypeSettings(typeId, data.value);
+    const data = await $api<DeckTypeSettingsApiModel>("/api/settings/deckType", {
+      query: { typeId },
+    });
+    if (data) {
+      store.setDeckTypeSettings(typeId, data);
     }
-    return data.value!;
+    return data;
   };
 
   const getSetOverviewSettings = async () => {
@@ -92,26 +89,24 @@ export function useSite() {
       return store.setOverviewSettings!.data;
     }
 
-    const { data } = await useAsyncData("set-overview-settings", () =>
-      DoFetch<SetOverviewSettingsApiModel>("/api/settings/setOverview"),
+    const data = await $api<SetOverviewSettingsApiModel>(
+      "/api/settings/setOverview",
     );
-    if (data.value) {
-      store.setSetOverviewSettings(data.value);
+    if (data) {
+      store.setSetOverviewSettings(data);
     }
-    return data.value!;
+    return data;
   };
 
   const getDeckBuilderSettings = async (
     typeId: number,
     deckId?: number,
   ): Promise<CreateDeckModel> => {
-    const { data } = await useAsyncData(`deck-builder-settings-${typeId}`, () =>
-      DoFetch<DeckBuilderApiModel>("/api/settings/deckbuilder", {
-        query: { typeId },
-      }),
+    const result = await $api<DeckBuilderApiModel>(
+      "/api/settings/deckbuilder",
+      { query: { typeId } },
     );
 
-    const result = data.value;
     const model = new CreateDeckModel();
     model.typeId = result?.id;
     model.overwriteAmount = result?.overwriteAmount ?? undefined;
@@ -167,7 +162,7 @@ export function useSite() {
           ...(deck.sideboard?.flatMap((deckCard) => deckCard.children ?? []) ??
             []),
         ];
-        const cards = await useCards().loadCardsByIds([...new Set(allCardIds)]);
+        const cards = await loadCardsByIds([...new Set(allCardIds)]);
         model.id = deckId;
         model.name = deck.name;
         model.description = deck.description ?? "";
@@ -260,12 +255,10 @@ export function useSite() {
   const getSquadSettingsOptions = async (): Promise<
     SquadSettingsOptionApiModel[]
   > => {
-    const { data } = await useAsyncData("squad-settings-options", () =>
-      DoFetch<SquadSettingsOptionApiModel[]>(
-        "/api/settings/squadSettingsOptions",
-      ),
+    const data = await $api<SquadSettingsOptionApiModel[]>(
+      "/api/settings/squadSettingsOptions",
     );
-    return data.value ?? [];
+    return data ?? [];
   };
 
   return {

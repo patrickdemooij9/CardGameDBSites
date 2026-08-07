@@ -4,11 +4,12 @@ import type {
   CardsQueryPostApiModel,
   PagedResultCardDetailApiModel,
 } from "~/api/default";
-import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
+import { DoServerFetch } from "~/helpers/RequestsHelper";
 import { useCardsStore } from "~/stores/CardStore";
 
 export function useCards() {
   const store = useCardsStore();
+  const { $api } = useNuxtApp();
 
   /** Load multiple cards with cache + dedupe */
   const loadCardsByIds = async (ids: number[]) => {
@@ -21,18 +22,12 @@ export function useCards() {
       return ids.map((id) => store.cards[id]!.data);
     }
 
-    const { data, error } = await useAsyncData(
-      `cards-${missingIds.join(",")}`,
-      () =>
-        DoServerFetch<CardDetailApiModel[]>("/api/cards/byIds", true, {
-          method: "POST",
-          body: missingIds,
-        }),
-    );
+    const data = await $api<CardDetailApiModel[]>("/api/cards/byIds", {
+      method: "POST",
+      body: missingIds,
+    });
 
-    if (error.value) throw error.value;
-
-    store.setCards(data.value ?? []);
+    store.setCards(data ?? []);
 
     return ids
       .map((id) => store.cards[id]?.data)
@@ -46,17 +41,13 @@ export function useCards() {
       return cached.data;
     }
 
-    const { data, error } = await useAsyncData(`card-${id}`, () =>
-      DoServerFetch<CardDetailApiModel>(`/api/cards/byId?id=${id}`, true),
-    );
+    const data = await $api<CardDetailApiModel>(`/api/cards/byId?id=${id}`);
 
-    if (error.value) throw error.value;
-
-    if (data.value) {
-      store.setCards([data.value]);
+    if (data) {
+      store.setCards([data]);
     }
 
-    return data.value!;
+    return data;
   };
 
   /** Variant types (cached globally) */
@@ -65,15 +56,12 @@ export function useCards() {
       return store.variantTypes.data;
     }
 
-    const { data, error } = await useAsyncData("card-variant-types", () =>
-      DoFetch<CardVariantTypeApiModel[]>("/api/cards/variantTypes", {
-        method: "GET",
-      }),
+    const data = await $api<CardVariantTypeApiModel[]>(
+      "/api/cards/variantTypes",
+      { method: "GET" },
     );
 
-    if (error.value) throw error.value;
-
-    store.setVariantTypes(data.value ?? []);
+    store.setVariantTypes(data ?? []);
     return store.variantTypes.data;
   };
 
@@ -86,15 +74,12 @@ export function useCards() {
   };
 
   const getAbilityValues = async (ability: string) => {
-    const { data, error } = await useAsyncData(`card-values-${ability}`, () =>
-      DoFetch<string[]>("/api/cards/getAllValues?abilityName=" + ability, {
-        method: "GET",
-      }),
-    );
+    const data = await $api<string[]>("/api/cards/getAllValues", {
+      method: "GET",
+      query: { abilityName: ability },
+    });
 
-    if (error.value) throw error.value;
-
-    return data.value ?? [];
+    return data ?? [];
   };
 
   return {

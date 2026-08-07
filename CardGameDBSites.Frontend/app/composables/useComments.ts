@@ -1,13 +1,15 @@
 import type { CommentViewModel } from "~/api/default";
-import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
+import { DoServerFetch } from "~/helpers/RequestsHelper";
 
 export function useComments() {
-  const loadCommentsByDeckId = async (deckId: number) => {
-    const { data } = await useAsyncData(`comments-deck-${deckId}`, () =>
-      DoFetch<CommentViewModel[]>(`/api/comments/getByDeck?deckId=${deckId}`),
-    );
+  const { $api } = useNuxtApp();
 
-    return data.value ?? [];
+  const loadCommentsByDeckId = async (deckId: number) => {
+    const data = await $api<CommentViewModel[]>("/api/comments/getByDeck", {
+      query: { deckId },
+    });
+
+    return data ?? [];
   };
 
   const saveCommentByDeckId = async (deckId: number, content: string) => {
@@ -36,11 +38,11 @@ export function useComments() {
   };
 
   const loadCommentsByCardId = async (cardId: number) => {
-    const { data } = await useAsyncData(`comments-card-${cardId}`, () =>
-      DoFetch<CommentViewModel[]>(`/api/comments/getByCard?cardId=${cardId}`),
-    );
+    const data = await $api<CommentViewModel[]>("/api/comments/getByCard", {
+      query: { cardId },
+    });
 
-    return data.value ?? [];
+    return data ?? [];
   };
 
   const saveCommentByCardId = async (cardId: number, content: string) => {

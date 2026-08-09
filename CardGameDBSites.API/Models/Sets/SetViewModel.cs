@@ -8,12 +8,15 @@
         public string? ImageUrl { get; set; }
         public string? Code { get; set; }
         public string? Category { get; set; }
-        public string[] ExtraInformation { get; set; }
         public int[]? MainVariants { get; set; }
+        public DateTime? ReleaseDate { get; set; }
+
+        public string? SubHeading { get; set; }
+        public string? Description { get; set; }
+        public FrequentlyAskedQuestionApiModel[] FrequentlyAskedQuestions { get; set; } = [];
 
         public SetViewModel()
         {
-            ExtraInformation = [];
         }
     }
 }

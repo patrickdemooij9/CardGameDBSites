@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { FrequentlyAskedQuestionApiModel } from './FrequentlyAskedQuestionApiModel';
 export type SetViewModel = {
     id: number;
     displayName: string;
@@ -9,7 +10,10 @@ export type SetViewModel = {
     imageUrl?: string | null;
     code?: string | null;
     category?: string | null;
-    extraInformation?: Array<string>;
     mainVariants?: Array<number> | null;
+    releaseDate?: string | null;
+    subHeading?: string | null;
+    description?: string | null;
+    frequentlyAskedQuestions?: Array<FrequentlyAskedQuestionApiModel>;
 };
 

@@ -1,6 +1,8 @@
+using CardGameDBSites.API.Models;
 using CardGameDBSites.API.Models.Sets;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
@@ -77,6 +79,14 @@ namespace CardGameDBSites.API.Controllers
             return Ok(result);
         }
 
+        
+        [HttpGet("cardCount")]
+        [ProducesResponseType(typeof(int), 200)]
+        public IActionResult GetCardCount(int setId)
+        {
+            return Ok(_cardService.GetAllBaseBySet(setId).Count());
+        }
+
         private SetViewModel CreateSetViewModel(Set set)
         {
             var setOverviewPageUrl = $"/{_siteService.GetSetOverview()?.UrlSegment()}";
@@ -88,8 +98,16 @@ namespace CardGameDBSites.API.Controllers
                 ImageUrl = set.DisplayImage?.Url(mode: UrlMode.Absolute),
                 Code = set.SetCode,
                 Category = set.CategoryName,
-                ExtraInformation = set.ExtraInformation?.ToArray() ?? [],
-                MainVariants = set.MainVariantType?.OfType<Variant>().Select(it => it.InternalID).ToArray()
+                MainVariants = set.MainVariantType?.OfType<Variant>().Select(it => it.InternalID).ToArray(),
+                ReleaseDate = set.ReleaseDate,
+
+                SubHeading = set.Subheading?.ToString(),
+                Description = set.Description?.ToString(),
+                FrequentlyAskedQuestions = [.. set.FaqBlocks.ToItems<FrequentlyAskedQuestion>().Select(it => new FrequentlyAskedQuestionApiModel
+                {
+                    Heading = it.Question!,
+                    Content = it.Answer!
+                })]
             };
         }
     }

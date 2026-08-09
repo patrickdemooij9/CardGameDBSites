@@ -131,11 +131,6 @@ onMounted(async () => {
           </NuxtLink>
           <div class="flex justify-between">
             <CmsImage class="h-16" v-if="set.imageUrl" :src="set.imageUrl" :alt="set.displayName" />
-            <div class="flex flex-col justify-center">
-              <span v-for="info in set.extraInformation" class="text-sm">{{
-                info
-              }}</span>
-            </div>
           </div>
           <div class="flex justify-between gap-4">
             <div class="grow self-center">

@@ -27,13 +27,13 @@ function trimUrlDomain(url: string) {
     </h3>
     <div>
       <b v-if="section.namePosition === 'Inline'"> {{ section.ability }}: </b>
-      <div v-if="!section.showAsTags" v-for="(item, index) in abilityValue" :key="index">
+      <template v-if="!section.showAsTags" v-for="(item, index) in abilityValue" :key="index">
         <template v-if="item.includes(';')">
           <p><b><SpecialTextFormatter :content="item.split(';')[0]!"/></b></p>
           <p><SpecialTextFormatter :content="item.split(';')[1]!"/></p>
         </template>
         <SpecialTextFormatter v-else :content="item" />
-      </div>
+      </template>
 
       <template v-else>
         <div class="flex gap-2">

@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { MetaLeaderApiModel } from '../models/MetaLeaderApiModel';
+import type { MetaLeaderUsageApiModel } from '../models/MetaLeaderUsageApiModel';
 import type { MetaPopularCardApiModel } from '../models/MetaPopularCardApiModel';
 import type { MetaWinningDeckApiModel } from '../models/MetaWinningDeckApiModel';
 import type { PeriodApiModel } from '../models/PeriodApiModel';
@@ -11,6 +12,32 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class TournamentsResource {
+    /**
+     * @returns MetaLeaderUsageApiModel OK
+     * @throws ApiError
+     */
+    public static getApiTournamentsMetaLeaderUsage({
+        tournamentId,
+        take = 5,
+        leaderGroupId = 1,
+        leaderSlotId,
+    }: {
+        tournamentId?: number,
+        take?: number,
+        leaderGroupId?: number,
+        leaderSlotId?: number,
+    }): CancelablePromise<Array<MetaLeaderUsageApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/tournaments/meta/leader-usage',
+            query: {
+                'tournamentId': tournamentId,
+                'take': take,
+                'leaderGroupId': leaderGroupId,
+                'leaderSlotId': leaderSlotId,
+            },
+        });
+    }
     /**
      * @returns MetaPopularCardApiModel OK
      * @throws ApiError

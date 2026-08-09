@@ -30,4 +30,8 @@ export default class SetService {
       true,
     );
   }
+
+  async getCardAmount(setId: number){
+    return await DoFetch<number>(`/api/sets/cardCount?setId=${setId}`);
+  }
 }

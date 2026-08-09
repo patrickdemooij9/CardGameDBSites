@@ -6,7 +6,7 @@ export type TournamentEntrantApiModel = {
     id?: number;
     playerName?: string;
     placement?: number;
-    deckId?: number;
+    deckId?: number | null;
     deckName?: string | null;
 };
 

@@ -66,6 +66,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual string CategoryName => this.Value<string>(_publishedValueFallback, "categoryName");
 
 		///<summary>
+		/// Description
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("description")]
+		public virtual global::Umbraco.Cms.Core.Strings.IHtmlEncodedString Description => this.Value<global::Umbraco.Cms.Core.Strings.IHtmlEncodedString>(_publishedValueFallback, "description");
+
+		///<summary>
 		/// Display Image
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
@@ -88,6 +96,14 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("extraInformation")]
 		public virtual global::System.Collections.Generic.IEnumerable<string> ExtraInformation => this.Value<global::System.Collections.Generic.IEnumerable<string>>(_publishedValueFallback, "extraInformation");
+
+		///<summary>
+		/// FAQ blocks
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("faqBlocks")]
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel FaqBlocks => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "faqBlocks");
 
 		///<summary>
 		/// Has been released
@@ -113,12 +129,27 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::System.Collections.Generic.IEnumerable<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent> NonLegalDeckTypes => this.Value<global::System.Collections.Generic.IEnumerable<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>>(_publishedValueFallback, "nonLegalDeckTypes");
 
 		///<summary>
+		/// Release date
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[ImplementPropertyType("releaseDate")]
+		public virtual global::System.DateTime ReleaseDate => this.Value<global::System.DateTime>(_publishedValueFallback, "releaseDate");
+
+		///<summary>
 		/// Set code
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("setCode")]
 		public virtual string SetCode => this.Value<string>(_publishedValueFallback, "setCode");
+
+		///<summary>
+		/// Subheading
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("subheading")]
+		public virtual global::Umbraco.Cms.Core.Strings.IHtmlEncodedString Subheading => this.Value<global::Umbraco.Cms.Core.Strings.IHtmlEncodedString>(_publishedValueFallback, "subheading");
 
 		///<summary>
 		/// Tcg Player Category

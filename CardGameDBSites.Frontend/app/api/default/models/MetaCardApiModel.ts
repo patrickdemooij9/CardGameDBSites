@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ImageCropsApiModel } from './ImageCropsApiModel';
-export type MetaPopularCardApiModel = {
-    cardId?: number;
-    cardName?: string;
-    percentage?: number;
+export type MetaCardApiModel = {
+    baseId?: number;
+    displayName?: string;
+    urlSegment?: string;
     imageUrl?: ImageCropsApiModel;
 };
 

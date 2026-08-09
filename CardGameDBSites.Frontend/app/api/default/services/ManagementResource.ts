@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { ImportTournament } from '../models/ImportTournament';
 import type { ImportTournamentResult } from '../models/ImportTournamentResult';
+import type { MetaSnapshotResult } from '../models/MetaSnapshotResult';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -44,6 +45,27 @@ export class ManagementResource {
             },
             errors: {
                 400: `Bad Request`,
+                403: `Forbidden`,
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * @returns MetaSnapshotResult OK
+     * @throws ApiError
+     */
+    public static postApiManagementMetaRecreate({
+        periodId,
+    }: {
+        periodId?: number,
+    }): CancelablePromise<MetaSnapshotResult> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/management/meta/recreate',
+            query: {
+                'periodId': periodId,
+            },
+            errors: {
                 403: `Forbidden`,
                 404: `Not Found`,
             },

@@ -55,6 +55,10 @@ const props = defineProps<{
   variantTypeIds?: number[];
 }>();
 
+const emit = defineEmits<{
+  reloaded: [cards: PagedResultCardDetailApiModel];
+}>();
+
 const availableViews = computed(() => {
   const views = ["images"];
 
@@ -92,7 +96,6 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
   ];
 });
 
-const showPrices = false;
 const variantTypes = ref<CardVariantTypeApiModel[]>([]);
 const mainVariants = computed(() => variantTypes.value.filter((item) => item.hasPage));
 const currentCards = ref<PagedResultCardDetailApiModel | null>(null);
@@ -128,6 +131,7 @@ onMounted(async () => {
 });
 
 function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
+  emit("reloaded", cards);
   currentCards.value = cards;
   sets.value = [];
 

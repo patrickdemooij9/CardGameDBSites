@@ -72,6 +72,18 @@ namespace SkytearHorde.Business.Services
             _cache.ClearByKey(SiteSettingsCacheKeyPrefix);
         }
 
+        public TournamentSettingsConfig? GetTournamentSettings()
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            var settings = _siteService.GetRoot().FirstChild<Settings>()?.FirstChild<TournamentSettings>();
+            if (settings is null) return null;
+
+            return new TournamentSettingsConfig
+            {
+                Discovery = settings.Discovery?.ToArray() ?? []
+            };
+        }
+
         public DeckSettings GetDeckSettings()
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();

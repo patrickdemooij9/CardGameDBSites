@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace SkytearHorde.Business.Tournaments
 {
-    public class MeleeGGTournamentConnector : ITournamentConnector
+    public class MeleeGGTournamentConnector : ITournamentConnector, ITournamentDiscoverer
     {
         private readonly HttpClient _httpClient;
 
@@ -186,6 +186,132 @@ namespace SkytearHorde.Business.Tournaments
             return data;
         }
 
+        public async Task<IReadOnlyList<DiscoveredTournament>> DiscoverTournaments(TournamentDiscoveryConfig config)
+        {
+            // The tournament overview is backed by this DataTables endpoint returning a JSON array. There is no
+            // server-side game filter (all games are mixed) and it is hard-capped at ~250 rows, oldest-first, with no
+            // paging, so we take the single page and filter by game client-side. Ended-only + a daily-or-faster
+            // cadence means each finished tournament is seen as it ages into the visible band.
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "draw", "1" },
+                { "start", "0" },
+                { "length", "250" },
+                { "order[0][column]", "0" },
+                { "order[0][dir]", "desc" },
+                { "search[value]", "" },
+                { "search[regex]", "false" }
+            });
+
+            var response = await _httpClient.PostAsync(
+                "https://melee.gg/Tournament/SearchResults?timeZoneId=UTC&date=Last7Days&statuses=Ended", content);
+            if (!response.IsSuccessStatusCode)
+                return [];
+
+            var json = await response.Content.ReadAsStringAsync();
+            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var results = JsonSerializer.Deserialize<List<MeleeSearchResult>>(json, jsonOptions) ?? [];
+
+            return results
+                .Where(r => string.Equals(r.GameDescription, config.GameDescription, StringComparison.OrdinalIgnoreCase))
+                .Select(r => new DiscoveredTournament
+                {
+                    ExternalId = r.Id.ToString(),
+                    Name = r.Name ?? string.Empty,
+                    GameDescription = r.GameDescription ?? string.Empty,
+                    Type = GetTournamentType(r.Name!),
+                    FormatString = r.FormatString,
+                    Status = r.Status ?? string.Empty,
+                    StartDateUtc = r.StartDate,
+                    EnrolledPlayerCount = r.EnrolledPlayerCount,
+                    OrganizationId = r.OrganizationId?.ToString(),
+                    OrganizationName = r.OrganizationName
+                })
+                .ToList();
+        }
+
+        public async Task<DecklistCoverage?> GetDecklistCoverage(string externalId)
+        {
+            // Decklists ride along in the round-match data (each competitor has a Decklists array). Round 1 holds the
+            // full field before drops, so it gives a full-field coverage ratio in a single extra call. We fetch the
+            // View page purely to learn the round/match button ids (kept local — independent of LoadTournament state).
+            var pageResponse = await _httpClient.GetAsync($"https://melee.gg/Tournament/View/{externalId}");
+            if (!pageResponse.IsSuccessStatusCode)
+                return null;
+
+            var doc = new HtmlDocument();
+            doc.Load(await pageResponse.Content.ReadAsStreamAsync());
+
+            var matchNodes = doc.DocumentNode.SelectNodes("//div[@id='pairings']//button");
+            if (matchNodes is null)
+                return null;
+
+            var roundIds = matchNodes
+                .Select(n => n.GetAttributeValue("data-id", ""))
+                .Where(id => !string.IsNullOrEmpty(id))
+                .ToList();
+            if (roundIds.Count == 0)
+                return null;
+
+            // Probe rounds in order and use the fullest one (round 1 is normally the full field; the last button can
+            // be a small top-cut round which would over- or under-state coverage).
+            DecklistCoverage? best = null;
+            foreach (var roundId in roundIds)
+            {
+                var coverage = await GetRoundDecklistCoverage(roundId);
+                if (coverage is null) continue;
+                if (best is null || coverage.TotalPlayers > best.TotalPlayers)
+                    best = coverage;
+            }
+
+            return best;
+        }
+
+        private async Task<DecklistCoverage?> GetRoundDecklistCoverage(string roundId)
+        {
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "draw", "1" },
+                { "start", "0" },
+                { "length", "1000" },
+                { "columns[0][data]", "TableNumber" },
+                { "columns[0][name]", "TableNumber" },
+                { "order[0][column]", "0" },
+                { "order[0][dir]", "asc" },
+                { "search[value]", "" },
+                { "search[regex]", "false" }
+            });
+
+            var response = await _httpClient.PostAsync($"https://melee.gg/Match/GetRoundMatches/{roundId}", content);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var json = await response.Content.ReadAsStringAsync();
+            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var matchResponse = JsonSerializer.Deserialize<MeleeMatchResponse>(json, jsonOptions);
+            if (matchResponse?.Data == null)
+                return null;
+
+            var coverage = new DecklistCoverage();
+            foreach (var match in matchResponse.Data)
+            {
+                foreach (var competitor in match.Competitors)
+                {
+                    var players = competitor.Team?.Players;
+                    if (players == null) continue;
+
+                    foreach (var _ in players)
+                    {
+                        coverage.TotalPlayers++;
+                        if (competitor.Decklists.Length > 0)
+                            coverage.PlayersWithDecklist++;
+                    }
+                }
+            }
+
+            return coverage.TotalPlayers > 0 ? coverage : null;
+        }
+
         private async Task<MeleeDeckData?> LoadDeckFromMelee(string decklistGuid)
         {
             try
@@ -260,8 +386,34 @@ namespace SkytearHorde.Business.Tournaments
             return standings;
         }
 
+        private string GetTournamentType(string name)
+        {
+            if (name.Contains("Planetary Qualifier", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return "Planetary Qualifier";
+            }
+            if (name.Contains("Sector Qualifier", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return "Sector Qualifier";
+            }
+            return "Standard";
+        }
+
 
         // --- Melee.GG API response models ---
+
+        private class MeleeSearchResult
+        {
+            public long Id { get; set; }
+            public string? Name { get; set; }
+            public string? GameDescription { get; set; }
+            public DateTime StartDate { get; set; }
+            public long? OrganizationId { get; set; }
+            public string? OrganizationName { get; set; }
+            public int EnrolledPlayerCount { get; set; }
+            public string? FormatString { get; set; }
+            public string? Status { get; set; }
+        }
 
         private class MeleeMatchResponse
         {

@@ -118,7 +118,8 @@ namespace SkytearHorde.Business.Startup
                 .AddScoped<IOverviewDataSource, DeckOverviewDataSource>();
 
             builder.Services
-                .AddScoped<ITournamentConnector, MeleeGGTournamentConnector>();
+                .AddScoped<ITournamentConnector, MeleeGGTournamentConnector>()
+                .AddScoped<ITournamentDiscoverer, MeleeGGTournamentConnector>();
 
             builder.Services
                 .AddScoped<IFactGenerator, HighestHealthUnitGenerator>()
@@ -155,6 +156,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddHostedService<DeckViewCleanupTask>();
             builder.Services.AddHostedService<CardImportQueueCleanupTask>();
             builder.Services.AddHostedService<TournamentImportQueueTask>();
+            builder.Services.AddHostedService<TournamentDiscoveryTask>();
 
             builder.Services.ConfigureOptions<ConfigureExternalIndexOptions>();
 

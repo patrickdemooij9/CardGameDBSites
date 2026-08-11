@@ -1,0 +1,337 @@
+{
+  "initialPrompt": "You are a bot able to read cards. I need you to read the attached Hubworld: Aidalon card and provide me the type of card. You'll find it on the type line at the bottom of the card and it should be either Agent, Moment, Obstacle, Seeker or Source. A Seeker is the only type without a shard cost in the top left corner and the only one with two stat boxes on the right side of the card. Only return the type.",
+  "cardDetectionPrompt": "You are a precise object detector. The attached image is a Hubworld: Aidalon card reveal or spoiler image that may contain one or more individual trading cards, arranged side by side or in a grid. Detect every complete, individual trading card in the image. Return ONLY a JSON array with no markdown fences and no surrounding text. Each element must be an object with exactly two fields: \"label\", a short string naming the card (use the card's printed name if you can read it, otherwise \"card\"), and \"box\", an array of four integers [ymin, xmin, ymax, xmax] giving the card's bounding box normalized to a 0-1000 scale relative to the image's height (y) and width (x). Include only actual cards; ignore the background, logos, watermarks, decorative borders, shadows, and any card that is heavily cut off at the image edge. If the image contains a single card filling most of the frame, return that one card with a box covering it. If no cards are visible, return an empty array [].",
+  "presets": [],
+  "types": [
+    {
+      "type": "Seeker",
+      "promptFile": "SeekerPrompt.txt",
+      "properties": [
+        {
+          "alias": "Name",
+          "description": "The card name printed in the title bar at the top of the card. Ignore any bullet (•) printed in front of the name.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Subname",
+          "description": "The smaller name printed directly below the card name.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Type",
+          "constant": "Seeker"
+        },
+        {
+          "alias": "Subtype",
+          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For a Seeker this is a value like Paragon.",
+          "toTitleCase": true
+        },
+        {
+          "alias": "Draw Limit",
+          "description": "The number in the stat box on the right side of the card that sits next to the small rectangular card symbol. It is the left one of the two stat boxes.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Shard Limit",
+          "description": "The number in the stat box on the right side of the card that sits next to the angular shard (triangle/gem) symbol. It is the right one of the two stat boxes.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Ability",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Pip Source_multiple",
+          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Faction",
+          "description": "Determined by the color of the card frame and of its pips: purple = The Remnants, orange = Omniworks, green = Old Aidalon, blue = The Collective. ALWAYS return exactly one of those four values.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Amount",
+          "constant": 1
+        },
+        {
+          "alias": "Artist",
+          "description": "The artist name printed in the bottom corner of the card, in the corner opposite the collector number.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Id",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Only return the [card number] part, without leading zeros.",
+          "toTitleCase": false
+        }
+      ]
+    },
+    {
+      "type": "Agent",
+      "promptFile": "AgentPrompt.txt",
+      "properties": [
+        {
+          "alias": "Shard Cost",
+          "description": "The large number in the top left corner of the card.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Name",
+          "description": "The card name printed in the title bar at the top of the card. Ignore any bullet (•) printed in front of the name.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Subname",
+          "description": "The smaller name printed directly below the card name.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Type",
+          "constant": "Agent"
+        },
+        {
+          "alias": "Subtype",
+          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For an Agent this is a value like Renegade.",
+          "toTitleCase": true
+        },
+        {
+          "alias": "Ability",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Barrier Value",
+          "description": "The number at the right end of the red bar that runs across the card, next to the double chevron symbol.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Presence",
+          "description": "The number in the purple box in the bottom right corner of the card, next to the pinwheel symbol.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Collection Icons_multiple",
+          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Pip Requirement_multiple",
+          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Faction",
+          "description": "Determined by the color of the card frame and of its pips: purple = The Remnants, orange = Omniworks, green = Old Aidalon, blue = The Collective. ALWAYS return exactly one of those four values.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Amount",
+          "constant": 3
+        },
+        {
+          "alias": "Artist",
+          "description": "The artist name printed in the bottom corner of the card, in the corner opposite the collector number.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Id",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRCO - 030/164. Only return the [card number] part, without leading zeros.",
+          "toTitleCase": false
+        }
+      ]
+    },
+    {
+      "type": "Obstacle",
+      "promptFile": "ObstaclePrompt.txt",
+      "properties": [
+        {
+          "alias": "Shard Cost",
+          "description": "The large number in the top left corner of the card.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Name",
+          "description": "The card name printed in the title bar at the top of the card. Ignore any bullet (•) printed in front of the name.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Type",
+          "constant": "Obstacle"
+        },
+        {
+          "alias": "Subtype",
+          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For an Obstacle this is a value like Location.",
+          "toTitleCase": true
+        },
+        {
+          "alias": "Ability",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Barrier Value",
+          "description": "The number at the right end of the red bar that runs across the card, next to the double chevron symbol.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Presence",
+          "description": "The number in the purple box in the bottom right corner of the card, next to the pinwheel symbol.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Collection Icons_multiple",
+          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Pip Requirement_multiple",
+          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Faction",
+          "description": "Determined by the color of the card frame and of its pips: purple = The Remnants, orange = Omniworks, green = Old Aidalon, blue = The Collective. ALWAYS return exactly one of those four values.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Amount",
+          "constant": 3
+        },
+        {
+          "alias": "Artist",
+          "description": "The artist name printed in the bottom corner of the card, in the corner opposite the collector number.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Id",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 055/164. Only return the [card number] part, without leading zeros.",
+          "toTitleCase": false
+        }
+      ]
+    },
+    {
+      "type": "Source",
+      "promptFile": "SourcePrompt.txt",
+      "properties": [
+        {
+          "alias": "Shard Cost",
+          "description": "The large number in the top left corner of the card.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Name",
+          "description": "The card name printed in the title bar at the top of the card. Ignore any bullet (•) printed in front of the name.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Type",
+          "constant": "Source"
+        },
+        {
+          "alias": "Subtype",
+          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For a Source this is a value like Persona.",
+          "toTitleCase": true
+        },
+        {
+          "alias": "Ability",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Barrier Value",
+          "description": "The number at the right end of the red bar that runs across the card, next to the double chevron symbol.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Presence",
+          "description": "The number in the purple box in the bottom right corner of the card, next to the pinwheel symbol.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Collection Icons_multiple",
+          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Pip Requirement_multiple",
+          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Faction",
+          "description": "Determined by the color of the card frame and of its pips: purple = The Remnants, orange = Omniworks, green = Old Aidalon, blue = The Collective. ALWAYS return exactly one of those four values.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Amount",
+          "constant": 3
+        },
+        {
+          "alias": "Artist",
+          "description": "The artist name printed in the bottom corner of the card, in the corner opposite the collector number.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Id",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 089/164. Only return the [card number] part, without leading zeros.",
+          "toTitleCase": false
+        }
+      ]
+    },
+    {
+      "type": "Moment",
+      "promptFile": "MomentPrompt.txt",
+      "properties": [
+        {
+          "alias": "Shard Cost",
+          "description": "The large number in the top left corner of the card.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Name",
+          "description": "The card name printed in the title bar at the top of the card. Ignore any bullet (•) printed in front of the name.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Type",
+          "constant": "Moment"
+        },
+        {
+          "alias": "Subtype",
+          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For a Moment this is a value like Skill.",
+          "toTitleCase": true
+        },
+        {
+          "alias": "Ability",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Pip Requirement_multiple",
+          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Faction",
+          "description": "Determined by the color of the card frame and of its pips: purple = The Remnants, orange = Omniworks, green = Old Aidalon, blue = The Collective. ALWAYS return exactly one of those four values.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Amount",
+          "constant": 3
+        },
+        {
+          "alias": "Artist",
+          "description": "The artist name printed in the bottom corner of the card, in the corner opposite the collector number.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Id",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 144/164. Only return the [card number] part, without leading zeros.",
+          "toTitleCase": false
+        }
+      ]
+    }
+  ]
+}

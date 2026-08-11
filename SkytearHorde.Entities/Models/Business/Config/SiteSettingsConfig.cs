@@ -22,6 +22,7 @@ namespace SkytearHorde.Entities.Models.Business.Config
         public SortOption[] SortOptions { get; set; }
         public string? CardOverviewIdentifier { get; set; }
         public string BaseUrl { get; set; }
+        public string? AIPromptFolder { get; set; }
 
         public SiteSettingsConfig()
         {

@@ -1,0 +1,10 @@
+Please use the attached image and read various elements of the card. The card is a Moment from the game Hubworld: Aidalon. A Moment has a shard cost in the top left, but no red barrier bar, no presence value, no subname and no collection icons.
+
+When you read ability text, follow these rules:
+- Surround bold text with the | character. Example: |Unforge a card in your grid:| Draw a card.
+- Replace every inline icon with a token from this list: [shard] for the angular gem/diamond currency symbol, [card] for the small rectangular card symbol, [action] for the solid black flag symbol that starts an activated ability, [reaction] for the circular arrow symbol that starts a triggered ability, [breach] for the eye symbol, [barrier] for the double chevron symbol and [presence] for the pinwheel/flower symbol.
+- Separate multiple ability paragraphs with \r.
+- Include reminder text and italic rules text, but leave out purely flavor text (the italic story text at the bottom of the text box that is not a rule).
+
+Return the result as JSON as a key/value pair of each element. The value should always be a single string. If a value is not present on the card, return an empty string:
+{properties}

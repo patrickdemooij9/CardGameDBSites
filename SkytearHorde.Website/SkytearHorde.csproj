@@ -49,30 +49,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(SolutionDir)CardImport\**">
+    <None Remove="CardImport\**" />
+    <Content Remove="CardImport\**" />
+    <Content Include="CardImport\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="CardImport\prompts\StarWarsUnlimited\BasePrompt.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CardImport\prompts\StarWarsUnlimited\EventPrompt.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CardImport\prompts\StarWarsUnlimited\LeaderBackPrompt.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CardImport\prompts\StarWarsUnlimited\LeaderPrompt.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CardImport\prompts\StarWarsUnlimited\UnitPrompt.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="CardImport\prompts\StarWarsUnlimited\UpgradePrompt.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <PropertyGroup>

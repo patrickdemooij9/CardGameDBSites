@@ -22,6 +22,7 @@ namespace SkytearHorde.Business.Services
     {
         private readonly CardImportQueueRepository _queueRepository;
         private readonly CardService _cardService;
+        private readonly SettingsService _settingsService;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<CardImportQueueService> _logger;
@@ -31,12 +32,14 @@ namespace SkytearHorde.Business.Services
         public CardImportQueueService(
             CardImportQueueRepository queueRepository,
             CardService cardService,
+            SettingsService settingsService,
             IConfiguration configuration,
             IWebHostEnvironment webHostEnvironment,
             ILogger<CardImportQueueService> logger)
         {
             _queueRepository = queueRepository;
             _cardService = cardService;
+            _settingsService = settingsService;
             _configuration = configuration;
             _webHostEnvironment = webHostEnvironment;
             _logger = logger;
@@ -73,7 +76,7 @@ namespace SkytearHorde.Business.Services
             ConfigureDetectionDebug(stagingDir);
 
             // Step 1: Detect and normalize cards from the reveal image
-            var gameConfig = LoadGameConfig(promptsRoot, "StarWarsUnlimited");
+            var gameConfig = LoadGameConfig(promptsRoot);
             var extractor = new CardExtractor(gameConfig.CardDetectionPrompt);
             var extractedCards = await extractor.ExtractAsync(apiKey, imageBase64, mimeType);
 
@@ -118,7 +121,7 @@ namespace SkytearHorde.Business.Services
             Directory.CreateDirectory(stagingDir);
             ConfigureDetectionDebug(stagingDir);
 
-            var gameConfig = LoadGameConfig(promptsRoot, "StarWarsUnlimited");
+            var gameConfig = LoadGameConfig(promptsRoot);
             var extractor = new CardExtractor(gameConfig.CardDetectionPrompt);
 
             int total = 0, succeeded = 0, failed = 0;
@@ -450,7 +453,7 @@ namespace SkytearHorde.Business.Services
         private GameConfig LoadDefaultGameConfig()
         {
             var promptsRoot = ResolveContentPath(_configuration["CardImport:PromptsPath"] ?? "prompts");
-            return LoadGameConfig(promptsRoot, "StarWarsUnlimited");
+            return LoadGameConfig(promptsRoot);
         }
 
         // When CardImport:DebugDetection is true, card detection writes edge/contour debug images to a
@@ -656,13 +659,16 @@ namespace SkytearHorde.Business.Services
             return Convert.ToBase64String(stream.ToArray());
         }
 
-        private static GameConfig LoadGameConfig(string promptsRoot, string gameName)
+        private GameConfig LoadGameConfig(string promptsRoot)
         {
-            var json = File.ReadAllText(Path.Combine(promptsRoot, gameName, "Config.json"));
+            var promptsFolder = _settingsService.GetSiteSettings().AIPromptFolder;
+            if (string.IsNullOrWhiteSpace(promptsRoot)) throw new Exception("No prompts folder");
+
+            var json = File.ReadAllText(Path.Combine(promptsRoot, promptsFolder, "Config.json"));
             return JsonSerializer.Deserialize<GameConfig>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            }) ?? throw new Exception($"Failed to load config for {gameName}");
+            }) ?? throw new Exception($"Failed to load config for {promptsFolder}");
         }
 
         // ── Minimal config models (mirrors WPF CardReader Config.json shape) ──

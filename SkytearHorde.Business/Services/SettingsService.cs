@@ -62,7 +62,8 @@ namespace SkytearHorde.Business.Services
                     },
                     SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray(),
                     CardOverviewIdentifier = settings.CardOverviewIdentifier,
-                    BaseUrl = settings.BaseUrl
+                    BaseUrl = settings.BaseUrl,
+                    AIPromptFolder = settings.PromptFolder
                 };
             }, TimeSpan.FromMinutes(10))!;
         }

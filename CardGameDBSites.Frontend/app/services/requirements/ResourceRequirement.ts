@@ -10,6 +10,7 @@ import RequirementType from "./RequirementType";
 import { IsValid } from "./RequirementService";
 import { GetCardValues } from "~/helpers/CardHelper";
 import ResourceMode from "./ResourceMode";
+import { InvertConditions } from "./InvertedRequirementService";
 
 function resolveResourceMode(config: Record<string, any>): ResourceMode {
   if (config.resourceMode) {
@@ -28,6 +29,40 @@ function getMainCards(
       return IsValid([card], [c], false);
     }),
   );
+}
+
+function buildMainSideFilters(
+  cards: CardDetailApiModel[],
+  config: Record<string, any>,
+): CardsQueryFilterClauseApiModel[] | undefined {
+  const requiredValues = new Set(
+    cards.flatMap((card) => GetCardValues<string>(card, config.ability) ?? []),
+  );
+  const possibleValues: string[] = config.possibleValues ?? [];
+  const overlapping = possibleValues.filter((value) => requiredValues.has(value));
+  if (overlapping.length === 0) return undefined;
+
+  const mainConditions = (config["mainCardsCondition"] ?? []).map(
+    (c: Record<string, any>) => ({ type: c["type"], config: c["config"] }),
+  );
+  if (mainConditions.length === 0) return undefined;
+
+  const negatedMainCondition = InvertConditions(cards, mainConditions);
+  if (!negatedMainCondition) return undefined;
+
+  return [
+    {
+      clauseType: CardSearchFilterClauseType.AND,
+      filters: [
+        ...negatedMainCondition.flatMap((c) => c.filters ?? []),
+        ...overlapping.map((value) => ({
+          alias: `${config.mainAbility}.${value.replaceAll(' ', '')}.Amount`,
+          values: ["1"],
+          mode: CardSearchFilterMode.HIGHER,
+        })),
+      ],
+    },
+  ];
 }
 
 function buildResourcePool(
@@ -104,10 +139,16 @@ export default class ResourceRequirement implements IRequirement {
     config: Record<string, any>,
   ): CardsQueryFilterClauseApiModel[] | undefined {
     const mainCards = getMainCards(cards, config);
-    if (mainCards.length === 0) return undefined;
+    const mode = resolveResourceMode(config);
+    if (mainCards.length === 0) {
+      // Budget and Subset both need the pool's resource counts, which do not exist yet.
+      // ContainsAny only needs set overlap, so it can still filter the main side.
+      return mode === ResourceMode.ContainsAny
+        ? buildMainSideFilters(cards, config)
+        : undefined;
+    }
 
     const resourcePool = buildResourcePool(mainCards, config["mainAbility"]);
-    const mode = resolveResourceMode(config);
     const possibleValues: string[] = config.possibleValues ?? [];
 
     switch (mode) {

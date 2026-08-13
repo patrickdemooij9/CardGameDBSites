@@ -1,4 +1,4 @@
-import {
+﻿import {
     CardSearchFilterClauseType,
   type CardDetailApiModel,
   type CardsQueryFilterClauseApiModel,
@@ -13,12 +13,19 @@ import type { IInvertRequirement } from "./IInvertRequirement";
 import { GetValidCards, IsValid } from "./RequirementService";
 
 //TODO: Move to better location
-const requirementHandlers: IRequirement[] = [
-  new EqualValueRequirement(),
-  new NotEqualValueRequirement(),
-  new ResourceRequirement(),
-  new SameValueRequirement(),
-];
+let requirementHandlers: IRequirement[] | undefined;
+
+// Built lazily for the same reason as in RequirementService: ResourceRequirement reaches back
+// into this module through RequirementService, so it is not constructible at module level.
+function getRequirementHandlers(): IRequirement[] {
+  requirementHandlers ??= [
+    new EqualValueRequirement(),
+    new NotEqualValueRequirement(),
+    new ResourceRequirement(),
+    new SameValueRequirement(),
+  ];
+  return requirementHandlers;
+}
 
 const invertedRequirementHandlers: IInvertRequirement[] = [
   new EqualValueRequirement(),
@@ -27,6 +34,7 @@ const invertedRequirementHandlers: IInvertRequirement[] = [
 
 interface IConditionalRequirementConfig {
   type: string;
+  alias?: string;
   config: Record<string, any>;
 }
 
@@ -41,7 +49,7 @@ export default class ConditionalRequirement implements IRequirement {
         break;
       }
 
-      const requirementHandler = requirementHandlers.find(
+      const requirementHandler = getRequirementHandlers().find(
         (handler) => handler.RequirementType === condition.type,
       );
       if (!requirementHandler) {
@@ -58,7 +66,7 @@ export default class ConditionalRequirement implements IRequirement {
     }
     var requirements = config["requirements"] as IConditionalRequirementConfig[];
     for (const requirement of requirements) {
-        const requirementHandler = requirementHandlers.find(
+        const requirementHandler = getRequirementHandlers().find(
             (handler) => handler.RequirementType === requirement.type,
         );
         if (!requirementHandler) {
@@ -96,9 +104,12 @@ export default class ConditionalRequirement implements IRequirement {
       }
     }
 
-    const cardsMatchingCondition = GetValidCards(cards, requirements);
+    const cardsMatchingCondition = GetValidCards(
+      cards,
+      conditions.map((c) => ({ ...c, alias: c.alias ?? c.type })),
+    );
     for (const requirement of requirements) {
-        const requirementHandler = requirementHandlers.find(
+        const requirementHandler = getRequirementHandlers().find(
             (handler) => handler.RequirementType === requirement.type,
         );
         if (!requirementHandler) {

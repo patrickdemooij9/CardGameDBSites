@@ -74,6 +74,40 @@ describe("ConditionalRequirement", () => {
       expect(exclusion.mode).toBe("Lower");
     });
 
+    it("narrows the cards by the conditions, not by the requirements", () => {
+      // The condition selects on Faction, while main cards are identified by Type. Feeding the
+      // requirements to GetValidCards instead would keep every character (a character on its own
+      // trivially satisfies the resource requirement) and drop the card, widening the pool to
+      // {A, B}. Narrowing by the condition keeps only the Red cards, so the pool is just {A}.
+      const cards = [
+        makeCard({ Type: ["Character"], Faction: ["Red"], Provides: ["A"] }),
+        makeCard({ Type: ["Character"], Faction: ["Blue"], Provides: ["B"] }),
+        makeCard({ Type: ["Card"], Faction: ["Red"], Requires: ["A"] }),
+      ];
+
+      const filters = requirement.ToFilters(cards, {
+        condition: [{ type: "EqualValue", config: { ability: "Faction", values: ["Red"] } }],
+        requirements: [
+          {
+            type: "Resource",
+            config: {
+              mainAbility: "Provides",
+              ability: "Requires",
+              resourceMode: "ContainsAny",
+              possibleValues: ["A", "B"],
+              mainCardsCondition: [
+                { type: "EqualValue", config: { ability: "Type", values: ["Character"] } },
+              ],
+            },
+          },
+        ],
+      })!;
+
+      expect(filters).toHaveLength(1);
+      // Negated condition, then only the Red character's resource - not Blue's.
+      expect(aliasesOf(filters[0]!)).toEqual(["Faction", "Requires.A.Amount"]);
+    });
+
     it("returns undefined when there are no requirement filters", () => {
       const card = makeCard({ Type: ["Leader"] });
 

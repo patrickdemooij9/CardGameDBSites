@@ -28,7 +28,9 @@ describe("ResourceRequirement", () => {
   const requirement = new ResourceRequirement();
 
   describe("ToFilters without main cards", () => {
-    it("filters the main side on the union of what the other cards require", () => {
+    it("requires a main card to cover every other card", () => {
+      // One card needs A, another needs B, so the character has to provide both. Separate
+      // clauses AND together, unlike filters inside a clause.
       const cards = [
         makeCard({ Type: ["Card"], Requires: ["A"] }),
         makeCard({ Type: ["Card"], Requires: ["B"] }),
@@ -36,36 +38,65 @@ describe("ResourceRequirement", () => {
 
       const filters = requirement.ToFilters(cards, config())!;
 
+      expect(filters).toHaveLength(2);
+
+      // Negated main-cards condition leads each clause, so non-characters pass untouched.
+      for (const clause of filters) {
+        expect(clause.filters![0]!.alias).toBe("Type");
+        expect(clause.filters![0]!.values).toEqual(["Character"]);
+        expect(clause.filters![0]!.negate).toBe(true);
+      }
+
+      expect(filters[0]!.filters!.slice(1).map((it) => it.alias)).toEqual([
+        "Provides.A.Amount",
+      ]);
+      expect(filters[1]!.filters!.slice(1).map((it) => it.alias)).toEqual([
+        "Provides.B.Amount",
+      ]);
+      expect(filters[0]!.filters![1]!.mode).toBe("Higher");
+      expect(filters[0]!.filters![1]!.values).toEqual(["1"]);
+    });
+
+    it("ORs a single card's own resources, since it only needs one overlap", () => {
+      // One card listing A and B is satisfied by a character providing either.
+      const cards = [makeCard({ Type: ["Card"], Requires: ["A", "B"] })];
+
+      const filters = requirement.ToFilters(cards, config())!;
+
       expect(filters).toHaveLength(1);
-      const filter = filters[0]!.filters!;
-
-      // Negated main-cards condition first, so non-characters pass the OR group untouched.
-      expect(filter[0]!.alias).toBe("Type");
-      expect(filter[0]!.values).toEqual(["Character"]);
-      expect(filter[0]!.negate).toBe(true);
-
-      // Then the union {A, B} - C and D are not required by anything, so they are absent.
-      expect(filter.slice(1).map((it) => it.alias)).toEqual([
+      expect(filters[0]!.filters!.slice(1).map((it) => it.alias)).toEqual([
         "Provides.A.Amount",
         "Provides.B.Amount",
       ]);
-      expect(filter.slice(1).every((it) => it.mode === "Higher")).toBe(true);
-      expect(filter.slice(1).every((it) => it.values![0] === "1")).toBe(true);
     });
 
-    it("uses the union rather than requiring overlap with every card", () => {
-      // A character providing only A is still valid once a second character covers B,
-      // so the permissive reading must not exclude it.
+    it("collapses cards that ask for the same resources", () => {
       const cards = [
         makeCard({ Type: ["Card"], Requires: ["A"] }),
-        makeCard({ Type: ["Card"], Requires: ["B"] }),
+        makeCard({ Type: ["Card"], Requires: ["A"] }),
+        makeCard({ Type: ["Card"], Requires: ["B", "A"] }),
+        makeCard({ Type: ["Card"], Requires: ["A", "B"] }),
       ];
 
       const filters = requirement.ToFilters(cards, config())!;
 
-      // One clause, so the two Provides filters OR together rather than AND.
+      // {A} and {A, B} - the duplicates and the reordered pair collapse away.
+      expect(filters).toHaveLength(2);
+    });
+
+    it("skips cards whose resources are all outside possibleValues", () => {
+      const cards = [
+        makeCard({ Type: ["Card"], Requires: ["A"] }),
+        makeCard({ Type: ["Card"], Requires: ["Z"] }),
+      ];
+
+      const filters = requirement.ToFilters(cards, config())!;
+
+      // Z cannot be filtered on, so it must not produce an unsatisfiable clause.
       expect(filters).toHaveLength(1);
-      expect(filters[0]!.filters).toHaveLength(3);
+      expect(filters[0]!.filters!.slice(1).map((it) => it.alias)).toEqual([
+        "Provides.A.Amount",
+      ]);
     });
 
     it("returns undefined when the other cards require nothing in possibleValues", () => {

@@ -31,16 +31,15 @@ function getMainCards(
   );
 }
 
+// Filters the main side before any main card exists, which ContainsAny allows because it only
+// tests set overlap. The candidate may be for either side and we cannot tell which slot is being
+// browsed, so the main-cards condition is negated into every clause: candidates that would not be
+// main cards pass on that term alone and stay unfiltered.
 function buildMainSideFilters(
   cards: CardDetailApiModel[],
   config: Record<string, any>,
 ): CardsQueryFilterClauseApiModel[] | undefined {
-  const requiredValues = new Set(
-    cards.flatMap((card) => GetCardValues<string>(card, config.ability) ?? []),
-  );
   const possibleValues: string[] = config.possibleValues ?? [];
-  const overlapping = possibleValues.filter((value) => requiredValues.has(value));
-  if (overlapping.length === 0) return undefined;
 
   const mainConditions = (config["mainCardsCondition"] ?? []).map(
     (c: Record<string, any>) => ({ type: c["type"], config: c["config"] }),
@@ -49,20 +48,44 @@ function buildMainSideFilters(
 
   const negatedMainCondition = InvertConditions(cards, mainConditions);
   if (!negatedMainCondition) return undefined;
+  const negatedFilters = negatedMainCondition.flatMap((c) => c.filters ?? []);
 
-  return [
-    {
+  // One clause per other card, not one clause over the union. ContainsAny asks each card
+  // individually for at least one overlap, so a card's own resources OR together while separate
+  // cards AND: two cards needing A and B respectively demand a main card providing both, whereas
+  // a single card listing A and B is satisfied by either.
+  const seen = new Set<string>();
+  const clauses: CardsQueryFilterClauseApiModel[] = [];
+
+  for (const card of cards) {
+    const values = [
+      ...new Set(
+        (GetCardValues<string>(card, config.ability) ?? []).filter((value) =>
+          possibleValues.includes(value),
+        ),
+      ),
+    ];
+    // Nothing this card asks for is filterable, so it cannot narrow the main side.
+    if (values.length === 0) continue;
+
+    const key = [...values].sort().join("|");
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    clauses.push({
       clauseType: CardSearchFilterClauseType.AND,
       filters: [
-        ...negatedMainCondition.flatMap((c) => c.filters ?? []),
-        ...overlapping.map((value) => ({
+        ...negatedFilters,
+        ...values.map((value) => ({
           alias: `${config.mainAbility}.${value.replaceAll(' ', '')}.Amount`,
           values: ["1"],
           mode: CardSearchFilterMode.HIGHER,
         })),
       ],
-    },
-  ];
+    });
+  }
+
+  return clauses.length > 0 ? clauses : undefined;
 }
 
 function buildResourcePool(

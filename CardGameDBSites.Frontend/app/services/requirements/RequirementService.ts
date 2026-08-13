@@ -8,20 +8,25 @@ import ConditionalRequirement from "./ConditionalRequirement";
 import SameValueRequirement from "./SameValueRequirement";
 import ChildOfRequirement from "./ChildOfRequirement";
 
-const requirementHandlers: IRequirement[] = [
-    new EqualValueRequirement(),
-    new NotEqualValueRequirement(),
-    new ResourceRequirement(),
-    new ConditionalRequirement(),
-    new SameValueRequirement(),
-    new ChildOfRequirement(),
-]
+let requirementHandlers: IRequirement[] | undefined;
+
+function getRequirementHandlers(): IRequirement[] {
+    requirementHandlers ??= [
+        new EqualValueRequirement(),
+        new NotEqualValueRequirement(),
+        new ResourceRequirement(),
+        new ConditionalRequirement(),
+        new SameValueRequirement(),
+        new ChildOfRequirement(),
+    ];
+    return requirementHandlers;
+}
 
 export function GetValidCards(cards: CardDetailApiModel[], requirements: RequirementApiModel[])
 {
     let result = [...cards];
     requirements.forEach((requirement) => {
-        const requirementHandler = requirementHandlers.find((handler) => handler.RequirementType === requirement.alias);
+        const requirementHandler = getRequirementHandlers().find((handler) => handler.RequirementType === requirement.alias);
         if (!requirementHandler){
             console.warn(`No handler found for requirement type ${requirement.alias}`);
             return;
@@ -54,7 +59,7 @@ export function GetInvalidRequirements(cards: CardDetailApiModel[], requirements
             return;
         }
 
-        const requirementHandler = requirementHandlers.find((handler) => handler.RequirementType === requirement.alias);
+        const requirementHandler = getRequirementHandlers().find((handler) => handler.RequirementType === requirement.alias);
         if (!requirementHandler){
             console.warn(`No handler found for requirement type ${requirement.alias}`);
             return;
@@ -75,7 +80,7 @@ export function GetFilters(cards: CardDetailApiModel[], requirements: Requiremen
             return;
         }
 
-        const requirementHandler = requirementHandlers.find((handler) => handler.RequirementType === requirement.alias);
+        const requirementHandler = getRequirementHandlers().find((handler) => handler.RequirementType === requirement.alias);
         if (!requirementHandler){
             console.warn(`No handler found for requirement type ${requirement.alias}`);
             return;

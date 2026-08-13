@@ -113,14 +113,11 @@ export default class ConditionalRequirement implements IRequirement {
     if (conditionFilters.length === 0 || filters.length === 0) {
         return undefined;
     }
-
-    // NOTE: when there are multiple requirements they are OR'd in alongside the conditions rather
-    // than AND'd as their own group. That is correct for the common single-requirement case; a
-    // faithful `(NOT c1 OR NOT c2) OR (r1 AND r2)` would need nested clause groups, which the flat
-    // filter model intentionally does not support.
-    return [{
+    
+    const invertedConditionFilters = conditionFilters.flatMap(c => c.filters ?? []);
+    return filters.map(clause => ({
       clauseType: CardSearchFilterClauseType.AND,
-      filters: [...conditionFilters.flatMap(c => c.filters ?? []), ...filters.flatMap(c => c.filters ?? [])]
-    }];
+      filters: [...invertedConditionFilters, ...(clause.filters ?? [])]
+    }));
   }
 }

@@ -19,6 +19,7 @@ interface QueueItem {
   backImageUrl: string | null;
   potentialDuplicateId: number | null;
   matchedCardName: string | null;
+  matchedCardSetId: number | null;
   createdAt: string;
   setId: number | null;
   extractedData: Record<string, string>;
@@ -31,7 +32,7 @@ interface PresetField {
 }
 
 interface PresetVariant {
-  variantTypeId: number;
+  variantTypeId: number | null;
   name: string;
   fields: PresetField[];
 }
@@ -46,9 +47,10 @@ interface RematchResult {
   status: string;
   potentialDuplicateId: number | null;
   matchedCardName: string | null;
+  matchedCardSetId: number | null;
 }
 
-type ItemMode = "new" | "variant";
+type ItemMode = "new" | "variant" | "reprint" | "update";
 
 const items = ref<QueueItem[]>([]);
 const isLoading = ref(false);
@@ -59,8 +61,14 @@ const sets = ref<SetViewModel[]>([]);
 const presets = ref<Preset[]>([]);
 const itemMode = ref<Record<number, ItemMode>>({});
 const selectedPreset = ref<Record<number, number | null>>({});
-// item id -> variant type id -> editable field values
-const variantData = ref<Record<number, Record<number, Record<string, string>>>>({});
+const replaceImage = ref<Record<number, boolean>>({});
+// item id -> variant key -> editable field values
+const variantData = ref<Record<number, Record<string, Record<string, string>>>>({});
+
+// A preset variant without a variant type id is the set's base printing.
+function variantKey(variant: PresetVariant) {
+  return variant.variantTypeId === null ? "base" : String(variant.variantTypeId);
+}
 
 interface SubmitResult {
   total: number;
@@ -152,6 +160,7 @@ async function loadPending() {
       itemMode.value[item.id] =
         item.status === "PotentialVariant" ? "variant" : "new";
       selectedPreset.value[item.id] = null;
+      replaceImage.value[item.id] = true;
       variantData.value[item.id] = {};
     }
   } catch {
@@ -190,7 +199,7 @@ function selectedPresetFor(item: QueueItem): Preset | undefined {
 // each field from the AI read (case-insensitive) and leaving the rest empty. Templated fields
 // are read-only and computed server-side, so they are not collected here.
 function onPresetSelected(item: QueueItem) {
-  const byVariant: Record<number, Record<string, string>> = {};
+  const byVariant: Record<string, Record<string, string>> = {};
   const preset = selectedPresetFor(item);
 
   if (preset) {
@@ -205,11 +214,18 @@ function onPresetSelected(item: QueueItem) {
         if (field.templated) continue;
         data[field.alias] = aiByLowerKey[field.alias.toLowerCase()] ?? "";
       }
-      byVariant[variant.variantTypeId] = data;
+      byVariant[variantKey(variant)] = data;
     }
   }
 
   variantData.value[item.id] = byVariant;
+}
+
+function setMode(item: QueueItem, mode: ItemMode) {
+  itemMode.value[item.id] = mode;
+  if (mode === "update" && !selectedSets.value[item.id]) {
+    selectedSets.value[item.id] = item.matchedCardSetId;
+  }
 }
 
 function modeButtonClass(item: QueueItem, mode: ItemMode) {
@@ -229,33 +245,45 @@ function canApprove(item: QueueItem) {
   return true;
 }
 
+function variantPayload(item: QueueItem) {
+  const preset = selectedPresetFor(item);
+  return (preset?.variants ?? []).map((v) => ({
+    variantTypeId: v.variantTypeId,
+    properties: variantData.value[item.id]?.[variantKey(v)] ?? {},
+  }));
+}
+
 async function approve(item: QueueItem) {
   const setId = selectedSets.value[item.id];
   if (!setId) return;
 
-  if ((itemMode.value[item.id] ?? "new") === "variant") {
-    const preset = selectedPresetFor(item);
-    if (!preset) return;
-    const variants = preset.variants.map((v) => ({
-      variantTypeId: v.variantTypeId,
-      properties: variantData.value[item.id]?.[v.variantTypeId] ?? {},
-    }));
-    await DoServerFetch<void>(
-      `/api/cardimportqueue/approve?id=${item.id}&setId=${setId}`,
-      true,
-      {
-        method: "POST",
-        body: { parentId: item.potentialDuplicateId, variants },
-      }
-    );
+  const mode = itemMode.value[item.id] ?? "new";
+  let body: Record<string, unknown>;
+
+  if (mode === "variant" || mode === "reprint") {
+    if (mode === "variant" && !selectedPresetFor(item)) return;
+    body = {
+      mode,
+      parentId: item.potentialDuplicateId,
+      variants: variantPayload(item),
+    };
+  } else if (mode === "update") {
+    await saveEdits(item, editingData.value[item.id]);
+    body = {
+      mode,
+      parentId: item.potentialDuplicateId,
+      replaceImage: replaceImage.value[item.id] ?? true,
+    };
   } else {
     await saveEdits(item, editingData.value[item.id]);
-    await DoServerFetch<void>(
-      `/api/cardimportqueue/approve?id=${item.id}&setId=${setId}`,
-      true,
-      { method: "POST", body: {} }
-    );
+    body = { mode };
   }
+
+  await DoServerFetch<void>(
+    `/api/cardimportqueue/approve?id=${item.id}&setId=${setId}`,
+    true,
+    { method: "POST", body }
+  );
   items.value = items.value.filter((i) => i.id !== item.id);
 }
 
@@ -287,6 +315,7 @@ async function rematch(item: QueueItem) {
   item.status = result.status;
   item.potentialDuplicateId = result.potentialDuplicateId;
   item.matchedCardName = result.matchedCardName;
+  item.matchedCardSetId = result.matchedCardSetId;
   itemMode.value[item.id] =
     result.status === "PotentialVariant" ? "variant" : "new";
   selectedPreset.value[item.id] = null;
@@ -431,18 +460,29 @@ onMounted(async () => {
             <span class="text-xs text-gray-400 ml-auto">{{ formatDate(item.createdAt) }}</span>
           </div>
 
-          <!-- New card vs variant choice (only when a base card was matched) -->
+          <!-- What to do with the card (only when a base card was matched) -->
           <div v-if="item.matchedCardName" class="flex flex-wrap gap-2 mb-4">
-            <button :class="modeButtonClass(item, 'new')" @click="itemMode[item.id] = 'new'">
+            <button :class="modeButtonClass(item, 'new')" @click="setMode(item, 'new')">
               New card (not a variant)
             </button>
-            <button :class="modeButtonClass(item, 'variant')" @click="itemMode[item.id] = 'variant'">
+            <button :class="modeButtonClass(item, 'variant')" @click="setMode(item, 'variant')">
               Variant of {{ item.matchedCardName }}
+            </button>
+            <button :class="modeButtonClass(item, 'reprint')" @click="setMode(item, 'reprint')">
+              Reprint of {{ item.matchedCardName }}
+            </button>
+            <button :class="modeButtonClass(item, 'update')" @click="setMode(item, 'update')">
+              Update {{ item.matchedCardName }}
             </button>
           </div>
 
-          <!-- NEW CARD mode: editable AI-read fields -->
-          <template v-if="(itemMode[item.id] ?? 'new') === 'new'">
+          <!-- NEW CARD / UPDATE mode: editable AI-read fields -->
+          <template
+            v-if="
+              (itemMode[item.id] ?? 'new') === 'new' ||
+              itemMode[item.id] === 'update'
+            "
+          >
             <div class="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
               <div
                 v-for="(value, key) in editingData[item.id]"
@@ -472,20 +512,37 @@ onMounted(async () => {
                 />
               </div>
             </div>
+
+            <label
+              v-if="itemMode[item.id] === 'update'"
+              class="flex items-center gap-2 text-sm text-gray-600 mb-4"
+            >
+              <input v-model="replaceImage[item.id]" type="checkbox" />
+              Replace the card's art with this image
+            </label>
           </template>
 
-          <!-- VARIANT mode: pick a preset, then edit the fields of each of its variants -->
+          <!-- VARIANT / REPRINT mode: pick a preset, then edit the fields of each of its variants -->
           <template v-else>
+            <p v-if="itemMode[item.id] === 'reprint'" class="text-xs text-gray-500 mb-3">
+              The set is added to {{ item.matchedCardName }} and this image becomes its printing in
+              that set. Pick a preset to fill in the fields of that printing.
+            </p>
+
             <div class="flex flex-col mb-4 max-w-xs">
               <label class="text-xs font-semibold text-gray-500 mb-0.5">
-                Preset <span class="text-red-500">*</span>
+                Preset
+                <span v-if="itemMode[item.id] !== 'reprint'" class="text-red-500">*</span>
               </label>
               <select
                 v-model="selectedPreset[item.id]"
                 class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 @change="onPresetSelected(item)"
               >
-                <option :value="null" disabled>Select a preset…</option>
+                <option v-if="itemMode[item.id] === 'reprint'" :value="null">
+                  No preset
+                </option>
+                <option v-else :value="null" disabled>Select a preset…</option>
                 <option v-for="preset in presets" :key="preset.id" :value="preset.id">
                   {{ preset.name }}
                 </option>
@@ -495,7 +552,7 @@ onMounted(async () => {
             <!-- One field group per variant in the chosen preset; all are created on approval. -->
             <div
               v-for="variant in selectedPresetFor(item)?.variants ?? []"
-              :key="variant.variantTypeId"
+              :key="variantKey(variant)"
               class="border border-gray-200 rounded p-3 mb-3"
             >
               <h4 class="text-sm font-semibold text-gray-700 mb-2">{{ variant.name }}</h4>
@@ -515,7 +572,7 @@ onMounted(async () => {
                   />
                   <input
                     v-else
-                    v-model="variantData[item.id]![variant.variantTypeId]![field.alias]"
+                    v-model="variantData[item.id]![variantKey(variant)]![field.alias]"
                     type="text"
                     class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />

@@ -4,7 +4,9 @@
 /* eslint-disable */
 import type { ApproveVariant } from './ApproveVariant';
 export type ApproveRequest = {
+    mode?: string | null;
     parentId?: number | null;
     variants?: Array<ApproveVariant>;
+    replaceImage?: boolean;
 };
 

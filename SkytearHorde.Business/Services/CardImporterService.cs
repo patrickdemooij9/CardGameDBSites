@@ -65,6 +65,75 @@ namespace SkytearHorde.Business.Services
         }
 
         /// <summary>
+        /// Adds a set to a base card's set list. A card's set property holds one entry per printing,
+        /// so a reprint is an extra set on the existing card; publishing it lets CardVariantsEventHandler
+        /// create the base printing and the automatic variants for that set.
+        /// Returns false when the card already listed the set.
+        /// </summary>
+        public bool AddSetToCard(int cardId, int setId)
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+
+            var card = _contentService.GetById(cardId) ?? throw new Exception($"No card found with ID: {cardId}");
+            var setKey = ctx.UmbracoContext.Content?.GetById(setId)?.Key ?? throw new Exception($"No set found with ID: {setId}");
+
+            var setUdi = Udi.Create(Constants.UdiEntityType.Document, setKey).ToString();
+            var sets = SplitUdis(card.GetValue<string>("set"));
+            if (sets.Contains(setUdi, StringComparer.OrdinalIgnoreCase)) return false;
+
+            sets.Add(setUdi);
+            card.SetValue("set", string.Join(",", sets));
+            _contentService.SaveAndPublish(card);
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the id of the card's existing variant for the given set and variant type
+        /// (a null variant type is the set's base printing), or null when it does not exist yet.
+        /// Reads the children through the content service: the variants of a set are created while
+        /// the card is being published, so the published cache can still be a step behind.
+        /// </summary>
+        public int? FindVariantId(int cardId, int setId, int? variantTypeId)
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+
+            var setKey = ctx.UmbracoContext.Content?.GetById(setId)?.Key;
+            if (setKey is null) return null;
+
+            Guid? variantTypeKey = null;
+            if (variantTypeId.HasValue)
+            {
+                variantTypeKey = _siteService.GetRoot()
+                    .FirstChild<Data>()?
+                    .FirstChild<VariantsContainer>()?
+                    .Children<Variant>()?
+                    .FirstOrDefault(it => it.InternalID == variantTypeId)?
+                    .Key;
+                if (variantTypeKey is null) return null;
+            }
+
+            return _contentService.GetPagedChildren(cardId, 0, 500, out _)
+                .FirstOrDefault(it => it.ContentType.Alias == CardVariant.ModelTypeAlias
+                                   && HasUdi(it.GetValue<string>("set"), setKey)
+                                   && HasUdi(it.GetValue<string>("variantType"), variantTypeKey))?
+                .Id;
+        }
+
+        private static List<string> SplitUdis(string? value)
+        {
+            return value?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [];
+        }
+
+        /// <summary>True when the picker value points at the given content, or is empty for a null key.</summary>
+        private static bool HasUdi(string? value, Guid? key)
+        {
+            var udis = SplitUdis(value);
+            if (key is null) return udis.Count == 0;
+
+            return udis.Contains(Udi.Create(Constants.UdiEntityType.Document, key.Value).ToString(), StringComparer.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// Creates or updates card content nodes for each model, linking them to their set
         /// and writing their attributes. Moved verbatim from ImporterController.ImportModels.
         /// </summary>
@@ -186,7 +255,7 @@ namespace SkytearHorde.Business.Services
                 //ae3e7551-1f43-4784-aec1-6771b7ddd018 - Text Header ability
 
                 card.SetValue("displayName", model.Name);
-                card.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key).ToString());
+                card.SetValue("set", GetSetValue(card, set.Key));
 
                 if (card.ContentType.Alias == Card.ModelTypeAlias)
                 {
@@ -217,10 +286,32 @@ namespace SkytearHorde.Business.Services
                     }
                 }
 
-                card.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(attributes!, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
+                // An empty property set leaves the existing attributes alone: it means only the
+                // image or the set of an already imported card is being written.
+                if (attributes.Count > 0)
+                {
+                    card.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(attributes!, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
+                }
 
                 _contentService.SaveAndPublish(card);
             }
+        }
+
+        /// <summary>
+        /// A variant belongs to exactly one set, but a card lists every set it was printed in,
+        /// so the set is added to the ones the card already has instead of replacing them.
+        /// </summary>
+        private static string GetSetValue(IContent card, Guid setKey)
+        {
+            var setUdi = Udi.Create(Constants.UdiEntityType.Document, setKey).ToString();
+            if (card.ContentType.Alias != Card.ModelTypeAlias) return setUdi;
+
+            var sets = SplitUdis(card.GetValue<string>("set"));
+            if (!sets.Contains(setUdi, StringComparer.OrdinalIgnoreCase))
+            {
+                sets.Add(setUdi);
+            }
+            return string.Join(",", sets);
         }
     }
 

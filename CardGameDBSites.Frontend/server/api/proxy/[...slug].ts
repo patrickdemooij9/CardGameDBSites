@@ -55,12 +55,12 @@ export default defineEventHandler(async (event) => {
 
     const body =
       method !== "GET" && method !== "HEAD" ? await readBody(event) : undefined;
-
-    const response = await $fetch.raw(backendUrl, {
+      const response = await $fetch.raw(backendUrl, {
       method,
       headers,
       body,
       ignoreResponseError: true,
+      responseType: "stream",
     });
 
     if (response.status === 401 && jwt) {

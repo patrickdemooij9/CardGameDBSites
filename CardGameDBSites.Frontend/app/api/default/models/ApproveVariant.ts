@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ApproveVariant = {
-    variantTypeId?: number;
+    variantTypeId?: number | null;
     properties?: Record<string, string>;
 };
 

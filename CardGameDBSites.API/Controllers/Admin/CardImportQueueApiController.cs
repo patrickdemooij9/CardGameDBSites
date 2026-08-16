@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Umbraco.Cms.Web.Common.Controllers;
+using Set = SkytearHorde.Entities.Generated.Set;
 
 namespace CardGameDBSites.API.Controllers.Admin
 {
@@ -56,8 +57,13 @@ namespace CardGameDBSites.API.Controllers.Admin
 
         /// <summary>
         /// POST /umbraco/api/cardimportqueue/approve?id=123&amp;setId=456
-        /// Body (optional): { "parentId": 99, "variants": [ { "variantTypeId": 5, "properties": {..} }, ... ] }
-        /// When variants are supplied, the card is imported as one CardVariant per variant under the matched base card.
+        /// Body (optional): { "mode": "new|variant|reprint|update", "parentId": 99, "replaceImage": true,
+        ///                    "variants": [ { "variantTypeId": 5, "properties": {..} }, ... ] }
+        /// - new: creates a new base card in the set.
+        /// - variant: creates one CardVariant per preset variant under the matched base card.
+        /// - reprint: lists the set on the matched base card and gives its base printing the new art.
+        /// - update: rewrites the matched base card with the queued data.
+        /// When no mode is supplied it is inferred from the presence of variants (kept for older clients).
         /// </summary>
         [HttpPost("approve")]
         public IActionResult Approve(int id, int setId, [FromBody] ApproveRequest? request = null)
@@ -71,83 +77,204 @@ namespace CardGameDBSites.API.Controllers.Admin
             var set = _cardService.GetAllSets().FirstOrDefault(s => s.Id == setId);
             if (set == null) return BadRequest("A valid set must be selected before approving.");
 
-            var setCode = set.SetCode ?? string.Empty;
+            request ??= new ApproveRequest();
+            var mode = string.IsNullOrWhiteSpace(request.Mode)
+                ? (request.Variants.Count > 0 ? ApproveMode.Variant : ApproveMode.New)
+                : request.Mode.ToLowerInvariant();
 
-            if (request?.Variants is { Count: > 0 })
+            var failure = mode switch
             {
-                if (request.ParentId is null)
-                    return BadRequest("A parent card is required to approve variants.");
+                ApproveMode.New => ApproveNewCard(item, set),
+                ApproveMode.Variant => ApproveVariants(item, request, set),
+                ApproveMode.Reprint => ApproveReprint(item, request, set),
+                ApproveMode.Update => ApproveUpdate(item, request, set),
+                _ => BadRequest($"Unknown approve mode '{mode}'.")
+            };
+            if (failure != null) return failure;
 
-                // Shared media for every variant of the preset (same art). The back media is only
-                // created when the queued card actually has a back image.
-                var (variantImageId, variantBackImageId) = CreateMediaForItem(item, BaseName(item.ExtractedData) ?? $"card_{id}");
+            // The record (and its staged image) is kept for near-duplicate detection and
+            // is removed later by CardImportQueueCleanupTask once it ages out.
+            _queueRepository.UpdateSet(id, setId);
+            _queueRepository.UpdateStatus(id, CardImportQueueStatus.Approved);
+            return Ok();
+        }
 
-                var models = new List<ImportModel>();
-                foreach (var variant in request.Variants)
-                {
-                    var props = _queueService.BuildVariantProperties(variant.VariantTypeId, variant.Properties, setCode);
-                    props.TryGetValue("Name", out var variantName);
-                    if (string.IsNullOrWhiteSpace(variantName)) return BadRequest("A variant has no name.");
+        /// <summary>Creates a brand new base card in the set. Returns null on success.</summary>
+        private IActionResult? ApproveNewCard(CardImportQueueDBModel item, Set set)
+        {
+            // Compute the read-only templated fields now that we know the set.
+            var withTemplates = _queueService.ApplyTemplates(ReadExtractedData(item), set.SetCode ?? string.Empty);
 
-                    var attributes = props
-                        .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(kv.Value))
-                        .ToDictionary(kv => kv.Key, kv => kv.Value);
-
-                    // Only attach the back image to variants whose preset declares back_image_base64.
-                    var useBackImage = variantBackImageId.HasValue && _queueService.VariantSupportsBackImage(variant.VariantTypeId);
-
-                    models.Add(new ImportModel(null, variantName, set.Name, attributes)
-                    {
-                        ImageId = variantImageId,
-                        BackImageId = useBackImage ? variantBackImageId : null,
-                        ParentId = request.ParentId,
-                        VariantTypeId = variant.VariantTypeId
-                    });
-                }
-
-                _cardImporterService.Import(models);
-
-                _queueRepository.UpdateSet(id, setId);
-                _queueRepository.UpdateStatus(id, CardImportQueueStatus.Approved);
-                return Ok();
-            }
-
-            // Base-card import: compute the read-only templated fields now that we know the set.
-            Dictionary<string, string> data;
-            try { data = JsonSerializer.Deserialize<Dictionary<string, string>>(item.ExtractedData) ?? []; }
-            catch { data = []; }
-
-            var withTemplates = _queueService.ApplyTemplates(data, setCode);
-
-            // Build the card name (Name, optionally suffixed with Subname) and its attributes.
-            withTemplates.TryGetValue("Name", out var name);
+            var name = BuildCardName(withTemplates);
             if (string.IsNullOrWhiteSpace(name)) return BadRequest("The card has no name.");
-            if (withTemplates.TryGetValue("Subname", out var subname) && !string.IsNullOrWhiteSpace(subname))
-                name = $"{name}, {subname}";
-
-            var properties = withTemplates
-                .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(kv.Value))
-                .ToDictionary(kv => kv.Key, kv => kv.Value);
 
             var (imageId, backImageId) = CreateMediaForItem(item, name);
 
             // Create the actual card content (same path as the manual ImportJsonFiles importer).
             _cardImporterService.Import(new[]
             {
-                new ImportModel(null, name, set.Name, properties)
+                new ImportModel(null, name, set.Name, ToAttributes(withTemplates))
                 {
                     ImageId = imageId,
                     BackImageId = backImageId
                 }
             });
 
-            // Persist the final computed data + set link, then mark approved.
-            // The record (and its staged image) is kept for near-duplicate detection and
-            // is removed later by CardImportQueueCleanupTask once it ages out.
-            _queueRepository.UpdateExtractedData(id, JsonSerializer.Serialize(withTemplates));
-            _queueRepository.UpdateSet(id, setId);
-            _queueRepository.UpdateStatus(id, CardImportQueueStatus.Approved);
-            return Ok();
+            _queueRepository.UpdateExtractedData(item.Id, JsonSerializer.Serialize(withTemplates));
+            return null;
+        }
+
+        /// <summary>Creates the preset's variants under the matched base card. Returns null on success.</summary>
+        private IActionResult? ApproveVariants(CardImportQueueDBModel item, ApproveRequest request, Set set)
+        {
+            if (request.ParentId is null)
+                return BadRequest("A parent card is required to approve variants.");
+            if (request.Variants.Count == 0)
+                return BadRequest("No variants were supplied.");
+
+            var (models, error) = BuildVariantModels(item, request, set);
+            if (error != null) return BadRequest(error);
+
+            _cardImporterService.Import(models);
+            return null;
+        }
+
+        /// <summary>
+        /// Approves the card as a reprint of the matched base card: the set is added to that card,
+        /// which gives it a base printing (and its automatic variants) for the new set, and the queued
+        /// art and fields are written to that base printing. Returns null on success.
+        /// </summary>
+        private IActionResult? ApproveReprint(CardImportQueueDBModel item, ApproveRequest request, Set set)
+        {
+            if (request.ParentId is null)
+                return BadRequest("A parent card is required to approve a reprint.");
+            if (_cardService.Get(request.ParentId.Value) is null)
+                return BadRequest("The card being reprinted no longer exists.");
+
+            _cardImporterService.AddSetToCard(request.ParentId.Value, set.Id);
+
+            // The reprint always has its own art, so the base printing is imported even when the
+            // chosen preset does not describe it (or no preset was chosen at all).
+            if (!request.Variants.Any(it => it.VariantTypeId is null))
+                request.Variants.Insert(0, new ApproveVariant());
+
+            var (models, error) = BuildVariantModels(item, request, set);
+            if (error != null) return BadRequest(error);
+
+            _cardImporterService.Import(models);
+            return null;
+        }
+
+        /// <summary>Rewrites the matched base card with the queued data. Returns null on success.</summary>
+        private IActionResult? ApproveUpdate(CardImportQueueDBModel item, ApproveRequest request, Set set)
+        {
+            if (request.ParentId is null)
+                return BadRequest("A card to update is required.");
+
+            var existing = _cardService.Get(request.ParentId.Value);
+            if (existing is null) return BadRequest("The card being updated no longer exists.");
+
+            var withTemplates = _queueService.ApplyTemplates(ReadExtractedData(item), set.SetCode ?? string.Empty);
+            var name = BuildCardName(withTemplates) ?? existing.DisplayName;
+
+            // Start from the card's current attributes so fields the AI did not read are kept.
+            var properties = existing.Attributes.ToDictionary(
+                it => it.Value.GetAbility().IsMultiValue ? $"{it.Key}_multiple" : it.Key,
+                it => it.Value.GetAbilityValue());
+            foreach (var attribute in ToAttributes(withTemplates))
+            {
+                var key = properties.Keys.FirstOrDefault(it => IsSameAttribute(it, attribute.Key)) ?? attribute.Key;
+                properties[key] = attribute.Value;
+            }
+
+            var (imageId, backImageId) = request.ReplaceImage ? CreateMediaForItem(item, name) : (null, null);
+
+            _cardImporterService.Import(new[]
+            {
+                new ImportModel(request.ParentId, name, set.Name, properties)
+                {
+                    ImageId = imageId,
+                    BackImageId = backImageId,
+                    HideFromDecks = existing.HideFromDecks
+                }
+            });
+
+            _queueRepository.UpdateExtractedData(item.Id, JsonSerializer.Serialize(withTemplates));
+            return null;
+        }
+
+        /// <summary>
+        /// Builds one import model per requested preset variant, all sharing the queued art. A variant
+        /// without a variant type id is the set's base printing and is named after the card itself.
+        /// Variants that already exist for the set are updated instead of duplicated.
+        /// </summary>
+        private (List<ImportModel> Models, string? Error) BuildVariantModels(CardImportQueueDBModel item, ApproveRequest request, Set set)
+        {
+            // Shared media for every variant of the preset (same art). The back media is only
+            // created when the queued card actually has a back image.
+            var (variantImageId, variantBackImageId) = CreateMediaForItem(item, BaseName(item.ExtractedData) ?? $"card_{item.Id}");
+            var baseCardName = _cardService.Get(request.ParentId!.Value)?.DisplayName;
+
+            var models = new List<ImportModel>();
+            foreach (var variant in request.Variants)
+            {
+                var props = _queueService.BuildVariantProperties(variant.VariantTypeId, variant.Properties, set.SetCode ?? string.Empty);
+
+                props.TryGetValue("Name", out var variantName);
+                if (variant.VariantTypeId is null) variantName = baseCardName;
+                if (string.IsNullOrWhiteSpace(variantName)) return ([], "A variant has no name.");
+
+                // Only attach the back image to variants whose preset declares back_image_base64.
+                var useBackImage = variantBackImageId.HasValue &&
+                    (variant.VariantTypeId is null || _queueService.VariantSupportsBackImage(variant.VariantTypeId));
+
+                models.Add(new ImportModel(
+                    _cardImporterService.FindVariantId(request.ParentId.Value, set.Id, variant.VariantTypeId),
+                    variantName,
+                    set.Name,
+                    ToAttributes(props))
+                {
+                    ImageId = variantImageId,
+                    BackImageId = useBackImage ? variantBackImageId : null,
+                    ParentId = request.ParentId,
+                    VariantTypeId = variant.VariantTypeId
+                });
+            }
+
+            return (models, null);
+        }
+
+        private static Dictionary<string, string> ReadExtractedData(CardImportQueueDBModel item)
+        {
+            try { return JsonSerializer.Deserialize<Dictionary<string, string>>(item.ExtractedData) ?? []; }
+            catch { return []; }
+        }
+
+        /// <summary>The card name: Name, optionally suffixed with Subname.</summary>
+        private static string? BuildCardName(IDictionary<string, string> data)
+        {
+            data.TryGetValue("Name", out var name);
+            if (string.IsNullOrWhiteSpace(name)) return null;
+
+            if (data.TryGetValue("Subname", out var subname) && !string.IsNullOrWhiteSpace(subname))
+                name = $"{name}, {subname}";
+
+            return name;
+        }
+
+        /// <summary>The card fields that become attributes: everything filled in except the name.</summary>
+        private static Dictionary<string, string> ToAttributes(IDictionary<string, string> data)
+        {
+            return data
+                .Where(kv => !kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(kv.Value))
+                .ToDictionary(kv => kv.Key, kv => kv.Value);
+        }
+
+        // The importer marks multi-value attributes with a "_multiple" suffix, so the same attribute
+        // can be written with or without it depending on where the value came from.
+        private static bool IsSameAttribute(string left, string right)
+        {
+            return left.Replace("_multiple", "").Equals(right.Replace("_multiple", ""), StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>POST /umbraco/api/cardimportqueue/reject?id=123</summary>
@@ -199,13 +326,7 @@ namespace CardGameDBSites.API.Controllers.Admin
             var item = _queueRepository.GetById(id);
             if (item == null) return NotFound();
 
-            Dictionary<string, string> data;
-            try { data = JsonSerializer.Deserialize<Dictionary<string, string>>(item.ExtractedData) ?? []; }
-            catch { data = []; }
-
-            data.TryGetValue("Name", out var cardName);
-            if (data.TryGetValue("Subname", out var subname) && !string.IsNullOrWhiteSpace(subname))
-                cardName = $"{cardName}, {subname}";
+            var cardName = BuildCardName(ReadExtractedData(item));
 
             var (baseId, matchedName) = _queueService.FindPotentialBaseCard(_siteAccessor.GetSiteId(), cardName ?? string.Empty);
             var status = baseId.HasValue ? CardImportQueueStatus.PotentialVariant : CardImportQueueStatus.Pending;
@@ -215,7 +336,8 @@ namespace CardGameDBSites.API.Controllers.Admin
             {
                 Status = status,
                 PotentialDuplicateId = baseId,
-                MatchedCardName = matchedName
+                MatchedCardName = matchedName,
+                MatchedCardSetId = baseId.HasValue ? _cardService.Get(baseId.Value)?.SetId : null
             });
         }
 
@@ -324,8 +446,13 @@ namespace CardGameDBSites.API.Controllers.Admin
             var templatedFields = _queueService.GetTemplatedFields(cardType);
 
             string? matchedCardName = null;
+            int? matchedCardSetId = null;
             if (item.PotentialDuplicateId.HasValue)
-                matchedCardName = _cardService.Get(item.PotentialDuplicateId.Value)?.DisplayName;
+            {
+                var matchedCard = _cardService.Get(item.PotentialDuplicateId.Value);
+                matchedCardName = matchedCard?.DisplayName;
+                matchedCardSetId = matchedCard?.SetId;
+            }
 
             var hasBackImage = !string.IsNullOrWhiteSpace(item.BackImagePath);
 
@@ -341,6 +468,7 @@ namespace CardGameDBSites.API.Controllers.Admin
                 BackImageUrl = hasBackImage ? $"/api/cardimportqueue/getbackimage?id={item.Id}" : null,
                 item.PotentialDuplicateId,
                 MatchedCardName = matchedCardName,
+                MatchedCardSetId = matchedCardSetId,
                 item.CreatedAt,
                 item.SetId,
                 ExtractedData = extractedData,
@@ -349,16 +477,29 @@ namespace CardGameDBSites.API.Controllers.Admin
         }
     }
 
+    public static class ApproveMode
+    {
+        public const string New = "new";
+        public const string Variant = "variant";
+        public const string Reprint = "reprint";
+        public const string Update = "update";
+    }
+
     public class ApproveRequest
     {
-        /// <summary>Base card id to attach the variants to (required when Variants is non-empty).</summary>
+        /// <summary>One of <see cref="ApproveMode"/>; inferred from Variants when omitted.</summary>
+        public string? Mode { get; set; }
+        /// <summary>The matched base card: required for the variant, reprint and update modes.</summary>
         public int? ParentId { get; set; }
         public List<ApproveVariant> Variants { get; set; } = [];
+        /// <summary>Update mode: whether the card's art is replaced by the queued image.</summary>
+        public bool ReplaceImage { get; set; } = true;
     }
 
     public class ApproveVariant
     {
-        public int VariantTypeId { get; set; }
+        /// <summary>Null for the set's base printing (a card variant without a variant type).</summary>
+        public int? VariantTypeId { get; set; }
         /// <summary>Editable (non-templated) field values; templated fields are computed server-side.</summary>
         public Dictionary<string, string> Properties { get; set; } = [];
     }

@@ -473,13 +473,9 @@ namespace SkytearHorde.Business.Services
             key.Equals(BackImageKey, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>True when the given preset variant declares a back image slot (back_image_base64).</summary>
-        public bool VariantSupportsBackImage(int variantTypeId)
+        public bool VariantSupportsBackImage(int? variantTypeId)
         {
-            var config = LoadDefaultGameConfig();
-            var variant = config.Presets
-                .SelectMany(p => p.Variants)
-                .FirstOrDefault(v => v.Properties.TryGetValue("VariantTypeId", out var raw)
-                                  && int.TryParse(raw, out var id) && id == variantTypeId);
+            var variant = FindPresetVariant(variantTypeId);
 
             return variant is not null &&
                    variant.Properties.Keys.Any(k => k.Equals(BackImageKey, StringComparison.OrdinalIgnoreCase));
@@ -490,10 +486,35 @@ namespace SkytearHorde.Business.Services
             !string.IsNullOrEmpty(value) && value.TrimStart().StartsWith('{');
 
         /// <summary>
+        /// Reads a preset variant's VariantTypeId. An explicitly empty (or null) id means the variant
+        /// is the set's base printing rather than a real variant type; a missing key is invalid config.
+        /// </summary>
+        private static bool TryGetVariantTypeId(PresetVariantConfig variant, out int? variantTypeId)
+        {
+            variantTypeId = null;
+            if (!variant.Properties.TryGetValue("VariantTypeId", out var raw)) return false;
+            if (string.IsNullOrWhiteSpace(raw)) return true;
+
+            if (!int.TryParse(raw, out var id)) return false;
+
+            variantTypeId = id;
+            return true;
+        }
+
+        private PresetVariantConfig? FindPresetVariant(int? variantTypeId)
+        {
+            return LoadDefaultGameConfig().Presets
+                .SelectMany(p => p.Variants)
+                .FirstOrDefault(v => TryGetVariantTypeId(v, out var id) && id == variantTypeId);
+        }
+
+        /// <summary>
         /// Returns the variant presets configured in Config.json. A preset groups one or more variants
         /// (e.g. normal + foil) that are all created together on approval. Each variant exposes its
         /// variant type id (matched against Variant.InternalID), a display name, and its fields with a
         /// flag marking the read-only templated ones (computed on approval).
+        /// A variant with an empty variant type id is the set's base printing, which is what a
+        /// reprint of an existing card needs.
         /// </summary>
         public IReadOnlyList<ImportPreset> GetPresets()
         {
@@ -505,8 +526,7 @@ namespace SkytearHorde.Business.Services
                 var variants = new List<ImportPresetVariant>();
                 foreach (var variant in preset.Variants)
                 {
-                    if (!variant.Properties.TryGetValue("VariantTypeId", out var rawVariantType) ||
-                        !int.TryParse(rawVariantType, out var variantTypeId))
+                    if (!TryGetVariantTypeId(variant, out var variantTypeId))
                         continue;
 
                     variant.Properties.TryGetValue("Name", out var name);
@@ -525,7 +545,9 @@ namespace SkytearHorde.Business.Services
                     variants.Add(new ImportPresetVariant
                     {
                         VariantTypeId = variantTypeId,
-                        Name = string.IsNullOrWhiteSpace(name) ? $"Variant {variantTypeId}" : name,
+                        Name = string.IsNullOrWhiteSpace(name)
+                            ? (variantTypeId is null ? "Base printing" : $"Variant {variantTypeId}")
+                            : name,
                         Fields = fields
                     });
                 }
@@ -542,13 +564,9 @@ namespace SkytearHorde.Business.Services
         /// values (autofilled from the AI read on the client, else empty), and templated fields (config
         /// value starting with '{') are computed using the set short code and the other field values.
         /// </summary>
-        public Dictionary<string, string> BuildVariantProperties(int variantTypeId, IDictionary<string, string> editableValues, string setShortCode)
+        public Dictionary<string, string> BuildVariantProperties(int? variantTypeId, IDictionary<string, string> editableValues, string setShortCode)
         {
-            var config = LoadDefaultGameConfig();
-            var variant = config.Presets
-                .SelectMany(p => p.Variants)
-                .FirstOrDefault(v => v.Properties.TryGetValue("VariantTypeId", out var raw)
-                                  && int.TryParse(raw, out var id) && id == variantTypeId);
+            var variant = FindPresetVariant(variantTypeId);
 
             var result = new Dictionary<string, string>();
             if (variant is null)
@@ -748,7 +766,8 @@ namespace SkytearHorde.Business.Services
 
     public class ImportPresetVariant
     {
-        public int VariantTypeId { get; set; }
+        /// <summary>Null for the set's base printing (a card variant without a variant type).</summary>
+        public int? VariantTypeId { get; set; }
         public string Name { get; set; } = string.Empty;
         public List<ImportPresetField> Fields { get; set; } = [];
     }

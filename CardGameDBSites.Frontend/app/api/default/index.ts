@@ -9,6 +9,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { ApproveRequest } from './models/ApproveRequest';
 export type { ApproveVariant } from './models/ApproveVariant';
+export type { ArtCropApiModel } from './models/ArtCropApiModel';
 export type { CardDetailApiModel } from './models/CardDetailApiModel';
 export type { CardPriceApiModel } from './models/CardPriceApiModel';
 export type { CardPriceChangeApiModel } from './models/CardPriceChangeApiModel';
@@ -61,6 +62,7 @@ export type { DeckJsonMetaData } from './models/DeckJsonMetaData';
 export type { DeckPriceApiModel } from './models/DeckPriceApiModel';
 export type { DeckProgressApiModel } from './models/DeckProgressApiModel';
 export type { DeckQueryPostModel } from './models/DeckQueryPostModel';
+export type { DeckRenderConfigApiModel } from './models/DeckRenderConfigApiModel';
 export { DeckStatus } from './models/DeckStatus';
 export type { DeckTypeSettingsApiModel } from './models/DeckTypeSettingsApiModel';
 export { FactSlideKind } from './models/FactSlideKind';

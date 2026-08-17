@@ -491,3 +491,5 @@ $RECYCLE.BIN/
 
 **/wwwroot/media/
 *.pem
+
+*.claude

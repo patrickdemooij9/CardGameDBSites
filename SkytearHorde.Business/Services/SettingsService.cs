@@ -32,7 +32,29 @@ namespace SkytearHorde.Business.Services
             {
                 using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
                 var settings = root.FirstChild<Settings>()?.FirstChild<SiteSettings>();
-                if (settings is null) return new SiteSettingsConfig() { MainColor = "#ffffff", HoverMainColor = "#f0f0f0", BorderColor = "#000000", SiteName = "", NavigationLogoUrl = "", ShowLogin = false, TextColorWhite = false, FooterText = ""};
+                if (settings is null) return new SiteSettingsConfig() { MainColor = "#ffffff", HoverMainColor = "#f0f0f0", BorderColor = "#000000", SiteName = "", NavigationLogoUrl = "", ShowLogin = false, TextColorWhite = false, FooterText = "", DeckRenderConfig = new DeckRenderConfig() };
+
+                var deckRenderConfig = new DeckRenderConfig
+                {
+                    LandscapeTypes = settings.LandscapeTypes?.ToArray() ?? [],
+                    BackImageTypes = settings.BackimageTypes?.ToArray() ?? [],
+                    TypeAttribute = settings.TypeAttribute?.Name,
+                    CostAttribute = settings.CostAttribute?.Name,
+                    AspectAttribute = settings.AspectAttribute?.Name,
+                    AspectColors = settings.AspectColors.ToItems<AspectColor>().ToDictionary(it => it.AspectName!, it => it.Color!),
+                    ArtCrops = settings.ArtCrops.ToItems<ArtCrop>().Select(it =>
+                    {
+                        var coordinates = it.Coordinates!.Split(',').Select(it => double.Parse(it)).ToArray();
+                        return new ArtCropModel
+                        {
+                            TypeValue = it.TypeName,
+                            Left = coordinates[0],
+                            Top = coordinates[1],
+                            Right = coordinates[2],
+                            Bottom = coordinates[3]
+                        };
+                    }).ToArray()
+                };
 
                 return new SiteSettingsConfig
                 {
@@ -63,7 +85,8 @@ namespace SkytearHorde.Business.Services
                     SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray(),
                     CardOverviewIdentifier = settings.CardOverviewIdentifier,
                     BaseUrl = settings.BaseUrl,
-                    AIPromptFolder = settings.PromptFolder
+                    AIPromptFolder = settings.PromptFolder,
+                    DeckRenderConfig = deckRenderConfig
                 };
             }, TimeSpan.FromMinutes(10))!;
         }

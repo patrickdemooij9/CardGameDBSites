@@ -80,6 +80,10 @@ const mainCards = GetValidCards(
   cards,
   deckSettings!.mainCardRequirements ?? [],
 );
+// Hero cards for the shareable deck image — the same main-card rule the page already uses.
+const heroCardIds = mainCards
+  .map((card) => card.baseId)
+  .filter((id): id is number => id !== undefined);
 const mainCardsWithChildren = computed(() =>
   mainCards.map((mainCard) => ({
     mainCard,
@@ -458,6 +462,9 @@ console.timeEnd("page-render");
               v-for="action in deckSettings?.actions"
               :deck="deck"
               :action="action"
+              :cards="cards"
+              :settings="deckSettings ?? undefined"
+              :hero-card-ids="heroCardIds"
               :missing-cards-string="
                 action.type === 'DeckMissingCardsExport'
                   ? missingCardsString

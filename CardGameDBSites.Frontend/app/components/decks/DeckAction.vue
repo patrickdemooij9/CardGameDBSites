@@ -5,20 +5,42 @@ import {
   PhImage,
   PhPiggyBank,
 } from "@phosphor-icons/vue";
-import type { DeckActionApiModel, DeckApiModel } from "~/api/default";
+import type {
+  CardDetailApiModel,
+  DeckActionApiModel,
+  DeckApiModel,
+  DeckTypeSettingsApiModel,
+} from "~/api/default";
 import PopupBase from "../popups/PopupBase.vue";
 import { PopupSize } from "../popups/PopupTypes";
 import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import { useAppToast } from "~/composables/useAppToast";
+import DeckImageExport from "./DeckImageExport.vue";
 
 const props = defineProps<{
   deck: DeckApiModel;
   action: DeckActionApiModel;
   missingCardsString?: string;
+  /** Supplied on the deck detail page so the image can be rendered client-side. */
+  cards?: CardDetailApiModel[];
+  settings?: DeckTypeSettingsApiModel;
+  heroCardIds?: number[];
 }>();
 
 const showModal = ref(false);
+const showImageExport = ref(false);
+
+/**
+ * The image export renders in the browser, but only where the page has already loaded the
+ * cards. Anywhere else (a deck embed, for instance) falls through to the server export.
+ */
+const canRenderImageLocally = computed(
+  () =>
+    props.action.type === "DeckImageExport" &&
+    !!props.settings &&
+    !!props.cards?.length,
+);
 const toast = useAppToast();
 const isLoading = ref(false);
 
@@ -124,6 +146,23 @@ async function handleForceTable() {
       <component :is="icons[action.icon!]"></component>
       <p>{{ action.displayName }}</p>
     </button>
+  </div>
+  <div v-else-if="canRenderImageLocally">
+    <button
+      class="flex align-center gap-1 no-underline"
+      @click="showImageExport = true"
+    >
+      <component :is="icons[action.icon!]"></component>
+      <p>{{ action.displayName }}</p>
+    </button>
+    <DeckImageExport
+      v-if="showImageExport"
+      :deck="deck"
+      :cards="cards!"
+      :deck-type-settings="settings!"
+      :hero-card-ids="heroCardIds ?? []"
+      @close="showImageExport = false"
+    />
   </div>
   <div v-else-if="action.type === 'DeckRedirectExport'">
     <button

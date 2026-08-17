@@ -28,6 +28,7 @@ namespace CardGameDBSites.API.Models
         public KeywordImageApiModel[] KeywordImages { get; set; } = [];
         public string? CardOverviewIdentifier { get; set; }
         public required CollectionSettingsApiModel Collection { get; set; }
+        public required DeckRenderConfigApiModel RenderConfig { get; set; }
 
         public SiteSettingsApiModel()
         {

@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { CardSectionApiModel } from './CardSectionApiModel';
 import type { CollectionSettingsApiModel } from './CollectionSettingsApiModel';
+import type { DeckRenderConfigApiModel } from './DeckRenderConfigApiModel';
 import type { KeywordImageApiModel } from './KeywordImageApiModel';
 import type { LinkApiModel } from './LinkApiModel';
 import type { NavigationItemApiModel } from './NavigationItemApiModel';
@@ -26,5 +27,6 @@ export type SiteSettingsApiModel = {
     keywordImages?: Array<KeywordImageApiModel>;
     cardOverviewIdentifier?: string | null;
     collection: CollectionSettingsApiModel;
+    renderConfig: DeckRenderConfigApiModel;
 };
 

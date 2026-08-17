@@ -219,6 +219,21 @@
           }
         }
       ]
+    },
+    {
+      "name": "Reprint",
+      "id": 13,
+      "variants": [
+        {
+          "id": 0,
+          "properties": {
+            "SWU Id": "",
+            "TTS Id": "{set}_{prop:SWU ID:D3}",
+            "image_base64": "[image]",
+            "VariantTypeId": null
+          }
+        }
+      ]
     }
   ],
   "types": [

@@ -1,4 +1,5 @@
-﻿using CardGameDBSites.API.Models;
+﻿using CardGameDBSites.API.Helpers;
+using CardGameDBSites.API.Models;
 using CardGameDBSites.API.Models.Collection;
 using CardGameDBSites.API.Models.Decks;
 using CardGameDBSites.API.Models.Requirements;
@@ -85,7 +86,8 @@ namespace CardGameDBSites.API.Controllers
                     AllowSetCollecting = collectionSettings.AllowSetCollecting,
                     AllowCardCollecting = collectionSettings.AllowCardCollecting,
                     ShowProgressBar = collectionSettings.ShowProgressBar
-                }
+                },
+                RenderConfig = new DeckRenderConfigApiModel(settings.DeckRenderConfig)
             });
         }
 

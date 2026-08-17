@@ -9,6 +9,23 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class SetsResource {
     /**
+     * @returns number OK
+     * @throws ApiError
+     */
+    public static getApiSetsCardCount({
+        setId,
+    }: {
+        setId?: number,
+    }): CancelablePromise<number> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/sets/cardCount',
+            query: {
+                'setId': setId,
+            },
+        });
+    }
+    /**
      * @returns SetViewModel OK
      * @throws ApiError
      */

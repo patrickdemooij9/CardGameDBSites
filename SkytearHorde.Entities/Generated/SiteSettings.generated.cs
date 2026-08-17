@@ -64,6 +64,38 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool AllowRedditIntegration => this.Value<bool>(_publishedValueFallback, "allowRedditIntegration");
 
 		///<summary>
+		/// Art Crops
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("artCrops")]
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel ArtCrops => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "artCrops");
+
+		///<summary>
+		/// Aspect Attribute
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("aspectAttribute")]
+		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent AspectAttribute => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "aspectAttribute");
+
+		///<summary>
+		/// Aspect Colors
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("aspectColors")]
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel AspectColors => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "aspectColors");
+
+		///<summary>
+		/// Backimage Types
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("backimageTypes")]
+		public virtual global::System.Collections.Generic.IEnumerable<string> BackimageTypes => this.Value<global::System.Collections.Generic.IEnumerable<string>>(_publishedValueFallback, "backimageTypes");
+
+		///<summary>
 		/// Base Url
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
@@ -94,6 +126,14 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("cardOverviewIdentifier")]
 		public virtual string CardOverviewIdentifier => this.Value<string>(_publishedValueFallback, "cardOverviewIdentifier");
+
+		///<summary>
+		/// Cost Attribute
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("costAttribute")]
+		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent CostAttribute => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "costAttribute");
 
 		///<summary>
 		/// Default Creator Image
@@ -174,6 +214,14 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("keywordImages")]
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel KeywordImages => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "keywordImages");
+
+		///<summary>
+		/// Landscape Types
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("landscapeTypes")]
+		public virtual global::System.Collections.Generic.IEnumerable<string> LandscapeTypes => this.Value<global::System.Collections.Generic.IEnumerable<string>>(_publishedValueFallback, "landscapeTypes");
 
 		///<summary>
 		/// Main Color
@@ -283,5 +331,13 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
 		[ImplementPropertyType("textColorWhite")]
 		public virtual bool TextColorWhite => this.Value<bool>(_publishedValueFallback, "textColorWhite");
+
+		///<summary>
+		/// Type Attribute
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("typeAttribute")]
+		public virtual global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent TypeAttribute => this.Value<global::Umbraco.Cms.Core.Models.PublishedContent.IPublishedContent>(_publishedValueFallback, "typeAttribute");
 	}
 }

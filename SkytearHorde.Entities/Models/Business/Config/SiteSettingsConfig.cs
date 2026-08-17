@@ -23,6 +23,7 @@ namespace SkytearHorde.Entities.Models.Business.Config
         public string? CardOverviewIdentifier { get; set; }
         public string BaseUrl { get; set; }
         public string? AIPromptFolder { get; set; }
+        public required DeckRenderConfig DeckRenderConfig { get; set; }
 
         public SiteSettingsConfig()
         {

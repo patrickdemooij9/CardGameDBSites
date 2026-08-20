@@ -374,7 +374,12 @@ namespace SkytearHorde.Business.Repositories
                 "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
                 "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
-                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @1 AND lc.SlotId = @2 " +
+                // TOP(1), not a plain join: nothing stops a deck version having two rows in the leader
+                // slot, and a plain join would then count that entrant into two leader buckets.
+                // Matches the guards in GetTop8Entrants and GetDeckLeaderAndBaseCards.
+                "CROSS APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
+                "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @1 AND dc.SlotId = @2 " +
+                "             ORDER BY dc.Id) lc " +
                 "WHERE te.Placement BETWEEN 1 AND 8 AND t.SiteId = @0 " +
                 "AND t.PeriodId = @3 " +
                 (tournamentId.HasValue ? "AND t.Id = @4 " : "") +
@@ -413,6 +418,20 @@ namespace SkytearHorde.Business.Repositories
                 siteId, leaderGroupId, leaderSlotId, periodId);
         }
 
+        public IEnumerable<int> GetLeaderCardIds(int siteId, int periodId, int leaderGroupId, int leaderSlotId)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<int>(
+                "SELECT DISTINCT lc.CardId " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
+                "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
+                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @2 AND lc.SlotId = @3 " +
+                "WHERE t.SiteId = @0 AND t.PeriodId = @1",
+                siteId, periodId, leaderGroupId, leaderSlotId);
+        }
+
         // Per-tournament aggregations (whole field) for the infographic slides.
 
         public IEnumerable<MetaLeaderUsageRow> GetLeaderUsage(int tournamentId, int leaderGroupId, int leaderSlotId)
@@ -423,7 +442,11 @@ namespace SkytearHorde.Business.Repositories
                 "FROM TournamentEntrants te " +
                 "INNER JOIN Deck d ON d.Id = te.TournamentDeckId " +
                 "INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1 " +
-                "INNER JOIN DeckCard lc ON lc.VersionId = dv.Id AND lc.GroupId = @1 AND lc.SlotId = @2 " +
+                // TOP(1) for the same reason as GetTopLeaders: a duplicate leader-slot row would
+                // otherwise count one entrant against two leaders and inflate the field share.
+                "CROSS APPLY (SELECT TOP(1) dc.CardId FROM DeckCard dc " +
+                "             WHERE dc.VersionId = dv.Id AND dc.GroupId = @1 AND dc.SlotId = @2 " +
+                "             ORDER BY dc.Id) lc " +
                 "WHERE te.TournamentId = @0 " +
                 "GROUP BY lc.CardId " +
                 "ORDER BY UsageCount DESC",

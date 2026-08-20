@@ -1,105 +1,180 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import type {
-  TournamentSummaryApiModel,
-  TournamentEntrantApiModel,
-} from "~/api/default";
+import type { TournamentSummaryApiModel } from "~/api/default";
 import TournamentService, {
   type MetaWinningDeckApiModel,
-  type MetaLeaderApiModel,
-  type MetaLeaderUsageApiModel,
-  type MetaPopularCardApiModel,
   type PeriodApiModel,
 } from "~/services/TournamentService";
+import MetaService, {
+  type MetaTierListApiModel,
+  type MetaTierName,
+} from "~/services/MetaService";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
-import CmsImage from "~/components/shared/CmsImage.vue";
+import MetaTierHeader from "~/components/meta/MetaTierHeader.vue";
+import MetaTierTable from "~/components/meta/MetaTierTable.vue";
+import FaqSection from "~/components/shared/FaqSection.vue";
+import { buildFaqSchema, type FaqEntry } from "~/components/shared/faq";
+import { formatNumber, formatMonthYear } from "~/components/meta/format";
+import type { FrequentlyAskedQuestionPropertiesModel, MetaPageContentModel } from "~/api/umbraco";
 
-// ── Leader configuration ─────────────────────────────────────────────────────
-// A deck's leader is the card in this group/slot. This differs per game type;
-// for now it is configured here and passed to the meta endpoints.
-const LEADER_GROUP_ID = 1;
-const LEADER_SLOT_ID = 0;
-// The meta page currently only supports a single format per site.
+const props = defineProps<{
+  content: MetaPageContentModel
+}>();
+
 const DEFAULT_FORMAT_ID = 1;
+const TIER_ORDER: MetaTierName[] = ["S", "A", "B", "C", "D", "Unranked"];
 
-const service = new TournamentService();
-const periods = ref<PeriodApiModel[]>([]);
-const selectedPeriodId = ref<number | undefined>(undefined);
-const recentTournaments = ref<TournamentSummaryApiModel[]>([]);
-const featuredLeaderUsage = ref<MetaLeaderUsageApiModel[]>([]);
-const recentWinnersData = ref<MetaWinningDeckApiModel[]>([]);
-const topLeadersData = ref<MetaLeaderApiModel[]>([]);
-const popularCardsData = ref<MetaPopularCardApiModel[]>([]);
+const route = useRoute();
+const tournamentService = new TournamentService();
+const metaService = new MetaService();
 
-async function loadMetaData(periodId: number) {
-  try {
-    recentTournaments.value = await service.getRecent(periodId, 6);
-    const firstId = recentTournaments.value[0]?.id;
-    featuredLeaderUsage.value =
-      recentTournaments.value.length > 0 && firstId != null
-        ? await service.getLeaderUsage(firstId, 5, LEADER_GROUP_ID, LEADER_SLOT_ID)
-        : [];
+const { data: periods } = await useAsyncData(
+  `meta-periods:${DEFAULT_FORMAT_ID}`,
+  () => tournamentService.getPeriods(DEFAULT_FORMAT_ID).catch(() => []),
+  { default: () => [] as PeriodApiModel[] }
+);
 
-    [recentWinnersData.value, topLeadersData.value, popularCardsData.value] =
-      await Promise.all([
-        service.getRecentWinners(periodId, 6, LEADER_GROUP_ID, LEADER_SLOT_ID),
-        service.getTopLeaders(periodId, 5, LEADER_GROUP_ID, LEADER_SLOT_ID),
-        service.getPopularCards(periodId, 6, LEADER_GROUP_ID, LEADER_SLOT_ID),
-      ]);
-  } catch {
-    // API not available – fall back to mock data below
-  }
-}
-
-try {
-  periods.value = await service.getPeriods(DEFAULT_FORMAT_ID);
-  // No "current" (open-ended) period? Fall back to the most recent one - periods
-  // are ordered by StartingDateUtc descending by the API.
-  selectedPeriodId.value = periods.value.find((p) => p.isCurrent)?.id ?? periods.value[0]?.id;
-} catch {
-  // API not available – no periods to select from
-}
-
-if (selectedPeriodId.value != null) {
-  await loadMetaData(selectedPeriodId.value);
-}
-
-async function onPeriodChange() {
-  if (selectedPeriodId.value != null) {
-    await loadMetaData(selectedPeriodId.value);
-  }
-}
-
-const selectedPeriodLabel = computed(() => {
-  return periods.value.find((p) => p.id === selectedPeriodId.value)?.name ?? "No Period Available";
+// In the query string so the choice is linkable and useAsyncData can watch it.
+const selectedPeriodId = computed<number | undefined>(() => {
+  const fromQuery = Number(route.query.period);
+  if (fromQuery && periods.value.some((p) => p.id === fromQuery)) return fromQuery;
+  return periods.value.find((p) => p.isCurrent)?.id ?? periods.value[0]?.id;
 });
 
-const hasTournaments = recentTournaments.value.length > 0;
-const featuredTournamentData = hasTournaments
-  ? recentTournaments.value[0]
-  : null;
+const defaultPeriodId = computed(
+  () => periods.value.find((p) => p.isCurrent)?.id ?? periods.value[0]?.id
+);
+const isDefaultPeriod = computed(() => selectedPeriodId.value === defaultPeriodId.value);
 
-// The 5 most-used leaders across the featured tournament's whole field, with
-// how many entrants played each. The API already returns them ordered by usage
-// descending, but we sort defensively so the bar chart stays consistent.
-const mostUsedLeaders = computed(() => {
-  const source = hasTournaments ? featuredLeaderUsage.value : [];
-  return source
-    .map((e) => ({ leader: e.leaderName ?? "Unknown", count: e.count }))
-    .sort((a, b) => b.count - a.count);
+// Each call catches separately so one bad endpoint can't blank the page.
+const { data: tierList, error: tierError } = await useAsyncData<MetaTierListApiModel | null>(
+  () => `meta-tier-list:${selectedPeriodId.value ?? "default"}`,
+  () => metaService.getTierList(selectedPeriodId.value),
+  { watch: [selectedPeriodId], default: () => null }
+);
+
+const { data: recentTournaments } = await useAsyncData(
+  () => `meta-recent:${selectedPeriodId.value ?? "default"}`,
+  () =>
+    selectedPeriodId.value == null
+      ? Promise.resolve([])
+      : tournamentService.getRecent(selectedPeriodId.value, 6).catch(() => []),
+  { watch: [selectedPeriodId], default: () => [] as TournamentSummaryApiModel[] }
+);
+
+const { data: recentWinners } = await useAsyncData(
+  () => `meta-recent-winners:${selectedPeriodId.value ?? "default"}`,
+  () =>
+    selectedPeriodId.value == null
+      ? Promise.resolve([])
+      : tournamentService.getRecentWinners(selectedPeriodId.value, 3, 1, 0).catch(() => []),
+  { watch: [selectedPeriodId], default: () => [] as MetaWinningDeckApiModel[] }
+);
+
+const leadersByTier = computed(() => {
+  const grouped = new Map<MetaTierName, MetaTierListApiModel["leaders"]>();
+  for (const tier of TIER_ORDER) grouped.set(tier, []);
+  for (const leader of tierList.value?.leaders ?? []) {
+    grouped.get(leader.tier)?.push(leader);
+  }
+  return grouped;
 });
 
-const maxLeaderUsage = computed(() =>
-  Math.max(1, ...mostUsedLeaders.value.map((e) => e.count)),
+const hasRankedLeaders = computed(() =>
+  (tierList.value?.leaders ?? []).some((l) => l.tier !== "Unranked")
 );
 
-const displayedTournaments = computed(() =>
-  hasTournaments ? recentTournaments.value : [],
-);
+const faqEntries = computed(() => props.content.properties?.faqItems?.items?.map<FaqEntry>((item) => {
+  const faq = item.content as FrequentlyAskedQuestionPropertiesModel;
+  return {
+    question: faq.question!,
+    answer: faq.answer!
+  }
+}) ?? []);
 
-const displayedFeatured = computed(
-  () => featuredTournamentData,
-);
+// Month comes from the newest event, not the clock, so the title can't overstate freshness.
+const updatedLabel = computed(() => formatMonthYear(tierList.value?.lastUpdatedUtc));
+
+const periodName = computed(() => tierList.value?.periodName?.trim() ?? "");
+
+const heading = computed(() => {
+  const parts = ["Star Wars Unlimited Meta Tier List"];
+  if (periodName.value) parts.push(periodName.value);
+  if (updatedLabel.value) parts.push(updatedLabel.value);
+  return parts.length > 1 ? `${parts[0]} — ${parts.slice(1).join(", ")}` : parts[0]!;
+});
+
+const metaDescription = computed(() => {
+  const list = tierList.value;
+  if (!list || list.totalDecks === 0) {
+    return "The best leaders in Star Wars Unlimited, ranked S through D from tournament results, with win rates, meta share and weekly movement.";
+  }
+  return (
+    `The best Star Wars Unlimited leaders${periodName.value ? ` in ${periodName.value}` : ""}, ranked S through D from ` +
+    `${formatNumber(list.totalDecks)} tournament decks across ${list.totalEvents} events. ` +
+    `Win rates, meta share and weekly movement.`
+  );
+});
+
+// Resolved during setup: useRequestURL needs the Nuxt instance, and the computeds below run lazily
+// during head resolution when it is gone.
+const origin = useRequestURL().origin;
+const canonicalUrl = computed(() => `${origin}${route.path}`);
+
+useHead(() => ({
+  title: heading.value,
+  meta: [
+    { name: "description", content: metaDescription.value },
+    // A non-default period is a near-duplicate of the canonical page.
+    ...(isDefaultPeriod.value ? [] : [{ name: "robots", content: "noindex,follow" }]),
+  ],
+  link: [{ rel: "canonical", href: canonicalUrl.value }],
+}));
+
+const structuredData = computed(() => {
+  const list = tierList.value;
+  if (!list) return null;
+
+  const ranked = list.leaders.filter((l) => l.tier !== "Unranked");
+
+  const graph: Record<string, unknown>[] = [
+    {
+      "@type": "WebPage",
+      "@id": `${canonicalUrl.value}#webpage`,
+      url: canonicalUrl.value,
+      name: heading.value,
+      description: metaDescription.value,
+      ...(list.lastUpdatedUtc ? { dateModified: list.lastUpdatedUtc } : {}),
+      mainEntity: { "@id": `${canonicalUrl.value}#tierlist` },
+      ...(faqEntries.value.length > 0
+        ? { hasPart: { "@id": `${canonicalUrl.value}#faq` } }
+        : {}),
+    },
+    {
+      "@type": "ItemList",
+      "@id": `${canonicalUrl.value}#tierlist`,
+      name: heading.value,
+      numberOfItems: ranked.length,
+      itemListOrder: "https://schema.org/ItemListOrderDescending",
+      itemListElement: ranked.map((leader, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: leader.name,
+        ...(leader.metaUrl ? { url: `${origin}${leader.metaUrl}` } : {}),
+      })),
+    },
+  ];
+
+  const faqNode = buildFaqSchema(faqEntries.value, canonicalUrl.value);
+  if (faqNode) graph.push(faqNode);
+
+  return { "@context": "https://schema.org", "@graph": graph };
+});
+
+useHead(() => ({
+  script: structuredData.value
+    ? [{ type: "application/ld+json", innerHTML: JSON.stringify(structuredData.value) }]
+    : [],
+}));
 
 function formatDate(dateUtc: string | undefined) {
   if (!dateUtc) return "";
@@ -109,301 +184,130 @@ function formatDate(dateUtc: string | undefined) {
     return dateUtc;
   }
 }
-
-const recentWinners = computed(() => {
-  return recentWinnersData.value.map((d) => ({
-    name: d.deckName ?? "Unknown",
-    leader: d.leaderName ?? "Unknown",
-    tournament: d.tournamentName,
-    date: formatDate(d.tournamentDateUtc),
-    author: d.playerName ?? "Unknown",
-  }));
-});
-
-const topLeaders = computed(() => {
-  return topLeadersData.value.map((l) => ({
-    name: l.leaderName,
-    wins: l.wins,
-    top8: l.top8Count,
-  }));
-});
-
-const maxWins = computed(() => topLeaders.value[0]?.wins ?? 1);
-
-const popularCards = computed(() => {
-  return popularCardsData.value.map((c) => ({
-    name: c.cardName,
-    percentage: c.percentage,
-    imageUrl: c.imageUrl,
-  }));
-});
 </script>
 
 <template>
   <div class="bg-gray-100">
-    <!-- Hero Section -->
-    <section class="bg-gray-900 text-white py-20 px-4">
-      <div class="container md:px-8 text-center">
-        <h1 class="text-white text-5xl font-bold mb-4">
-          Star Wars Unlimited Meta
-        </h1>
-        <p class="text-gray-300 text-xl mb-8 max-w-2xl mx-auto">
-          Track tournament results, winning decks, and the latest competitive
-          trends.
+    <MetaTierHeader v-if="tierList" :tier-list="tierList" :heading="heading" />
+
+    <section v-if="tierError" class="container px-4 md:px-8 py-12">
+      <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg px-5 py-4">
+        <h2 class="text-red-900 text-lg font-bold mb-1">Tier list unavailable</h2>
+        <p class="mb-0">
+          The rankings could not be loaded just now. Please try again shortly.
         </p>
       </div>
     </section>
 
-    <!-- Period Filter -->
-    <section class="container px-4 md:px-8 pt-8" v-if="periods.length > 0">
-      <div class="flex items-center justify-end gap-3">
-        <label for="period-select" class="text-sm text-gray-600 font-medium">Period</label>
-        <select
-          id="period-select"
-          v-model="selectedPeriodId"
-          @change="onPeriodChange"
-          class="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
-        >
-          <option v-for="period in periods" :key="period.id" :value="period.id">
-            {{ period.name }}
-          </option>
-        </select>
-      </div>
-    </section>
-
-    <!-- Featured Tournament Section -->
-    <section class="container px-4 md:px-8 py-12" v-if="displayedFeatured">
-      <h2 class="mb-6">Latest Tournament</h2>
-      <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <div
-          class="bg-gray-900 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2"
-        >
-          <div>
-            <h3 class="text-white text-2xl font-bold mb-1">
-              {{ displayedFeatured.name }}
-            </h3>
-            <span class="text-gray-400 text-sm"
-              >{{ formatDate(displayedFeatured.dateUtc) }} &bull;
-              {{ displayedFeatured.playerCount }} Players</span
+    <template v-else-if="tierList">
+      <section class="container px-4 md:px-8 pt-8">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div
+            v-if="content.properties?.intro"
+            class="prose max-w-2xl text-gray-700"
+            v-html="content.properties?.intro"
+          />
+          <div v-if="periods.length > 1" class="flex items-center gap-3 ml-auto">
+            <label for="period-select" class="text-sm text-gray-600 font-medium">Set</label>
+            <select
+              id="period-select"
+              :value="selectedPeriodId"
+              class="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+              @change="
+                navigateTo({
+                  query: {
+                    ...route.query,
+                    period: ($event.target as HTMLSelectElement).value,
+                  },
+                })
+              "
             >
+              <option v-for="period in periods" :key="period.id" :value="period.id">
+                {{ period.name }}
+              </option>
+            </select>
           </div>
-          <span
-            class="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider"
-            >Latest Event</span
-          >
         </div>
-        <div class="p-6 grid md:grid-cols-2 gap-8">
-          <!-- Winner -->
-          <div>
-            <p
-              class="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-3"
+      </section>
+
+      <section class="container px-4 md:px-8 py-8">
+        <template v-if="hasRankedLeaders">
+          <MetaTierTable
+            v-for="tier in TIER_ORDER"
+            :key="tier"
+            :tier="tier"
+            :leaders="leadersByTier.get(tier) ?? []"
+            :deltas-available="tierList.deltasAvailable"
+            :deltas-unavailable-reason="tierList.deltasUnavailableReason"
+          />
+        </template>
+        <p v-else class="text-gray-600">
+          No leader has enough tournament results to rank yet for this set. Check back once more
+          events have been played.
+        </p>
+      </section>
+
+      <section v-if="content.properties?.analysis" class="bg-white py-10">
+        <div class="container px-4 md:px-8">
+          <h2 class="mb-6">What changed and why</h2>
+          <div class="prose max-w-3xl text-gray-800" v-html="content.properties?.analysis" />
+        </div>
+      </section>
+
+      <div class="container px-4 md:px-8 py-10">
+        <FaqSection :entries="faqEntries" />
+      </div>
+    </template>
+
+    <section
+      v-if="recentTournaments.length > 0 || recentWinners.length > 0"
+      class="bg-white border-t border-gray-200 py-10"
+    >
+      <div class="container px-4 md:px-8 grid gap-10 lg:grid-cols-2">
+        <!-- min-w-0: grid items default to min-width:auto, so the nowrap names below overflow. -->
+        <div v-if="recentTournaments.length > 0" class="min-w-0">
+          <h2 class="mb-4 text-xl">Recent events</h2>
+          <ul class="list-none p-0 m-0 divide-y divide-gray-100">
+            <li
+              v-for="tournament in recentTournaments"
+              :key="tournament.id"
+              class="py-3 flex items-baseline justify-between gap-4"
             >
-              Winner
-            </p>
-            <div>
-              <div class="text-lg font-bold">
-                {{ displayedFeatured.winner?.deckName ?? "Unknown" }}
+              <div class="min-w-0 flex-1">
+                <div class="font-semibold text-sm truncate">{{ tournament.name }}</div>
+                <div class="text-xs text-gray-500">
+                  {{ formatDate(tournament.dateUtc) }} &bull; {{ tournament.playerCount }} players
+                </div>
               </div>
-              <div class="text-sm text-gray-500">
-                {{ displayedFeatured.winner?.playerName }}
-              </div>
-            </div>
-            <div class="pt-6">
               <a
-                :href="displayedFeatured.externalUrl ?? '#'"
-                class="no-underline inline-block bg-gray-900 text-white hover:bg-gray-700 font-semibold px-5 py-2 rounded transition-colors"
+                v-if="tournament.externalUrl"
+                :href="tournament.externalUrl"
+                rel="noopener"
+                class="text-xs text-gray-600 hover:text-gray-900 whitespace-nowrap"
               >
-                View Full Results
+                Standings ↗
               </a>
-            </div>
-          </div>
-          <!-- Most Used Leaders -->
-          <div>
-            <p
-              class="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-3"
-            >
-              Top 5 Most Used Leaders
-            </p>
-            <div class="space-y-2">
-              <div
-                v-for="entry in mostUsedLeaders"
-                :key="entry.leader"
-                class="flex items-center gap-3"
-              >
-                <span class="text-sm font-medium w-1/2 truncate text-gray-700">{{
-                  entry.leader
-                }}</span>
-                <div
-                  class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden"
-                >
-                  <div
-                    class="h-4 bg-yellow-400 rounded-full"
-                    :style="`width: ${(entry.count / maxLeaderUsage) * 100}%`"
-                  ></div>
-                </div>
-                <span class="text-sm text-gray-500 w-4">{{ entry.count }}</span>
-              </div>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
-      </div>
-    </section>
 
-    <!-- Recent Tournament Results Section -->
-    <section id="recent-events" class="container px-4 md:px-8 pb-12">
-      <h2 class="mb-6">Recent Events</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div
-          v-for="tournament in displayedTournaments"
-          :key="tournament.id"
-          class="bg-white rounded-lg shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow"
-        >
-          <div class="flex items-start justify-between gap-2">
-            <h3 class="text-base font-bold leading-tight">
-              {{ tournament.name }}
-            </h3>
-          </div>
-          <div class="text-sm text-gray-500">
-            {{ formatDate(tournament.dateUtc) }} &bull;
-            {{ tournament.playerCount }} Players
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="text-sm font-semibold">
-                {{ tournament.winner?.deckName ?? "Unknown" }}
+        <div v-if="recentWinners.length > 0" class="min-w-0">
+          <h2 class="mb-4 text-xl">Recent winners</h2>
+          <ul class="list-none p-0 m-0 divide-y divide-gray-100">
+            <li v-for="deck in recentWinners" :key="`${deck.tournamentId}-${deck.deckId}`" class="py-3">
+              <div class="font-semibold text-sm">{{ deck.deckName ?? deck.leaderName ?? "Unknown" }}</div>
+              <div class="text-xs text-gray-500">
+                {{ deck.playerName }} &bull; {{ deck.tournamentName }}
               </div>
-          </div>
-          <div class="mt-auto pt-1">
-            <a
-              :href="tournament.externalUrl ?? '#'"
-              class="no-underline text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-1.5 rounded inline-block transition-colors"
-            >
-              View Results
-            </a>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
-    </section>
-
-    <!-- Recent Winning Decks Section -->
-    <section class="bg-white py-12">
-      <div class="container px-4 md:px-8">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="mb-0">Recent Winners</h2>
-          <!--<a
-            href="#"
-            class="no-underline text-sm font-medium bg-gray-900 text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors"
-          >
-            View All Winning Decks
-          </a>-->
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
-            v-for="deck in recentWinners"
-            :key="deck.name"
-            class="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
-          >
-            <div class="flex items-start gap-4 mb-3">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap mb-1">
-                  <span
-                    class="text-xs bg-yellow-100 text-yellow-800 font-semibold px-2 py-0.5 rounded-full"
-                    >🏆 Winner</span
-                  >
-                </div>
-                <div class="font-bold text-base leading-tight">
-                  {{ deck.name }}
-                </div>
-                <div class="text-sm text-gray-500">{{ deck.leader }}</div>
-              </div>
-            </div>
-            <div class="text-sm text-gray-600">
-              <div class="truncate">{{ deck.tournament }}</div>
-              <div class="text-gray-400 mt-0.5">{{ deck.date }}</div>
-            </div>
-            <div class="text-xs text-gray-400 mt-2">by {{ deck.author }}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Most Successful Leaders Section -->
-    <section class="container px-4 md:px-8 py-12">
-      <div class="flex items-center justify-between gap-4 mb-6">
-        <h2 class="mb-0">
-          Most Successful Leaders
-          <span class="text-gray-500 text-lg font-normal">({{ selectedPeriodLabel }})</span>
-        </h2>
-        <NuxtLink
-          href="/meta/leaders"
-          class="no-underline shrink-0 text-sm font-medium bg-gray-900 text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors"
-        >
-          View all leaders
-        </NuxtLink>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div
-          v-for="(leader, index) in topLeaders"
-          :key="leader.name"
-          class="bg-white rounded-lg shadow-sm p-5 flex flex-col items-center text-center hover:shadow-md transition-shadow"
-        >
-          <div class="text-lg font-bold text-gray-400 mb-2">
-            #{{ index + 1 }}
-          </div>
-          <div class="font-bold text-sm mb-3 leading-tight">
-            {{ leader.name }}
-          </div>
-          <div class="w-full mb-2">
-            <div class="flex justify-between text-xs text-gray-500 mb-1">
-              <span>Wins</span><span>{{ leader.wins }}</span>
-            </div>
-            <div class="bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div
-                class="h-2 bg-yellow-400 rounded-full"
-                :style="`width: ${(leader.wins / maxWins) * 100}%`"
-              ></div>
-            </div>
-          </div>
-          <div class="text-xs text-gray-500">
-            {{ leader.top8 }} Top 8 Appearances
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Cards in Winning Decks Section -->
-    <section class="bg-white py-12">
-      <div class="container px-4 md:px-8">
-        <h2 class="mb-6">Cards Driving Recent Success</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div
-            v-for="card in popularCards"
-            :key="card.name"
-            class="flex flex-col"
-          >
-            <CmsImage
-              :src="card.imageUrl"
-              :alt="card.name"
-              loading="lazy"
-              class="w-full rounded-lg object-cover"
-            >
-              <template #fallback>
-                <div
-                  class="aspect-[2/3] rounded-lg flex items-center justify-center bg-gray-100 text-gray-400 text-xs font-medium text-center px-2"
-                >
-                  {{ card.name }}
-                </div>
-              </template>
-            </CmsImage>
-            <div class="pt-2">
-              <div class="font-semibold text-sm leading-tight">
-                {{ card.name }}
-              </div>
-              <div class="text-xs text-gray-500 mt-0.5">
-                {{ card.percentage }}% of winning decks
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="container px-4 md:px-8 pt-6">
+        <p class="text-xs text-gray-500 mb-0">
+          Tournament data sourced from
+          <a href="https://melee.gg" rel="noopener" class="underline">melee.gg</a>.
+        </p>
       </div>
     </section>
   </div>

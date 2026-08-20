@@ -48,5 +48,29 @@ namespace SkytearHorde.Entities.Generated
 		}
 
 		// properties
+
+		///<summary>
+		/// Analysis
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("analysis")]
+		public virtual global::Umbraco.Cms.Core.Strings.IHtmlEncodedString Analysis => this.Value<global::Umbraco.Cms.Core.Strings.IHtmlEncodedString>(_publishedValueFallback, "analysis");
+
+		///<summary>
+		/// Faq Items
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("faqItems")]
+		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel FaqItems => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "faqItems");
+
+		///<summary>
+		/// Intro
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("intro")]
+		public virtual global::Umbraco.Cms.Core.Strings.IHtmlEncodedString Intro => this.Value<global::Umbraco.Cms.Core.Strings.IHtmlEncodedString>(_publishedValueFallback, "intro");
 	}
 }

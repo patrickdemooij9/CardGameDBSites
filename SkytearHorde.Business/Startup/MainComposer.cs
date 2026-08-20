@@ -65,6 +65,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddScoped<RandomizeService>();
             builder.Services.AddScoped<TournamentService>();
             builder.Services.AddSingleton<MetaSnapshotService>();
+            builder.Services.AddSingleton<MetaTierService>();
             builder.Services.AddScoped<FactService>();
             builder.Services.AddSingleton<CardSearchFieldsFinder>();
             builder.Services.AddSingleton<CardImportQueueService>();

@@ -12,6 +12,8 @@ import {
 } from "../overviews/OverviewFilterModel";
 import { useSite } from "~/composables/useSite";
 import SetPriceHistoryChart from "../cards/SetPriceHistoryChart.vue";
+import FaqSection from "~/components/shared/FaqSection.vue";
+import { buildFaqSchema } from "~/components/shared/faq";
 import {
   PhCalendar,
   PhCards,
@@ -95,10 +97,17 @@ function toPlainText(value: string | null | undefined) {
   return text ? text : undefined;
 }
 
+const faqEntries = computed(() =>
+  (set.frequentlyAskedQuestions ?? []).map((faq) => ({
+    question: faq.heading ?? "",
+    answer: faq.content ?? "",
+  }))
+);
+
 const structuredData = computed(() => {
   const description =
     toPlainText(set.subHeading) ?? toPlainText(set.description);
-  const faqs = set.frequentlyAskedQuestions ?? [];
+  const faqs = faqEntries.value;
 
   const graph: Record<string, unknown>[] = [
     {
@@ -131,21 +140,8 @@ const structuredData = computed(() => {
     },
   ];
 
-  if (faqs.length > 0) {
-    graph.push({
-      "@type": "FAQPage",
-      "@id": `${pageUrl}#faq`,
-      url: pageUrl,
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.heading,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: toPlainText(faq.content),
-        },
-      })),
-    });
-  }
+  const faqNode = buildFaqSchema(faqs, pageUrl);
+  if (faqNode) graph.push(faqNode);
 
   return {
     "@context": "https://schema.org",
@@ -253,14 +249,7 @@ onMounted(async () => {
       v-if="set.description || (set.frequentlyAskedQuestions?.length ?? 0) > 0"
     >
       <div v-if="set.description" v-html="set.description"></div>
-      <div
-        v-if="set.frequentlyAskedQuestions"
-        v-for="faq in set.frequentlyAskedQuestions"
-        class="mt-4"
-      >
-        <h3>{{ faq.heading }}</h3>
-        <p>{{ faq.content }}</p>
-      </div>
+      <FaqSection v-if="faqEntries.length > 0" :entries="faqEntries" class="mt-8" />
     </div>
   </div>
 </template>

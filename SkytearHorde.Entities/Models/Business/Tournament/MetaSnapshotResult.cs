@@ -8,6 +8,8 @@ namespace SkytearHorde.Entities.Models.Business.Tournament
     {
         public int SnapshotId { get; set; }
         public int PeriodId { get; set; }
+        /// <summary>Monday 00:00 UTC of the week this snapshot covers.</summary>
+        public DateTime SnapshotDateUtc { get; set; }
         public int TotalDecks { get; set; }
         public int CardRowCount { get; set; }
     }

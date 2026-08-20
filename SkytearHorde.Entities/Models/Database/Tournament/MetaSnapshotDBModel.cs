@@ -3,12 +3,6 @@ using Umbraco.Cms.Infrastructure.Persistence.DatabaseAnnotations;
 
 namespace SkytearHorde.Entities.Models.Database.Tournament
 {
-    /// <summary>
-    /// A persisted meta snapshot for a single (SiteId, FormatId, PeriodId). Holds the denominator
-    /// (<see cref="TotalDecks"/>) used to derive usage percentages; the per-card stats live in
-    /// <see cref="MetaCardSnapshotDBModel"/>. Recompute is a full replace of the card rows, so there
-    /// is one current snapshot per period.
-    /// </summary>
     [TableName("MetaSnapshots")]
     [PrimaryKey("Id", AutoIncrement = true)]
     public class MetaSnapshotDBModel
@@ -25,6 +19,17 @@ namespace SkytearHorde.Entities.Models.Database.Tournament
 
         [Column("PeriodId")]
         public int PeriodId { get; set; }
+
+        /// <summary>
+        /// Start (Monday 00:00 UTC) of the ISO week this snapshot covers. The snapshot includes every
+        /// tournament in the period dated before <c>SnapshotDateUtc + 7 days</c>.
+        /// </summary>
+        [Column("SnapshotDateUtc")]
+        public DateTime SnapshotDateUtc { get; set; }
+
+        /// <summary>The most recent week's snapshot for this (SiteId, FormatId, PeriodId). Exactly one per period.</summary>
+        [Column("IsLatest")]
+        public bool IsLatest { get; set; }
 
         [Column("TotalDecks")]
         public int TotalDecks { get; set; }

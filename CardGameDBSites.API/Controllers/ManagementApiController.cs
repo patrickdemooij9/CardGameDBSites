@@ -164,5 +164,22 @@ namespace CardGameDBSites.API.Controllers
             var result = _metaSnapshotService.RecomputeForPeriod(period.SiteId, period.FormatId, period.Id);
             return Ok(result);
         }
+
+        /// <summary>Rebuilds a period's whole weekly snapshot history. Destructive but idempotent.</summary>
+        [HttpPost("meta/backfill")]
+        [ProducesResponseType(typeof(MetaSnapshotResult[]), 200)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
+        public IActionResult BackfillMetaSnapshots([FromQuery] int periodId)
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            var period = _periodRepository.GetById(periodId);
+            if (period is null) return NotFound();
+
+            var results = _metaSnapshotService.BackfillForPeriod(period.SiteId, period.FormatId, period.Id);
+            return Ok(results);
+        }
     }
 }

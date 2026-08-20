@@ -54,6 +54,27 @@ export class ManagementResource {
      * @returns MetaSnapshotResult OK
      * @throws ApiError
      */
+    public static postApiManagementMetaBackfill({
+        periodId,
+    }: {
+        periodId?: number,
+    }): CancelablePromise<Array<MetaSnapshotResult>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/management/meta/backfill',
+            query: {
+                'periodId': periodId,
+            },
+            errors: {
+                403: `Forbidden`,
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * @returns MetaSnapshotResult OK
+     * @throws ApiError
+     */
     public static postApiManagementMetaRecreate({
         periodId,
     }: {

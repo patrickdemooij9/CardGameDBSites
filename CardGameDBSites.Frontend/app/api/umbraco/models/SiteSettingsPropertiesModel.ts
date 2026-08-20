@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { ApiBlockListModel } from './ApiBlockListModel';
 import type { ApiLinkModel } from './ApiLinkModel';
+import type { IApiContentModel } from './IApiContentModel';
 import type { IApiMediaWithCropsModel } from './IApiMediaWithCropsModel';
 import type { RichTextModel } from './RichTextModel';
 export type SiteSettingsPropertiesModel = {
@@ -36,5 +37,13 @@ export type SiteSettingsPropertiesModel = {
     redditClientID?: string | null;
     redditClientSecret?: string | null;
     redditSubreddit?: string | null;
+    promptFolder?: string | null;
+    landscapeTypes?: Array<string> | null;
+    backimageTypes?: Array<string> | null;
+    typeAttribute?: Array<IApiContentModel> | null;
+    costAttribute?: Array<IApiContentModel> | null;
+    aspectAttribute?: Array<IApiContentModel> | null;
+    aspectColors?: ApiBlockListModel;
+    artCrops?: ApiBlockListModel;
 };
 

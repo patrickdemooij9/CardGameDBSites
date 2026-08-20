@@ -166,13 +166,14 @@ namespace SkytearHorde.Business.Exports.Collection
                 .Where(it => it.VariantId > 0).ToArray();
 
             var allCardsGrouped = allCards
-                .GroupBy(it => it.GetMultipleCardAttributeValue("SWU Id")!.First())
-                .ToDictionary(it => it.Key, it => it.ToArray());
+                .GroupBy(it => it.GetMultipleCardAttributeValue("SWU Id")?.FirstOrDefault())
+                .Where(it => !string.IsNullOrWhiteSpace(it.Key))
+                .ToDictionary(it => it.Key!, it => it.ToArray());
             var allCardsGroupedById = allCards
                 .GroupBy(it => it.BaseId)
                 .ToDictionary(it => it.Key, it => it.ToArray());
 
-            var allSets = _cardService.GetAllSets().ToDictionary(it => it.SetCode!.ToLowerInvariant(), it => it.Id);
+            var allSets = _cardService.GetAllSets().Where(it => !string.IsNullOrWhiteSpace(it.SetCode)).ToDictionary(it => it.SetCode!.ToLowerInvariant(), it => it.Id);
 
             var foilVariantTypes = _variants.Where(it => it.ChildOfBase || it.ChildOf.HasValue).Select(it => it.Id).ToArray();
 

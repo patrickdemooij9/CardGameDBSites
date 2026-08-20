@@ -5,6 +5,7 @@
 export type MetaSnapshotResult = {
     snapshotId?: number;
     periodId?: number;
+    snapshotDateUtc?: string;
     totalDecks?: number;
     cardRowCount?: number;
 };

@@ -6,6 +6,7 @@ import type { DeckApiModel } from '../models/DeckApiModel';
 import type { MetaCardApiModel } from '../models/MetaCardApiModel';
 import type { MetaCardLinkApiModel } from '../models/MetaCardLinkApiModel';
 import type { MetaCardStatApiModel } from '../models/MetaCardStatApiModel';
+import type { MetaTierListApiModel } from '../models/MetaTierListApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -64,6 +65,35 @@ export class MetaResource {
             url: '/api/meta/resolve-card',
             query: {
                 'path': path,
+            },
+            errors: {
+                404: `Not Found`,
+            },
+        });
+    }
+    /**
+     * @returns MetaTierListApiModel OK
+     * @throws ApiError
+     */
+    public static getApiMetaTierList({
+        periodId,
+        formatId = 1,
+        leaderGroupId = 1,
+        leaderSlotId,
+    }: {
+        periodId?: number,
+        formatId?: number,
+        leaderGroupId?: number,
+        leaderSlotId?: number,
+    }): CancelablePromise<MetaTierListApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/meta/tier-list',
+            query: {
+                'periodId': periodId,
+                'formatId': formatId,
+                'leaderGroupId': leaderGroupId,
+                'leaderSlotId': leaderSlotId,
             },
             errors: {
                 404: `Not Found`,

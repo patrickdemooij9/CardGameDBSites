@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Enums;
+using SkytearHorde.Entities.Models.Business.Tournament;
 using SkytearHorde.Entities.Models.ViewModels;
 using Umbraco.Cms.Core.Web;
 
@@ -19,6 +20,7 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly PeriodRepository _periodRepository;
         private readonly MetaSnapshotService _metaSnapshotService;
+        private readonly MetaTierService _metaTierService;
         private readonly MetaCardPageService _metaCardPageService;
         private readonly CardPageService _cardPageService;
         private readonly CardService _cardService;
@@ -31,6 +33,7 @@ namespace CardGameDBSites.API.Controllers
         public MetaApiController(
             PeriodRepository periodRepository,
             MetaSnapshotService metaSnapshotService,
+            MetaTierService metaTierService,
             MetaCardPageService metaCardPageService,
             CardPageService cardPageService,
             CardService cardService,
@@ -42,6 +45,7 @@ namespace CardGameDBSites.API.Controllers
         {
             _periodRepository = periodRepository;
             _metaSnapshotService = metaSnapshotService;
+            _metaTierService = metaTierService;
             _metaCardPageService = metaCardPageService;
             _cardPageService = cardPageService;
             _cardService = cardService;
@@ -113,6 +117,75 @@ namespace CardGameDBSites.API.Controllers
             }).ToArray();
 
             return Ok(result);
+        }
+
+        /// <summary>
+        /// The tier list for a period, defaulting to the current one. Window sizes and thresholds are
+        /// deliberately not query parameters: exposing them would let a crawler mint unlimited URL variants.
+        /// </summary>
+        [HttpGet("tier-list")]
+        [ProducesResponseType(typeof(MetaTierListApiModel), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult GetTierList(
+            [FromQuery] int? periodId = null,
+            [FromQuery] int formatId = 1,
+            [FromQuery] int leaderGroupId = 1,
+            [FromQuery] int leaderSlotId = 0)
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+
+            var period = periodId.HasValue
+                ? _periodRepository.GetById(periodId.Value)
+                : _tournamentService.GetCurrentPeriod(formatId);
+            if (period is null) return NotFound();
+
+            var list = _metaTierService.Build(period.Id, period.FormatId, leaderGroupId, leaderSlotId);
+
+            return Ok(new MetaTierListApiModel
+            {
+                PeriodId = list.PeriodId,
+                PeriodName = list.PeriodName,
+                FirstEventUtc = list.FirstEventUtc,
+                LastEventUtc = list.LastEventUtc,
+                LastUpdatedUtc = list.LastUpdatedUtc,
+                TotalDecks = list.TotalDecks,
+                TotalEvents = list.TotalEvents,
+                TotalEntrants = list.TotalEntrants,
+                EntrantsWithDeck = list.EntrantsWithDeck,
+                DeltasAvailable = list.DeltasAvailable,
+                DeltasUnavailableReason = list.DeltasUnavailableReason,
+                DeltaComparedToUtc = list.DeltaComparedToUtc,
+                DeltaWeeks = list.DeltaWeeks,
+                MinDecks = list.MinDecks,
+                MinEvents = list.MinEvents,
+                Leaders = [.. list.Leaders.Select(ToApiModel)]
+            });
+        }
+
+        private MetaTierLeaderApiModel ToApiModel(MetaTierLeader leader)
+        {
+            var card = _cardService.Get(leader.CardId);
+            return new MetaTierLeaderApiModel
+            {
+                CardId = leader.CardId,
+                Name = leader.Name,
+                Tier = leader.Tier.ToString(),
+                DeckCount = leader.DeckCount,
+                EventCount = leader.EventCount,
+                Wins = leader.Wins,
+                Losses = leader.Losses,
+                Draws = leader.Draws,
+                Top8Count = leader.Top8Count,
+                FirstPlaceCount = leader.FirstPlaceCount,
+                WinratePercentage = leader.WinratePercentage,
+                MetaSharePercentage = leader.MetaSharePercentage,
+                MetaShareDeltaPoints = leader.MetaShareDeltaPoints,
+                WinrateDeltaPoints = leader.WinrateDeltaPoints,
+                IsNewEntry = leader.IsNewEntry,
+                UnrankedReason = leader.UnrankedReason,
+                MetaUrl = card is null ? null : _metaCardPageService.GetMetaUrlForCard(card),
+                ImageUrl = card?.Image is null ? null : ImageCropHelper.ToApiModels(card.Image)
+            };
         }
 
         /// <summary>

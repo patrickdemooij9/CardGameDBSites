@@ -89,6 +89,8 @@ export type { MetaLeaderApiModel } from './models/MetaLeaderApiModel';
 export type { MetaLeaderUsageApiModel } from './models/MetaLeaderUsageApiModel';
 export type { MetaPopularCardApiModel } from './models/MetaPopularCardApiModel';
 export type { MetaSnapshotResult } from './models/MetaSnapshotResult';
+export type { MetaTierLeaderApiModel } from './models/MetaTierLeaderApiModel';
+export type { MetaTierListApiModel } from './models/MetaTierListApiModel';
 export type { MetaWinningDeckApiModel } from './models/MetaWinningDeckApiModel';
 export type { MoveDecksPostModel } from './models/MoveDecksPostModel';
 export type { NavigationItemApiModel } from './models/NavigationItemApiModel';

@@ -4,32 +4,66 @@ using SkytearHorde.Entities.Models.Database.Tournament;
 
 namespace SkytearHorde.Business.Services
 {
-    /// <summary>
-    /// Builds and persists meta snapshots from tournament data. A snapshot is keyed by
-    /// (SiteId, FormatId, PeriodId); recompute fully rebuilds the per-card rows. This is what keeps
-    /// usage/winrate cheap to read instead of scanning every tournament on each request.
-    /// </summary>
     public class MetaSnapshotService
     {
         private readonly MetaSnapshotRepository _repository;
+        private readonly PeriodRepository _periodRepository;
 
-        public MetaSnapshotService(MetaSnapshotRepository repository)
+        public MetaSnapshotService(MetaSnapshotRepository repository, PeriodRepository periodRepository)
         {
             _repository = repository;
+            _periodRepository = periodRepository;
         }
 
-        /// <summary>
-        /// Recomputes the snapshot for a period from all of that period's tournament decks. Creates the
-        /// snapshot row if none exists yet (this is the "tournament's period differs from the current
-        /// snapshot -> new snapshot" behaviour), otherwise updates it in place and replaces its card rows.
-        /// </summary>
+        /// <summary>Rewrites the current week's row in place; a week roll-over inserts a new one, freezing the previous week as the delta baseline.</summary>
         public MetaSnapshotResult RecomputeForPeriod(int siteId, int formatId, int periodId)
         {
-            var totalDecks = _repository.GetTotalDecks(siteId, periodId);
-            var cardStats = _repository.GetCardStats(siteId, periodId).ToArray();
+            var weekStart = MetaWeek.StartOfWeek(DateTime.UtcNow);
+            var result = BuildSnapshot(siteId, formatId, periodId, weekStart);
+            _repository.SetLatestSnapshot(siteId, formatId, periodId, result.SnapshotId);
+            _repository.ClearCache();
+            return result;
+        }
+
+        /// <summary>Drops and rebuilds a period's whole weekly history. Idempotent, and the repair path for a tournament that imported into the wrong week.</summary>
+        public MetaSnapshotResult[] BackfillForPeriod(int siteId, int formatId, int periodId)
+        {
+            var period = _periodRepository.GetById(periodId);
+            if (period is null) return [];
+
+            // Anchor on the newest tournament, not UtcNow: melee imports lag by days.
+            var lastEvent = _repository.GetLatestTournamentDate(siteId, periodId);
+            if (lastEvent is null) return [];
+
+            var end = period.EndDateUtc is null || period.EndDateUtc > lastEvent
+                ? lastEvent.Value
+                : period.EndDateUtc.Value;
+
+            _repository.DeleteSnapshotsForPeriod(siteId, formatId, periodId);
+
+            var results = new List<MetaSnapshotResult>();
+            foreach (var weekStart in MetaWeek.WeeksBetween(period.StartingDateUtc, end))
+            {
+                results.Add(BuildSnapshot(siteId, formatId, periodId, weekStart));
+            }
+
+            if (results.Count > 0)
+            {
+                _repository.SetLatestSnapshot(siteId, formatId, periodId, results[^1].SnapshotId);
+            }
+            _repository.ClearCache();
+
+            return [.. results];
+        }
+
+        private MetaSnapshotResult BuildSnapshot(int siteId, int formatId, int periodId, DateTime weekStartUtc)
+        {
+            var asOf = MetaWeek.EndOfWeek(weekStartUtc);
+            var totalDecks = _repository.GetTotalDecks(siteId, periodId, asOf);
+            var cardStats = _repository.GetCardStats(siteId, periodId, asOf).ToArray();
 
             var now = DateTime.UtcNow;
-            var snapshot = _repository.GetSnapshot(siteId, formatId, periodId);
+            var snapshot = _repository.GetSnapshot(siteId, formatId, periodId, weekStartUtc);
             if (snapshot is null)
             {
                 snapshot = new MetaSnapshotDBModel
@@ -37,6 +71,7 @@ namespace SkytearHorde.Business.Services
                     SiteId = siteId,
                     FormatId = formatId,
                     PeriodId = periodId,
+                    SnapshotDateUtc = weekStartUtc,
                     CreateDateUtc = now
                 };
             }
@@ -50,8 +85,12 @@ namespace SkytearHorde.Business.Services
                 SnapshotId = snapshot.Id,
                 CardId = s.CardId,
                 DeckCount = s.DeckCount,
+                EventCount = s.EventCount,
                 Wins = s.Wins,
-                Losses = s.Losses
+                Losses = s.Losses,
+                Draws = s.Draws,
+                Top8Count = s.Top8Count,
+                FirstPlaceCount = s.FirstPlaceCount
             });
             _repository.ReplaceCardSnapshots(snapshot.Id, rows);
 
@@ -59,22 +98,19 @@ namespace SkytearHorde.Business.Services
             {
                 SnapshotId = snapshot.Id,
                 PeriodId = periodId,
+                SnapshotDateUtc = weekStartUtc,
                 TotalDecks = totalDecks,
                 CardRowCount = cardStats.Length
             };
         }
 
-        /// <summary>
-        /// Reads persisted usage/winrate for a set of cards from the period's snapshot. Every requested
-        /// card id gets an entry; ids with no snapshot row (or when no snapshot exists yet) report zeros.
-        /// Usage = DeckCount / TotalDecks; winrate = Wins / (Wins + Losses).
-        /// </summary>
+        /// <summary>Every requested id gets an entry; ids with no snapshot row report zeros.</summary>
         public IReadOnlyList<MetaCardStat> GetCardStats(int siteId, int formatId, int periodId, IEnumerable<int> cardIds)
         {
             var ids = cardIds.Distinct().ToArray();
             var result = ids.ToDictionary(id => id, id => new MetaCardStat { CardId = id });
 
-            var snapshot = _repository.GetSnapshot(siteId, formatId, periodId);
+            var snapshot = _repository.GetLatestSnapshot(siteId, formatId, periodId);
             if (snapshot is null || snapshot.TotalDecks == 0)
                 return [.. result.Values];
 

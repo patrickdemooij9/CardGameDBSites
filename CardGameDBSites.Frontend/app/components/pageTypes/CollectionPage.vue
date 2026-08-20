@@ -103,7 +103,7 @@ async function handleImport() {
       "/api/collection/summary",
     );
   } catch (error: any) {
-    importError.value = error.message || "An error occurred during import";
+    importError.value = error.data || "An error occurred during import";
   } finally {
     isImporting.value = false;
   }

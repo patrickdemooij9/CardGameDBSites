@@ -61,6 +61,12 @@ async function recomputeSnapshot(){
   });
 }
 
+async function backfillSnapshots(){
+  await DoServerFetch("/api/management/meta/backfill?periodId=1", true, {
+    method: "POST"
+  });
+}
+
 onMounted(async () => {
   await accountStore.checkLogin();
 
@@ -74,6 +80,7 @@ onMounted(async () => {
   <div class="container mx-auto px-4 py-8 max-w-2xl">
     <h1 class="text-2xl font-bold mb-6">Import Tournament</h1>
     <Button @click="recomputeSnapshot">Recompute snapshot</Button>
+    <Button @click="backfillSnapshots">Backfill snapshot</Button>
 
     <div class="bg-white rounded shadow p-6">
       <div class="mb-4">

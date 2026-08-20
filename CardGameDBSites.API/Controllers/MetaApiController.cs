@@ -184,7 +184,7 @@ namespace CardGameDBSites.API.Controllers
                 IsNewEntry = leader.IsNewEntry,
                 UnrankedReason = leader.UnrankedReason,
                 MetaUrl = card is null ? null : _metaCardPageService.GetMetaUrlForCard(card),
-                ImageUrl = card?.Image is null ? null : ImageCropHelper.ToApiModels(card.Image)
+                ImageUrl = card?.Image is null ? null : ImageCropHelper.ToApiModels(card.Image, "icon")
             };
         }
 

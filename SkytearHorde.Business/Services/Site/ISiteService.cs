@@ -12,6 +12,7 @@ namespace SkytearHorde.Business.Services.Site
         DeckOverview[] GetDeckOverviews();
         SetOverview? GetSetOverview();
         CollectionPage? GetCollectionPage();
+        MetaCardOverview? GetMetaCardOverview();
 
         int[] GetAllSites();
 

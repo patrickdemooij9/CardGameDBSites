@@ -205,7 +205,7 @@ function formatDate(dateUtc: string | undefined) {
           <div
             v-if="content.properties?.intro"
             class="prose max-w-2xl text-gray-700"
-            v-html="content.properties?.intro"
+            v-html="content.properties?.intro.markup"
           />
           <div v-if="periods.length > 1" class="flex items-center gap-3 ml-auto">
             <label for="period-select" class="text-sm text-gray-600 font-medium">Set</label>
@@ -250,7 +250,7 @@ function formatDate(dateUtc: string | undefined) {
       <section v-if="content.properties?.analysis" class="bg-white py-10">
         <div class="container px-4 md:px-8">
           <h2 class="mb-6">What changed and why</h2>
-          <div class="prose max-w-3xl text-gray-800" v-html="content.properties?.analysis" />
+          <div class="prose max-w-3xl text-gray-800" v-html="content.properties?.analysis.markup" />
         </div>
       </section>
 

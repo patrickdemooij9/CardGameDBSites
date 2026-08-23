@@ -84,5 +84,10 @@ namespace SkytearHorde.Business.Services.Site
         {
             return GetRoot().FirstChild<Data>()?.FirstChild<CardAttributeContainer>()?.Children<CardAttribute>()?.ToArray() ?? Array.Empty<CardAttribute>();
         }
+
+        public MetaCardOverview? GetMetaCardOverview()
+        {
+            return GetRoot().FirstChild<MetaPage>()?.FirstChild<MetaCardOverview>();
+        }
     }
 }

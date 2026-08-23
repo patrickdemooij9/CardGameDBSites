@@ -34,9 +34,9 @@ namespace SkytearHorde.Business.Services
             return $"{overview.Url(mode: UrlMode.Relative)}{card.UrlSegment}";
         }
 
-        public Card? GetByUrl(string urlSegment, string? setCode = null)
+        public Card? GetByUrl(string urlSegment, string? setCode = null, bool includeVariants = true)
         {
-            var allCards = string.IsNullOrWhiteSpace(setCode) ? _cardService.GetAll(true) : _cardService.GetAllBySetCode(setCode, true);
+            var allCards = string.IsNullOrWhiteSpace(setCode) ? _cardService.GetAll(includeVariants) : _cardService.GetAllBySetCode(setCode, includeVariants);
             return allCards.FirstOrDefault(it => it.VariantId > 0 && it.UrlSegment.Equals(urlSegment, StringComparison.InvariantCultureIgnoreCase));
         }
 

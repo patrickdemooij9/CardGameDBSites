@@ -15,7 +15,7 @@ export function buildFaqSchema(entries: FaqEntry[], pageUrl: string): Record<str
       name: entry.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: entry.answer.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(),
+        text: entry.answer?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() ?? "",
       },
     })),
   };

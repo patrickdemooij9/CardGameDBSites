@@ -43,7 +43,7 @@ namespace SkytearHorde.Business.BackgroundRunners
             IServiceProvider serviceProvider,
             IRuntimeState runtimeState,
             SettingsService settingsService)
-            : base(logger, TimeSpan.FromHours(6), TimeSpan.FromSeconds(30))
+            : base(logger, TimeSpan.FromHours(2), TimeSpan.FromSeconds(30))
         {
             _logger = logger;
             _siteService = siteService;

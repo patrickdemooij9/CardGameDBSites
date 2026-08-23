@@ -3,6 +3,7 @@ using CardGameDBSites.API.Models.Collection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SkytearHorde.Business.Exports.Collection;
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Services;
@@ -29,13 +30,15 @@ namespace CardGameDBSites.API.Controllers
         private readonly SettingsService _settingsService;
         private readonly DeckService _deckService;
         private readonly ISiteService _siteService;
+        private readonly ILogger<CollectionApiController> _logger;
 
         public CollectionApiController(CollectionService collectionService,
             CardPriceService cardPriceService,
             CardService cardService,
             SettingsService settingsService,
             DeckService deckService,
-            ISiteService siteService)
+            ISiteService siteService,
+            ILogger<CollectionApiController> logger)
         {
             _collectionService = collectionService;
             _cardPriceService = cardPriceService;
@@ -43,6 +46,7 @@ namespace CardGameDBSites.API.Controllers
             _settingsService = settingsService;
             _deckService = deckService;
             _siteService = siteService;
+            _logger = logger;
         }
 
         [HttpGet("summary")]
@@ -228,6 +232,7 @@ namespace CardGameDBSites.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Something went wrong while importing cards");
                 return BadRequest(ex.Message);
             }
             if (items.Count == 0)

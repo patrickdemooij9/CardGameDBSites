@@ -4,6 +4,7 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
 
 namespace SkytearHorde.EventHandlers
@@ -12,14 +13,16 @@ namespace SkytearHorde.EventHandlers
     {
         private readonly CardService _cardService;
         private readonly CardPageService _cardPageService;
+        private readonly MetaCardPageService _metaCardPageService;
         private readonly SettingsService _settingsService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly ISiteService _siteService;
 
-        public DynamicPagesSitemapNotificationHandler(CardService cardService, CardPageService cardPageService, SettingsService settingsService, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService)
+        public DynamicPagesSitemapNotificationHandler(CardService cardService, CardPageService cardPageService, MetaCardPageService metaCardPageService, SettingsService settingsService, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService)
         {
             _cardService = cardService;
             _cardPageService = cardPageService;
+            _metaCardPageService = metaCardPageService;
             _settingsService = settingsService;
             _umbracoContextFactory = umbracoContextFactory;
             _siteService = siteService;
@@ -41,7 +44,22 @@ namespace SkytearHorde.EventHandlers
 
                 foreach (var childNode in node.Descendants())
                 {
-                    notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + '/' + childNode.UrlSegment));
+                    if (childNode is MetaCardDetail)
+                    {
+                        foreach (var card in _metaCardPageService.GetCardsForOverview())
+                        {
+                            var cardUrl = _metaCardPageService.GetMetaUrlForCard(card);
+                            if (string.IsNullOrWhiteSpace(cardUrl))
+                            {
+                                continue;
+                            }
+
+                            notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + cardUrl));
+                        }
+                        continue;
+                    }
+
+                    notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + childNode.Url(mode: UrlMode.Relative)));
                 }
             }
             

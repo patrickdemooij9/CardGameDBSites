@@ -5,6 +5,8 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core;
 using Umbraco.Extensions;
 using Card = SkytearHorde.Entities.Models.Business.Card;
+using SkytearHorde.Business.Services.Search;
+using SkytearHorde.Business.Middleware;
 
 namespace SkytearHorde.Business.Services
 {
@@ -18,29 +20,31 @@ namespace SkytearHorde.Business.Services
     public class MetaCardPageService
     {
         private readonly ISiteService _siteService;
-        private readonly CardPageService _cardPageService;
 
-        public MetaCardPageService(ISiteService siteService, CardPageService cardPageService)
+        private readonly CardPageService _cardPageService;
+        private readonly CardService _cardService;
+
+        private readonly ISiteAccessor _siteAccessor;
+
+
+        public MetaCardPageService(ISiteService siteService,
+            CardPageService cardPageService,
+            CardService cardService,
+            ISiteAccessor siteAccessor)
         {
             _siteService = siteService;
-            _cardPageService = cardPageService;
-        }
 
-        /// <summary>The MetaCardOverview whose URL is the longest prefix of the path, or null.</summary>
-        public MetaCardOverview? FindOverviewForPath(string relativePath)
-        {
-            var normalized = relativePath.EnsureStartsWith('/');
-            return _siteService.GetRoot().DescendantsOrSelf<MetaCardOverview>()
-                .Where(o => normalized.StartsWith(o.Url(mode: UrlMode.Relative), StringComparison.InvariantCultureIgnoreCase))
-                .OrderByDescending(o => o.Url(mode: UrlMode.Relative).Length)
-                .FirstOrDefault();
+            _cardPageService = cardPageService;
+            _cardService = cardService;
+
+            _siteAccessor = siteAccessor;
         }
 
         /// <summary>The card the given meta-detail path refers to, or null when it doesn't resolve.</summary>
         public Card? ResolveCard(string relativePath)
         {
             var normalized = relativePath.EnsureStartsWith('/');
-            var overview = FindOverviewForPath(normalized);
+            var overview = _siteService.GetMetaCardOverview();
             return overview is null ? null : ResolveCard(overview, normalized);
         }
 
@@ -48,28 +52,59 @@ namespace SkytearHorde.Business.Services
         public IPublishedContent? GetDetailNode(string relativePath)
         {
             var normalized = relativePath.EnsureStartsWith('/');
-            var overview = FindOverviewForPath(normalized);
+            var overview = _siteService.GetMetaCardOverview();
             if (overview is null) return null;
 
             return ResolveCard(overview, normalized) is null ? null : overview.FirstChild<MetaCardDetail>();
         }
 
-        /// <summary>
-        /// The meta detail URL for a card if it qualifies as a leader on any MetaCardOverview (i.e. it
-        /// satisfies that overview's cardRequirement), or null. Used to link from the card page to its
-        /// meta page. Requires an ambient UmbracoContext.
-        /// </summary>
+        public Card[] GetCardsForOverview()
+        {
+            var overview = _siteService.GetMetaCardOverview();
+            if (overview is null) return Array.Empty<Card>();
+
+            var filters = new List<CardSearchFilterClause>
+            {
+                new() {
+                    Filters = [new() {
+                        Alias = "Usage",
+                        Mode = CardSearchFilterMode.Higher,
+                        Values = ["0.1"]
+                    }]
+                }
+            };
+            foreach (var filter in overview.CardRequirement.ToItems<ISquadRequirementConfig>())
+            {
+                if (filter is EqualAbilitySquadRequirementConfig equal)
+                {
+                    filters.Add(new CardSearchFilterClause
+                    {
+                        Filters = [new CardSearchFilter
+                        {
+                            Alias = equal.Ability!.Name,
+                            Mode = CardSearchFilterMode.Contains,
+                            Values = equal.Values?.ToArray() ?? []
+                        }]
+                    });
+                }
+            }
+
+            var cards = _cardService.Search(new CardSearchQuery(100, _siteAccessor.GetSiteId())
+            {
+                FilterClauses = filters,
+                VariantTypeIds = [0]
+            }, out _);
+            return cards;
+        }
+
         public string? GetMetaUrlForCard(Card card)
         {
-            foreach (var overview in _siteService.GetRoot().DescendantsOrSelf<MetaCardOverview>())
+            var overview = _siteService.GetMetaCardOverview();
+            if (overview is null) return null;
+            var requirements = overview.CardRequirement.ToItems<ISquadRequirementConfig>().ToArray();
+            if (requirements.Length == 0 || requirements.All(r => r.GetRequirement().IsValid([card])))
             {
-                var requirements = overview.CardRequirement.ToItems<ISquadRequirementConfig>().ToArray();
-                if (requirements.Length == 0) continue;
-
-                if (requirements.All(r => r.GetRequirement().IsValid([card])))
-                {
-                    return $"{overview.Url(mode: UrlMode.Relative)}{card.UrlSegment}";
-                }
+                return $"{overview.Url(mode: UrlMode.Relative)}{card.UrlSegment}";
             }
             return null;
         }
@@ -78,7 +113,7 @@ namespace SkytearHorde.Business.Services
         {
             var prefix = overview.Url(mode: UrlMode.Relative);
             var remainder = normalizedPath[prefix.Length..].Trim('/');
-            return string.IsNullOrWhiteSpace(remainder) ? null : _cardPageService.GetByUrl(remainder);
+            return string.IsNullOrWhiteSpace(remainder) ? null : _cardPageService.GetByUrl(remainder, includeVariants: false);
         }
     }
 }

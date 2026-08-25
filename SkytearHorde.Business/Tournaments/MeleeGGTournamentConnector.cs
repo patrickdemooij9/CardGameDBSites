@@ -36,6 +36,12 @@ namespace SkytearHorde.Business.Tournaments
             var name = doc.DocumentNode.SelectSingleNode("//meta[@property='og:title']").GetAttributeValue("content", "");
             var dateTimeString = doc.DocumentNode.SelectSingleNode("//p[@id=\"tournament-headline-start-date-field\"]//span").GetAttributeValue("data-value", "");
             var matchesNodes = doc.DocumentNode.SelectNodes("//div[@id='pairings']//button");
+            var registrationText = doc.DocumentNode.SelectSingleNode("//p[@id='tournament-headline-registration']")?.InnerText;
+            if (registrationText?.Contains("Premier") != true)
+            {
+                return null;
+            }
+
             foreach (var matchNode in matchesNodes)
             {
                 var matchId = matchNode.GetAttributeValue("data-id", "");

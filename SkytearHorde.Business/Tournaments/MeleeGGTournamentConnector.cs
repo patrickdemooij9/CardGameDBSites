@@ -14,6 +14,11 @@ namespace SkytearHorde.Business.Tournaments
 
         public string Source => "melee.gg";
 
+        private static readonly string[] QualifierTypes = ["Planetary Qualifier", "Sector Qualifier"];
+
+        private const int DiscoveryPageLength = 500;
+        private const int MaxDiscoveryRows = 10000;
+
         private List<string> _matchesIds = [];
 
         public MeleeGGTournamentConnector(HttpClient httpClient)
@@ -194,46 +199,79 @@ namespace SkytearHorde.Business.Tournaments
 
         public async Task<IReadOnlyList<DiscoveredTournament>> DiscoverTournaments(TournamentDiscoveryConfig config)
         {
-            // The tournament overview is backed by this DataTables endpoint returning a JSON array. There is no
-            // server-side game filter (all games are mixed) and it is hard-capped at ~250 rows, oldest-first, with no
-            // paging, so we take the single page and filter by game client-side. Ended-only + a daily-or-faster
-            // cadence means each finished tournament is seen as it ages into the visible band.
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                { "draw", "1" },
-                { "start", "0" },
-                { "length", "250" },
-                { "order[0][column]", "0" },
-                { "order[0][dir]", "desc" },
-                { "search[value]", "" },
-                { "search[regex]", "false" }
-            });
+            // Backs the table view of /Tournament/Index: filters server-side, but caps each request at 500 rows and
+            // always sorts StartDate-descending - and melee holds a block of tournaments with misconfigured
+            // far-future start dates that therefore sort above every real one, so we page past them.
+            var filters = new List<string> { config.GameFilter, "Ended" };
+            if (!string.IsNullOrEmpty(config.FormatFilter))
+                filters.Add(config.FormatFilter);
 
-            var response = await _httpClient.PostAsync(
-                "https://melee.gg/Tournament/SearchResults?timeZoneId=UTC&date=Last7Days&statuses=Ended", content);
+            var now = DateTime.UtcNow;
+            var cutoff = now.AddDays(-config.LookbackDays);
+
+            var discovered = new List<DiscoveredTournament>();
+            for (var start = 0; start < MaxDiscoveryRows; start += DiscoveryPageLength)
+            {
+                var results = await SearchTournaments(filters, start, DiscoveryPageLength);
+                if (results.Count == 0)
+                    break;
+
+                foreach (var result in results)
+                {
+                    if (result.StartDate > now) continue;
+                    if (result.StartDate < cutoff) return discovered;
+
+                    discovered.Add(new DiscoveredTournament
+                    {
+                        ExternalId = result.Id.ToString(),
+                        Name = result.Name ?? string.Empty,
+                        GameDescription = result.GameDescription ?? string.Empty,
+                        Type = GetTournamentType(result),
+                        FormatString = result.FormatString,
+                        Status = result.Status ?? string.Empty,
+                        StartDateUtc = result.StartDate,
+                        EnrolledPlayerCount = result.EnrolledPlayerCount,
+                        OrganizationId = result.OrganizationId?.ToString(),
+                        OrganizationName = result.OrganizationName
+                    });
+                }
+
+                if (results.Count < DiscoveryPageLength)
+                    break;
+            }
+
+            return discovered;
+        }
+
+        private async Task<List<MeleeSearchResult>> SearchTournaments(IReadOnlyList<string> filters, int start, int length)
+        {
+            var fields = new List<KeyValuePair<string, string>>
+            {
+                new("ordering", "StartDate"),
+                new("mode", "Table"),
+                new("variables[draw]", "1"),
+                new("variables[start]", start.ToString()),
+                new("variables[length]", length.ToString()),
+                new("variables[columns][0][data]", "startDate"),
+                new("variables[columns][0][name]", "startDate"),
+                new("variables[columns][0][searchable]", "true"),
+                new("variables[columns][0][orderable]", "true"),
+                new("variables[columns][0][search][value]", ""),
+                new("variables[columns][0][search][regex]", "false"),
+                new("variables[order][0][column]", "0"),
+                new("variables[order][0][dir]", "desc"),
+                new("variables[search][value]", ""),
+                new("variables[search][regex]", "false")
+            };
+            fields.AddRange(filters.Select(filter => new KeyValuePair<string, string>("filters[]", filter)));
+
+            var response = await _httpClient.PostAsync("https://melee.gg/Tournament/TournamentSearch", new FormUrlEncodedContent(fields));
             if (!response.IsSuccessStatusCode)
                 return [];
 
             var json = await response.Content.ReadAsStringAsync();
             var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var results = JsonSerializer.Deserialize<List<MeleeSearchResult>>(json, jsonOptions) ?? [];
-
-            return results
-                .Where(r => string.Equals(r.GameDescription, config.GameDescription, StringComparison.OrdinalIgnoreCase))
-                .Select(r => new DiscoveredTournament
-                {
-                    ExternalId = r.Id.ToString(),
-                    Name = r.Name ?? string.Empty,
-                    GameDescription = r.GameDescription ?? string.Empty,
-                    Type = GetTournamentType(r.Name!),
-                    FormatString = r.FormatString,
-                    Status = r.Status ?? string.Empty,
-                    StartDateUtc = r.StartDate,
-                    EnrolledPlayerCount = r.EnrolledPlayerCount,
-                    OrganizationId = r.OrganizationId?.ToString(),
-                    OrganizationName = r.OrganizationName
-                })
-                .ToList();
+            return JsonSerializer.Deserialize<MeleeTournamentSearchResponse>(json, jsonOptions)?.Data ?? [];
         }
 
         public async Task<DecklistCoverage?> GetDecklistCoverage(string externalId)
@@ -392,21 +430,27 @@ namespace SkytearHorde.Business.Tournaments
             return standings;
         }
 
-        private string GetTournamentType(string name)
+        private static string GetTournamentType(MeleeSearchResult result)
         {
-            if (name.Contains("Planetary Qualifier", StringComparison.InvariantCultureIgnoreCase))
+            var name = result.Name ?? string.Empty;
+            foreach (var type in QualifierTypes)
             {
-                return "Planetary Qualifier";
-            }
-            if (name.Contains("Sector Qualifier", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return "Sector Qualifier";
+                if (result.Tags.Any(tag => string.Equals(tag.Type, type, StringComparison.InvariantCultureIgnoreCase))
+                    || name.Contains(type, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return type;
+                }
             }
             return "Standard";
         }
 
 
         // --- Melee.GG API response models ---
+
+        private class MeleeTournamentSearchResponse
+        {
+            public List<MeleeSearchResult> Data { get; set; } = [];
+        }
 
         private class MeleeSearchResult
         {
@@ -419,6 +463,12 @@ namespace SkytearHorde.Business.Tournaments
             public int EnrolledPlayerCount { get; set; }
             public string? FormatString { get; set; }
             public string? Status { get; set; }
+            public List<MeleeSearchResultTag> Tags { get; set; } = [];
+        }
+
+        private class MeleeSearchResultTag
+        {
+            public string? Type { get; set; }
         }
 
         private class MeleeMatchResponse

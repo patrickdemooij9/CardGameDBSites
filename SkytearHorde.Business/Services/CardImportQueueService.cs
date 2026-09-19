@@ -611,14 +611,17 @@ namespace SkytearHorde.Business.Services
         {
             if (string.IsNullOrWhiteSpace(cardName)) return (null, null);
 
-            var existing = _cardService.Search(new CardSearchQuery(1, siteId)
+            var existing = _cardService.Search(new CardSearchQuery(10, siteId)
             {
                 Query = cardName,
                 VariantTypeIds = [0]
             }, out _);
 
-            if (existing.Length > 0 && existing[0].DisplayName.Equals(cardName, StringComparison.OrdinalIgnoreCase))
-                return (existing[0].BaseId, existing[0].DisplayName);
+            if (existing.Length > 0)
+            {
+                var found = existing.FirstOrDefault(it => it.DisplayName.Equals(cardName, StringComparison.OrdinalIgnoreCase));
+                if (found != null) return (found.BaseId, found.DisplayName);
+            }
 
             return (null, null);
         }

@@ -50,7 +50,9 @@ namespace SkytearHorde.Business.Services
                 return list;
             }
 
-            var leaderIds = _tournamentRepository.GetLeaderCardIds(siteId, periodId, leaderGroupId, leaderSlotId).ToHashSet();
+            var leaderIds = _tournamentRepository.GetLeaderCardIds(siteId, periodId, leaderGroupId, leaderSlotId)
+                .Where(id => _cardService.Get(id)?.IsLegalFor(MetaCardPageService.MetaFormatId) is true)
+                .ToHashSet();
             if (leaderIds.Count == 0)
             {
                 list.DeltasUnavailableReason = "No decks with an identifiable leader have been recorded yet.";

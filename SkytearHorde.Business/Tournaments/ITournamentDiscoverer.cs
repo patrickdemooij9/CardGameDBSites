@@ -26,8 +26,17 @@ namespace SkytearHorde.Business.Tournaments
     /// <summary>Connector-agnostic slice of per-site config a discoverer needs to build its query.</summary>
     public class TournamentDiscoveryConfig
     {
-        /// <summary>Source-specific game identifier to filter on (e.g. melee's "StarWarsUnlimited").</summary>
+        /// <summary>Source-specific game filter token sent with the query (e.g. melee's "StarWarsUnlimited").</summary>
+        public required string GameFilter { get; set; }
+
+        /// <summary>Game name the source reports back, for asserting results match (e.g. "STAR WARS: Unlimited").</summary>
         public required string GameDescription { get; set; }
+
+        /// <summary>Optional source-specific format filter token (e.g. melee's "Premier"). Null means all formats.</summary>
+        public string? FormatFilter { get; set; }
+
+        /// <summary>How far back from now finished tournaments are still worth discovering.</summary>
+        public int LookbackDays { get; set; } = 7;
 
         /// <summary>Minimum enrolled players a tournament must have to be worth importing.</summary>
         public int MinPlayers { get; set; }

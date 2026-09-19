@@ -72,6 +72,8 @@ namespace SkytearHorde.Entities.Models.Business
             return requirementConfig.All(it => it.GetRequirement().IsValid(cardArray));
         }
 
+        public bool IsLegalFor(int deckTypeId) => NonLegalDeckTypes?.Contains(deckTypeId) != true;
+
         public int GetAmount()
         {
             var value = GetMultipleCardAttributeValue("Amount")?.FirstOrDefault();

@@ -96,11 +96,16 @@ namespace SkytearHorde.Business.BackgroundRunners
 
                 var tournamentService = scope.ServiceProvider.GetRequiredService<TournamentService>();
 
-                var discovered = await discoverer.DiscoverTournaments(new TournamentDiscoveryConfig
+                var discoveryConfig = new TournamentDiscoveryConfig
                 {
-                    GameDescription = "StarWarsUnlimited",
+                    GameFilter = "StarWarsUnlimited",
+                    GameDescription = "STAR WARS: Unlimited",
+                    FormatFilter = "Premier",
+                    LookbackDays = 7,
                     MinPlayers = 12
-                });
+                };
+
+                var discovered = await discoverer.DiscoverTournaments(discoveryConfig);
 
                 var enqueued = 0;
                 foreach (var tournament in discovered)
@@ -109,9 +114,9 @@ namespace SkytearHorde.Business.BackgroundRunners
 
                     // Only completed tournaments have final standings/decks; anything else fails to import.
                     if (!string.Equals(tournament.Status, "Ended", StringComparison.OrdinalIgnoreCase)) continue;
-                    // Game filter is client-side (source mixes all games); re-assert as a safety net.
-                    if (!string.Equals(tournament.GameDescription, "StarWarsUnlimited", StringComparison.OrdinalIgnoreCase)) continue;
-                    if (tournament.EnrolledPlayerCount < 12) continue;
+                    // Filtering happens source-side; re-assert as a safety net.
+                    if (!string.Equals(tournament.GameDescription, discoveryConfig.GameDescription, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (tournament.EnrolledPlayerCount < discoveryConfig.MinPlayers) continue;
 
                     // Dedup: QueueImport re-syncs already-imported tournaments rather than skipping, so we must skip
                     // ones already in the DB or already queued, or every prior tournament re-imports every run.

@@ -19,6 +19,9 @@ namespace SkytearHorde.Business.Services
     /// </summary>
     public class MetaCardPageService
     {
+        // Meta pages only cover premier for now.
+        public const int MetaFormatId = 1;
+
         private readonly ISiteService _siteService;
 
         private readonly CardPageService _cardPageService;
@@ -92,7 +95,8 @@ namespace SkytearHorde.Business.Services
             var cards = _cardService.Search(new CardSearchQuery(100, _siteAccessor.GetSiteId())
             {
                 FilterClauses = filters,
-                VariantTypeIds = [0]
+                VariantTypeIds = [0],
+                LegalForDeckTypeId = MetaFormatId
             }, out _);
             return cards;
         }
@@ -100,7 +104,7 @@ namespace SkytearHorde.Business.Services
         public string? GetMetaUrlForCard(Card card)
         {
             var overview = _siteService.GetMetaCardOverview();
-            if (overview is null) return null;
+            if (overview is null || !card.IsLegalFor(MetaFormatId)) return null;
             var requirements = overview.CardRequirement.ToItems<ISquadRequirementConfig>().ToArray();
             if (requirements.Length == 0 || requirements.All(r => r.GetRequirement().IsValid([card])))
             {
@@ -113,7 +117,10 @@ namespace SkytearHorde.Business.Services
         {
             var prefix = overview.Url(mode: UrlMode.Relative);
             var remainder = normalizedPath[prefix.Length..].Trim('/');
-            return string.IsNullOrWhiteSpace(remainder) ? null : _cardPageService.GetByUrl(remainder, includeVariants: false);
+            if (string.IsNullOrWhiteSpace(remainder)) return null;
+
+            var card = _cardPageService.GetByUrl(remainder, includeVariants: false);
+            return card is not null && card.IsLegalFor(MetaFormatId) ? card : null;
         }
     }
 }

@@ -29,7 +29,7 @@ namespace SkytearHorde.Business.Repositories
             };
             _publishedCachePolicy = new Cache.DeckRepositoryCachePolicy(cache, publishedPolicyOptions);
 
-            var unpublishedPolicyOptions = new Cache.RepositoryCachePolicyOptions(() => PerformCount(DeckStatus.Published))
+            var unpublishedPolicyOptions = new Cache.RepositoryCachePolicyOptions(() => PerformCount(DeckStatus.Saved))
             {
                 CacheBaseKey = $"uRepo_{typeof(Deck).Name}_Unpublished_"
             };

@@ -103,6 +103,8 @@ namespace CardGameDBSites.API.Controllers
                 }
             }
 
+            if (query.UserId.HasValue && query.Status != DeckStatus.Published && !isOwnerRequest) return Unauthorized();
+
             // Folders are private, so only apply folder scoping when the user is querying their own decks.
             var folderId = isOwnerRequest ? query.FolderId : null;
             var unfiled = isOwnerRequest && (query.Unfiled ?? false);
@@ -162,7 +164,7 @@ namespace CardGameDBSites.API.Controllers
             if (currentUser is null) return Unauthorized();
 
             var userId = int.Parse(currentUser.Id);
-            var deck = _deckService.Get(deckId);
+            var deck = _deckService.Get(deckId, DeckStatus.None);
             if (deck is null) return NotFound();
 
             if (deck.CreatedBy != userId) return Unauthorized();

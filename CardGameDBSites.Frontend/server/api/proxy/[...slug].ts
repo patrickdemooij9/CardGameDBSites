@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const body =
-      method !== "GET" && method !== "HEAD" ? await readBody(event) : undefined;
+      method !== "GET" && method !== "HEAD" ? await readRawBody(event, false) : undefined;
       const response = await $fetch.raw(backendUrl, {
       method,
       headers,

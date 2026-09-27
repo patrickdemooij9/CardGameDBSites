@@ -7,11 +7,11 @@ import { useCollectionStore } from "~/stores/CollectionStore";
 export function useCollection() {
   const store = useCollectionStore();
 
-  const loadCards = async (cardIds: number[]) => {
+  const loadCards = async (cardIds: number[], options: { refresh?: boolean } = {}) => {
     if (cardIds.length === 0) return {};
 
-    const cachedIds = cardIds.filter(id => store.cards[id]?.length);
-    const missingIds = cardIds.filter(id => !store.cards[id]?.length);
+    const cachedIds = options.refresh ? [] : cardIds.filter(id => store.cards[id]?.length);
+    const missingIds = options.refresh ? cardIds : cardIds.filter(id => !store.cards[id]?.length);
 
     if (missingIds.length === 0) {
       const result: Record<number, CollectionCardApiModel[]> = {};

@@ -162,6 +162,94 @@ Images are served through `@nuxt/image` using a custom **`umbraco`** provider (`
 - `CardSectionApiModel`: `ability`, `showAsTags`, `overviewPageUrl`, `namePosition`, `isDivider`
 - `SiteSettingsApiModel`: `mainColor`, `hoverMainColor`, `borderColor`, `siteName`, `showLogin`, `showPrices`, `navigation`, `cardSections`, `keywordImages`, `footerText`, `footerLinks`
 
+## Native App (CapacitorJS / Android)
+
+The same Nuxt codebase ships as an Android app through Capacitor. There is **no Nitro server**
+in the app — it is a static SPA in a WebView, so anything that relied on a Nuxt server route has
+a native branch.
+
+| Command | Description |
+|---------|-------------|
+| `npm run build:app` | Static SPA build for the app (`ssr: false`, production API base URL) |
+| `npm run sync:app` | `build:app` + `cap sync android` |
+| `npm run open:android` | Open the project in Android Studio (build/sign the APK/AAB there) |
+
+- `capacitor.config.ts` — appId `com.swunlimiteddb.app`, `webDir: .output/public`.
+- `nuxt.config.ts` switches `ssr` off when `NUXT_BUILD_TARGET=native`.
+- `android/` is committed; Capacitor's own `.gitignore` excludes the copied web assets and
+  generated config, so `cap sync` output never lands in git.
+
+### Runtime detection
+
+`isNativeApp()` (`helpers/NativeApp.ts`) is the single check. It is false in every web build.
+
+### API communication
+
+The web build proxies authenticated calls through `/api/proxy` so the Nuxt server can attach the
+`cardgamesdb` HttpOnly cookie. The app has no server and no cookie, so it calls the backend
+directly and sends the JWT as a bearer header instead:
+
+- `DoFetch` attaches `Authorization: Bearer <token>` on native.
+- `DoServerFetch(url, useProxy)` routes to `DoFetch` on native. `useProxy: false` means the URL
+  is a Nuxt-server-only route, which has no native equivalent — it throws rather than hitting the
+  wrong endpoint. Any such call needs an explicit native branch (see `AccountStore`).
+- `GetProxyUrl(path)` resolves a backend URL for code that needs a string rather than a fetch
+  (anchor hrefs, `window.location`, raw `fetch`).
+
+CORS is already open (`AllowAnyOrigin` on every API controller). The backend resolves which site a
+request belongs to from the **host**, so the app's API base URL picks the site — one app per site.
+
+### Auth
+
+The JWT lives in `@capacitor/preferences` (`helpers/NativeAuth.ts`), cached in memory and hydrated
+by `plugins/native.client.ts` before the app mounts. `AccountStore` has native branches for
+login, register, logout and impersonation that call the backend directly and store the token. A
+401 clears the stored token.
+
+### Navigation
+
+Native adds `components/navigation/MobileTabBar.vue` — a fixed bottom tab bar (Home, Cards, Decks,
+Account/Login). The existing top navigation stays, so CMS pages outside the four tabs remain
+reachable via its hamburger menu. Tab URLs come from the CMS navigation where available and fall
+back to `/cards`, `/decks`, `/login`, `/account/my-decks`.
+
+The layout adds `has-tab-bar` (bottom padding) so content clears the fixed bar. `pb-safe-bottom`
+and `pt-safe-top` in `tailwind.css` wrap `env(safe-area-inset-*)`; the viewport meta sets
+`viewport-fit=cover`.
+
+### Card scanner (admin-only, app-only)
+
+`/app/scanner` (`components/scanner/CardScanner.vue`) runs the camera card scanner from
+`SWUCardScanner/` in the WebView. It is guarded by the `native-only` and `admin-only` middleware
+and linked from the "More" tab for admins.
+
+- The detector/matcher code is **not copied** — it is imported from `SWUCardScanner/web/src/lib`
+  through the Vite alias `#card-scanner`, so the Python/JS descriptor parity has one source.
+  TypeScript resolves that alias to the generated declarations in `SWUCardScanner/web/types/`
+  (the lib does not satisfy Nuxt's `noUncheckedIndexedAccess`). Regenerate them with
+  `npm --prefix ../SWUCardScanner/web run types:lib` after changing the lib's exports.
+- The page is removed from web builds (`pages:extend` in `nuxt.config.ts`): onnxruntime's wasm is
+  ~27 MB, over Cloudflare's 25 MB per-file limit.
+- `build:app` runs `scripts/copy-scanner-assets.mjs`, copying the detector and card index from
+  `SWUCardScanner/web/public/` into `.output/public/scanner/` (~53 MB added to the APK). When they
+  are missing it warns and skips; the page then shows a load error.
+- The WebView is not cross-origin isolated, so onnxruntime's wasm fallback runs single-threaded.
+- Flow: full-screen camera (`ScannerCamera.vue`) → each confirmed card lands in a queue
+  (`useScanQueue`, kept in `useState`) and shows in the bottom bar with a variant dropdown →
+  the list (`ScanReview.vue`) edits variant/count/removal → "Add to collection".
+- `SightingTracker` confirms a card after 3 identified frames and counts it once per appearance;
+  a card that leaves the frame (5 missed frames) and comes back is another copy.
+- Each index image carries the `variantIds` that share it (normal + foil share art, so the camera
+  cannot tell them apart). The default is that image's Normal variant; `/api/collection/addCards`
+  overwrites amounts, so the import re-fetches owned amounts and adds on top.
+
+### Known gaps
+
+- Collection export (`CollectionPage.vue`) still points at the Nuxt route `/api/collection/export`
+  and does not work in the app — an authenticated binary download needs a native file handler.
+- No deep links / app links, push notifications, or splash screen yet.
+- iOS platform is not added.
+
 ## Legacy Reference
 
 The `SkytearHorde.Website/` directory contains the old server-rendered Umbraco views (`.cshtml`). Key reference files:

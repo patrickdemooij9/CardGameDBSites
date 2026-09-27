@@ -1,4 +1,12 @@
 import type { CurrentMemberApiModel, RegisterPostModel } from "~/api/default";
+import { isNativeApp } from "~/helpers/NativeApp";
+import {
+  GetNativeAdminToken,
+  GetNativeToken,
+  LoadNativeTokens,
+  SetNativeAdminToken,
+  SetNativeToken,
+} from "~/helpers/NativeAuth";
 import { DoFetch, DoServerFetch } from "~/helpers/RequestsHelper";
 import type MemberModel from "~/models/MemberModel";
 
@@ -15,32 +23,46 @@ export const useAccountStore = defineStore("accountStore", {
     },
   },
   actions: {
+    applyMember(result: CurrentMemberApiModel) {
+      this.member = {
+        id: result.id,
+        name: result.displayName,
+        likedDecks: result.likedDecks || [],
+        isAdmin: result.isAdmin ?? false,
+        impersonatedBy: result.impersonatedBy,
+      };
+    },
     async login(email: string, password: string, rememberMe: boolean) {
       try {
-        const member = await DoServerFetch<CurrentMemberApiModel>(
-          `/api/account/login`,
-          false,
-          {
+        if (isNativeApp()) {
+          const token = await DoFetch<string>("/api/account/login", {
             method: "POST",
             body: { email, password, rememberMe },
-          }
-        );
-        this.member = {
-          id: member.id,
-          name: member.displayName,
-          likedDecks: member.likedDecks || [],
-          isAdmin: member.isAdmin ?? false,
-          impersonatedBy: member.impersonatedBy,
-        };
+          });
+          await SetNativeToken(token);
+          this.applyMember(await DoFetch<CurrentMemberApiModel>("/api/account/getCurrentMember"));
+        } else {
+          this.applyMember(
+            await DoServerFetch<CurrentMemberApiModel>(`/api/account/login`, false, {
+              method: "POST",
+              body: { email, password, rememberMe },
+            })
+          );
+        }
         this.validatedLogin = true;
       } catch (error) {
         throw "Incorrect email/password";
       }
     },
     async logout(){
-      await DoServerFetch("/api/account/logout", false, {
-        method: "POST",
-      });
+      if (isNativeApp()) {
+        await SetNativeToken(undefined);
+        await SetNativeAdminToken(undefined);
+      } else {
+        await DoServerFetch("/api/account/logout", false, {
+          method: "POST",
+        });
+      }
       this.member = undefined;
     },
     async checkLogin() {
@@ -51,17 +73,14 @@ export const useAccountStore = defineStore("accountStore", {
       if (_loadingPromise) return _loadingPromise;
       _loadingPromise = (async () => {
         try {
+          if (isNativeApp()) {
+            await LoadNativeTokens();
+          }
           const result = await DoServerFetch<CurrentMemberApiModel>(
             "/api/account/getCurrentMember"
           );
 
-          this.member = {
-            id: result.id,
-            name: result.displayName,
-            likedDecks: result.likedDecks || [],
-            isAdmin: result.isAdmin ?? false,
-            impersonatedBy: result.impersonatedBy,
-          };
+          this.applyMember(result);
         } catch (error) {
           this.member = undefined;
           return false;
@@ -79,21 +98,23 @@ export const useAccountStore = defineStore("accountStore", {
       return undefined;
     },
     async register(model: RegisterPostModel) {
-      const result = await DoFetch<CurrentMemberApiModel>(
-        "/api/account/register",
-        {
+      if (isNativeApp()) {
+        const token = await DoFetch<string>("/api/account/register", {
           method: "POST",
           body: model,
-        }
-      );
+        });
+        await SetNativeToken(token);
+        this.applyMember(await DoFetch<CurrentMemberApiModel>("/api/account/getCurrentMember"));
+        this.validatedLogin = true;
+        return;
+      }
 
-      this.member = {
-        id: result.id,
-        name: result.displayName,
-        likedDecks: result.likedDecks || [],
-        isAdmin: result.isAdmin ?? false,
-        impersonatedBy: result.impersonatedBy,
-      };
+      this.applyMember(
+        await DoFetch<CurrentMemberApiModel>("/api/account/register", {
+          method: "POST",
+          body: model,
+        })
+      );
     },
     async forgotPassword(email: string) {
       return await DoServerFetch("/api/account/forgotpassword", true, {
@@ -113,24 +134,39 @@ export const useAccountStore = defineStore("accountStore", {
       });
     },
     async impersonate(memberId: number) {
-      const result = await DoServerFetch<CurrentMemberApiModel>(
-        "/api/account/impersonate",
-        false,
-        {
+      if (isNativeApp()) {
+        const impersonationToken = await DoFetch<string>(
+          `/api/account/impersonate/${memberId}`,
+          { method: "POST" }
+        );
+        await SetNativeAdminToken(GetNativeToken());
+        await SetNativeToken(impersonationToken);
+        this.applyMember(await DoFetch<CurrentMemberApiModel>("/api/account/getCurrentMember"));
+        this.validatedLogin = true;
+        return;
+      }
+
+      this.applyMember(
+        await DoServerFetch<CurrentMemberApiModel>("/api/account/impersonate", false, {
           method: "POST",
           body: { memberId },
-        }
+        })
       );
-      this.member = {
-        id: result.id,
-        name: result.displayName,
-        likedDecks: result.likedDecks || [],
-        isAdmin: result.isAdmin ?? false,
-        impersonatedBy: result.impersonatedBy,
-      };
       this.validatedLogin = true;
     },
     async stopImpersonating() {
+      if (isNativeApp()) {
+        const adminToken = GetNativeAdminToken();
+        if (!adminToken) {
+          throw new Error("Not currently impersonating");
+        }
+        await SetNativeToken(adminToken);
+        await SetNativeAdminToken(undefined);
+        this.applyMember(await DoFetch<CurrentMemberApiModel>("/api/account/getCurrentMember"));
+        this.validatedLogin = true;
+        return;
+      }
+
       const result = await DoServerFetch<CurrentMemberApiModel>(
         "/api/account/stopImpersonating",
         false,
@@ -138,13 +174,8 @@ export const useAccountStore = defineStore("accountStore", {
           method: "POST",
         }
       );
-      this.member = {
-        id: result.id,
-        name: result.displayName,
-        likedDecks: result.likedDecks || [],
-        isAdmin: result.isAdmin ?? false,
-        impersonatedBy: undefined,
-      };
+      this.applyMember(result);
+      this.member!.impersonatedBy = undefined;
       this.validatedLogin = true;
     },
     toggleDeckLike(deckId: number) {

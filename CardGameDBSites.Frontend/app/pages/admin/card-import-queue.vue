@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAccountStore } from "~/stores/AccountStore";
-import { DoServerFetch } from "~/helpers/RequestsHelper";
+import { DoServerFetch, GetProxyUrl } from "~/helpers/RequestsHelper";
 import { GetWebpUrl } from "~/helpers/CropUrlHelper";
 import SetService from "~/services/SetService";
 import type { SetViewModel } from "~/api/default";
@@ -325,7 +325,7 @@ async function rematch(item: QueueItem) {
 function proxyImageUrl(url: string) {
   // Same-origin proxy path (must NOT go through the umbraco image provider,
   // which would prepend the API base URL). Append WebP via GetWebpUrl instead.
-  return GetWebpUrl(`/api/proxy${url}`);
+  return GetWebpUrl(GetProxyUrl(url));
 }
 
 function formatDate(iso: string) {

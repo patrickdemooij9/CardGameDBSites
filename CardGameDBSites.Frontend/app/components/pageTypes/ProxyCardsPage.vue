@@ -3,6 +3,7 @@ import type { CardDetailApiModel } from "~/api/default";
 import CardSearchInput from "~/components/shared/CardSearchInput.vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import { useAppToast } from "~/composables/useAppToast";
+import { GetProxyUrl } from "~/helpers/RequestsHelper";
 import { PhTrash, PhPlus, PhMinus } from "@phosphor-icons/vue";
 
 interface ProxyCard {
@@ -67,7 +68,7 @@ async function downloadProxyPdf() {
       })),
     };
 
-    const response = await fetch("/api/proxy/umbraco/api/export/ProxyExport", {
+    const response = await fetch(GetProxyUrl("/umbraco/api/export/ProxyExport"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

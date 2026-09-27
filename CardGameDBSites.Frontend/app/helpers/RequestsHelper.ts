@@ -1,5 +1,7 @@
 import type { NitroFetchOptions } from "nitropack";
 import { useAppToast } from "~/composables/useAppToast";
+import { isNativeApp } from "~/helpers/NativeApp";
+import { GetNativeToken, SetNativeToken } from "~/helpers/NativeAuth";
 import { useAccountStore } from "~/stores/AccountStore";
 
 type FetchStatusError = {
@@ -31,6 +33,10 @@ function handleUnauthorized(error: unknown) {
   accountStore.member = undefined;
   accountStore.validatedLogin = false;
 
+  if (isNativeApp()) {
+    SetNativeToken(undefined).catch(() => {});
+  }
+
   if (wasLoggedIn) {
     useAppToast().info("Your session expired, so you were logged out.");
   }
@@ -41,13 +47,25 @@ export function DoFetch<T>(
   options?: NitroFetchOptions<string>
 ): Promise<T> {
   options = options ?? {};
-  options.headers = options.headers ?? {};
+  options.headers = withNativeAuth(options.headers ?? {});
 
   const config = useRuntimeConfig();
   return $fetch<T>(`${config.public.API_BASE_URL}${url}`, options).catch((error) => {
     handleUnauthorized(error);
     throw error;
   });
+}
+
+/**
+ * The native app has no Nuxt server to hold the JWT cookie, so the token travels
+ * as a bearer header on every direct call instead.
+ */
+function withNativeAuth(headers: NonNullable<NitroFetchOptions<string>["headers"]>) {
+  const token = isNativeApp() ? GetNativeToken() : undefined;
+  if (!token) {
+    return headers;
+  }
+  return { ...(headers as Record<string, string>), Authorization: `Bearer ${token}` };
 }
 
 export async function DoFetch2<T>(
@@ -65,6 +83,13 @@ export async function DoServerFetch<T>(
 ): Promise<T> {
   options = options ?? {};
   options.headers = options.headers ?? {};
+
+  if (isNativeApp()) {
+    if (!useProxy) {
+      throw new Error(`${url} is a Nuxt server route and has no native equivalent`);
+    }
+    return DoFetch<T>(url, options);
+  }
 
   if (useProxy){
     url = `/api/proxy${url}`;
@@ -93,4 +118,12 @@ export async function DoOptionalServerFetch<T>(
 
 export function GetBaseApiUrl(){
   return useRuntimeConfig().public.API_BASE_URL;
+}
+
+/**
+ * Resolves a backend path for code that needs a URL rather than a fetch — anchor
+ * hrefs, `window.location`, raw `fetch`. Native builds bypass the Nuxt proxy.
+ */
+export function GetProxyUrl(url: string) {
+  return isNativeApp() ? `${GetBaseApiUrl()}${url}` : `/api/proxy${url}`;
 }

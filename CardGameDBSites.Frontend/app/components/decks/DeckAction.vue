@@ -17,6 +17,7 @@ import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import { useAppToast } from "~/composables/useAppToast";
 import DeckImageExport from "./DeckImageExport.vue";
+import { GetProxyUrl } from "~/helpers/RequestsHelper";
 
 const props = defineProps<{
   deck: DeckApiModel;
@@ -56,7 +57,7 @@ async function copyToClipboard(action: DeckActionApiModel) {
   
   isLoading.value = true;
   try {
-    const url = `/api/proxy/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`;
+    const url = GetProxyUrl(`/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`);
     const response = await fetch(url);
     const text = await response.text();
     await navigator.clipboard.writeText(text);
@@ -73,7 +74,7 @@ async function handleRedirectExport(action: DeckActionApiModel) {
 
   isLoading.value = true;
   try {
-    const url = `/api/proxy/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`;
+    const url = GetProxyUrl(`/api/export/export?deckId=${props.deck.id}&exportId=${action.id}`);
     const response = await fetch(url);
     if (!response.ok) throw new Error("Export failed");
     const data = await response.json();
@@ -92,7 +93,7 @@ async function handleForceTable() {
 
   isLoading.value = true;
   try {
-    const url = `/api/proxy/api/export/ExportForceTable?deckId=${props.deck.id}`;
+    const url = GetProxyUrl(`/api/export/ExportForceTable?deckId=${props.deck.id}`);
     const response = await fetch(url);
     if (!response.ok) throw new Error("Export failed");
     const data = await response.json();
@@ -177,7 +178,7 @@ async function handleForceTable() {
   <div v-else>
     <a
       class="flex align-center gap-1 no-underline"
-      :href="`/api/proxy/api/export/export?deckId=${deck.id}&exportId=${action.id}`"
+      :href="GetProxyUrl(`/api/export/export?deckId=${deck.id}&exportId=${action.id}`)"
       target="_blank"
       rel="nofollow noreferrer"
     >
@@ -228,7 +229,7 @@ async function handleForceTable() {
         </button>
         <a
           v-else
-          :href="`/api/proxy/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`"
+          :href="GetProxyUrl(`/api/export/export?deckId=${deck.id}&exportId=${subAction.id}`)"
           class="no-underline"
           target="_blank"
           rel="nofollow noreferrer"

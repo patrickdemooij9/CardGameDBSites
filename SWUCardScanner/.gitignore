@@ -1,0 +1,31 @@
+# Card art downloaded from api.sw-unlimited-db.com (regenerate with scrape_cards.py)
+model/cards/
+model/cards.json
+
+# Generated synthetic training data
+model/dataset/
+model/runs/
+
+# User-supplied background photos
+model/backgrounds/*
+!model/backgrounds/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Trained weights / exported models (too big for git)
+*.pt
+*.onnx
+web/public/models/*
+!web/public/models/.gitkeep
+
+# Generated card embedding index (rebuild with build_index.py)
+web/public/index/
+
+# Node
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo

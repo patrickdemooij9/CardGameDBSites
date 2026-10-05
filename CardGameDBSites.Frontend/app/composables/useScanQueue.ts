@@ -53,17 +53,21 @@ export function useScanQueue() {
     const baseIds = [...new Set(entries.value.map((entry) => entry.baseId))];
     const owned = await collection.loadCards(baseIds, { refresh: true });
 
-    let imported = 0;
-    for (const baseId of baseIds) {
-      const cardEntries = entries.value.filter((entry) => entry.baseId === baseId);
-      const amounts = collectionAmounts(cardEntries, owned[baseId] ?? []);
-      if (Object.keys(amounts).length) {
-        await collection.saveCards(baseId, amounts);
-      }
-      // Removed per card, so a failure halfway leaves only the unsaved cards to retry.
-      entries.value = entries.value.filter((entry) => entry.baseId !== baseId);
-      imported += cardEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    const items = baseIds
+      .map((cardId) => ({
+        cardId,
+        values: collectionAmounts(
+          entries.value.filter((entry) => entry.baseId === cardId),
+          owned[cardId] ?? []
+        ),
+      }))
+      .filter((item) => Object.keys(item.values).length);
+    if (items.length) {
+      await collection.saveCardsBatch(items);
     }
+
+    const imported = entries.value.reduce((sum, entry) => sum + entry.amount, 0);
+    entries.value = [];
     return imported;
   }
 

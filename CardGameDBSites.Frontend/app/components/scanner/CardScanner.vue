@@ -8,7 +8,7 @@ import CmsImage from "~/components/shared/CmsImage.vue";
 import { useAppToast } from "~/composables/useAppToast";
 import { useScanQueue } from "~/composables/useScanQueue";
 
-type Mode = "scanning" | "paused" | "stopped";
+type Mode = "scanning" | "paused";
 
 const { entries, add, optionsFor, importAll } = useScanQueue();
 const toast = useAppToast();
@@ -33,13 +33,17 @@ function resume() {
   mode.value = "scanning";
 }
 
+function exit() {
+  navigateTo("/app/more");
+}
+
 async function importCards() {
   importing.value = true;
   try {
     const imported = await importAll();
     toast.success(`Added ${imported} card${imported === 1 ? "" : "s"} to your collection`);
   } catch {
-    toast.error("Could not add every card to your collection. The remaining cards are still in the list.");
+    toast.error("Could not add the cards to your collection. They are still in the list.");
   } finally {
     importing.value = false;
   }
@@ -48,7 +52,7 @@ async function importCards() {
 
 <template>
   <div>
-    <ScannerCamera v-if="mode !== 'stopped'" v-show="mode === 'scanning'" :paused="mode !== 'scanning'" @scan="onScan">
+    <ScannerCamera v-show="mode === 'scanning'" :paused="mode !== 'scanning'" @scan="onScan">
       <div class="absolute right-3 top-safe-top mt-3 flex gap-2">
         <button
           class="relative rounded-full bg-black/60 p-3 text-white"
@@ -63,7 +67,7 @@ async function importCards() {
             {{ totalCards }}
           </span>
         </button>
-        <button class="rounded-full bg-black/60 p-3 text-white" aria-label="Stop scanning" @click="mode = 'stopped'">
+        <button class="rounded-full bg-black/60 p-3 text-white" aria-label="Close scanner" @click="exit">
           <PhX :size="22" />
         </button>
       </div>
@@ -95,6 +99,6 @@ async function importCards() {
       </div>
     </ScannerCamera>
 
-    <ScanReview v-if="mode !== 'scanning'" :importing="importing" @resume="resume" @import="importCards" />
+    <ScanReview v-if="mode !== 'scanning'" :importing="importing" @resume="resume" @import="importCards" @exit="exit" />
   </div>
 </template>

@@ -1,19 +1,25 @@
 {
-  "name": "aidalondb",
-  "main": ".output/server/index.mjs",
-  "compatibility_date": "2024-06-21",
-  "site": {
-    "bucket": ".output/public"
-  },
-  "vars": {
-    "NUXT_API_BASE_URL": "https://sw-unlimited-db.com",
-    "NUXT_PUBLIC_API_BASE_URL": "https://sw-unlimited-db.com",
-    "API_BASE_URL": "https://sw-unlimited-db.com"
-  },
-  "observability": {
-    "logs": {
-      "enabled": true,
-      "invocation_logs": true
-    }
-  }
+	"name": "aidalondb",
+	"main": ".output/server/index.mjs",
+	"compatibility_date": "2024-06-21",
+	"site": {
+		"bucket": ".output/public"
+	},
+	"vars": {
+		"NUXT_API_BASE_URL": "https://sw-unlimited-db.com",
+		"NUXT_PUBLIC_API_BASE_URL": "https://sw-unlimited-db.com",
+		"API_BASE_URL": "https://sw-unlimited-db.com"
+	},
+	"observability": {
+		"logs": {
+			"enabled": true,
+			"invocation_logs": true
+		}
+	},
+	"kv_namespaces": [
+		{
+			"binding": "NUXT_CACHE",
+			"id": "435c10b5dfa044299e1378f2795713dc"
+		}
+	]
 }

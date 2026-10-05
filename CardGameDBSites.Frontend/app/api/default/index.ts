@@ -7,6 +7,7 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { AddCollectionCardsApiModel } from './models/AddCollectionCardsApiModel';
 export type { ApproveRequest } from './models/ApproveRequest';
 export type { ApproveVariant } from './models/ApproveVariant';
 export type { ArtCropApiModel } from './models/ArtCropApiModel';

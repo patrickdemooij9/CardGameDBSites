@@ -24,20 +24,17 @@ namespace SkytearHorde.Business.Services
 
         private readonly ISiteService _siteService;
 
-        private readonly CardPageService _cardPageService;
         private readonly CardService _cardService;
 
         private readonly ISiteAccessor _siteAccessor;
 
 
         public MetaCardPageService(ISiteService siteService,
-            CardPageService cardPageService,
             CardService cardService,
             ISiteAccessor siteAccessor)
         {
             _siteService = siteService;
 
-            _cardPageService = cardPageService;
             _cardService = cardService;
 
             _siteAccessor = siteAccessor;
@@ -119,7 +116,11 @@ namespace SkytearHorde.Business.Services
             var remainder = normalizedPath[prefix.Length..].Trim('/');
             if (string.IsNullOrWhiteSpace(remainder)) return null;
 
-            var card = _cardPageService.GetByUrl(remainder, includeVariants: false);
+            // Match against the same (indexed, ~100-card) candidate set GetMetaUrlForCard built the
+            // URLs from, rather than CardPageService.GetByUrl — that scans and maps every card and
+            // variant in the whole catalog to resolve a single slug.
+            var card = GetCardsForOverview()
+                .FirstOrDefault(it => it.UrlSegment.Equals(remainder, StringComparison.InvariantCultureIgnoreCase));
             return card is not null && card.IsLegalFor(MetaFormatId) ? card : null;
         }
     }

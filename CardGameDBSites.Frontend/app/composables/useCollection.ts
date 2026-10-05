@@ -1,4 +1,4 @@
-import type { CardDetailApiModel, CollectionCardApiModel, DeckProgressApiModel } from "~/api/default";
+import type { AddCollectionCardsApiModel, CardDetailApiModel, CollectionCardApiModel, DeckProgressApiModel } from "~/api/default";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
 import type { PackPostApiModel, PackVerifySuccessApiModel, PackVerifyErrorApiModel } from "~/models/PackApiModel";
 import type { PresetApiModel } from "~/models/PresetApiModel";
@@ -65,6 +65,18 @@ export function useCollection() {
     store.setCards(cards);
   };
 
+  const saveCardsBatch = async (items: AddCollectionCardsApiModel[]) => {
+    const cards = await DoServerFetch<CollectionCardApiModel[]>(
+      "/api/collection/addCardsBatch",
+      true,
+      {
+        method: "POST",
+        body: items
+      }
+    );
+    store.setCards(cards);
+  };
+
   const verifyPack = async (postModel: PackPostApiModel): Promise<PackVerifySuccessApiModel | PackVerifyErrorApiModel> => {
     return await DoServerFetch<PackVerifySuccessApiModel | PackVerifyErrorApiModel>(
       "/api/collection/verifyPack",
@@ -125,6 +137,7 @@ export function useCollection() {
     loadCards,
     loadDecksProgress,
     saveCards,
+    saveCardsBatch,
     verifyPack,
     addPack,
     getPresets,

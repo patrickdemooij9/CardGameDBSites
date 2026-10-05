@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhCamera, PhMinus, PhPlus, PhTrash } from "@phosphor-icons/vue";
+import { PhCamera, PhMinus, PhPlus, PhTrash, PhX } from "@phosphor-icons/vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import ScanVariantSelect from "~/components/scanner/ScanVariantSelect.vue";
 import { useScanQueue } from "~/composables/useScanQueue";
@@ -11,6 +11,7 @@ defineProps<{
 const emit = defineEmits<{
   (e: "resume"): void;
   (e: "import"): void;
+  (e: "exit"): void;
 }>();
 
 const { entries, remove, optionsFor } = useScanQueue();
@@ -18,11 +19,16 @@ const { entries, remove, optionsFor } = useScanQueue();
 
 <template>
   <div class="pb-28">
-    <div class="bg-white border-b border-gray-200 px-4 py-4">
-      <h1 class="text-lg font-semibold">Scanned cards</h1>
-      <p class="text-sm text-gray-500">
-        Check the variant and count of each card before adding them to your collection.
-      </p>
+    <div class="flex items-start gap-3 bg-white border-b border-gray-200 px-4 py-4">
+      <div class="flex-1">
+        <h1 class="text-lg font-semibold">Scanned cards</h1>
+        <p class="text-sm text-gray-500">
+          Check the variant and count of each card before adding them to your collection.
+        </p>
+      </div>
+      <button class="-mr-2 p-2 text-gray-500" aria-label="Close scanner" @click="emit('exit')">
+        <PhX :size="22" />
+      </button>
     </div>
 
     <p v-if="!entries.length" class="px-4 py-8 text-center text-gray-500">No cards scanned yet.</p>

@@ -1,0 +1,116 @@
+name: Publish scanner card index
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild and publish even if the card list is unchanged
+        type: boolean
+        default: false
+
+concurrency: scanner-index
+
+env:
+  SCANNER_URL: ${{ vars.SCANNER_URL }}
+  SCANNER_BUCKET: ${{ vars.SCANNER_BUCKET }}
+  EMBEDDER: card-embedder-s256-p2.onnx
+  # Must match what the app's matcher was tuned against; see SWUCardScanner/README.md.
+  BUILD_ARGS: --augment 8
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: SWUCardScanner/model
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: SWUCardScanner/model/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt onnxruntime
+
+      - name: Download embedder
+        run: curl -fsSL -o "$EMBEDDER" "$SCANNER_URL/embedders/$EMBEDDER"
+
+      - name: Restore card art
+        uses: actions/cache/restore@v4
+        with:
+          path: SWUCardScanner/model/cards
+          key: card-art-
+          restore-keys: card-art-
+
+      - name: Scrape cards
+        run: python scrape_cards.py
+
+      - name: Check for changes
+        id: check
+        run: |
+          hash=$({ cat cards.json "$EMBEDDER"; echo "$BUILD_ARGS"; } | sha256sum | cut -c1-64)
+          curl -fsSL "$SCANNER_URL/index/latest.json?t=$(date +%s)" -o previous.json || echo '{}' > previous.json
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+          if [ "$(jq -r '.sourceHash // ""' previous.json)" = "$hash" ] && [ "${{ inputs.force }}" != "true" ]; then
+            echo "Card list unchanged since the published index, nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save card art
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: SWUCardScanner/model/cards
+          key: card-art-${{ steps.check.outputs.hash }}
+
+      - name: Build index
+        if: steps.check.outputs.changed == 'true'
+        run: python build_index.py --embedder "$EMBEDDER" --out out $BUILD_ARGS
+
+      - name: Guard against a shrunken index
+        if: steps.check.outputs.changed == 'true' && inputs.force != true
+        run: |
+          previous=$(jq -r '.count // 0' previous.json)
+          count=$(jq -r '.config.count' out/card-index.json)
+          if [ "$count" -lt $((previous * 9 / 10)) ]; then
+            echo "::error::Index has $count cards, the published one has $previous. Run with force to publish anyway."
+            exit 1
+          fi
+
+      - name: Publish to R2
+        if: steps.check.outputs.changed == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          HASH: ${{ steps.check.outputs.hash }}
+        run: |
+          version="$(date -u +%Y%m%d-%H%M)-${HASH:0:8}"
+          put() {
+            npx --yes wrangler@4 r2 object put "$SCANNER_BUCKET/$1" --file "$2" --remote \
+              --content-type "$3" --cache-control "$4"
+          }
+
+          for file in out/*; do
+            case "$file" in
+              *.json) type=application/json ;;
+              *) type=application/octet-stream ;;
+            esac
+            put "index/$version/$(basename "$file")" "$file" "$type" "public, max-age=31536000, immutable"
+          done
+
+          jq -n --arg version "$version" --arg hash "$HASH" \
+            --argjson count "$(jq '.config.count' out/card-index.json)" \
+            '{version: $version, sourceHash: $hash, count: $count, builtAt: (now | todate)}' > latest.json
+          put index/latest.json latest.json application/json "no-cache"
+          echo "Published index $version" >> "$GITHUB_STEP_SUMMARY"

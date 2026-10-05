@@ -1,0 +1,75 @@
+name: Build Android app
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: Version shown to users, e.g. 1.0.0
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: CardGameDBSites.Frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: CardGameDBSites.Frontend/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        env:
+          NUXT_PUBLIC_SCANNER_URL: ${{ vars.SCANNER_URL }}
+        run: npm run build:app
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Decode keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+
+      - name: Build signed bundle and APK
+        working-directory: CardGameDBSites.Frontend/android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          VERSION_NAME: ${{ inputs.versionName }}
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease assembleRelease \
+            -PversionCode=${{ github.run_number }} \
+            -PversionName="$VERSION_NAME"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.versionName }}-${{ github.run_number }}
+          if-no-files-found: error
+          path: |
+            CardGameDBSites.Frontend/android/app/build/outputs/bundle/release/app-release.aab
+            CardGameDBSites.Frontend/android/app/build/outputs/apk/release/app-release.apk

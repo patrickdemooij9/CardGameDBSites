@@ -172,7 +172,11 @@ a native branch.
 |---------|-------------|
 | `npm run build:app` | Static SPA build for the app (`ssr: false`, production API base URL) |
 | `npm run sync:app` | `build:app` + `cap sync android` |
-| `npm run open:android` | Open the project in Android Studio (build/sign the APK/AAB there) |
+| `npm run open:android` | Open the project in Android Studio |
+
+Release builds come from the manually triggered `.github/workflows/AndroidBuild.yml`, which signs
+with the upload keystore from secrets (`ANDROID_KEYSTORE_*` env vars in `android/app/build.gradle`)
+and uses the run number as `versionCode`.
 
 - `capacitor.config.ts` — appId `com.swunlimiteddb.app`, `webDir: .output/public`.
 - `nuxt.config.ts` switches `ssr` off when `NUXT_BUILD_TARGET=native`.
@@ -230,9 +234,15 @@ and linked from the "More" tab for admins.
   `npm --prefix ../SWUCardScanner/web run types:lib` after changing the lib's exports.
 - The page is removed from web builds (`pages:extend` in `nuxt.config.ts`): onnxruntime's wasm is
   ~27 MB, over Cloudflare's 25 MB per-file limit.
-- `build:app` runs `scripts/copy-scanner-assets.mjs`, copying the detector and card index from
-  `SWUCardScanner/web/public/` into `.output/public/scanner/` (~53 MB added to the APK). When they
-  are missing it warns and skips; the page then shows a load error.
+- `build:app` runs `scripts/copy-scanner-assets.mjs`, bundling the detector and card index into
+  `.output/public/scanner/`. It copies them from `SWUCardScanner/web/public/` when present, else
+  downloads them from `NUXT_PUBLIC_SCANNER_URL`; with neither it warns locally and fails in CI.
+- The card index is rebuilt nightly by `.github/workflows/ScannerIndex.yml` (only when the card list
+  changed) and published to R2 as `index/<version>/` plus `index/latest.json`. At runtime
+  `services/scanner/ScannerIndexSource.ts` downloads a newer version into the Cache API, falling
+  back to the cached copy and then the bundled one, so new cards need no app release.
+- R2 layout under `NUXT_PUBLIC_SCANNER_URL`: `detector/swu-detect-fp16.onnx` and
+  `embedders/<embedder>.onnx` are uploaded by hand after retraining; `index/` is written by CI.
 - The WebView is not cross-origin isolated, so onnxruntime's wasm fallback runs single-threaded.
 - Flow: full-screen camera (`ScannerCamera.vue`) → each confirmed card lands in a queue
   (`useScanQueue`, kept in `useState`) and shows in the bottom bar with a variant dropdown →

@@ -1,0 +1,3 @@
+Drop photos of your table, playmat, desk and carpet here (jpg/png).
+build_dataset.py uses them for ~55% of scenes, which helps far more than any
+amount of procedural background variety.

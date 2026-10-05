@@ -43,6 +43,8 @@ jobs:
         run: npm ci
 
       - name: Build Nuxt for Cloudflare
+        env:
+          NUXT_PUBLIC_SITE_ID: ${{ matrix.site.site_id }}
         run: npx nuxi build --preset cloudflare
 
       - name: Deploy with Wrangler

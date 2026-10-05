@@ -60,13 +60,25 @@ export default defineNuxtConfig({
     quality: 70
   },
   runtimeConfig: {
+    cachePurgeSecret: '',
     public: {
-      API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL
+      API_BASE_URL: process.env.NUXT_PUBLIC_API_BASE_URL,
+      SCANNER_URL: process.env.NUXT_PUBLIC_SCANNER_URL
     }
+  },
+  routeRules: isNativeBuild ? {} : {
+    '/': { swr: 3600 }
   },
   nitro: {
     prerender: {
       crawlLinks: false
+    },
+    storage: isNativeBuild ? {} : {
+      // All sites share one KV namespace and Nitro keys the cache by path only, so prefix per site.
+      cache: { driver: 'cloudflare-kv-binding', binding: 'NUXT_CACHE', base: process.env.NUXT_PUBLIC_SITE_ID }
+    },
+    devStorage: {
+      cache: { driver: 'memory' }
     }
   },
   vite: {

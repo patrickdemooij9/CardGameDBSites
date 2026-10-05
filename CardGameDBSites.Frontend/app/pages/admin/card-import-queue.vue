@@ -62,6 +62,8 @@ const presets = ref<Preset[]>([]);
 const itemMode = ref<Record<number, ItemMode>>({});
 const selectedPreset = ref<Record<number, number | null>>({});
 const replaceImage = ref<Record<number, boolean>>({});
+const bulkSetId = ref<number | null>(null);
+const bulkPresetId = ref<number | null>(null);
 // item id -> variant key -> editable field values
 const variantData = ref<Record<number, Record<string, Record<string, string>>>>({});
 
@@ -156,12 +158,12 @@ async function loadPending() {
     items.value = result ?? [];
     for (const item of items.value) {
       editingData.value[item.id] = { ...item.extractedData };
-      selectedSets.value[item.id] = item.setId ?? null;
+      selectedSets.value[item.id] = item.setId ?? bulkSetId.value;
       itemMode.value[item.id] =
         item.status === "PotentialVariant" ? "variant" : "new";
-      selectedPreset.value[item.id] = null;
+      selectedPreset.value[item.id] = bulkPresetId.value;
       replaceImage.value[item.id] = true;
-      variantData.value[item.id] = {};
+      onPresetSelected(item);
     }
   } catch {
     errorMessage.value = "Failed to load the import queue.";
@@ -219,6 +221,19 @@ function onPresetSelected(item: QueueItem) {
   }
 
   variantData.value[item.id] = byVariant;
+}
+
+function applyBulkSet() {
+  for (const item of items.value) {
+    selectedSets.value[item.id] = bulkSetId.value;
+  }
+}
+
+function applyBulkPreset() {
+  for (const item of items.value) {
+    selectedPreset.value[item.id] = bulkPresetId.value;
+    onPresetSelected(item);
+  }
 }
 
 function setMode(item: QueueItem, mode: ItemMode) {
@@ -412,6 +427,35 @@ onMounted(async () => {
     <p v-if="!isLoading && items.length === 0" class="text-gray-500">
       No pending items.
     </p>
+
+    <div v-if="items.length" class="bg-white rounded shadow p-4 mb-6 flex flex-wrap gap-4">
+      <div class="flex flex-col w-full max-w-xs">
+        <label class="text-xs font-semibold text-gray-500 mb-0.5">Set for all cards</label>
+        <select
+          v-model="bulkSetId"
+          class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          @change="applyBulkSet"
+        >
+          <option :value="null">Select a set…</option>
+          <option v-for="set in sets" :key="set.id" :value="set.id">
+            {{ set.displayName }}{{ set.code ? ` (${set.code})` : "" }}
+          </option>
+        </select>
+      </div>
+      <div class="flex flex-col w-full max-w-xs">
+        <label class="text-xs font-semibold text-gray-500 mb-0.5">Preset for all cards</label>
+        <select
+          v-model="bulkPresetId"
+          class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          @change="applyBulkPreset"
+        >
+          <option :value="null">No preset</option>
+          <option v-for="preset in presets" :key="preset.id" :value="preset.id">
+            {{ preset.name }}
+          </option>
+        </select>
+      </div>
+    </div>
 
     <div class="space-y-6">
       <div

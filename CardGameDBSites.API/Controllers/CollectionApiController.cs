@@ -182,6 +182,31 @@ namespace CardGameDBSites.API.Controllers
                 }));
         }
 
+        [HttpPost("addCardsBatch")]
+        [ProducesResponseType(typeof(CollectionCardApiModel[]), 200)]
+        [ProducesResponseType(404)]
+        public IActionResult AddCollectionCardsBatch([FromBody] AddCollectionCardsApiModel[] items)
+        {
+            var cardIds = items.Select(it => it.CardId).Distinct().ToArray();
+            var knownIds = _cardService.Get(cardIds).Select(it => it.BaseId).ToHashSet();
+            if (cardIds.Any(id => !knownIds.Contains(id))) return NotFound();
+
+            foreach (var item in items)
+            {
+                _collectionService.UpdateCard(item.CardId, item.Values);
+            }
+
+            return Ok(_collectionService.GetCards()
+                .Where(it => knownIds.Contains(it.CardId))
+                .Select(it => new CollectionCardApiModel
+                {
+                    Id = it.Id,
+                    CardId = it.CardId,
+                    VariantId = it.VariantId,
+                    Amount = it.Amount
+                }));
+        }
+
         [HttpGet("export")]
         [ProducesResponseType(typeof(FileContentResult), 200)]
         public async Task<IActionResult> ExportCollection(CollectionExportType exportType)

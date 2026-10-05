@@ -3,6 +3,7 @@ import { PhCamera, PhMinus, PhPlus, PhTrash, PhX } from "@phosphor-icons/vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import ScanVariantSelect from "~/components/scanner/ScanVariantSelect.vue";
 import { useScanQueue } from "~/composables/useScanQueue";
+import { useAccountStore } from "~/stores/AccountStore";
 
 defineProps<{
   importing: boolean;
@@ -15,6 +16,7 @@ const emit = defineEmits<{
 }>();
 
 const { entries, remove, optionsFor } = useScanQueue();
+const accountStore = useAccountStore();
 </script>
 
 <template>
@@ -77,7 +79,15 @@ const { entries, remove, optionsFor } = useScanQueue();
         <PhCamera :size="18" />
         {{ entries.length ? "Resume scanning" : "Start scanning" }}
       </button>
+      <NuxtLink
+        v-if="!accountStore.isLoggedIn"
+        to="/login"
+        class="mb-3 flex flex-1 items-center justify-center rounded-md bg-main-color px-3 py-2.5 font-semibold text-white no-underline"
+      >
+        Log in to add
+      </NuxtLink>
       <button
+        v-else
         class="mb-3 flex-1 rounded-md bg-main-color px-3 py-2.5 font-semibold text-white disabled:opacity-50"
         :disabled="!entries.length || importing"
         @click="emit('import')"

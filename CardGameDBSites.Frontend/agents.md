@@ -221,11 +221,12 @@ The layout adds `has-tab-bar` (bottom padding) so content clears the fixed bar. 
 and `pt-safe-top` in `tailwind.css` wrap `env(safe-area-inset-*)`; the viewport meta sets
 `viewport-fit=cover`.
 
-### Card scanner (admin-only, app-only)
+### Card scanner (app-only)
 
 `/app/scanner` (`components/scanner/CardScanner.vue`) runs the camera card scanner from
-`SWUCardScanner/` in the WebView. It is guarded by the `native-only` and `admin-only` middleware
-and linked from the "More" tab for admins.
+`SWUCardScanner/` in the WebView. It is guarded by the `native-only` middleware and linked from the
+"More" tab. Anyone can scan; adding to the collection needs a login, and the queue survives the
+detour to `/login` because it lives in `useState`.
 
 - The detector/matcher code is **not copied** — it is imported from `SWUCardScanner/web/src/lib`
   through the Vite alias `#card-scanner`, so the Python/JS descriptor parity has one source.

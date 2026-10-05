@@ -87,8 +87,7 @@ async function logout() {
       </NuxtLink>
     </div>
 
-    <div v-if="accountStore.member?.isAdmin" class="mt-4 bg-white border-y border-gray-200">
-      <p class="px-4 pt-3 text-xs uppercase tracking-wide text-gray-500">Admin</p>
+    <div class="mt-4 bg-white border-y border-gray-200">
       <NuxtLink to="/app/scanner" class="flex items-center justify-between px-4 py-3 no-underline">
         Card scanner
         <PhCaretRight :size="16" class="text-gray-400" />

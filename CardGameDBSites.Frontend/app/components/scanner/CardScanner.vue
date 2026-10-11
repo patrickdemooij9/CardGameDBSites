@@ -7,10 +7,11 @@ import ScanVariantSelect from "~/components/scanner/ScanVariantSelect.vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import { useAppToast } from "~/composables/useAppToast";
 import { useScanQueue } from "~/composables/useScanQueue";
+import { formatPrice } from "~/helpers/StringHelpers";
 
 type Mode = "scanning" | "paused";
 
-const { entries, add, optionsFor, importAll } = useScanQueue();
+const { entries, add, optionsFor, priceFor, totalValue, importAll } = useScanQueue();
 const toast = useAppToast();
 
 const mode = ref<Mode>("scanning");
@@ -53,7 +54,14 @@ async function importCards() {
 <template>
   <div>
     <ScannerCamera v-show="mode === 'scanning'" :paused="mode !== 'scanning'" @scan="onScan">
-      <div class="absolute right-3 top-safe-top mt-3 flex gap-2">
+      <div class="absolute right-3 top-safe-top mt-3 flex items-center gap-2">
+        <span
+          v-if="totalValue > 0"
+          class="rounded-full bg-black/60 px-3 py-2 text-sm font-semibold text-white tabular-nums"
+          aria-label="Total value of scanned cards"
+        >
+          {{ formatPrice(totalValue) }}
+        </span>
         <button
           class="relative rounded-full bg-black/60 p-3 text-white"
           aria-label="Review scanned cards"
@@ -88,7 +96,10 @@ async function importCards() {
             <CmsImage :src="latest.imageUrl" width="40" class="w-10 shrink-0 rounded" />
             <div class="min-w-0 flex-1">
               <p class="truncate font-medium">{{ latest.name }}</p>
-              <p class="truncate text-xs text-gray-500">{{ latest.set }} · ×{{ latest.amount }}</p>
+              <p class="truncate text-xs text-gray-500">
+                {{ latest.set }} · ×{{ latest.amount }}
+                <template v-if="priceFor(latest) !== undefined"> · {{ formatPrice(priceFor(latest)!) }}</template>
+              </p>
             </div>
             <ScanVariantSelect v-model="latest.variantId" :options="optionsFor(latest)" class="border-gray-300 bg-white" />
           </div>

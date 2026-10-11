@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
 using Umbraco.Extensions;
@@ -29,7 +30,7 @@ namespace CardGameDBSites.API.Attributes
             }
             else
             {
-                throw new UnauthorizedAccessException();
+                context.Result = new UnauthorizedResult();
             }
         }
     }

@@ -5,6 +5,7 @@ import {
   collectionAmounts,
   defaultVariantId,
   variantOptions,
+  variantPrice,
   type ScannedCard,
   type ScanQueueEntry,
 } from "~/services/scanner/ScanQueue";
@@ -105,5 +106,15 @@ describe("collectionAmounts", () => {
     const queue: ScanQueueEntry[] = [{ ...vader, id: 1, variantId: 12, amount: 0 }];
 
     expect(collectionAmounts(queue, [])).toEqual({});
+  });
+});
+
+describe("variantPrice", () => {
+  it("returns the market price of the selected variant", () => {
+    expect(variantPrice(12, [{ ...normal, marketPrice: 0.5 }, { ...foil, marketPrice: 3.25 }])).toBe(3.25);
+  });
+
+  it("is undefined when the variant has no price", () => {
+    expect(variantPrice(11, [{ ...normal, marketPrice: null }, foil])).toBeUndefined();
   });
 });

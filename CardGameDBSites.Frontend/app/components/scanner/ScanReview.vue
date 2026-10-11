@@ -3,6 +3,7 @@ import { PhCamera, PhMinus, PhPlus, PhTrash, PhX } from "@phosphor-icons/vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import ScanVariantSelect from "~/components/scanner/ScanVariantSelect.vue";
 import { useScanQueue } from "~/composables/useScanQueue";
+import { formatPrice } from "~/helpers/StringHelpers";
 import { useAccountStore } from "~/stores/AccountStore";
 
 defineProps<{
@@ -15,7 +16,7 @@ const emit = defineEmits<{
   (e: "exit"): void;
 }>();
 
-const { entries, remove, optionsFor } = useScanQueue();
+const { entries, remove, optionsFor, priceFor, totalValue } = useScanQueue();
 const accountStore = useAccountStore();
 </script>
 
@@ -26,6 +27,9 @@ const accountStore = useAccountStore();
         <h1 class="text-lg font-semibold">Scanned cards</h1>
         <p class="text-sm text-gray-500">
           Check the variant and count of each card before adding them to your collection.
+        </p>
+        <p v-if="totalValue > 0" class="mt-2 text-sm">
+          Total value <span class="font-semibold tabular-nums">{{ formatPrice(totalValue) }}</span>
         </p>
       </div>
       <button class="-mr-2 p-2 text-gray-500" aria-label="Close scanner" @click="emit('exit')">
@@ -39,9 +43,15 @@ const accountStore = useAccountStore();
       <li v-for="entry in entries" :key="entry.id" class="flex items-center gap-3 px-4 py-3">
         <CmsImage :src="entry.imageUrl" width="48" class="w-12 shrink-0 rounded" />
         <div class="min-w-0 flex-1 space-y-2">
-          <div>
-            <p class="truncate font-medium">{{ entry.name }}</p>
-            <p class="truncate text-xs text-gray-500">{{ entry.set }}</p>
+          <div class="flex items-start gap-2">
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-medium">{{ entry.name }}</p>
+              <p class="truncate text-xs text-gray-500">{{ entry.set }}</p>
+            </div>
+            <div v-if="priceFor(entry) !== undefined" class="shrink-0 text-right tabular-nums">
+              <p class="text-sm font-semibold">{{ formatPrice(priceFor(entry)! * entry.amount) }}</p>
+              <p v-if="entry.amount > 1" class="text-xs text-gray-500">{{ formatPrice(priceFor(entry)!) }} each</p>
+            </div>
           </div>
           <div class="flex items-center gap-2">
             <ScanVariantSelect

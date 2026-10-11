@@ -1,10 +1,10 @@
 <template>
   <Teleport to="#root">
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 pt-safe-top pb-safe-bottom"
     >
       <div
-        class="relative bg-white rounded-lg shadow-lg w-screen mx-4 max-h-screen overflow-auto"
+        class="relative bg-white rounded-lg shadow-lg w-screen mx-4 max-h-safe-screen overflow-auto"
         :class="[getWidthClass()]"
       >
         <button

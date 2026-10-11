@@ -38,7 +38,7 @@ onMounted(async () => {
     class="min-h-screen flex flex-col"
     id="root"
   >
-    <div v-if="isNative" class="pt-safe-top"></div>
+    <div v-if="isNative" class="sticky top-0 z-20 bg-white pt-safe-top"></div>
     <ImpersonationBanner />
     <Navigation v-if="!isNative" :content="navigationViewModel"> </Navigation>
     <div class="grow">

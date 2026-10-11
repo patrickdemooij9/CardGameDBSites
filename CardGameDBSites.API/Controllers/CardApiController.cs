@@ -267,6 +267,13 @@ namespace CardGameDBSites.API.Controllers
                         ReferenceUrl = _cardPriceService.GetUrl(value, card)
                     };
                 }
+                if (pricesByVariantId != null)
+                {
+                    foreach (var variant in detail.Variants)
+                    {
+                        variant.MarketPrice = pricesByVariantId.TryGetValue(variant.CardVariantId, out var variantPrice) ? variantPrice.MainPrice : null;
+                    }
+                }
                 return detail;
             })];
         }

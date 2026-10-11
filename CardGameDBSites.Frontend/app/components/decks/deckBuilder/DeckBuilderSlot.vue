@@ -122,7 +122,7 @@ function getFirstSlotForCard(card: CardDetailApiModel): CreateDeckSlot | undefin
           <div class="flex grow justify-between px-4">
             <div
               class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
-              v-cursor-image="item.card.imageUrl?.url"
+              v-cursor-image="item.card.imageUrl"
             >
               <span class="name">{{ item.card.displayName }}</span>
               <span v-if="getPoints(item.card) !== null"
@@ -207,7 +207,7 @@ function getFirstSlotForCard(card: CardDetailApiModel): CreateDeckSlot | undefin
                 <div class="flex grow justify-between px-4">
                   <div
                     class="flex gap-4 items-center justify-between grow mr-2 cursor-source"
-                    v-cursor-image="child.card.imageUrl?.url"
+                    v-cursor-image="child.card.imageUrl"
                   >
                     <span class="name">{{ child.card.displayName }}</span>
                     <span

@@ -47,7 +47,7 @@ const emit = defineEmits<{
             <NuxtLink
               :href="card.urlSegment"
               class="no-underline font-medium hover:underline cursor-source"
-              v-cursor-image="card.imageUrl?.url ?? ''"
+              v-cursor-image="card.imageUrl"
             >
               {{ card.displayName }}
             </NuxtLink>

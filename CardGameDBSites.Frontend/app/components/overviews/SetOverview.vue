@@ -83,19 +83,24 @@ async function updateSetCollection(setId: number) {
 }
 
 onMounted(async () => {
-  if (isLoggedIn) {
-    if (collectionSettings.value.allowSetCollecting) {
-      collectionSetIds.value = await DoServerFetch<number[]>("/api/collection/sets");
-    } else if (
-      collectionSettings.value.allowCardCollecting &&
-      collectionSettings.value.showProgressBar
-    ) {
-      setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
-        "/api/collection/setsProgress"
-      );
+  try {
+    if (isLoggedIn) {
+      if (collectionSettings.value.allowSetCollecting) {
+        collectionSetIds.value = await DoServerFetch<number[]>("/api/collection/sets");
+      } else if (
+        collectionSettings.value.allowCardCollecting &&
+        collectionSettings.value.showProgressBar
+      ) {
+        setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
+          "/api/collection/setsProgress"
+        );
+      }
     }
+  } catch {
+    // The sets still render without collection data; an expired session is handled by DoFetch.
+  } finally {
+    isLoading.value = false;
   }
-  isLoading.value = false;
 });
 </script>
 

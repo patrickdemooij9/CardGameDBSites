@@ -84,3 +84,7 @@ export function collectionAmounts(entries: ScanQueueEntry[], owned: CollectionCa
   }
   return amounts;
 }
+
+export function variantPrice(variantId: number, variants: CardVariantReferenceApiModel[]) {
+  return variants.find((variant) => variant.cardVariantId === variantId)?.marketPrice ?? undefined;
+}

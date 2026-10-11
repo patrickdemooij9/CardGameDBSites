@@ -419,7 +419,7 @@ console.timeEnd("page-render");
             <div
               v-for="childCard in mainCardWithChildren.children"
               :key="childCard.baseId"
-              v-cursor-image="childCard.imageUrl?.url"
+              v-cursor-image="childCard.imageUrl"
               class="rounded-full border border-gray-300 bg-gray-50 px-2 py-1 text-xs"
             >
               <span>{{ childCard.displayName }}</span>

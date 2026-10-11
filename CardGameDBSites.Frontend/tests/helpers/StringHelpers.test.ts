@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { firstCharUppercase } from "~/helpers/StringHelpers";
+import { firstCharUppercase, formatPrice } from "~/helpers/StringHelpers";
 
 describe("StringHelpers", () => {
   describe("firstCharUppercase", () => {
@@ -25,6 +25,12 @@ describe("StringHelpers", () => {
 
     it("capitalizes only the first character and leaves the rest unchanged", () => {
       expect(firstCharUppercase("hELLO")).toBe("HELLO");
+    });
+  });
+
+  describe("formatPrice", () => {
+    it("formats as dollars with two decimals", () => {
+      expect(formatPrice(3.5)).toBe("$3.50");
     });
   });
 });

@@ -6,6 +6,7 @@ import {
   collectionAmounts,
   defaultVariantId,
   variantOptions,
+  variantPrice,
   type ScanQueueEntry,
 } from "~/services/scanner/ScanQueue";
 import { useCardsStore } from "~/stores/CardStore";
@@ -49,6 +50,14 @@ export function useScanQueue() {
     return variantOptions(entry.imageVariantIds, variants, cardStore.variantTypes.data);
   }
 
+  function priceFor(entry: ScanQueueEntry) {
+    return variantPrice(entry.variantId, cardStore.cards[entry.baseId]?.data.variants ?? []);
+  }
+
+  const totalValue = computed(() =>
+    entries.value.reduce((sum, entry) => sum + (priceFor(entry) ?? 0) * entry.amount, 0)
+  );
+
   async function importAll() {
     const baseIds = [...new Set(entries.value.map((entry) => entry.baseId))];
     const owned = await collection.loadCards(baseIds, { refresh: true });
@@ -71,5 +80,5 @@ export function useScanQueue() {
     return imported;
   }
 
-  return { entries, add, remove, optionsFor, importAll };
+  return { entries, add, remove, optionsFor, priceFor, totalValue, importAll };
 }

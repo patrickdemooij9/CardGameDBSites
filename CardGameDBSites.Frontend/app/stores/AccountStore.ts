@@ -54,6 +54,11 @@ export const useAccountStore = defineStore("accountStore", {
         throw "Incorrect email/password";
       }
     },
+    clearSession() {
+      this.member = undefined;
+      // A 401 is a definitive answer; re-checking would return the stale cached `_loadingPromise`.
+      this.validatedLogin = true;
+    },
     async logout(){
       if (isNativeApp()) {
         await SetNativeToken(undefined);

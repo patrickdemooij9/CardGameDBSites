@@ -5,6 +5,7 @@
         public int? VariantTypeId { get; set; }
         public int CardVariantId { get; set; }
         public int SetId { get; set; }
+        public double? MarketPrice { get; set; }
 
         public CardVariantReferenceApiModel(int? variantTypeId, int cardVariantId, int setId)
         {

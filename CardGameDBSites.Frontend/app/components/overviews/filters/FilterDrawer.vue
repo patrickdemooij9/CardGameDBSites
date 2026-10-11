@@ -54,7 +54,7 @@ watch(
     <Transition name="drawer-slide">
       <aside
         v-if="open"
-        class="fixed inset-y-0 right-0 z-50 flex flex-col w-screen md:w-[420px] bg-white shadow-xl"
+        class="fixed inset-y-0 right-0 z-50 flex flex-col w-screen md:w-[420px] bg-white shadow-xl pt-safe-top pb-safe-bottom"
         role="dialog"
         aria-modal="true"
         aria-label="Filters"

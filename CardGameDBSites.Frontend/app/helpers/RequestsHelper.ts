@@ -30,8 +30,7 @@ function handleUnauthorized(error: unknown) {
 
   const accountStore = useAccountStore();
   const wasLoggedIn = accountStore.isLoggedIn;
-  accountStore.member = undefined;
-  accountStore.validatedLogin = false;
+  accountStore.clearSession();
 
   if (isNativeApp()) {
     SetNativeToken(undefined).catch(() => {});

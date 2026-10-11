@@ -376,13 +376,10 @@ namespace SkytearHorde.Modules
                     if (!detailedResponse.IsSuccessStatusCode) continue;
 
                     var detailedResult = await detailedResponse.Content.ReadFromJsonAsync<TcgPlayerResult<TcgPlayerProductModel>>();
-                    var matchFound = detailedResult?.Results.FirstOrDefault(it =>
+                    var candidates = detailedResult?.Results.Where(it => it.GroupId == set.TcgPlayerCategory).ToArray() ?? [];
+                    var expectedNames = namesToSearch.ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+                    var matchFound = candidates.FirstOrDefault(it => expectedNames.Contains(it.CleanName)) ?? candidates.FirstOrDefault(it =>
                     {
-                        if (it.GroupId != set.TcgPlayerCategory)
-                        {
-                            return false;
-                        }
-
                         if (variant.VariantTypeId.HasValue)
                         {
                             return it.CleanName.Contains(variantName, StringComparison.InvariantCultureIgnoreCase);

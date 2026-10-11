@@ -131,7 +131,7 @@ onUnmounted(() => {
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
     </div>
     <div v-else class="container">
-      <div class="flex gap-4 sticky top-0 z-10 text-md bg-white p-4 md:hidden">
+      <div class="flex gap-4 sticky top-safe-top z-10 text-md bg-white p-4 md:hidden">
         <button
           class="border-b-2 px-2 py-1"
           type="button"

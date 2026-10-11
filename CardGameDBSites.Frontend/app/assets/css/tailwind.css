@@ -138,6 +138,10 @@ nav + .container{
         top: env(safe-area-inset-top);
     }
 
+    .max-h-safe-screen {
+        max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+
     /* Keeps page content clear of the fixed native tab bar. */
     .has-tab-bar {
         padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
@@ -209,4 +213,27 @@ body {
 .drawer-slide-enter-from,
 .drawer-slide-leave-to {
   transform: translateX(100%);
+}
+
+.sheet-slide-enter-active,
+.sheet-slide-leave-active {
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+.sheet-slide-enter-from,
+.sheet-slide-leave-to {
+  transform: translateY(100%);
+}
+@media (min-width: 768px) {
+  /* Desktop centres the dialog with a translate, so only fade it. */
+  .sheet-slide-enter-from,
+  .sheet-slide-leave-to {
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+}
+
+.Vue-Toastification__container.top-left,
+.Vue-Toastification__container.top-center,
+.Vue-Toastification__container.top-right {
+  margin-top: env(safe-area-inset-top);
 }

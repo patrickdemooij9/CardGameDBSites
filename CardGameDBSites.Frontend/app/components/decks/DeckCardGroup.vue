@@ -108,7 +108,7 @@ function handleCardClick(card: CardDetailApiModel) {
           v-for="card in groupCards"
           :key="card.baseId"
           class="flex md:flex-row flex-col gap-2 md:align-center md:rounded-full rounded-md px-2 py-1 border cursor-source cursor-pointer"
-          v-cursor-image="card.imageUrl?.url"
+          v-cursor-image="card.imageUrl"
           @click="handleCardClick(card)"
         >
           <div class="flex gap-2">
@@ -161,7 +161,7 @@ function handleCardClick(card: CardDetailApiModel) {
           v-for="card in groupCards"
           :key="card.baseId"
           class="flex flex-col items-center text-center gap-1 cursor-pointer"
-          v-cursor-image="card.imageUrl?.url"
+          v-cursor-image="card.imageUrl"
           @click="handleCardClick(card)"
         >
           <CmsImage

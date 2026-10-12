@@ -14,26 +14,26 @@ const registerModel = ref({
   termsAndConditions: false,
 });
 const errorMessage = ref("");
+const isSubmitting = ref(false);
 
 async function submit() {
-  const recaptcha = await getRecaptchaToken();
-  useAccountStore()
-    .register({
+  isSubmitting.value = true;
+  try {
+    const recaptcha = await getRecaptchaToken();
+    await useAccountStore().register({
       email: registerModel.value.email,
       userName: registerModel.value.displayName,
       password: registerModel.value.password,
       recaptcha: recaptcha,
       termAndConditions: registerModel.value.termsAndConditions,
-    })
-    .then(() => {
-      // Redirect to the homepage or another page after successful login
-      useRouter().push("/");
-    })
-    .catch((error) => {
-      // Handle error, e.g., show a notification
-      console.log(error);
-      errorMessage.value = error || "Register failed. Please try again.";
     });
+    useRouter().push("/");
+  } catch (error: any) {
+    console.log(error);
+    errorMessage.value = error || "Register failed. Please try again.";
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 
 const recaptchaSiteKey = "6LfoAPIjAAAAAO0AyBgnvhpCHgEWTnTneKbGcyk0";
@@ -131,7 +131,7 @@ onMounted(() => {
       </div>
 
       <div class="flex justify-between items-center">
-        <Button type="submit">Register</Button>
+        <Button type="submit" :loading="isSubmitting">Register</Button>
 
         <div class="flex gap-2">
           <NuxtLink to="/login" class="no-underline hover:text-gray-500"> To login </NuxtLink>

@@ -13,23 +13,23 @@ const loginModel = ref({
   rememberMe: false,
 });
 const errorMessage = ref("");
+const isSubmitting = ref(false);
 
-function submit() {
-  useAccountStore()
-    .login(
+async function submit() {
+  isSubmitting.value = true;
+  try {
+    await useAccountStore().login(
       loginModel.value.email,
       loginModel.value.password,
       loginModel.value.rememberMe
-    )
-    .then(() => {
-      // Redirect to the homepage or another page after successful login
-      useRouter().push("/");
-    })
-    .catch((error) => {
-      // Handle error, e.g., show a notification
-      console.log(error);
-      errorMessage.value = error || "Login failed. Please try again.";
-    });
+    );
+    useRouter().push("/");
+  } catch (error: any) {
+    console.log(error);
+    errorMessage.value = error || "Login failed. Please try again.";
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 </script>
 
@@ -77,7 +77,7 @@ function submit() {
       </div>
 
       <div class="flex justify-between items-center">
-        <Button type="submit">Login</Button>
+        <Button type="submit" :loading="isSubmitting">Login</Button>
 
         <div class="flex gap-2">
           <NuxtLink to="/register" class="no-underline hover:text-gray-500"> Register </NuxtLink>

@@ -24,29 +24,32 @@ const isResetMode = computed(() => !!code.value);
 const successPostModel = ref(false);
 const successResetModel = ref(false);
 const errorMessage = ref("");
+const isSubmitting = ref(false);
 
 async function submitForgotPassword() {
-  useAccountStore()
-    .forgotPassword(model.value.email)
-    .then(() => {
-      successPostModel.value = true;
-    })
-    .catch((error) => {
-      console.log(error);
-      errorMessage.value = error?.data || "Could not send password reset email. Please try again.";
-    });
+  isSubmitting.value = true;
+  try {
+    await useAccountStore().forgotPassword(model.value.email);
+    successPostModel.value = true;
+  } catch (error: any) {
+    console.log(error);
+    errorMessage.value = error?.data || "Could not send password reset email. Please try again.";
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 
 async function submitResetPassword() {
-  useAccountStore()
-    .resetPassword(code.value, model.value.newPassword)
-    .then(() => {
-      successResetModel.value = true;
-    })
-    .catch((error) => {
-      console.log(error);
-      errorMessage.value = error?.data || "Could not reset password. Please try again.";
-    });
+  isSubmitting.value = true;
+  try {
+    await useAccountStore().resetPassword(code.value, model.value.newPassword);
+    successResetModel.value = true;
+  } catch (error: any) {
+    console.log(error);
+    errorMessage.value = error?.data || "Could not reset password. Please try again.";
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 </script>
 
@@ -76,7 +79,7 @@ async function submitResetPassword() {
       </div>
 
       <div class="flex justify-between items-center">
-        <Button type="submit">Submit</Button>
+        <Button type="submit" :loading="isSubmitting">Submit</Button>
 
         <div class="flex gap-2">
           <NuxtLink to="/login" class="no-underline hover:text-gray-500"> To login </NuxtLink>
@@ -109,7 +112,7 @@ async function submitResetPassword() {
       </div>
 
       <div class="flex justify-between items-center">
-        <Button type="submit">Reset password</Button>
+        <Button type="submit" :loading="isSubmitting">Reset password</Button>
 
         <div class="flex gap-2">
           <NuxtLink to="/login" class="no-underline hover:text-gray-500"> To login </NuxtLink>

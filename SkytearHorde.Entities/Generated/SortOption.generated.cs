@@ -77,7 +77,7 @@ namespace SkytearHorde.Entities.Generated
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "13.14.0+7d400e7")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("values")]
-		public virtual global::System.Collections.Generic.IEnumerable<string> Values => this.Value<global::System.Collections.Generic.IEnumerable<string>>(_publishedValueFallback, "values");
+		[ImplementPropertyType("valueList")]
+		public virtual global::System.Collections.Generic.IEnumerable<string> ValueList => this.Value<global::System.Collections.Generic.IEnumerable<string>>(_publishedValueFallback, "valueList");
 	}
 }

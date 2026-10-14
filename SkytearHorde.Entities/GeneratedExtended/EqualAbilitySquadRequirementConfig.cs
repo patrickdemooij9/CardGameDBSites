@@ -7,7 +7,7 @@ namespace SkytearHorde.Entities.Generated
     {
         public ISquadRequirement GetRequirement()
         {
-            return new EqualValueRequirement(Ability.Name, Values?.ToArray() ?? Array.Empty<string>());
+            return new EqualValueRequirement(Ability.Name, ValueList?.ToArray() ?? Array.Empty<string>());
         }
 
         public Dictionary<string, object> GetConfig()
@@ -15,7 +15,7 @@ namespace SkytearHorde.Entities.Generated
             return new Dictionary<string, object>
             {
                 { "ability", Ability.Name },
-                { "values", Values?.ToArray() ?? Array.Empty<string>() }
+                { "values", ValueList?.ToArray() ?? Array.Empty<string>() }
             };
         }
     }

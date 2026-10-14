@@ -83,7 +83,7 @@ namespace SkytearHorde.Business.Services
                         {
                             Alias = equal.Ability!.Name,
                             Mode = CardSearchFilterMode.Contains,
-                            Values = equal.Values?.ToArray() ?? []
+                            Values = equal.ValueList?.ToArray() ?? []
                         }]
                     });
                 }

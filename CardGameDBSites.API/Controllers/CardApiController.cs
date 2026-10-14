@@ -136,7 +136,7 @@ namespace CardGameDBSites.API.Controllers
             else
             {
                 var defaultSortOptions = _settingsService.GetSiteSettings().SortOptions;
-                if (defaultSortOptions.All(it => it.Values?.Any() != true))
+                if (defaultSortOptions.All(it => it.ValueList?.Any() != true))
                 {
                     sorting.AddRange(defaultSortOptions.Select(it => new CardSorting(it.ExamineField.IfNullOrWhiteSpace($"CustomField.{it.Ability?.Name}")) { IsDescending = it.Descending }));
                 }

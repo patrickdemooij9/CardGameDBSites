@@ -19,10 +19,10 @@ namespace SkytearHorde.Business.Helpers
         {
             if (sortOptions.Length == 0) return _cards;
 
-            IOrderedEnumerable<DeckCard> orderedCards = sortOptions[0].Values?.Count() > 0 ? _cards.OrderBy(GetOrderByAbilityValue(sortOptions[0])) : _cards.OrderBy(GetOrderByAbility(sortOptions[0]));
+            IOrderedEnumerable<DeckCard> orderedCards = sortOptions[0].ValueList?.Count() > 0 ? _cards.OrderBy(GetOrderByAbilityValue(sortOptions[0])) : _cards.OrderBy(GetOrderByAbility(sortOptions[0]));
             foreach (var sortOption in sortOptions.Skip(1))
             {
-                if (sortOption.Values?.Count() > 0)
+                if (sortOption.ValueList?.Count() > 0)
                     orderedCards = orderedCards.ThenBy(GetOrderByAbilityValue(sortOption));
                 else
                     orderedCards = orderedCards.ThenBy(GetOrderByAbility(sortOption));
@@ -35,7 +35,7 @@ namespace SkytearHorde.Business.Helpers
             return it =>
             {
                 var values = _cardService.Get(it.CardId)?.GetMultipleCardAttributeValue(sortOption.Ability!.Name);
-                return values?.Any(v => sortOption.Values!.Contains(v)) != true;
+                return values?.Any(v => sortOption.ValueList!.Contains(v)) != true;
             };
         }
 

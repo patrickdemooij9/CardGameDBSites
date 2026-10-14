@@ -241,7 +241,7 @@ namespace SkytearHorde.Business.Services
                     }
                     else if (isMultipleText)
                     {
-                        values.Add("values", cardAttribute.Value.Replace(",", Environment.NewLine));
+                        values.Add("valueList", cardAttribute.Value.Replace(",", Environment.NewLine));
                     }
                     else
                     {

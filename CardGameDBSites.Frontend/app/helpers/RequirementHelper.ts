@@ -35,7 +35,7 @@ export function ToRequirements(blockList: ApiBlockListModel | undefined | null):
     if (!alias) continue;
 
     const properties = content?.properties as
-      | { ability?: Array<{ name?: string }> | null; values?: string[] | null; restrictionType?: string | null }
+      | { ability?: Array<{ name?: string }> | null; valueList?: string[] | null; values?: string[] | null; restrictionType?: string | null }
       | undefined;
 
     const ability = properties?.ability?.[0]?.name;
@@ -46,7 +46,8 @@ export function ToRequirements(blockList: ApiBlockListModel | undefined | null):
       restrictionType: parseRestrictionType(properties?.restrictionType),
       config: {
         ability,
-        values: properties?.values ?? [],
+        // "values" is the pre-rename alias; drop the fallback once the valueList backend is live everywhere.
+        values: properties?.valueList ?? properties?.values ?? [],
       },
     });
   }

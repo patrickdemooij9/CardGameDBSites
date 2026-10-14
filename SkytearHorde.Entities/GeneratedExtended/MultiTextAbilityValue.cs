@@ -6,12 +6,12 @@ namespace SkytearHorde.Entities.Generated
     {
         public string GetAbilityValue()
         {
-            return string.Join(",", Values ?? Array.Empty<string>());
+            return string.Join(",", ValueList ?? Array.Empty<string>());
         }
 
         public string[] GetValues()
         {
-            return Values?.ToArray() ?? Array.Empty<string>();
+            return ValueList?.ToArray() ?? Array.Empty<string>();
         }
 
         public IEnumerable<DiscordField> GetDiscordField()

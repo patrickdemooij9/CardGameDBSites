@@ -5,7 +5,7 @@
 import type { IApiContentModel } from './IApiContentModel';
 export type SortOptionPropertiesModel = {
     ability?: Array<IApiContentModel> | null;
-    values?: Array<string> | null;
+    valueList?: Array<string> | null;
     descending?: boolean | null;
     examineField?: string | null;
 };

@@ -1,8 +1,6 @@
 using CardGameDBSites.API.Attributes;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using SkytearHorde.Business.Helpers;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
@@ -33,8 +31,9 @@ namespace CardGameDBSites.API.Controllers
         private readonly TournamentService _tournamentService;
         private readonly MetaSnapshotService _metaSnapshotService;
         private readonly PeriodRepository _periodRepository;
+        private readonly BlockListJsonService _blockListJsonService;
 
-        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, MetaSnapshotService metaSnapshotService, PeriodRepository periodRepository)
+        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, MetaSnapshotService metaSnapshotService, PeriodRepository periodRepository, BlockListJsonService blockListJsonService)
         {
             _deckService = deckService;
             _siteService = siteService;
@@ -43,6 +42,7 @@ namespace CardGameDBSites.API.Controllers
             _tournamentService = tournamentService;
             _metaSnapshotService = metaSnapshotService;
             _periodRepository = periodRepository;
+            _blockListJsonService = blockListJsonService;
         }
 
         [HttpPost("decks/{deckId}/createPreset")]
@@ -110,26 +110,16 @@ namespace CardGameDBSites.API.Controllers
             if (presetItemBlocks.Count == 0)
                 return BadRequest("Could not create preset because no valid cards were found in this deck.");
 
-            var itemBlockListJson = BlockListCreatorHelper.GetBlockListJsonFor(presetItemBlocks, CardsPresetItemElementTypeKey);
+            var itemBlockListJson = _blockListJsonService.Serialize(presetItemBlocks, CardsPresetItemElementTypeKey);
 
-            var currentPresetJson = collectionPageContent.GetValue("presets")?.ToString();
-            var currentPresetBlocks = new List<Dictionary<string, string>>();
-            if (!string.IsNullOrWhiteSpace(currentPresetJson))
-            {
-                var deserializedBlockList = JsonConvert.DeserializeObject<BlockListCreatorHelper.Blocklist>(currentPresetJson!);
-                if (deserializedBlockList?.ContentData is not null)
-                {
-                    currentPresetBlocks.AddRange(deserializedBlockList.ContentData);
-                }
-            }
-
+            var currentPresetBlocks = _blockListJsonService.Deserialize(collectionPageContent.GetValue<string>("presets"));
             currentPresetBlocks.Add(new Dictionary<string, string>
             {
                 ["displayName"] = deck.Name,
                 ["items"] = itemBlockListJson
             });
 
-            var updatedPresetJson = BlockListCreatorHelper.GetBlockListJsonFor(currentPresetBlocks, CardsPresetElementTypeKey);
+            var updatedPresetJson = _blockListJsonService.Serialize(currentPresetBlocks, CardsPresetElementTypeKey);
             collectionPageContent.SetValue("presets", updatedPresetJson);
             _contentService.SaveAndPublish(collectionPageContent, []);
 

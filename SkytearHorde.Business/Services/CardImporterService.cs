@@ -27,6 +27,7 @@ namespace SkytearHorde.Business.Services
         private readonly IShortStringHelper _shortStringHelper;
         private readonly ISiteService _siteService;
         private readonly IContentTypeBaseServiceProvider _contentTypeBaseServiceProvider;
+        private readonly BlockListJsonService _blockListJsonService;
 
         public CardImporterService(
             IUmbracoContextFactory umbracoContextFactory,
@@ -36,7 +37,8 @@ namespace SkytearHorde.Business.Services
             MediaUrlGeneratorCollection mediaUrlGenerators,
             IShortStringHelper shortStringHelper,
             ISiteService siteService,
-            IContentTypeBaseServiceProvider contentTypeBaseServiceProvider)
+            IContentTypeBaseServiceProvider contentTypeBaseServiceProvider,
+            BlockListJsonService blockListJsonService)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _contentService = contentService;
@@ -46,6 +48,7 @@ namespace SkytearHorde.Business.Services
             _shortStringHelper = shortStringHelper;
             _siteService = siteService;
             _contentTypeBaseServiceProvider = contentTypeBaseServiceProvider;
+            _blockListJsonService = blockListJsonService;
         }
 
         /// <summary>
@@ -237,7 +240,7 @@ namespace SkytearHorde.Business.Services
                                     { "text", text }
                                 });
                         }
-                        values.Add("items", BlockListCreatorHelper.GetBlockListJsonFor(headerValueItems, new Guid("89468ec9-2fea-426e-ad61-304a1b5f0ece")));
+                        values.Add("items", _blockListJsonService.Serialize(headerValueItems, new Guid("89468ec9-2fea-426e-ad61-304a1b5f0ece")));
                     }
                     else if (isMultipleText)
                     {
@@ -290,7 +293,7 @@ namespace SkytearHorde.Business.Services
                 // image or the set of an already imported card is being written.
                 if (attributes.Count > 0)
                 {
-                    card.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(attributes!, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
+                    card.SetValue("attributes", _blockListJsonService.Serialize(attributes, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
                 }
 
                 _contentService.SaveAndPublish(card, []);

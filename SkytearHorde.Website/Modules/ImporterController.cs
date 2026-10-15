@@ -26,7 +26,6 @@ using Asp.Versioning;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using static Lucene.Net.Search.FieldValueHitQueue;
-using static SkytearHorde.Business.Helpers.BlockListCreatorHelper;
 using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace SkytearHorde.Modules
@@ -51,6 +50,7 @@ namespace SkytearHorde.Modules
         private readonly CardImporterService _cardImporterService;
         private readonly ILogger<ImporterController> _logger;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly BlockListJsonService _blockListJsonService;
 
         public ImporterController(IUmbracoContextFactory umbracoContextFactory,
             IContentService contentService,
@@ -66,7 +66,8 @@ namespace SkytearHorde.Modules
             CollectionService collectionService,
             CardImporterService cardImporterService,
             ILogger<ImporterController> logger,
-            IWebHostEnvironment webHostEnvironment)
+            IWebHostEnvironment webHostEnvironment,
+            BlockListJsonService blockListJsonService)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _contentService = contentService;
@@ -83,6 +84,7 @@ namespace SkytearHorde.Modules
             _cardImporterService = cardImporterService;
             _logger = logger;
             _webHostEnvironment = webHostEnvironment;
+            _blockListJsonService = blockListJsonService;
         }
 
         [HttpPost("ImportFromApi")]
@@ -399,30 +401,14 @@ namespace SkytearHorde.Modules
                         var contentItem = _contentService.GetById(variant.VariantId);
                         if (contentItem is null) continue;
 
-                        var attributeJson = contentItem.GetValue<string>("attributes");
-                        var values = new Dictionary<string, string>()
+                        var attributes = _blockListJsonService.Deserialize(contentItem.GetValue<string>("attributes"));
+                        attributes.Add(new Dictionary<string, string>()
                     {
-                        {"ability", Udi.Create(Constants.UdiEntityType.Document, tcgAttribute.Key).ToString() }, {"contentTypeKey", "A4AC0B27-5103-4E6C-A6E5-111BA1500F26"},
+                        {"ability", Udi.Create(Constants.UdiEntityType.Document, tcgAttribute.Key).ToString() },
                         {"value", matchFound.ProductId.ToString() }
-                    };
+                    });
 
-                        if (string.IsNullOrWhiteSpace(attributeJson))
-                        {
-                            contentItem.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(new List<Dictionary<string, string>>
-                        {
-                            values
-                        }, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
-                            _contentService.SaveAndPublish(contentItem, []);
-                            continue;
-                        }
-
-                        var attributes = JsonConvert.DeserializeObject<Blocklist>(attributeJson);
-                        var udi = new GuidUdi("element", Guid.NewGuid()).ToString();
-                        values.Add("udi", udi);
-                        attributes.Layout.ContentUdi.Add(new Dictionary<string, string> { { "contentUdi", udi } });
-                        attributes.ContentData.Add(values);
-
-                        contentItem.SetValue("attributes", JsonConvert.SerializeObject(attributes));
+                        contentItem.SetValue("attributes", _blockListJsonService.Serialize(attributes, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
                         _contentService.SaveAndPublish(contentItem, []);
 
                         //Woohoo

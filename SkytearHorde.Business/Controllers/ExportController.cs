@@ -14,12 +14,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Extensions;
 
 namespace SkytearHorde.Business.Controllers
 {
-    public class ExportController : UmbracoApiController
+    [ApiController]
+    [Route("umbraco/api/export/[action]")]
+    public class ExportController : ControllerBase
     {
         private readonly DeckService _deckService;
         private readonly IWebHostEnvironment _webHostEnvironment;

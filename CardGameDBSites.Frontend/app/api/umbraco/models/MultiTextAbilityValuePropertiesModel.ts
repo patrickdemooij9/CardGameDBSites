@@ -4,6 +4,6 @@
 /* eslint-disable */
 import type { AbilityValuePropertiesModel } from './AbilityValuePropertiesModel';
 export type MultiTextAbilityValuePropertiesModel = (AbilityValuePropertiesModel & {
-    values?: Array<string> | null;
+    valueList?: Array<string> | null;
 });
 

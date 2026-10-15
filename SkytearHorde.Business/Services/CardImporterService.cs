@@ -83,7 +83,7 @@ namespace SkytearHorde.Business.Services
 
             sets.Add(setUdi);
             card.SetValue("set", string.Join(",", sets));
-            _contentService.SaveAndPublish(card);
+            _contentService.SaveAndPublish(card, []);
             return true;
         }
 
@@ -157,7 +157,7 @@ namespace SkytearHorde.Business.Services
                 if (set is null)
                 {
                     var newSet = _contentService.Create(model.SetName, dataContainer.Id, Set.ModelTypeAlias);
-                    var result = _contentService.SaveAndPublish(newSet).Content;
+                    var result = _contentService.SaveAndPublish(newSet, []).Content;
                     setId = result.Id;
                     set = dataContainer.FirstChild<Set>(it => it.Name.Equals(model.SetName))!;
                 }
@@ -166,7 +166,7 @@ namespace SkytearHorde.Business.Services
                 {
                     //Create new
                     var newCard = _contentService.Create(model.Name, model.ParentId ?? cardsContainer?.Id ?? set.Id, model.ParentId.HasValue ? CardVariant.ModelTypeAlias : Card.ModelTypeAlias);
-                    model.Id = _contentService.SaveAndPublish(newCard).Content.Id;
+                    model.Id = _contentService.SaveAndPublish(newCard, []).Content.Id;
                 }
 
                 var searchId = model.Id;
@@ -205,7 +205,7 @@ namespace SkytearHorde.Business.Services
                         {
                             newAttribute.SetValue("isMultiValue", true);
                         }
-                        existingAttributeGuid = _contentService.SaveAndPublish(newAttribute).Content.Key;
+                        existingAttributeGuid = _contentService.SaveAndPublish(newAttribute, []).Content.Key;
                         abilityCache.Add(attributeKey, existingAttributeGuid.Value);
                     }
 
@@ -241,7 +241,7 @@ namespace SkytearHorde.Business.Services
                     }
                     else if (isMultipleText)
                     {
-                        values.Add("values", cardAttribute.Value.Replace(",", Environment.NewLine));
+                        values.Add("valueList", cardAttribute.Value.Replace(",", Environment.NewLine));
                     }
                     else
                     {
@@ -293,7 +293,7 @@ namespace SkytearHorde.Business.Services
                     card.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(attributes!, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
                 }
 
-                _contentService.SaveAndPublish(card);
+                _contentService.SaveAndPublish(card, []);
             }
         }
 

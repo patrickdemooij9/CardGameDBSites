@@ -5,7 +5,7 @@
 import type { IApiContentModel } from './IApiContentModel';
 export type RestrictionAttributePropertiesModel = {
     attribute?: Array<IApiContentModel> | null;
-    values?: Array<string> | null;
+    valueList?: Array<string> | null;
     isExpansionRestriction?: boolean | null;
 };
 

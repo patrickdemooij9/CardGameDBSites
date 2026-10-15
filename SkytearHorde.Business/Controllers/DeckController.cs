@@ -1,4 +1,3 @@
-﻿using FormBuilder.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.FormBuilders;
 using SkytearHorde.Business.Middleware;
@@ -20,14 +19,12 @@ namespace SkytearHorde.Business.Controllers
     {
         private readonly IMemberManager _memberManager;
         private readonly DeckService _deckService;
-        private readonly FormValidationService _formValidationService;
         private readonly CommentService _commentService;
 
-        public DeckController(IUmbracoContextAccessor umbracoContextAccessor, IUmbracoDatabaseFactory databaseFactory, ServiceContext services, AppCaches appCaches, IProfilingLogger profilingLogger, IPublishedUrlProvider publishedUrlProvider, IMemberManager memberManager, DeckService deckService, FormValidationService formValidationService, CommentService commentService) : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
+        public DeckController(IUmbracoContextAccessor umbracoContextAccessor, IUmbracoDatabaseFactory databaseFactory, ServiceContext services, AppCaches appCaches, IProfilingLogger profilingLogger, IPublishedUrlProvider publishedUrlProvider, IMemberManager memberManager, DeckService deckService, CommentService commentService) : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
         {
             _memberManager = memberManager;
             _deckService = deckService;
-            _formValidationService = formValidationService;
             _commentService = commentService;
         }
 
@@ -47,7 +44,7 @@ namespace SkytearHorde.Business.Controllers
 
         public async Task<IActionResult> AddComment(DeckCommentForm model)
         {
-            if (!_formValidationService.Validate(ModelState, new DeckCommentFormBuilder(), model))
+            if (!ModelState.IsValid)
             {
                 return CurrentUmbracoPage();
             }

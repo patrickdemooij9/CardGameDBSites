@@ -17,7 +17,7 @@ namespace SkytearHorde.Business.Helpers
             if (sortOptions.Length == 0) return _cards;
 
             IOrderedEnumerable<Card> orderedCards;
-            if (sortOptions[0].Values?.Count() > 0)
+            if (sortOptions[0].ValueList?.Count() > 0)
             {
                 orderedCards = _cards.OrderBy(GetOrderByAbilityValue(sortOptions[0]));
             }
@@ -36,7 +36,7 @@ namespace SkytearHorde.Business.Helpers
 
             foreach (var sortOption in sortOptions.Skip(1))
             {
-                if (sortOption.Values?.Count() > 0)
+                if (sortOption.ValueList?.Count() > 0)
                     orderedCards = orderedCards.ThenBy(GetOrderByAbilityValue(sortOption));
                 else
                     orderedCards = orderedCards.ThenBy(GetOrderByAbility(sortOption));
@@ -49,7 +49,7 @@ namespace SkytearHorde.Business.Helpers
             return it =>
             {
                 var values = it.GetMultipleCardAttributeValue(sortOption.Ability!.Name);
-                return values?.Any(v => sortOption.Values!.Contains(v)) != true;
+                return values?.Any(v => sortOption.ValueList!.Contains(v)) != true;
             };
         }
 

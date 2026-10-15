@@ -1,4 +1,5 @@
-﻿using AdServer.Models;
+﻿using SkytearHorde.Business.Extensions;
+using AdServer.Models;
 using AdServer.Repositories.CampaignRepository;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Services;
@@ -40,7 +41,7 @@ namespace SkytearHorde.Business.Repositories.AdServer
             if (campaign is null || campaign.ContentType.Alias != AdServerCampaign.ModelTypeAlias) return;
 
             campaign.SetValue("sendReportDate", date);
-            _contentService.SaveAndPublish(campaign);
+            _contentService.SaveAndPublish(campaign, []);
         }
     }
 }

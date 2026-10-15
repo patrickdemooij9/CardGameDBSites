@@ -1,4 +1,5 @@
-﻿using SkytearHorde.Business.Middleware;
+﻿using SkytearHorde.Business.Extensions;
+using SkytearHorde.Business.Middleware;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.PublishedCache;

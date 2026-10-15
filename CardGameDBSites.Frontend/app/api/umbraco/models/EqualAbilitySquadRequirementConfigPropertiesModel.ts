@@ -6,6 +6,6 @@ import type { IApiContentModel } from './IApiContentModel';
 import type { SquadRequirementConfigPropertiesModel } from './SquadRequirementConfigPropertiesModel';
 export type EqualAbilitySquadRequirementConfigPropertiesModel = (SquadRequirementConfigPropertiesModel & {
     ability?: Array<IApiContentModel> | null;
-    values?: Array<string> | null;
+    valueList?: Array<string> | null;
 });
 

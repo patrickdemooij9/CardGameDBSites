@@ -22,16 +22,19 @@ using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using Umbraco.Cms.Core.Web;
-using Umbraco.Cms.Web.BackOffice.Controllers;
-using Umbraco.Cms.Web.Common.Attributes;
+using Asp.Versioning;
+using Umbraco.Cms.Api.Management.Controllers;
+using Umbraco.Cms.Api.Management.Routing;
 using static Lucene.Net.Search.FieldValueHitQueue;
 using static SkytearHorde.Business.Helpers.BlockListCreatorHelper;
 using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace SkytearHorde.Modules
 {
-    [PluginController("Importer")]
-    public class ImporterController : UmbracoAuthorizedApiController
+    [ApiVersion("1.0")]
+    [VersionedApiBackOfficeRoute("skytear/importer")]
+    [ApiExplorerSettings(GroupName = "Skytear")]
+    public class ImporterController : ManagementApiControllerBase
     {
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IContentService _contentService;
@@ -82,7 +85,7 @@ namespace SkytearHorde.Modules
             _webHostEnvironment = webHostEnvironment;
         }
 
-        [HttpPost]
+        [HttpPost("ImportFromApi")]
         public async Task<IActionResult> ImportFromApi(int nodeId)
         {
             if (!_webHostEnvironment.IsDevelopment())
@@ -153,7 +156,7 @@ namespace SkytearHorde.Modules
             return Ok(new { imported = importModels.Count });
         }
 
-        [HttpPost]
+        [HttpPost("Import")]
         public IActionResult Import(int nodeId)
         {
             _siteAccessor.SetSiteId(GetSiteIdByNode(nodeId));
@@ -163,6 +166,8 @@ namespace SkytearHorde.Modules
 
             return Ok();
         }
+
+        [HttpPost("ImportJsonFiles")]
 
         public IActionResult ImportJsonFiles(int nodeId, int setId)
         {
@@ -255,7 +260,7 @@ namespace SkytearHorde.Modules
         // card import queue approval flow. The CreateMediaWithIdentity usage in ImportJsonFiles
         // remains here as it handles updating existing card media.
 
-        [HttpPost]
+        [HttpPost("ImportImages")]
         public IActionResult ImportImages(IFormFile file, int nodeId)
         {
             var zipArchive = new ZipArchive(file.OpenReadStream());
@@ -297,13 +302,13 @@ namespace SkytearHorde.Modules
                 {
                     var cardContent = _contentService.GetById(card.BaseId)!;
                     cardContent.SetValue(imageAlias, Udi.Create(Constants.UdiEntityType.Media, media.Key).ToString());
-                    _contentService.SaveAndPublish(cardContent);
+                    _contentService.SaveAndPublish(cardContent, []);
                 }
             }
             return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("ImportPricesFromTcgPlayer")]
         public async Task<IActionResult> ImportPricesFromTcgPlayer(int siteId, int setId, int amount)
         {
             _siteAccessor.SetSiteId(siteId);
@@ -407,7 +412,7 @@ namespace SkytearHorde.Modules
                         {
                             values
                         }, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
-                            _contentService.SaveAndPublish(contentItem);
+                            _contentService.SaveAndPublish(contentItem, []);
                             continue;
                         }
 
@@ -418,7 +423,7 @@ namespace SkytearHorde.Modules
                         attributes.ContentData.Add(values);
 
                         contentItem.SetValue("attributes", JsonConvert.SerializeObject(attributes));
-                        _contentService.SaveAndPublish(contentItem);
+                        _contentService.SaveAndPublish(contentItem, []);
 
                         //Woohoo
                     }
@@ -435,7 +440,7 @@ namespace SkytearHorde.Modules
             return Ok();
         }
 
-        [HttpGet]
+        [HttpGet("Export")]
         public IActionResult Export(int siteId)
         {
             _siteAccessor.SetSiteId(siteId);

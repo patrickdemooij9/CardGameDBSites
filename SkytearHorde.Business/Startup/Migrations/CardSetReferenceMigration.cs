@@ -20,7 +20,8 @@ namespace SkytearHorde.Business.Startup.Migrations
         private readonly CardService _cardService;
         private readonly IContentService _contentService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
-        private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
+        private readonly IPublishedContentTypeCache _contentTypeCache;
+        private readonly IDocumentCacheService _documentCacheService;
 
         public CardSetReferenceMigration(IMigrationContext context,
             ISiteService siteService,
@@ -28,21 +29,22 @@ namespace SkytearHorde.Business.Startup.Migrations
             CardService cardService,
             IContentService contentService,
             IUmbracoContextFactory umbracoContextFactory,
-            IPublishedSnapshotAccessor publishedSnapshotAccessor) : base(context)
+            IPublishedContentTypeCache contentTypeCache, IDocumentCacheService documentCacheService) : base(context)
         {
             _siteService = siteService;
             _siteAccessor = siteAccessor;
             _cardService = cardService;
             _contentService = contentService;
             _umbracoContextFactory = umbracoContextFactory;
-            _publishedSnapshotAccessor = publishedSnapshotAccessor;
+            _contentTypeCache = contentTypeCache;
+            _documentCacheService = documentCacheService;
         }
 
         protected override void Migrate()
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
 
-            var allBaseVariants = ctx.UmbracoContext.Content.GetByContentType(CardVariant.GetModelContentType(_publishedSnapshotAccessor)).OfType<CardVariant>().Where(it => it.Set != null && it.VariantType is null).GroupBy(it => it.Set?.Id).ToDictionary(it => it.Key, it => it.ToArray());
+            var allBaseVariants = _documentCacheService.GetByContentType(CardVariant.GetModelContentType(_contentTypeCache)).OfType<CardVariant>().Where(it => it.Set != null && it.VariantType is null).GroupBy(it => it.Set?.Id).ToDictionary(it => it.Key, it => it.ToArray());
             foreach (var site in _siteService.GetAllSites())
             {
                 _siteAccessor.SetSiteId(site);
@@ -65,7 +67,7 @@ namespace SkytearHorde.Business.Startup.Migrations
 
                     var contentItem = _contentService.GetById(set.Id)!;
                     contentItem.SetValue("cards", string.Join(',', cards.Select(it => Udi.Create(Constants.UdiEntityType.Document, it.Key))));
-                    _contentService.SaveAndPublish(contentItem);
+                    _contentService.SaveAndPublish(contentItem, []);
                 }
             }
         }

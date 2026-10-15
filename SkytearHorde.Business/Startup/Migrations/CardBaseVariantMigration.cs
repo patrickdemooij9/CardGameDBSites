@@ -17,13 +17,15 @@ namespace SkytearHorde.Business.Startup.Migrations
     public class CardBaseVariantMigration : MigrationBase
     {
         private readonly IUmbracoContextFactory _umbracoContextFactory;
-        private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
+        private readonly IPublishedContentTypeCache _contentTypeCache;
+        private readonly IDocumentCacheService _documentCacheService;
         private readonly IContentService _contentService;
 
-        public CardBaseVariantMigration(IMigrationContext context, IUmbracoContextFactory umbracoContextFactory, IPublishedSnapshotAccessor publishedSnapshotAccessor, IContentService contentService) : base(context)
+        public CardBaseVariantMigration(IMigrationContext context, IUmbracoContextFactory umbracoContextFactory, IPublishedContentTypeCache contentTypeCache, IDocumentCacheService documentCacheService, IContentService contentService) : base(context)
         {
             _umbracoContextFactory = umbracoContextFactory;
-            _publishedSnapshotAccessor = publishedSnapshotAccessor;
+            _contentTypeCache = contentTypeCache;
+            _documentCacheService = documentCacheService;
             _contentService = contentService;
         }
 
@@ -31,7 +33,7 @@ namespace SkytearHorde.Business.Startup.Migrations
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
 
-            var allCards = ctx.UmbracoContext.Content.GetByContentType(Card.GetModelContentType(_publishedSnapshotAccessor));
+            var allCards = _documentCacheService.GetByContentType(Card.GetModelContentType(_contentTypeCache));
 
             foreach (var cardsGroup in allCards.GroupBy(it => it.Root().Id))
             {
@@ -82,7 +84,7 @@ namespace SkytearHorde.Business.Startup.Migrations
 
             /*newBase.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, card.Set?.Key ?? card.Parent<Set>()?.Key ?? throw new NotImplementedException("Needs either a set or a parent of set")));*/
 
-            _contentService.SaveAndPublish(newBase);
+            _contentService.SaveAndPublish(newBase, []);
         }
 
         private void CleanupVariant(Card card, Variant? variantType)

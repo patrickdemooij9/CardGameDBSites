@@ -8,7 +8,7 @@
 }
 @if (Model.ShowAsTags)
 {
-    @foreach (var item in value?.Values ?? Enumerable.Empty<string>())
+    @foreach (var item in value?.ValueList ?? Enumerable.Empty<string>())
     {
         @if (string.IsNullOrWhiteSpace(Model.OverviewPageUrl))
         {
@@ -20,5 +20,5 @@
 }
 else
 {
-    @Html.Raw(_abilityFormatter.TranslateSpecialChars(string.Join(", ", value.Values ?? Enumerable.Empty<string>())))   
+    @Html.Raw(_abilityFormatter.TranslateSpecialChars(string.Join(", ", value.ValueList ?? Enumerable.Empty<string>())))   
 }

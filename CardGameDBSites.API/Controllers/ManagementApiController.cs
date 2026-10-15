@@ -131,7 +131,7 @@ namespace CardGameDBSites.API.Controllers
 
             var updatedPresetJson = BlockListCreatorHelper.GetBlockListJsonFor(currentPresetBlocks, CardsPresetElementTypeKey);
             collectionPageContent.SetValue("presets", updatedPresetJson);
-            _contentService.SaveAndPublish(collectionPageContent);
+            _contentService.SaveAndPublish(collectionPageContent, []);
 
             return Ok();
         }

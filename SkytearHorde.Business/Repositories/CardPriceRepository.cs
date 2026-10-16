@@ -213,7 +213,8 @@ namespace SkytearHorde.Business.Repositories
 
             using var scope = _scopeProvider.CreateScope();
             var result = new List<CardPriceRecordDBModel>();
-            foreach (var batch in ids.Chunk(MaxIdsPerQuery))
+            // A List, not an array: C# 14 binds array.Contains to a span overload that NPoco cannot translate.
+            foreach (var batch in ids.Chunk(MaxIdsPerQuery).Select(chunk => chunk.ToList()))
             {
                 result.AddRange(scope.Database.Fetch<CardPriceRecordDBModel>(scope.SqlContext.Sql()
                     .SelectAll()

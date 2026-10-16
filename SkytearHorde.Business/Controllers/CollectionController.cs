@@ -116,7 +116,7 @@ namespace SkytearHorde.Business.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateSetInList(UpdateSetListPostModel postModel)
+        public IActionResult UpdateSetInList([FromBody] UpdateSetListPostModel postModel)
         {
             //TODO: Make everything work in a list mechanic
             if (postModel.ListName == "collection")

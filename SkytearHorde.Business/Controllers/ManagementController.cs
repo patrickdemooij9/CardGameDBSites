@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using NPoco;
 using SkytearHorde.Business.Config;
 using SkytearHorde.Business.Helpers;
@@ -22,15 +21,17 @@ using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using Umbraco.Cms.Infrastructure.Scoping;
-using Umbraco.Cms.Web.BackOffice.Controllers;
-using Umbraco.Cms.Web.Common.Attributes;
+using Asp.Versioning;
+using Umbraco.Cms.Api.Management.Controllers;
+using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Extensions;
-using static SkytearHorde.Business.Helpers.BlockListCreatorHelper;
 
 namespace SkytearHorde.Business.Controllers
 {
-    [PluginController("management")]
-    public class ManagementController : UmbracoAuthorizedApiController
+    [ApiVersion("1.0")]
+    [VersionedApiBackOfficeRoute("skytear/management")]
+    [ApiExplorerSettings(GroupName = "Skytear")]
+    public class ManagementController : ManagementApiControllerBase
     {
         private readonly CardService _cardService;
         private readonly IContentService _contentService;
@@ -44,11 +45,12 @@ namespace SkytearHorde.Business.Controllers
         private readonly IContentTypeBaseServiceProvider _contentTypeBaseServiceProvider;
         private readonly CardGameSettingsConfig _cardGameSettingsConfig;
         private readonly ILogger<ManagementController> _logger;
+        private readonly BlockListJsonService _blockListJsonService;
 
         public ManagementController(CardService cardService, IContentService contentService, ISiteAccessor siteAccessor, ISiteService siteService, IScopeProvider scopeProvider,
             IMediaService mediaService, MediaFileManager mediaFileManager, MediaUrlGeneratorCollection mediaUrlGenerators,
             IShortStringHelper shortStringHelper, IContentTypeBaseServiceProvider contentTypeBaseServiceProvider,
-            IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption, ILogger<ManagementController> logger)
+            IOptions<CardGameSettingsConfig> cardGameSettingsConfigOption, ILogger<ManagementController> logger, BlockListJsonService blockListJsonService)
         {
             _cardService = cardService;
             _contentService = contentService;
@@ -62,9 +64,10 @@ namespace SkytearHorde.Business.Controllers
             _contentTypeBaseServiceProvider = contentTypeBaseServiceProvider;
             _cardGameSettingsConfig = cardGameSettingsConfigOption.Value;
             _logger = logger;
+            _blockListJsonService = blockListJsonService;
         }
 
-        [HttpPost]
+        [HttpPost("DeleteVariants")]
         public IActionResult DeleteVariants(int setId, int siteId, int variantTypeId)
         {
             _siteAccessor.SetSiteId(siteId);
@@ -83,7 +86,7 @@ namespace SkytearHorde.Business.Controllers
             return Ok($"Deleted {deletedItems} variants");
         }
 
-        [HttpPost]
+        [HttpPost("SetVariantIdsCheck")]
         public IActionResult SetVariantIdsCheck(int setId, int siteId, int variantTypeId, int startingNumber, string attributeId, int? parentTypeId = null)
         {
             _siteAccessor.SetSiteId(siteId);
@@ -114,7 +117,7 @@ namespace SkytearHorde.Business.Controllers
             return Ok(resultMessage);
         }
 
-        [HttpPost]
+        [HttpPost("SetVariantIds")]
         public IActionResult SetVariantIds(int setId, int siteId, int variantTypeId, int startingNumber, string attributeId, int? parentTypeId = null)
         {
             _siteAccessor.SetSiteId(siteId);
@@ -144,13 +147,10 @@ namespace SkytearHorde.Business.Controllers
             foreach (var card in variantCards)
             {
                 var content = _contentService.GetById(card.VariantId)!;
-                var newAttributes = new List<Dictionary<string, string>>();
-                var attributesJson = content.GetValue("attributes");
-                var attributes = !string.IsNullOrWhiteSpace(attributesJson?.ToString()) ? JsonConvert.DeserializeObject<Blocklist>(attributesJson.ToString()!) : new Blocklist();
+                var newAttributes = _blockListJsonService.Deserialize(content.GetValue<string>("attributes"));
                 Dictionary<string, string>? existingIdAttribute = null;
-                foreach (var attribute in attributes?.ContentData ?? Enumerable.Empty<Dictionary<string, string>>())
+                foreach (var attribute in newAttributes)
                 {
-                    newAttributes.Add(attribute);
                     if (attribute.TryGetValue("ability", out var abilityUdiString) &&
                         UdiParser.TryParse(abilityUdiString, out var abilityUdi) &&
                         (abilityUdi as GuidUdi)?.Guid == foundAttribute.Key)
@@ -170,14 +170,14 @@ namespace SkytearHorde.Business.Controllers
                 var proposedVariantId = startingNumber + variantCards.IndexOf(card);
                 existingIdAttribute["value"] = proposedVariantId.ToString();
 
-                content.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(newAttributes!, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
-                _contentService.SaveAndPublish(content);
+                content.SetValue("attributes", _blockListJsonService.Serialize(newAttributes, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
+                _contentService.SaveAndPublish(content, []);
                 updatedCards++;
             }
             return Ok($"Updated {updatedCards} varians");
         }
 
-        [HttpPost]
+        [HttpPost("MigrateDeltaPrices")]
         public ActionResult MigrateDeltaPrices()
         {
             using var scope = _scopeProvider.CreateScope();
@@ -207,7 +207,7 @@ namespace SkytearHorde.Business.Controllers
             return Ok();
         }
 
-        [HttpGet]
+        [HttpGet("GetCardsMissingTcgPlayerAttribute")]
         public IActionResult GetCardsMissingTcgPlayerAttribute(int setId, int siteId)
         {
             _siteAccessor.SetSiteId(siteId);
@@ -220,7 +220,7 @@ namespace SkytearHorde.Business.Controllers
             return Ok(cards);
         }
 
-        [HttpPost]
+        [HttpPost("UpdateOutdatedImages")]
         public async Task<ActionResult> UpdateOutdatedImages(int siteId)
         {
             _siteAccessor.SetSiteId(siteId);
@@ -299,13 +299,13 @@ namespace SkytearHorde.Business.Controllers
                         var cardContent = _contentService.GetById(card.Id)!;
                         cardContent.SetValue("image", Udi.Create(Constants.UdiEntityType.Media, media.Key).ToString());
                         cardContent.SetValue("requiresNewImage", false);
-                        _contentService.SaveAndPublish(cardContent);
+                        _contentService.SaveAndPublish(cardContent, []);
                     }
                     else
                     {
                         var cardContent = _contentService.GetById(card.Id)!;
                         cardContent.SetValue("requiresNewImage", false);
-                        _contentService.SaveAndPublish(cardContent);
+                        _contentService.SaveAndPublish(cardContent, []);
                     }
 
                     updatedCards.Add(card.Name);

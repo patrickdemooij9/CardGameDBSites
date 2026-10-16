@@ -22,16 +22,18 @@ using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using Umbraco.Cms.Core.Web;
-using Umbraco.Cms.Web.BackOffice.Controllers;
-using Umbraco.Cms.Web.Common.Attributes;
+using Asp.Versioning;
+using Umbraco.Cms.Api.Management.Controllers;
+using Umbraco.Cms.Api.Management.Routing;
 using static Lucene.Net.Search.FieldValueHitQueue;
-using static SkytearHorde.Business.Helpers.BlockListCreatorHelper;
 using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace SkytearHorde.Modules
 {
-    [PluginController("Importer")]
-    public class ImporterController : UmbracoAuthorizedApiController
+    [ApiVersion("1.0")]
+    [VersionedApiBackOfficeRoute("skytear/importer")]
+    [ApiExplorerSettings(GroupName = "Skytear")]
+    public class ImporterController : ManagementApiControllerBase
     {
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IContentService _contentService;
@@ -48,6 +50,7 @@ namespace SkytearHorde.Modules
         private readonly CardImporterService _cardImporterService;
         private readonly ILogger<ImporterController> _logger;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly BlockListJsonService _blockListJsonService;
 
         public ImporterController(IUmbracoContextFactory umbracoContextFactory,
             IContentService contentService,
@@ -63,7 +66,8 @@ namespace SkytearHorde.Modules
             CollectionService collectionService,
             CardImporterService cardImporterService,
             ILogger<ImporterController> logger,
-            IWebHostEnvironment webHostEnvironment)
+            IWebHostEnvironment webHostEnvironment,
+            BlockListJsonService blockListJsonService)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _contentService = contentService;
@@ -80,9 +84,10 @@ namespace SkytearHorde.Modules
             _cardImporterService = cardImporterService;
             _logger = logger;
             _webHostEnvironment = webHostEnvironment;
+            _blockListJsonService = blockListJsonService;
         }
 
-        [HttpPost]
+        [HttpPost("ImportFromApi")]
         public async Task<IActionResult> ImportFromApi(int nodeId)
         {
             if (!_webHostEnvironment.IsDevelopment())
@@ -153,7 +158,7 @@ namespace SkytearHorde.Modules
             return Ok(new { imported = importModels.Count });
         }
 
-        [HttpPost]
+        [HttpPost("Import")]
         public IActionResult Import(int nodeId)
         {
             _siteAccessor.SetSiteId(GetSiteIdByNode(nodeId));
@@ -163,6 +168,8 @@ namespace SkytearHorde.Modules
 
             return Ok();
         }
+
+        [HttpPost("ImportJsonFiles")]
 
         public IActionResult ImportJsonFiles(int nodeId, int setId)
         {
@@ -255,7 +262,7 @@ namespace SkytearHorde.Modules
         // card import queue approval flow. The CreateMediaWithIdentity usage in ImportJsonFiles
         // remains here as it handles updating existing card media.
 
-        [HttpPost]
+        [HttpPost("ImportImages")]
         public IActionResult ImportImages(IFormFile file, int nodeId)
         {
             var zipArchive = new ZipArchive(file.OpenReadStream());
@@ -297,13 +304,13 @@ namespace SkytearHorde.Modules
                 {
                     var cardContent = _contentService.GetById(card.BaseId)!;
                     cardContent.SetValue(imageAlias, Udi.Create(Constants.UdiEntityType.Media, media.Key).ToString());
-                    _contentService.SaveAndPublish(cardContent);
+                    _contentService.SaveAndPublish(cardContent, []);
                 }
             }
             return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("ImportPricesFromTcgPlayer")]
         public async Task<IActionResult> ImportPricesFromTcgPlayer(int siteId, int setId, int amount)
         {
             _siteAccessor.SetSiteId(siteId);
@@ -394,31 +401,15 @@ namespace SkytearHorde.Modules
                         var contentItem = _contentService.GetById(variant.VariantId);
                         if (contentItem is null) continue;
 
-                        var attributeJson = contentItem.GetValue<string>("attributes");
-                        var values = new Dictionary<string, string>()
+                        var attributes = _blockListJsonService.Deserialize(contentItem.GetValue<string>("attributes"));
+                        attributes.Add(new Dictionary<string, string>()
                     {
-                        {"ability", Udi.Create(Constants.UdiEntityType.Document, tcgAttribute.Key).ToString() }, {"contentTypeKey", "A4AC0B27-5103-4E6C-A6E5-111BA1500F26"},
+                        {"ability", Udi.Create(Constants.UdiEntityType.Document, tcgAttribute.Key).ToString() },
                         {"value", matchFound.ProductId.ToString() }
-                    };
+                    });
 
-                        if (string.IsNullOrWhiteSpace(attributeJson))
-                        {
-                            contentItem.SetValue("attributes", BlockListCreatorHelper.GetBlockListJsonFor(new List<Dictionary<string, string>>
-                        {
-                            values
-                        }, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
-                            _contentService.SaveAndPublish(contentItem);
-                            continue;
-                        }
-
-                        var attributes = JsonConvert.DeserializeObject<Blocklist>(attributeJson);
-                        var udi = new GuidUdi("element", Guid.NewGuid()).ToString();
-                        values.Add("udi", udi);
-                        attributes.Layout.ContentUdi.Add(new Dictionary<string, string> { { "contentUdi", udi } });
-                        attributes.ContentData.Add(values);
-
-                        contentItem.SetValue("attributes", JsonConvert.SerializeObject(attributes));
-                        _contentService.SaveAndPublish(contentItem);
+                        contentItem.SetValue("attributes", _blockListJsonService.Serialize(attributes, new Guid("A4AC0B27-5103-4E6C-A6E5-111BA1500F26")));
+                        _contentService.SaveAndPublish(contentItem, []);
 
                         //Woohoo
                     }
@@ -435,7 +426,7 @@ namespace SkytearHorde.Modules
             return Ok();
         }
 
-        [HttpGet]
+        [HttpGet("Export")]
         public IActionResult Export(int siteId)
         {
             _siteAccessor.SetSiteId(siteId);

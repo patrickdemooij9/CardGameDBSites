@@ -79,7 +79,7 @@ namespace SkytearHorde.EventHandlers
 
             var contentItem = _contentService.GetById(set.Id)!;
             contentItem.SetValue("cards", string.Join(',', cards.Select(it => Udi.Create(Constants.UdiEntityType.Document, it.Key))));
-            _contentService.SaveAndPublish(contentItem);
+            _contentService.SaveAndPublish(contentItem, []);
         }
 
         private void HandleSetConnecting(Set set)
@@ -92,7 +92,7 @@ namespace SkytearHorde.EventHandlers
 
                     var contentItem = _contentService.GetById(card.Id)!;
                     contentItem.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key));
-                    _contentService.SaveAndPublish(contentItem);
+                    _contentService.SaveAndPublish(contentItem, []);
                 }*/
                 if (item is CardVariant variant)
                 {
@@ -100,7 +100,7 @@ namespace SkytearHorde.EventHandlers
 
                     var contentItem = _contentService.GetById(variant.Id)!;
                     contentItem.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, set.Key));
-                    _contentService.SaveAndPublish(contentItem);
+                    _contentService.SaveAndPublish(contentItem, []);
                 }
             }
         }
@@ -117,7 +117,7 @@ namespace SkytearHorde.EventHandlers
 
             var contentItem = _contentService.GetById(set.Id)!;
             contentItem.SetValue("cards", string.Join(',', cards.Select(it => Udi.Create(Constants.UdiEntityType.Document, card.Key))));
-            _contentService.SaveAndPublish(contentItem);
+            _contentService.SaveAndPublish(contentItem, []);
         }
     }
 }

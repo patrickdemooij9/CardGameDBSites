@@ -53,11 +53,13 @@ namespace SkytearHorde.Business.Repositories.AdServer
 
         public AdMetric[] GetByAds(int[] adIds)
         {
+            // A List, not an array: C# 14 binds array.Contains to a span overload that NPoco cannot translate.
+            var adIdList = adIds.ToList();
             using var scope = _scopeProvider.CreateScope();
             var metrics = scope.Database.Fetch<MetricDBModel>(scope.SqlContext.Sql()
                 .SelectAll()
                 .From<MetricDBModel>()
-                .Where<MetricDBModel>(it => adIds.Contains(it.AdId)))
+                .Where<MetricDBModel>(it => adIdList.Contains(it.AdId)))
                 .Select(entity => new AdMetric(entity.AdId, DateOnly.FromDateTime(entity.Date))
                 {
                     Clicks = entity.Clicks,

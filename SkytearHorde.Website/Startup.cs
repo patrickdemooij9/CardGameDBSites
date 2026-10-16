@@ -110,7 +110,6 @@ namespace SkytearHorde
                 })
                 .WithEndpoints(u =>
                 {
-                    u.UseInstallerEndpoints();
                     u.UseBackOfficeEndpoints();
                     u.UseWebsiteEndpoints();
 

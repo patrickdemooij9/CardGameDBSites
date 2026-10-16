@@ -360,7 +360,9 @@ namespace SkytearHorde.Business.Repositories
 
             if (ids?.Length > 0)
             {
-                sql = sql.Where<DeckDBModel>(it => ids.Contains(it.Id), "d");
+                // A List, not an array: C# 14 binds array.Contains to a span overload that NPoco cannot translate.
+                var idList = ids.ToList();
+                sql = sql.Where<DeckDBModel>(it => idList.Contains(it.Id), "d");
             }
 
             var deckCards = new List<DeckCardDBModel>();
@@ -473,8 +475,9 @@ namespace SkytearHorde.Business.Repositories
         /// </summary>
         public void SetFolder(IEnumerable<int> deckIds, int? folderId, int userId, int siteId)
         {
-            var ids = deckIds.Distinct().ToArray();
-            if (ids.Length == 0) return;
+            // A List, not an array: C# 14 binds array.Contains to a span overload that NPoco cannot translate.
+            var ids = deckIds.Distinct().ToList();
+            if (ids.Count == 0) return;
 
             using (var scope = _scopeProvider.CreateScope())
             {

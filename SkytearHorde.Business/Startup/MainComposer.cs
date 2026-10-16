@@ -46,6 +46,7 @@ namespace SkytearHorde.Business.Startup
                     ));
             });
 
+            builder.Services.AddSingleton<BlockListJsonService>();
             builder.Services.AddSingleton<CardService>();
             builder.Services.AddSingleton<CardPageService>();
             builder.Services.AddSingleton<MetaCardPageService>();

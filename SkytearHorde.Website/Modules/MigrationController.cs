@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Entities.Models.Database;
 using Umbraco.Cms.Infrastructure.Scoping;
-using Umbraco.Cms.Web.BackOffice.Controllers;
-using Umbraco.Cms.Web.Common.Attributes;
+using Asp.Versioning;
+using Umbraco.Cms.Api.Management.Controllers;
+using Umbraco.Cms.Api.Management.Routing;
 
 namespace SkytearHorde.Modules
 {
-    [PluginController("Migration")]
-    public class MigrationController : UmbracoAuthorizedApiController
+    [ApiVersion("1.0")]
+    [VersionedApiBackOfficeRoute("skytear/migration")]
+    [ApiExplorerSettings(GroupName = "Skytear")]
+    public class MigrationController : ManagementApiControllerBase
     {
         private readonly IScopeProvider _scopeProvider;
 
@@ -16,7 +19,7 @@ namespace SkytearHorde.Modules
             _scopeProvider = scopeProvider;
         }
 
-        [HttpPost]
+        [HttpPost("RunPriceFixMigration")]
         public IActionResult RunPriceFixMigration()
         {
             using var scope = _scopeProvider.CreateScope();

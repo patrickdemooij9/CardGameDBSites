@@ -14,7 +14,7 @@ namespace SkytearHorde.DeliveryApi
     {
         private readonly IMetaFieldsService _metaFieldsService;
 
-        public SeoToolkitResponseBuilder(IApiContentNameProvider apiContentNameProvider, IApiContentRouteBuilder apiContentRouteBuilder, IOutputExpansionStrategyAccessor outputExpansionStrategyAccessor, IMetaFieldsService metaFieldsService) : base(apiContentNameProvider, apiContentRouteBuilder, outputExpansionStrategyAccessor)
+        public SeoToolkitResponseBuilder(IApiContentNameProvider apiContentNameProvider, IApiContentRouteBuilder apiContentRouteBuilder, IOutputExpansionStrategyAccessor outputExpansionStrategyAccessor, IVariationContextAccessor variationContextAccessor, IMetaFieldsService metaFieldsService) : base(apiContentNameProvider, apiContentRouteBuilder, outputExpansionStrategyAccessor, variationContextAccessor)
         {
             _metaFieldsService = metaFieldsService;
         }
@@ -26,7 +26,7 @@ namespace SkytearHorde.DeliveryApi
         IDictionary<string, object?> properties)
         {
             var cultures = GetCultures(content);
-            var metaFields = _metaFieldsService.Get(content, true).Fields.ToDictionary(it => it.Key.Alias, it => it.Value);
+            var metaFields = _metaFieldsService.Get(content, true)?.Fields?.ToDictionary(it => it.Key.Alias, it => it.Value) ?? [];
 
             return new SeoToolkitContentResponse(
                 content.Key,

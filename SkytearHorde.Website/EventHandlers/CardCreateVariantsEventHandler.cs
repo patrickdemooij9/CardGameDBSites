@@ -46,7 +46,7 @@ namespace SkytearHorde.EventHandlers
                     var newCardVariant = _contentService.Create($"{variant.DisplayName.IfNullOrWhiteSpace(variant.Name)} {cardVariant.Set!.Name}", cardVariant.Parent!.Key, CardVariant.ModelTypeAlias);
                     newCardVariant.SetValue("variantType", Udi.Create(Constants.UdiEntityType.Document, variant.Key));
                     newCardVariant.SetValue("set", Udi.Create(Constants.UdiEntityType.Document, cardVariant.Set!.Key));
-                    _contentService.SaveAndPublish(newCardVariant);
+                    _contentService.SaveAndPublish(newCardVariant, []);
                 }
             }
         }

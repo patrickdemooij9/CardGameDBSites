@@ -1,4 +1,6 @@
-﻿using Umbraco.Cms.Core.Composing;
+﻿using Microsoft.AspNetCore.Mvc;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DeliveryApi;
 
 namespace SkytearHorde.DeliveryApi
@@ -8,6 +10,8 @@ namespace SkytearHorde.DeliveryApi
         public void Compose(IUmbracoBuilder builder)
         {
             builder.Services.AddSingleton<IApiContentResponseBuilder, SeoToolkitResponseBuilder>();
+            builder.Services.PostConfigure<JsonOptions>(Constants.JsonOptionsNames.DeliveryApi,
+                options => options.JsonSerializerOptions.TypeInfoResolver = new SeoToolkitJsonTypeResolver());
         }
     }
 }

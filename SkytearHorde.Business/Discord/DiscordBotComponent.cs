@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using SkytearHorde.Business.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SkytearHorde.Business.Helpers;
@@ -25,7 +26,6 @@ namespace SkytearHorde.Business.Discord
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly SettingsService _settingsService;
         private readonly IOptions<WebRoutingSettings> _settings;
-        private readonly IPublishedSnapshotAccessor _publishedSnapshotAccessor;
         private readonly ISiteAccessor _siteAccessor;
         private readonly IAbilityFormatter _abilityFormatter;
         private readonly ISiteService _siteService;
@@ -33,7 +33,7 @@ namespace SkytearHorde.Business.Discord
         private readonly CardImportQueueService _cardImportQueueService;
         private readonly IConfiguration _configuration;
 
-        public DiscordBotComponent(ILogger<DiscordBot> logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, IPublishedSnapshotAccessor publishedSnapshotAccessor, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, IRuntimeState runtimeState, CardImportQueueService cardImportQueueService, IConfiguration configuration)
+        public DiscordBotComponent(ILogger<DiscordBot> logger, CardService cardService, CardPageService cardPageService, IUmbracoContextFactory umbracoContextFactory, SettingsService settingsService, IOptions<WebRoutingSettings> settings, ISiteAccessor siteAccessor, IAbilityFormatter abilityFormatter, ISiteService siteService, IRuntimeState runtimeState, CardImportQueueService cardImportQueueService, IConfiguration configuration)
         {
             _logger = logger;
             _cardService = cardService;
@@ -41,7 +41,6 @@ namespace SkytearHorde.Business.Discord
             _umbracoContextFactory = umbracoContextFactory;
             _settingsService = settingsService;
             _settings = settings;
-            _publishedSnapshotAccessor = publishedSnapshotAccessor;
             _siteAccessor = siteAccessor;
             _abilityFormatter = abilityFormatter;
             _siteService = siteService;

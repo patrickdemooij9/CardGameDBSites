@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CollectionSettingsApiModel = {
-    allowSetCollecting?: boolean;
-    allowCardCollecting?: boolean;
-    showProgressBar?: boolean;
+    allowSetCollecting: boolean;
+    allowCardCollecting: boolean;
+    showProgressBar: boolean;
 };
 

@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ImageFocalPointModel = {
-    left?: number;
-    top?: number;
+    left: number;
+    top: number;
 };
 

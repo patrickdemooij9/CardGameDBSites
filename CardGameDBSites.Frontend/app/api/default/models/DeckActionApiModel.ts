@@ -5,11 +5,11 @@
 export type DeckActionApiModel = {
     id: string;
     displayName: string;
-    icon?: string;
+    icon: string;
     type: string;
     popupTitle?: string | null;
     popupDescription?: string | null;
-    isCopyClipboard?: boolean;
-    subActions?: Array<DeckActionApiModel>;
+    isCopyClipboard: boolean;
+    subActions: Array<DeckActionApiModel>;
 };
 

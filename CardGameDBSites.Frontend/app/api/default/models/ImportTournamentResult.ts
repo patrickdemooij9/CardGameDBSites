@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ImportTournamentResult = {
-    success?: boolean;
+    success: boolean;
     message?: string | null;
-    missingCards?: Array<string>;
+    missingCards: Array<string>;
 };
 

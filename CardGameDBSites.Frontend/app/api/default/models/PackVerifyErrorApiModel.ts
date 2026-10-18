@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { PackPostApiModel } from './PackPostApiModel';
 export type PackVerifyErrorApiModel = {
-    errorMessage?: string;
-    postContent?: PackPostApiModel;
+    errorMessage: string;
+    postContent: PackPostApiModel;
 };
 

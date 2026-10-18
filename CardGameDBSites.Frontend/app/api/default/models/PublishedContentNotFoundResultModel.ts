@@ -2,8 +2,4 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type IApiContentStartItemModel = {
-    readonly id?: string;
-    readonly path?: string;
-};
-
+export type PublishedContentNotFoundResultModel = Record<string, any>;

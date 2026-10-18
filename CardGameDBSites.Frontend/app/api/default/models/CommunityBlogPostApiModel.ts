@@ -7,7 +7,7 @@ export type CommunityBlogPostApiModel = {
     title: string;
     imageUrl?: string | null;
     url: string;
-    publishedDate?: string;
+    publishedDate: string;
     author: string;
     tagType: string;
 };

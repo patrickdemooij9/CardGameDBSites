@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DeckBuilderSlotAmountApiModel = {
-    type?: string;
-    config?: Record<string, any>;
+    type: string;
+    config: Record<string, any>;
 };
 

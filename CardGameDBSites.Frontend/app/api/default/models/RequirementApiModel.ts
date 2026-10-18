@@ -4,11 +4,11 @@
 /* eslint-disable */
 import type { RestrictionType } from './RestrictionType';
 export type RequirementApiModel = {
-    alias?: string;
-    type?: string;
-    restrictionType?: RestrictionType;
+    alias: string;
+    type: string;
+    restrictionType: RestrictionType;
     errorMessage?: string | null;
     filterDisplayName?: string | null;
-    config?: Record<string, any>;
+    config: Record<string, any>;
 };
 

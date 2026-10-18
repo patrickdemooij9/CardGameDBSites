@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type MetaLeaderApiModel = {
-    leaderName?: string;
-    wins?: number;
-    top8Count?: number;
+    leaderName: string;
+    wins: number;
+    top8Count: number;
 };
 

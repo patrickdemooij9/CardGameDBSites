@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PresetApiModel = {
-    id?: string;
-    name?: string;
-    cardCount?: number;
+    id: string;
+    name: string;
+    cardCount: number;
 };
 

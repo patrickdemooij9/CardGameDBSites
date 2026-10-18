@@ -4,9 +4,9 @@
 /* eslint-disable */
 import type { ImageCropsApiModel } from './ImageCropsApiModel';
 export type MetaPopularCardApiModel = {
-    cardId?: number;
-    cardName?: string;
-    percentage?: number;
+    cardId: number;
+    cardName: string;
+    percentage: number;
     imageUrl?: ImageCropsApiModel;
 };
 

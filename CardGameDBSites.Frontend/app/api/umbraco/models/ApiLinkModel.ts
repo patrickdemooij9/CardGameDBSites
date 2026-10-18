@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { IApiContentRouteModel } from './IApiContentRouteModel';
+import type { ApiContentRouteModel } from './ApiContentRouteModel';
 import type { LinkTypeModel } from './LinkTypeModel';
 export type ApiLinkModel = {
     readonly url?: string | null;
@@ -11,7 +11,8 @@ export type ApiLinkModel = {
     readonly target?: string | null;
     readonly destinationId?: string | null;
     readonly destinationType?: string | null;
-    route?: IApiContentRouteModel;
-    linkType?: LinkTypeModel;
+    readonly route?: ApiContentRouteModel | null;
+    linkType: LinkTypeModel;
+    readonly culture?: string | null;
 };
 

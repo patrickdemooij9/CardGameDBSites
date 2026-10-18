@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PeriodApiModel = {
-    id?: number;
-    name?: string;
-    startingDateUtc?: string;
+    id: number;
+    name: string;
+    startingDateUtc: string;
     endDateUtc?: string | null;
-    isCurrent?: boolean;
+    isCurrent: boolean;
 };
 

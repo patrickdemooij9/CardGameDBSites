@@ -5,6 +5,6 @@
 import type { RequirementApiModel } from './RequirementApiModel';
 export type DeckCardImageRuleApiModel = {
     imageUrl: string;
-    requirements?: Array<RequirementApiModel>;
+    requirements: Array<RequirementApiModel>;
 };
 

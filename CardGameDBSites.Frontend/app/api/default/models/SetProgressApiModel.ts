@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type SetProgressApiModel = {
-    setId?: number;
-    totalCards?: number;
-    ownedCards?: number;
+    setId: number;
+    totalCards: number;
+    ownedCards: number;
 };
 

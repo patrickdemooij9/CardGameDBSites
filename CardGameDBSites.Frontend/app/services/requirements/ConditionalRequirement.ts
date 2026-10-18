@@ -1,5 +1,6 @@
 ﻿import {
     CardSearchFilterClauseType,
+  RestrictionType,
   type CardDetailApiModel,
   type CardsQueryFilterClauseApiModel,
 } from "~/api/default";
@@ -106,7 +107,7 @@ export default class ConditionalRequirement implements IRequirement {
 
     const cardsMatchingCondition = GetValidCards(
       cards,
-      conditions.map((c) => ({ ...c, alias: c.alias ?? c.type })),
+      conditions.map((c) => ({ ...c, alias: c.alias ?? c.type, restrictionType: RestrictionType.HARD })),
     );
     for (const requirement of requirements) {
         const requirementHandler = getRequirementHandlers().find(

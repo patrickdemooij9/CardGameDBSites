@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type MetaLeaderUsageApiModel = {
-    leaderName?: string;
-    count?: number;
+    leaderName: string;
+    count: number;
 };
 

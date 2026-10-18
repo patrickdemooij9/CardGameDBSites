@@ -2,14 +2,14 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { IApiContentRouteModel } from './IApiContentRouteModel';
+import type { ApiContentRouteModel } from './ApiContentRouteModel';
 import type { IApiElementModelBase } from './IApiElementModelBase';
 export type IApiContentModelBase = (IApiElementModelBase & {
-    readonly id?: string;
+    readonly id: string;
     readonly contentType: string;
     readonly name?: string | null;
-    readonly createDate?: string;
-    readonly updateDate?: string;
-    route?: IApiContentRouteModel;
+    readonly createDate: string;
+    readonly updateDate: string;
+    readonly route: ApiContentRouteModel;
 });
 

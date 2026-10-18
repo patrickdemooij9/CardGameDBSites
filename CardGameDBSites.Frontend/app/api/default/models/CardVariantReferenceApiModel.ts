@@ -4,8 +4,8 @@
 /* eslint-disable */
 export type CardVariantReferenceApiModel = {
     variantTypeId?: number | null;
-    cardVariantId?: number;
-    setId?: number;
+    cardVariantId: number;
+    setId: number;
     marketPrice?: number | null;
 };
 

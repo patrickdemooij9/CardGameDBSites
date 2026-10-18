@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type IApiElementModelBase = {
-    readonly id?: string;
+    readonly id: string;
     readonly contentType: string;
 };
 

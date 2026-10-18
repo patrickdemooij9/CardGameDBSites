@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DeckCardApiModel = {
-    cardId?: number;
-    groupId?: number;
-    slotId?: number;
-    amount?: number;
-    children?: Array<number>;
+    cardId: number;
+    groupId: number;
+    slotId: number;
+    amount: number;
+    children: Array<number>;
 };
 

@@ -5,6 +5,6 @@
 import type { ApiBlockGridItemModel } from './ApiBlockGridItemModel';
 import type { ApiBlockItemModel } from './ApiBlockItemModel';
 export type ApiBlockListModel = {
-    items?: Array<(ApiBlockItemModel | ApiBlockGridItemModel)>;
+    items: Array<(ApiBlockItemModel | ApiBlockGridItemModel)>;
 };
 

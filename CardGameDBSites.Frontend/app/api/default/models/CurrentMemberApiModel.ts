@@ -5,8 +5,8 @@
 export type CurrentMemberApiModel = {
     id: number;
     displayName: string;
-    likedDecks?: Array<number>;
-    isAdmin?: boolean;
+    likedDecks: Array<number>;
+    isAdmin: boolean;
     impersonatedBy?: number | null;
 };
 

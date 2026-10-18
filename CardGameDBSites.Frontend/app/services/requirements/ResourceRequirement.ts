@@ -1,6 +1,7 @@
 import {
   CardSearchFilterClauseType,
   CardSearchFilterMode,
+  RestrictionType,
   type CardDetailApiModel,
   type CardsQueryFilterApiModel,
   type CardsQueryFilterClauseApiModel,
@@ -24,10 +25,9 @@ function getMainCards(
   config: Record<string, any>,
 ): CardDetailApiModel[] {
   return cards.filter((card) =>
-    config["mainCardsCondition"].every((c: Record<string, any>) => {
-      c["alias"] = c["type"];
-      return IsValid([card], [c], false);
-    }),
+    config["mainCardsCondition"].every((c: Record<string, any>) =>
+      IsValid([card], [{ alias: c["type"], type: c["type"], restrictionType: RestrictionType.HARD, config: c["config"] }], false),
+    ),
   );
 }
 

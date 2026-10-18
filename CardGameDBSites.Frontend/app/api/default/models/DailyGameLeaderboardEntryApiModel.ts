@@ -3,12 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DailyGameLeaderboardEntryApiModel = {
-    rank?: number;
+    rank: number;
     memberId?: number | null;
     memberName?: string | null;
-    attemptsUsed?: number;
-    elapsedSeconds?: number;
-    solved?: boolean;
-    isCurrentPlayer?: boolean;
+    attemptsUsed: number;
+    elapsedSeconds: number;
+    solved: boolean;
+    isCurrentPlayer: boolean;
 };
 

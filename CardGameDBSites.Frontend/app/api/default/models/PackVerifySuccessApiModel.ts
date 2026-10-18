@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { PackVerifyCardApiModel } from './PackVerifyCardApiModel';
 export type PackVerifySuccessApiModel = {
-    setId?: number;
-    cards?: Array<PackVerifyCardApiModel>;
+    setId: number;
+    cards: Array<PackVerifyCardApiModel>;
 };
 

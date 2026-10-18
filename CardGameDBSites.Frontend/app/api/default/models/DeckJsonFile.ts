@@ -6,9 +6,9 @@ import type { DeckJsonCard } from './DeckJsonCard';
 import type { DeckJsonDeckCard } from './DeckJsonDeckCard';
 import type { DeckJsonMetaData } from './DeckJsonMetaData';
 export type DeckJsonFile = {
-    metadata?: DeckJsonMetaData;
-    leader?: (DeckJsonCard | DeckJsonDeckCard);
-    base?: (DeckJsonCard | DeckJsonDeckCard);
-    deck?: Array<DeckJsonDeckCard>;
+    metadata: DeckJsonMetaData;
+    leader: (DeckJsonCard | DeckJsonDeckCard);
+    base: (DeckJsonCard | DeckJsonDeckCard);
+    deck: Array<DeckJsonDeckCard>;
 };
 

@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PackVerifyCardApiModel = {
-    baseId?: number;
-    displayName?: string;
+    baseId: number;
+    displayName: string;
     variantTypeId?: number | null;
 };
 

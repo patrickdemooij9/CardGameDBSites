@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { PackItemApiModel } from './PackItemApiModel';
 export type PackPostApiModel = {
-    setId?: number;
-    items?: Array<PackItemApiModel>;
+    setId: number;
+    items: Array<PackItemApiModel>;
 };
 

@@ -44,6 +44,7 @@ const summaryData = ref<CollectionSummaryApiModel>({
   totalCards: 0,
   packsOpened: 0,
   marketPrice: 0,
+  collectionProgress: 0,
 });
 
 const exportTypes = [

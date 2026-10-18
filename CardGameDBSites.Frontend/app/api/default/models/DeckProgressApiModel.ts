@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DeckProgressApiModel = {
-    deckId?: number;
-    progress?: number;
+    deckId: number;
+    progress: number;
 };
 

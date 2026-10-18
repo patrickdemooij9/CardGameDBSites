@@ -2,7 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type IDeckDisplayApiModel = {
-    readonly type?: string;
+export type ApiContentStartItemModel = {
+    id: string;
+    path: string;
 };
 

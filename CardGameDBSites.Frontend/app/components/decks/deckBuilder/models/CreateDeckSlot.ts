@@ -1,4 +1,4 @@
-import type { CardDetailApiModel, RequirementApiModel } from "~/api/default";
+import { RestrictionType, type CardDetailApiModel, type RequirementApiModel } from "~/api/default";
 import {
   DisplaySize,
   RequirementType,
@@ -230,8 +230,10 @@ export default class CreateDeckSlot {
     childSlot.requirements = [
       {
         alias: RequirementType.ChildOf,
+        type: RequirementType.ChildOf,
+        restrictionType: RestrictionType.HARD,
         config: { allowedChildIds: allowedChildren },
-      } as RequirementApiModel,
+      },
     ];
     childSlot.useGroupRequirements = false; // Child slot should not inherit parent group requirements
 

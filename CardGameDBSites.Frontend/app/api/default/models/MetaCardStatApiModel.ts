@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type MetaCardStatApiModel = {
-    cardId?: number;
-    deckCount?: number;
-    usagePercentage?: number;
-    winratePercentage?: number;
+    cardId: number;
+    deckCount: number;
+    usagePercentage: number;
+    winratePercentage: number;
 };
 

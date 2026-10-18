@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { IApiElementModel } from './IApiElementModel';
 export type ApiBlockItemModel = {
-    content?: IApiElementModel;
+    content: IApiElementModel;
     settings?: IApiElementModel;
 };
 

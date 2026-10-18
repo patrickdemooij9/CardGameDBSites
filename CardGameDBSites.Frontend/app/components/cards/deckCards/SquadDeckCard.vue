@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { PhNotepad } from "@phosphor-icons/vue";
-import type { DeckTypeSettingsApiModel, DeckApiModel, MemberApiModel, CardDetailApiModel, IDeckDisplayApiModel } from "~/api/default";
+import type { DeckTypeSettingsApiModel, DeckApiModel, MemberApiModel, CardDetailApiModel, SquadDeckDisplayApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
 import { useCards } from "~/composables/useCards";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
-
-interface SquadDisplay extends IDeckDisplayApiModel {
-  type: "squadDeckDisplay";
-  amountOfSquadCards: number;
-}
 
 const props = defineProps<{
   deck: DeckApiModel;
@@ -29,7 +24,7 @@ const mainCards = computed(() =>
   GetValidCards(deckCards.value, props.settings.mainCardRequirements ?? []),
 );
 const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
-const groupsOf = computed(() => (props.settings.deckDisplay as SquadDisplay)?.amountOfSquadCards ?? 1);
+const groupsOf = computed(() => (props.settings.deckDisplay as SquadDeckDisplayApiModel)?.amountOfSquadCards ?? 1);
 </script>
 
 <template>

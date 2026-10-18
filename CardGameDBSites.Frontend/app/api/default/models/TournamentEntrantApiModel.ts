@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type TournamentEntrantApiModel = {
-    id?: number;
-    playerName?: string;
-    placement?: number;
+    id: number;
+    playerName: string;
+    placement: number;
     deckId?: number | null;
     deckName?: string | null;
 };

@@ -4,9 +4,9 @@
 /* eslint-disable */
 import type { ImageCropsApiModel } from './ImageCropsApiModel';
 export type MetaCardApiModel = {
-    baseId?: number;
-    displayName?: string;
-    urlSegment?: string;
+    baseId: number;
+    displayName: string;
+    urlSegment: string;
     imageUrl?: ImageCropsApiModel;
 };
 

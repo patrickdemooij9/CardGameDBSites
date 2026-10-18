@@ -5,6 +5,6 @@
 import type { ImageCropApiModel } from './ImageCropApiModel';
 export type ImageCropsApiModel = {
     url: string;
-    readonly crops?: Array<ImageCropApiModel>;
+    readonly crops: Array<ImageCropApiModel>;
 };
 

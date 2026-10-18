@@ -4,17 +4,17 @@
 /* eslint-disable */
 import type { ArtCropApiModel } from './ArtCropApiModel';
 export type DeckRenderConfigApiModel = {
-    cardAspect?: number;
-    landscapeTypes?: Array<string>;
-    backImageTypes?: Array<string>;
+    cardAspect: number;
+    landscapeTypes: Array<string>;
+    backImageTypes: Array<string>;
     typeAttribute?: string | null;
     costAttribute?: string | null;
     aspectAttribute?: string | null;
-    aspectColors?: Record<string, string>;
-    artCrops?: Array<ArtCropApiModel>;
+    aspectColors: Record<string, string>;
+    artCrops: Array<ArtCropApiModel>;
     eyebrow?: string | null;
-    tierBMin?: number;
-    tierCMin?: number;
-    minCanvasRatio?: number;
+    tierBMin: number;
+    tierCMin: number;
+    minCanvasRatio: number;
 };
 

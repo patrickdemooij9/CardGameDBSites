@@ -2,16 +2,22 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AddCollectionCardsApiModel } from '../models/AddCollectionCardsApiModel';
 import type { CollectionCardApiModel } from '../models/CollectionCardApiModel';
 import type { CollectionExportType } from '../models/CollectionExportType';
 import type { CollectionSettingsApiModel } from '../models/CollectionSettingsApiModel';
 import type { CollectionSummaryApiModel } from '../models/CollectionSummaryApiModel';
 import type { DeckProgressApiModel } from '../models/DeckProgressApiModel';
-import type { IActionResult } from '../models/IActionResult';
+import type { EmptyCreatedAtActionResultModel } from '../models/EmptyCreatedAtActionResultModel';
+import type { MaintenanceResultModel } from '../models/MaintenanceResultModel';
 import type { PackPostApiModel } from '../models/PackPostApiModel';
 import type { PackVerifySuccessApiModel } from '../models/PackVerifySuccessApiModel';
 import type { PresetApiModel } from '../models/PresetApiModel';
+import type { PublishedContentNotFoundResultModel } from '../models/PublishedContentNotFoundResultModel';
+import type { RedirectToUmbracoPageResultModel } from '../models/RedirectToUmbracoPageResultModel';
+import type { RedirectToUmbracoUrlResultModel } from '../models/RedirectToUmbracoUrlResultModel';
 import type { SetProgressApiModel } from '../models/SetProgressApiModel';
+import type { UmbracoPageResultModel } from '../models/UmbracoPageResultModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -35,6 +41,25 @@ export class CollectionResource {
             },
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns CollectionCardApiModel OK
+     * @throws ApiError
+     */
+    public static postApiCollectionAddCardsBatch({
+        requestBody,
+    }: {
+        requestBody?: Array<AddCollectionCardsApiModel>,
+    }): CancelablePromise<Array<CollectionCardApiModel>> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/collection/addCardsBatch',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                404: `Not Found`,
+            },
         });
     }
     /**
@@ -140,14 +165,14 @@ export class CollectionResource {
         });
     }
     /**
-     * @returns IActionResult OK
+     * @returns any OK
      * @throws ApiError
      */
     public static postApiCollectionImport({
         overwrite,
     }: {
         overwrite?: boolean,
-    }): CancelablePromise<IActionResult> {
+    }): CancelablePromise<(EmptyCreatedAtActionResultModel | MaintenanceResultModel | PublishedContentNotFoundResultModel | RedirectToUmbracoPageResultModel | RedirectToUmbracoUrlResultModel | UmbracoPageResultModel)> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/collection/import',

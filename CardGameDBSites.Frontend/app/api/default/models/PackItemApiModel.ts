@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PackItemApiModel = {
-    id?: string;
+    id: string;
     variantTypeId?: number | null;
 };
 

@@ -6,8 +6,8 @@ import type { OverviewFilterOptionApiModel } from './OverviewFilterOptionApiMode
 export type OverviewFilterApiModel = {
     alias: string;
     displayName: string;
-    isInline?: boolean;
-    options?: Array<OverviewFilterOptionApiModel>;
-    autoFillValues?: boolean;
+    isInline: boolean;
+    options: Array<OverviewFilterOptionApiModel>;
+    autoFillValues: boolean;
 };
 

@@ -5,6 +5,6 @@
 export type DailyGameAttributeFeedbackApiModel = {
     name: string;
     matchType: string;
-    guessValues?: Array<string>;
+    guessValues: Array<string>;
 };
 

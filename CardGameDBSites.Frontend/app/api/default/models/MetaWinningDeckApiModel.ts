@@ -3,12 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export type MetaWinningDeckApiModel = {
-    tournamentId?: number;
-    tournamentName?: string;
-    tournamentDateUtc?: string;
+    tournamentId: number;
+    tournamentName: string;
+    tournamentDateUtc: string;
     externalUrl?: string | null;
     playerName?: string | null;
-    deckId?: number;
+    deckId: number;
     deckName?: string | null;
     leaderName?: string | null;
 };

@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DeckFolderApiModel = {
-    id?: number;
-    name?: string;
+    id: number;
+    name: string;
     description?: string | null;
-    deckCount?: number;
-    createdDate?: string;
+    deckCount: number;
+    createdDate: string;
 };
 

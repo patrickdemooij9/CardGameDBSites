@@ -4,12 +4,12 @@
 /* eslint-disable */
 import type { TournamentEntrantApiModel } from './TournamentEntrantApiModel';
 export type TournamentSummaryApiModel = {
-    id?: number;
-    name?: string;
-    dateUtc?: string;
-    type?: string;
+    id: number;
+    name: string;
+    dateUtc: string;
+    type: string;
     externalUrl?: string | null;
-    playerCount?: number;
+    playerCount: number;
     winner?: TournamentEntrantApiModel;
 };
 

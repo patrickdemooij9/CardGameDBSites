@@ -4,10 +4,10 @@
 /* eslint-disable */
 import type { CardDetailApiModel } from './CardDetailApiModel';
 export type PagedResultCardDetailApiModel = {
-    pageNumber?: number;
-    pageSize?: number;
-    readonly totalPages?: number;
-    totalItems?: number;
+    pageNumber: number;
+    pageSize: number;
+    readonly totalPages: number;
+    totalItems: number;
     items?: Array<CardDetailApiModel> | null;
 };
 

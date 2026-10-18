@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type DeckJsonCard = {
-    id?: string;
-    count?: number;
+    id: string;
+    count: number;
 };
 

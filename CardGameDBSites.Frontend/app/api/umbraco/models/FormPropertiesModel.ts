@@ -2,4 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type IActionResult = Record<string, any>;
+export type FormPropertiesModel = {
+    formAlias?: string | null;
+};
+

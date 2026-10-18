@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CollectionSummaryApiModel = {
-    uniqueCards?: number;
-    totalCards?: number;
-    packsOpened?: number;
-    marketPrice?: number;
-    collectionProgress?: number;
+    uniqueCards: number;
+    totalCards: number;
+    packsOpened: number;
+    marketPrice: number;
+    collectionProgress: number;
 };
 

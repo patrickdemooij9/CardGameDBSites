@@ -43,6 +43,7 @@ export function ToRequirements(blockList: ApiBlockListModel | undefined | null):
 
     result.push({
       alias,
+      type: alias,
       restrictionType: parseRestrictionType(properties?.restrictionType),
       config: {
         ability,

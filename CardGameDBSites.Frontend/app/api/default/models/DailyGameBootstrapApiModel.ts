@@ -6,16 +6,16 @@ import type { DailyGameAttemptApiModel } from './DailyGameAttemptApiModel';
 import type { DailyGameLeaderboardEntryApiModel } from './DailyGameLeaderboardEntryApiModel';
 export type DailyGameBootstrapApiModel = {
     guestSessionToken: string;
-    maxAttempts?: number;
-    attemptsUsed?: number;
-    attemptsLeft?: number;
-    elapsedSeconds?: number;
-    blurLevel?: number;
-    isFinished?: boolean;
-    isSolved?: boolean;
+    maxAttempts: number;
+    attemptsUsed: number;
+    attemptsLeft: number;
+    elapsedSeconds: number;
+    blurLevel: number;
+    isFinished: boolean;
+    isSolved: boolean;
     imageDataUrl?: string | null;
-    attempts?: Array<DailyGameAttemptApiModel>;
-    leaderboard?: Array<DailyGameLeaderboardEntryApiModel>;
+    attempts: Array<DailyGameAttemptApiModel>;
+    leaderboard: Array<DailyGameLeaderboardEntryApiModel>;
     currentPlacement?: DailyGameLeaderboardEntryApiModel;
 };
 

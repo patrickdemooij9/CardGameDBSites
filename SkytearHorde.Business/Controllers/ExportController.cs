@@ -47,6 +47,7 @@ namespace SkytearHorde.Business.Controllers
             _settingsService = settingsService;
         }
 
+        [HttpGet]
         [EnableRateLimiting("export")]
         public async Task<IActionResult> Export(int deckId, Guid exportId)
         {
@@ -114,6 +115,7 @@ namespace SkytearHorde.Business.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> ExportForceTable(int deckId)
         {
             if (!TryGetDeck(deckId, out var deck))

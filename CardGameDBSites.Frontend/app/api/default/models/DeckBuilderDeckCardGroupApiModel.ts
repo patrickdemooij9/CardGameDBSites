@@ -6,6 +6,6 @@ import type { RequirementApiModel } from './RequirementApiModel';
 export type DeckBuilderDeckCardGroupApiModel = {
     displayName: string;
     sortBy?: string | null;
-    requirements?: Array<RequirementApiModel>;
+    requirements: Array<RequirementApiModel>;
 };
 

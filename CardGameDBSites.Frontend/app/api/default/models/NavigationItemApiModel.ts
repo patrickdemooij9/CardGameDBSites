@@ -5,6 +5,6 @@
 export type NavigationItemApiModel = {
     name: string;
     url: string;
-    children?: Array<NavigationItemApiModel>;
+    children: Array<NavigationItemApiModel>;
 };
 

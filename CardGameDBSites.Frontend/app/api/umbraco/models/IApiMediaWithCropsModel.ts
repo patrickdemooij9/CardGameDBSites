@@ -5,15 +5,15 @@
 import type { ImageCropModel } from './ImageCropModel';
 import type { ImageFocalPointModel } from './ImageFocalPointModel';
 export type IApiMediaWithCropsModel = {
-    readonly id?: string;
-    readonly name?: string;
-    readonly mediaType?: string;
-    readonly url?: string;
+    readonly id: string;
+    readonly name: string;
+    readonly mediaType: string;
+    readonly url: string;
     readonly extension?: string | null;
     readonly width?: number | null;
     readonly height?: number | null;
     readonly bytes?: number | null;
-    readonly properties?: Record<string, any>;
+    readonly properties: Record<string, any>;
     focalPoint?: ImageFocalPointModel;
     readonly crops?: Array<ImageCropModel> | null;
 };

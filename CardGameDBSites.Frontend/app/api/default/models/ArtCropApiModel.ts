@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ArtCropApiModel = {
-    typeValue?: string;
-    left?: number;
-    top?: number;
-    right?: number;
-    bottom?: number;
+    typeValue: string;
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
 };
 

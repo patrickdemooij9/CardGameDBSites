@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type SquadSettingsOptionApiModel = {
-    id?: string;
-    typeId?: number;
-    name?: string;
+    id: string;
+    typeId: number;
+    name: string;
     description?: string | null;
     imageUrl?: string | null;
 };

@@ -4,11 +4,11 @@
 /* eslint-disable */
 import type { DailyGameAttributeFeedbackApiModel } from './DailyGameAttributeFeedbackApiModel';
 export type DailyGameAttemptApiModel = {
-    attemptNumber?: number;
-    guessedCardId?: number;
+    attemptNumber: number;
+    guessedCardId: number;
     guessedCardName?: string | null;
-    isCorrect?: boolean;
-    feedback?: Array<DailyGameAttributeFeedbackApiModel>;
-    createdUtc?: string;
+    isCorrect: boolean;
+    feedback: Array<DailyGameAttributeFeedbackApiModel>;
+    createdUtc: string;
 };
 

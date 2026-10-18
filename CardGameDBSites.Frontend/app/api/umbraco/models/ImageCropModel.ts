@@ -5,8 +5,8 @@
 import type { ImageCropCoordinatesModel } from './ImageCropCoordinatesModel';
 export type ImageCropModel = {
     alias?: string | null;
-    width?: number;
-    height?: number;
+    width: number;
+    height: number;
     coordinates?: ImageCropCoordinatesModel;
 };
 

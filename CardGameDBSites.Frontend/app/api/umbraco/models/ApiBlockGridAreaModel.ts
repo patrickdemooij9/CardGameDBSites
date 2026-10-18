@@ -4,9 +4,9 @@
 /* eslint-disable */
 import type { ApiBlockGridItemModel } from './ApiBlockGridItemModel';
 export type ApiBlockGridAreaModel = {
-    alias?: string;
-    rowSpan?: number;
-    columnSpan?: number;
-    items?: Array<ApiBlockGridItemModel>;
+    alias: string;
+    rowSpan: number;
+    columnSpan: number;
+    items: Array<ApiBlockGridItemModel>;
 };
 

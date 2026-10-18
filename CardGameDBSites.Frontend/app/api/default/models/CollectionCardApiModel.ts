@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CollectionCardApiModel = {
-    id?: number;
-    cardId?: number;
-    variantId?: number;
-    amount?: number;
+    id: number;
+    cardId: number;
+    variantId: number;
+    amount: number;
 };
 

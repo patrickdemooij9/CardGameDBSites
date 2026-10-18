@@ -14,6 +14,6 @@ export type SetViewModel = {
     releaseDate?: string | null;
     subHeading?: string | null;
     description?: string | null;
-    frequentlyAskedQuestions?: Array<FrequentlyAskedQuestionApiModel>;
+    frequentlyAskedQuestions: Array<FrequentlyAskedQuestionApiModel>;
 };
 

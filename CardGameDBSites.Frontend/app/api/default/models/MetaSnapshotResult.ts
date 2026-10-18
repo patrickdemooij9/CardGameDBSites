@@ -3,10 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export type MetaSnapshotResult = {
-    snapshotId?: number;
-    periodId?: number;
-    snapshotDateUtc?: string;
-    totalDecks?: number;
-    cardRowCount?: number;
+    snapshotId: number;
+    periodId: number;
+    snapshotDateUtc: string;
+    totalDecks: number;
+    cardRowCount: number;
 };
 

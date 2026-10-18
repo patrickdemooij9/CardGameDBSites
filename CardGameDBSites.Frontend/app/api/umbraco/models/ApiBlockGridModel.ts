@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { ApiBlockGridItemModel } from './ApiBlockGridItemModel';
 export type ApiBlockGridModel = {
-    gridColumns?: number;
-    items?: Array<ApiBlockGridItemModel>;
+    gridColumns: number;
+    items: Array<ApiBlockGridItemModel>;
 };
 

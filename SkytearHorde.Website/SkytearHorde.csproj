@@ -33,6 +33,7 @@
     <PackageReference Include="Sentry.Profiling" Version="6.0.0" />
     <PackageReference Include="SeoToolkit.Umbraco" Version="6.5.1" />
     <PackageReference Include="SeoToolkit.Umbraco.Sitemap.Core" Version="6.5.1" />
+    <PackageReference Include="SproutForms.Umbraco" Version="1.0.0-beta003" />
     <PackageReference Include="Umbraco.Cms" Version="17.7.1" />
   </ItemGroup>
 

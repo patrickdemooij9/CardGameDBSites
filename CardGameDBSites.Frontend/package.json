@@ -24,6 +24,7 @@
     "@nuxt/image": "^2.0.0",
     "@phosphor-icons/vue": "^2.2.1",
     "@pinia/nuxt": "^0.11.3",
+    "@sproutforms/nuxt": "^1.0.0-beta003",
     "chart.js": "^4.5.1",
     "floating-vue": "^5.2.2",
     "jwt-decode": "^4.0.0",

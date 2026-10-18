@@ -47,7 +47,16 @@ export default defineNuxtConfig({
     global: true,
     dirs: ["~/components/pageTypes"]
   },
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'floating-vue/nuxt', '@nuxt/image'],
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'floating-vue/nuxt', '@nuxt/image', '@sproutforms/nuxt'],
+  sproutForms: {
+    baseUrl: process.env.NUXT_PUBLIC_API_BASE_URL,
+    // The app has no Nitro server to proxy through, so it calls the API directly.
+    proxy: !isNativeBuild
+  },
+  build: {
+    // @sproutforms/client ships extensionless ESM imports that Node can't resolve, so let Vite bundle it.
+    transpile: ['@sproutforms/client', '@sproutforms/vue']
+  },
   image: {
     provider: 'umbraco',
     providers: {

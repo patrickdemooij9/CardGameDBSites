@@ -58,4 +58,5 @@ jobs:
             --var "NUXT_API_BASE_URL:${{ matrix.site.api_base_url }}" \
             --var "NUXT_PUBLIC_API_BASE_URL:${{ matrix.site.api_base_url }}" \
             --var "API_BASE_URL:${{ matrix.site.api_base_url }}" \
+            --var "NUXT_SPROUT_FORMS_BASE_URL:${{ matrix.site.api_base_url }}" \
             --var "NUXT_PUBLIC_SITE_ID:${{ matrix.site.site_id }}"

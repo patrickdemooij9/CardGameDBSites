@@ -42,6 +42,7 @@ const inlineFilters = computed(() =>
 function handleSubmit(event: Event) {
   event.preventDefault();
   props.overviewState.setSearch(search.value);
+  (document.activeElement as HTMLElement | null)?.blur();
 }
 </script>
 
@@ -57,14 +58,15 @@ function handleSubmit(event: Event) {
             class="pl-4 py-4 grow"
             name="search"
             type="text"
+            enterkeyhint="search"
             placeholder="Search..."
             v-model="search"
           />
 
           <button
             class="flex justify-center items-center w-8 text-lg px-2 bg-white"
-            type="button"
-            @click="handleSubmit"
+            type="submit"
+            aria-label="Search"
           >
             <PhMagnifyingGlass />
           </button>

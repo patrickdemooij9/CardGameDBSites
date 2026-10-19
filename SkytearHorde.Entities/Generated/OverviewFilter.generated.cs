@@ -87,6 +87,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool IsInline => this.Value<bool>(_publishedValueFallback, "isInline");
 
 		///<summary>
+		/// Is Range: Is displayed as a range slider
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[ImplementPropertyType("isRange")]
+		public virtual bool IsRange => this.Value<bool>(_publishedValueFallback, "isRange");
+
+		///<summary>
 		/// Items
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

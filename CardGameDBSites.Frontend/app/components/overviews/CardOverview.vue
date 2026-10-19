@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OverviewFilterModel } from "./OverviewFilterModel";
+import { OverviewFilterType, type OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import {
   CardSearchCollectionMode,
@@ -96,8 +96,31 @@ const internalFilters = computed<CardsQueryFilterClauseApiModel[]>(() => {
   ];
 });
 
-const variantTypes = ref<CardVariantTypeApiModel[]>([]);
+const variantTypes = ref<CardVariantTypeApiModel[]>(await cards.loadVariantTypes());
 const mainVariants = computed(() => variantTypes.value.filter((item) => item.hasPage));
+
+const variantFilter: OverviewFilterModel | undefined =
+  !props.variantTypeIds && mainVariants.value.length > 0
+    ? {
+        Alias: "variant",
+        DisplayName: "Variant",
+        Type: OverviewFilterType.SINGLE_SELECT,
+        AutoFillValues: false,
+        Items: [
+          { DisplayName: "Default", Value: "" },
+          ...mainVariants.value.map((variant) => ({
+            DisplayName: variant.displayName,
+            Value: variant.id.toString(),
+          })),
+        ],
+        ApplyToQuery: (values, query) => {
+          query.variantTypeIds = [Number(values[0])];
+        },
+      }
+    : undefined;
+const overviewFilters = computed(() =>
+  variantFilter ? [variantFilter, ...props.filters] : props.filters,
+);
 const currentCards = ref<PagedResultCardDetailApiModel | null>(null);
 const collectionColumns = computed<CollectionColumn[]>(() => [
   {
@@ -127,7 +150,6 @@ const collectionVariantBadgeStep = 10;
 
 onMounted(async () => {
   isLoggedIn.value = await accountService.checkLogin();
-  variantTypes.value = await cards.loadVariantTypes();
 });
 
 function loadCollectionCards(cards: PagedResultCardDetailApiModel) {
@@ -279,7 +301,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
 
 <template>
   <BaseCardOverview
-    :filters="filters"
+    :filters="overviewFilters"
     :sortings="sortings"
     :internal-filters="internalFilters"
     :white-background="true"

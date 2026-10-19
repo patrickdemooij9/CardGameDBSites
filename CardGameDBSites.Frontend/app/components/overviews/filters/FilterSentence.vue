@@ -4,6 +4,7 @@ import {
   OverviewFilterType,
   type OverviewFilterModel,
 } from "../OverviewFilterModel";
+import { FormatRangeValue } from "~/helpers/RangeFilterHelper";
 
 const props = withDefaults(
   defineProps<{
@@ -20,6 +21,7 @@ const clauses = computed(() =>
 );
 
 function displayValue(filter: OverviewFilterModel, value: string) {
+  if (filter.Type === OverviewFilterType.RANGE) return FormatRangeValue(value);
   const item = filter.Items.find((i) => i.Value === value);
   return item?.DisplayName ?? value;
 }

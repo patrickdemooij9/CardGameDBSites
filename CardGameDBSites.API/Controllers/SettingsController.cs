@@ -189,6 +189,7 @@ namespace CardGameDBSites.API.Controllers
                     Alias = it.IsExpansionFilter ? "Set Name" : it.Ability!.Name,
                     DisplayName = it.DisplayName,
                     IsInline = it.IsInline,
+                    IsRange = it.IsRange,
                     AutoFillValues = it.AutoFillValues,
                     Options = it.Items.ToItems<OverviewFilterItem>().Select(c => new OverviewFilterOptionApiModel
                     {

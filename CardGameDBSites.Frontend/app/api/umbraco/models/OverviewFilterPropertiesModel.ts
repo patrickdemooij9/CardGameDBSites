@@ -11,5 +11,6 @@ export type OverviewFilterPropertiesModel = {
     items?: ApiBlockListModel;
     isExpansionFilter?: boolean | null;
     isInline?: boolean | null;
+    isRange?: boolean | null;
 };
 

@@ -8,6 +8,7 @@ import type { CardDetailApiModel } from "~/api/default";
 import CardSearchInput from "~/components/shared/CardSearchInput.vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import FilterIconGroup from "./FilterIconGroup.vue";
+import FilterRange from "./FilterRange.vue";
 
 const props = defineProps<{
   overviewState: ReturnType<typeof useOverviewState>;
@@ -66,6 +67,14 @@ function getValue() {
 
 function setValue(value: string) {
   props.overviewState.setFilter(props.filter, value);
+}
+
+function selectSingle(value: string) {
+  if (value === "") {
+    props.overviewState.clearFilter(props.filter);
+    return;
+  }
+  setValue(value);
 }
 
 function onCardSelect(card: CardDetailApiModel) {
@@ -161,6 +170,33 @@ function onCardSelect(card: CardDetailApiModel) {
             No matches for "{{ query }}".
           </p>
         </div>
+      </div>
+
+      <FilterRange
+        v-else-if="filter.Type === OverviewFilterType.RANGE"
+        :overview-state="overviewState"
+        :filter="filter"
+      />
+
+      <div
+        v-else-if="filter.Type === OverviewFilterType.SINGLE_SELECT"
+        class="flex flex-col gap-1"
+      >
+        <label
+          v-for="item in filter.Items"
+          :key="item.Value"
+          class="flex items-center gap-2 px-1 py-1.5 cursor-pointer rounded hover:bg-gray-100"
+        >
+          <input
+            type="radio"
+            class="h-4 w-4 accent-black"
+            :name="`section-${filter.Alias}`"
+            :value="item.Value"
+            :checked="(getValue() ?? '') === item.Value"
+            @change="selectSingle(item.Value)"
+          />
+          {{ item.DisplayName }}
+        </label>
       </div>
 
       <!-- DATE -->

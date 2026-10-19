@@ -11,6 +11,8 @@ import {
   type OverviewFilterModel,
 } from "../overviews/OverviewFilterModel";
 import { useSite } from "~/composables/useSite";
+import { GetFilterType } from "~/helpers/OverviewHelper";
+import { ToRangeFilterClauses } from "~/helpers/RangeFilterHelper";
 import SetPriceHistoryChart from "../cards/SetPriceHistoryChart.vue";
 import FaqSection from "~/components/shared/FaqSection.vue";
 import { buildFaqSchema } from "~/components/shared/faq";
@@ -52,10 +54,11 @@ const filters: OverviewFilterModel[] =
     return {
       Alias: filter.alias,
       DisplayName: filter.displayName,
-      Type: filter.isInline
-        ? OverviewFilterType.INLINE
-        : OverviewFilterType.DROPDOWN,
-      AutoFillValues: filter.autoFillValues ?? false,
+      Type: GetFilterType(filter.isInline, filter.isRange),
+      AutoFillValues: (filter.autoFillValues || filter.isRange) ?? false,
+      ToFiltersHandler: filter.isRange
+        ? (values) => ToRangeFilterClauses(filter.alias, values)
+        : undefined,
       Items:
         filter.options?.map((item) => {
           return {

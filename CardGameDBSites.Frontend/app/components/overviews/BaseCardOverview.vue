@@ -42,7 +42,7 @@ const overviewState = useOverviewState(
 const queryModel = computed<CardsQueryPostApiModel>(() => {
   const filters: CardsQueryFilterClauseApiModel[] = [];
   overviewState.state.selectedFilters.forEach((values, key) => {
-    if (values.length === 0) {
+    if (values.length === 0 || key.ApplyToQuery) {
       return;
     }
     if (key.ToFiltersHandler) {
@@ -77,7 +77,7 @@ const queryModel = computed<CardsQueryPostApiModel>(() => {
     filters.push(filter);
   });
 
-  return {
+  const query: CardsQueryPostApiModel = {
     query: overviewState.state.search,
     pageNumber: page.value,
     pageSize: props.pageSize ?? 30,
@@ -88,6 +88,13 @@ const queryModel = computed<CardsQueryPostApiModel>(() => {
     includeReprintedCards: props.hideReprintedCards ? false : undefined,
     legalForDeckTypeId: props.legalForDeckTypeId,
   };
+  overviewState.state.selectedFilters.forEach((values, key) => {
+    if (values.length > 0) {
+      key.ApplyToQuery?.(values, query);
+    }
+  });
+
+  return query;
 });
 
 const page = computed(() => overviewState.state.page);

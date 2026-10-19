@@ -7,6 +7,7 @@ export type OverviewFilterApiModel = {
     alias: string;
     displayName: string;
     isInline: boolean;
+    isRange: boolean;
     options: Array<OverviewFilterOptionApiModel>;
     autoFillValues: boolean;
 };

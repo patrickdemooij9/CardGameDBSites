@@ -24,7 +24,7 @@ onMounted(() => {
 function submitSearch(event: Event) {
   event.preventDefault();
 
-  useRouter().push(`/cards?search=${search.value}`);
+  useRouter().push(`/cards?search=${encodeURIComponent(search.value)}`);
 }
 </script>
 
@@ -47,6 +47,7 @@ function submitSearch(event: Event) {
           class="pl-4 py-4 grow"
           name="search"
           type="text"
+          enterkeyhint="search"
           placeholder="Search cards..."
           v-model="search"
         />

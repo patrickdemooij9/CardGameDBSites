@@ -1,4 +1,4 @@
-import type { CardsQueryFilterClauseApiModel } from "~/api/default";
+import type { CardsQueryFilterClauseApiModel, CardsQueryPostApiModel } from "~/api/default";
 
 export enum OverviewFilterType {
     INLINE = "INLINE",
@@ -7,6 +7,8 @@ export enum OverviewFilterType {
     DROPDOWN = "DROPDOWN",
     DATE = "DATE",
     TEXT_INPUT = "TEXT_INPUT",
+    RANGE = "RANGE",
+    SINGLE_SELECT = "SINGLE_SELECT",
 }
 
 export interface OverviewFilterModel {
@@ -22,6 +24,7 @@ export interface OverviewFilterModel {
     Loading?: boolean;
 
     ToFiltersHandler?: (values: string[]) => CardsQueryFilterClauseApiModel[];
+    ApplyToQuery?: (values: string[], query: CardsQueryPostApiModel) => void;
 }
 
 export interface OverviewFilterItemModel {

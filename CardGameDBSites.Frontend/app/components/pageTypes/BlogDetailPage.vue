@@ -116,7 +116,7 @@ useHead({
         </div>
     </header>
 
-    <article class="relative z-10 mx-auto -mt-16 mb-16 max-w-3xl px-4">
+    <article class="relative z-10 mx-auto -mt-16 mb-16 max-w-5xl px-4">
         <div class="article-body rounded-lg bg-white px-5 py-8 shadow-sm ring-1 ring-gray-200 md:px-10 md:py-10">
             <ContentGrid v-if="properties?.grid" :content="properties.grid" />
         </div>
@@ -124,63 +124,68 @@ useHead({
 </template>
 
 <style scoped>
-.article-body {
-    @apply text-base leading-relaxed text-gray-800 md:text-lg;
-}
-
 /* Grid layout blocks wrap themselves in a full-width .container; inside the article they should just flow. */
 .article-body :deep(.container) {
     @apply mb-0 max-w-none p-0;
 }
 
-.article-body :deep(p) {
-    @apply mb-5;
+.article-body :deep(.deck-embed) {
+    @apply -mx-5 my-8 rounded-none border-x-0 md:mx-0 md:rounded md:border-x;
 }
 
-.article-body :deep(.rte-spacer) {
-    @apply hidden;
-}
-
-.article-body :deep(h2),
-.article-body :deep(h3),
-.article-body :deep(h4) {
-    @apply mt-10 mb-3 leading-snug text-gray-900;
-}
-
-.article-body :deep(h2) {
+.article-body :deep(.deck-embed h2) {
     @apply text-2xl md:text-3xl;
 }
 
-.article-body :deep(h3) {
+.article-body :deep(.rte) {
+    @apply mx-auto max-w-3xl text-base leading-relaxed text-gray-800 md:text-lg;
+}
+
+.article-body :deep(.rte p) {
+    @apply mb-5;
+}
+
+.article-body :deep(.rte .rte-spacer) {
+    @apply hidden;
+}
+
+.article-body :deep(.rte :is(h2, h3, h4)) {
+    @apply mt-10 mb-3 leading-snug text-gray-900;
+}
+
+.article-body :deep(.rte h2) {
+    @apply text-2xl md:text-3xl;
+}
+
+.article-body :deep(.rte h3) {
     @apply text-xl md:text-2xl;
 }
 
-.article-body :deep(h4) {
+.article-body :deep(.rte h4) {
     @apply text-lg md:text-xl;
 }
 
-.article-body :deep(ul),
-.article-body :deep(ol) {
+.article-body :deep(.rte :is(h2, h3, h4):first-child) {
+    @apply mt-0;
+}
+
+.article-body :deep(.rte :is(ul, ol)) {
     @apply mb-5 ml-6 space-y-2;
 }
 
-.article-body :deep(ol) {
+.article-body :deep(.rte ol) {
     @apply list-decimal;
 }
 
-.article-body :deep(a:not(.no-underline)) {
+.article-body :deep(.rte a:not(.no-underline)) {
     @apply border-blue-600 text-blue-700;
 }
 
-.article-body :deep(img) {
+.article-body :deep(.rte img) {
     @apply my-6 h-auto max-w-full rounded-md;
 }
 
-.article-body :deep(blockquote) {
+.article-body :deep(.rte blockquote) {
     @apply my-6 border-l-4 border-gray-300 pl-4 italic text-gray-700;
-}
-
-.article-body :deep(:is(h2, h3, h4):first-child) {
-    @apply mt-0;
 }
 </style>

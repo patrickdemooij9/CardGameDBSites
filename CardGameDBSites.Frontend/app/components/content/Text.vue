@@ -11,5 +11,5 @@ const markup = computed(() =>
 </script>
 
 <template>
-    <div v-html="markup"></div>
+    <div class="rte" v-html="markup"></div>
 </template>

@@ -172,7 +172,6 @@ namespace SkytearHorde.Business.Startup
                     {
                         applicationBuilder.UseMiddleware<SiteSetterMiddleware>();
                         //applicationBuilder.UseMiddleware<AdRedirectMiddleware>();
-                        applicationBuilder.UseMiddleware<CountryMiddleware>();
                         applicationBuilder.UseMiddleware<TrackDeckMiddleware>();
                         //applicationBuilder.UseMiddleware<TrackViewMiddleware>();
                         applicationBuilder.UseMiddleware<FaviconMiddleware>();

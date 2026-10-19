@@ -101,7 +101,7 @@ function getImagesForCard(card: CardDetailApiModel) {
 <template>
   <div
     v-if="deck && deckSettings"
-    class="rounded border border-gray-300 bg-white p-4 md:p-6"
+    class="deck-embed rounded border border-gray-300 bg-white p-4 md:p-6"
   >
     <div class="mb-4 flex flex-col gap-2 border-b border-gray-200 pb-4 md:flex-row md:items-start md:justify-between">
       <div>

@@ -63,6 +63,8 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<CommentService>();
             builder.Services.AddScoped<CollectionService>();
             builder.Services.AddSingleton<CardPriceService>();
+            builder.Services.AddSingleton<CardPriceSyncService>();
+            builder.Services.AddSingleton<TcgPlayerIdService>();
             builder.Services.AddScoped<RandomizeService>();
             builder.Services.AddScoped<TournamentService>();
             builder.Services.AddSingleton<MetaSnapshotService>();

@@ -26,18 +26,24 @@ if (!data.value) {
 }
 
 const config = useRuntimeConfig();
+const seo = data.value.seoToolkit;
+const canonicalUrl = `${useRequestURL().origin}${route.path}`;
+// Without max-image-preview:large, Discover only shows small thumbnails.
+const robots = [...(seo.robots ?? []), 'max-image-preview:large', 'max-snippet:-1', 'max-video-preview:-1'].join(', ');
 
 useHead({
-    title: data.value.seoToolkit.title,
+    title: seo.title,
     meta: [
-        { name: 'description', content: data.value.seoToolkit.metaDescription },
-        { property: 'og:title', content: data.value.seoToolkit.openGraphTitle || data.value?.seoToolkit.title },
-        { property: 'og:description', content: data.value.seoToolkit.metaDescription },
-        { property: 'og:image', content: data.value.seoToolkit.openGraphImage },
-        { property: 'og:url', content: data.value.seoToolkit.canonicalUrl }
+        { name: 'description', content: seo.metaDescription },
+        { name: 'robots', content: robots },
+        { property: 'og:title', content: seo.openGraphTitle || seo.title },
+        { property: 'og:description', content: seo.openGraphDescription || seo.metaDescription },
+        ...(seo.openGraphImage ? [{ property: 'og:image', content: seo.openGraphImage }] : []),
+        { property: 'og:url', content: seo.openGraphUrl || canonicalUrl }
     ],
     link: [
-        { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` }
+        { rel: 'icon', href: `${config.public.API_BASE_URL}/favicon.ico` },
+        { rel: 'canonical', href: canonicalUrl }
     ]
 });
 

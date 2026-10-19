@@ -13,7 +13,9 @@ const props = defineProps<{
 const accountStore = useAccountStore();
 const isLoading = ref(true);
 const isLoggedIn = ref(false);
-const filters = ToOverviewModel(props.content.properties?.filters?.items ?? []);
+const filters = useCollectionFilter(
+  ToOverviewModel(props.content.properties?.filters?.items ?? []),
+);
 
 onMounted(async () => {
   isLoggedIn.value = await accountStore.checkLogin();

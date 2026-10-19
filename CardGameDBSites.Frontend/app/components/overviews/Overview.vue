@@ -35,8 +35,12 @@ const emit = defineEmits<{
 const drawerOpen = ref(false);
 const search = ref(props.overviewState.state.search);
 
+const sortedFilters = computed(() =>
+  [...props.filters].sort((a, b) => a.DisplayName.localeCompare(b.DisplayName)),
+);
+
 const inlineFilters = computed(() =>
-  props.filters.filter((filter) => filter.Type === OverviewFilterType.INLINE),
+  sortedFilters.value.filter((filter) => filter.Type === OverviewFilterType.INLINE),
 );
 
 function handleSubmit(event: Event) {
@@ -185,7 +189,7 @@ function handleSubmit(event: Event) {
       v-if="!hideFilters"
       :open="drawerOpen"
       :overview-state="overviewState"
-      :filters="filters"
+      :filters="sortedFilters"
       @close="drawerOpen = false"
       @loadLazyFilter="(filter) => emit('loadLazyFilter', filter)"
     />

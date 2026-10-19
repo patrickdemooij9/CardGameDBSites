@@ -6,10 +6,7 @@ import type {
 } from "~/api/default";
 import SetService from "~/services/SetService";
 import CardOverview from "../overviews/CardOverview.vue";
-import {
-  OverviewFilterType,
-  type OverviewFilterModel,
-} from "../overviews/OverviewFilterModel";
+import type { OverviewFilterModel } from "../overviews/OverviewFilterModel";
 import { useSite } from "~/composables/useSite";
 import { GetFilterType } from "~/helpers/OverviewHelper";
 import { ToRangeFilterClauses } from "~/helpers/RangeFilterHelper";
@@ -49,7 +46,7 @@ const releaseDate = computed(() => {
 });
 
 const settings = await useSite().getSetOverviewSettings();
-const filters: OverviewFilterModel[] =
+const filters = useCollectionFilter(
   settings.filters?.map<OverviewFilterModel>((filter) => {
     return {
       Alias: filter.alias,
@@ -68,7 +65,8 @@ const filters: OverviewFilterModel[] =
           };
         }) ?? [],
     };
-  }) ?? [];
+  }) ?? [],
+);
 const sortings =
   settings.sortOptions?.map((sort) => {
     return {
@@ -161,32 +159,6 @@ useHead(() => ({
   ],
 }));
 
-onMounted(async () => {
-  const accountStore = useAccountStore();
-  await accountStore.checkLogin();
-  if (accountStore.isLoggedIn) {
-    filters.push({
-      Alias: "collection",
-      DisplayName: "Collection",
-      Type: OverviewFilterType.DROPDOWN,
-      Items: [
-        {
-          DisplayName: "In collection",
-          Value: "inCollection",
-        },
-        {
-          DisplayName: "No copies",
-          Value: "none",
-        },
-        {
-          DisplayName: "Missing copies",
-          Value: "missing",
-        },
-      ],
-      AutoFillValues: false,
-    });
-  }
-});
 </script>
 
 <template>

@@ -21,7 +21,9 @@ const props = defineProps<{
   content: CardOverviewContentModel;
 }>();
 
-const filters = ToOverviewModel(props.content.properties?.filters?.items ?? []);
+const filters = useCollectionFilter(
+  ToOverviewModel(props.content.properties?.filters?.items ?? []),
+);
 
 const sortings =
   props.content.properties?.sortings?.items?.map<OverviewSortModel>((item) => {

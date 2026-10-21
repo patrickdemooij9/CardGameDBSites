@@ -4,6 +4,7 @@ using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Business.Services.Search;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business.Tournament;
 using Umbraco.Cms.Core.Web;
@@ -81,8 +82,13 @@ namespace SkytearHorde.Business.Startup.Indexes
             {
                 if (ability.Value is HeaderTextItemAbilityValue) continue; // No idea how to really parse this yet...
 
-                var values = ability.Value.GetValues().Select(it => it.Replace(" ", "")).ToArray();
+                var rawValues = ability.Value.GetValues().ToArray();
+                var values = rawValues.Select(it => it.Replace(" ", "")).ToArray();
                 updatedValues[$"CustomField.{ability.Key}"] = values.ToList<object>();
+                if (ability.Value.GetAbility().GeneralSearchable)
+                {
+                    updatedValues[CardSearchFieldsFinder.GetTextFieldName(ability.Key)] = rawValues.Select(it => (object)it.ToSearchFriendly()).ToList();
+                }
                 if (ability.Value.GetAbility().IsMultiValue)
                 {
                     updatedValues[$"CustomField.{ability.Key}.Amount"] = [values.Length];

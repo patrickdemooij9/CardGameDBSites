@@ -139,7 +139,7 @@ namespace SkytearHorde.Business.Services.Search
             {
                 var splitQuery = query.Query.ToSearchFriendly().Split(' ');
                 var searchFields = new List<string> { "name" };
-                searchFields.AddRange(_cardSearchFieldsFinder.GetGeneralFieldsToSearch().Select(it => $"CustomField.{it}"));
+                searchFields.AddRange(_cardSearchFieldsFinder.GetGeneralFieldsToSearch());
                 foreach (var queryItem in splitQuery.Where(it => !string.IsNullOrWhiteSpace(it)))
                 {
                     searcher.And().GroupedOr(searchFields, queryItem.MultipleCharacterWildcard());

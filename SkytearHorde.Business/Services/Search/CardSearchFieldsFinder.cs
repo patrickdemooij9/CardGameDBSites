@@ -18,7 +18,9 @@ namespace SkytearHorde.Business.Services.Search
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
 
-            return [.. _siteService.GetAllAttributes().Where(it => it.GeneralSearchable).Select(it => it.Name)];
+            return [.. _siteService.GetAllAttributes().Where(it => it.GeneralSearchable).Select(it => GetTextFieldName(it.Name!))];
         }
+
+        public static string GetTextFieldName(string attributeName) => $"CustomField.{attributeName}.Text";
     }
 }

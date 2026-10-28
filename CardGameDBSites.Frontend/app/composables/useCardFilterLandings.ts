@@ -1,5 +1,7 @@
 import type { CardFilterCollectionApiModel, CardFilterLandingApiModel } from "~/api/default";
+import type { IApiContentModelBase } from "~/api/umbraco";
 import { DoFetch } from "~/helpers/RequestsHelper";
+import type { CardFilterPageContentModel } from "~/models/CardFilterPageContentModel";
 
 const fetchCollections = () =>
   DoFetch<CardFilterCollectionApiModel[]>("/api/cards/filterLandings").catch(() => []);
@@ -12,6 +14,18 @@ export type CardFilterLandingMatch = {
 
 export function NormalizePath(path: string) {
   return path.replace(/\/+$/, "").toLowerCase();
+}
+
+export function ToGeneratedLandingContent(
+  landing: CardFilterLandingApiModel,
+  baseContent: IApiContentModelBase,
+): CardFilterPageContentModel {
+  return {
+    ...baseContent,
+    name: landing.name,
+    route: { ...baseContent.route, path: landing.url },
+    properties: {},
+  };
 }
 
 export async function useCardFilterLandings() {

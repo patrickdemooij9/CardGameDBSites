@@ -1,6 +1,7 @@
 ﻿using SeoToolkit.Umbraco.MetaFields.Core.Notifications;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Entities.Generated;
+using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Web;
 
@@ -11,12 +12,14 @@ namespace SkytearHorde.Business.EventHandlers
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly DeckService _deckService;
         private readonly SettingsService _settingsService;
+        private readonly IRequestCache _requestCache;
 
-        public SeoMetaFieldsEventHandler(IUmbracoContextFactory umbracoContextFactory, DeckService deckService, SettingsService settingsService)
+        public SeoMetaFieldsEventHandler(IUmbracoContextFactory umbracoContextFactory, DeckService deckService, SettingsService settingsService, IRequestCache requestCache)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _deckService = deckService;
             _settingsService = settingsService;
+            _requestCache = requestCache;
         }
 
         public void Handle(AfterMetaTagsNotification notification)
@@ -34,6 +37,12 @@ namespace SkytearHorde.Business.EventHandlers
             }
 
             var siteSettings = _settingsService.GetSiteSettings();
+            if (currentItem is CardFilterCollection && _requestCache.Get(CardFilterLandingService.RequestCacheKey) is Entities.Models.Business.CardFilterLandingItem generatedLanding)
+            {
+                notification.MetaTags.Title = $"{generatedLanding.Name} cards | {siteSettings.SiteName}";
+                notification.MetaTags.MetaDescription = $"Browse all {generatedLanding.CardCount} {generatedLanding.Name} cards in {siteSettings.SiteName}.";
+                return;
+            }
             if (string.IsNullOrWhiteSpace(notification.MetaTags.Title) && currentItem is CardFilterLanding)
                 notification.MetaTags.Title = $"{currentItem.Name} cards | {siteSettings.SiteName}";
             if (string.IsNullOrWhiteSpace(notification.MetaTags.Title))

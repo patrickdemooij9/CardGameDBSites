@@ -2,6 +2,7 @@
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.DeliveryApi;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
@@ -16,14 +17,18 @@ namespace SkytearHorde.Business.ContentFinders
         private readonly CardService _cardService;
         private readonly CardPageService _cardPageService;
         private readonly MetaCardPageService _metaCardPageService;
+        private readonly CardFilterLandingService _cardFilterLandingService;
+        private readonly IRequestCache _requestCache;
 
-        public CustomApiContentPathResolver(IRequestRoutingService requestRoutingService, IApiPublishedContentCache apiPublishedContentCache, ISiteService siteService, IUmbracoContextFactory umbracoContextFactory, CardService cardService, CardPageService cardPageService, MetaCardPageService metaCardPageService) : base(requestRoutingService, apiPublishedContentCache)
+        public CustomApiContentPathResolver(IRequestRoutingService requestRoutingService, IApiPublishedContentCache apiPublishedContentCache, ISiteService siteService, IUmbracoContextFactory umbracoContextFactory, CardService cardService, CardPageService cardPageService, MetaCardPageService metaCardPageService, CardFilterLandingService cardFilterLandingService, IRequestCache requestCache) : base(requestRoutingService, apiPublishedContentCache)
         {
             _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
             _cardService = cardService;
             _cardPageService = cardPageService;
             _metaCardPageService = metaCardPageService;
+            _cardFilterLandingService = cardFilterLandingService;
+            _requestCache = requestCache;
         }
 
         public override IPublishedContent? ResolveContentPath(string path)
@@ -53,6 +58,9 @@ namespace SkytearHorde.Business.ContentFinders
             var metaCardDetailPage = _metaCardPageService.GetDetailNode(path);
             if (metaCardDetailPage != null) return metaCardDetailPage;
 
+            var filterLandingPage = TryGetGeneratedFilterLanding(path);
+            if (filterLandingPage != null) return filterLandingPage;
+
             var cardPage = TryGetCardPage(path, context);
             return cardPage;
         }
@@ -67,6 +75,16 @@ namespace SkytearHorde.Business.ContentFinders
                 return null;
 
             return foundDeckOverview.FirstChild<DeckDetail>();
+        }
+
+        private IPublishedContent? TryGetGeneratedFilterLanding(string path)
+        {
+            var match = _cardFilterLandingService.FindGenerated(path);
+            if (match is null)
+                return null;
+
+            _requestCache.Set(CardFilterLandingService.RequestCacheKey, match.Value.Landing);
+            return match.Value.Collection.Content;
         }
 
         private IPublishedContent? TryGetCardPage(string path, UmbracoContextReference context)

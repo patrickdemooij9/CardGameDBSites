@@ -8,7 +8,7 @@ import CardOverview, { type CardOverviewTableColumn } from "../overviews/CardOve
 import type { OverviewSortModel } from "../overviews/OverviewSortModel";
 import type { OverviewUrlOptions } from "~/composables/useOverviewState";
 import type { CardFilterPageContentModel } from "~/models/CardFilterPageContentModel";
-import { NormalizePath } from "~/composables/useCardFilterLandings";
+import { NormalizePath, ToGeneratedLandingContent } from "~/composables/useCardFilterLandings";
 import { ToOverviewModel } from "~/helpers/OverviewHelper";
 
 const PASSTHROUGH_PARAMS = ["search", "page", "sortBy", "view"];
@@ -35,6 +35,11 @@ const displayedLanding = computed(() =>
 async function onLandingChange(path: string | undefined) {
   activeLandingPath.value = path;
   if (!path || landingContents.has(NormalizePath(path))) return;
+  const match = findByUrl(path);
+  if (match?.landing.isGenerated) {
+    landingContents.set(NormalizePath(path), ToGeneratedLandingContent(match.landing, props.content));
+    return;
+  }
   const content = await useCmsPage().loadContent(path);
   landingContents.set(NormalizePath(path), content as CardFilterPageContentModel);
 }

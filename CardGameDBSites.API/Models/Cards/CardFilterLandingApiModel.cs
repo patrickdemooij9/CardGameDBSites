@@ -6,5 +6,6 @@ namespace CardGameDBSites.API.Models.Cards
         public required string Url { get; set; }
         public required string Value { get; set; }
         public int CardCount { get; set; }
+        public bool IsGenerated { get; set; }
     }
 }

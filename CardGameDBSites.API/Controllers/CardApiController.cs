@@ -33,6 +33,7 @@ namespace CardGameDBSites.API.Controllers
         private readonly IMemberManager _memberManager;
         private readonly CardPageService _cardPageService;
         private readonly CardKeywordService _cardKeywordService;
+        private readonly CardFilterLandingService _cardFilterLandingService;
 
         public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
@@ -43,7 +44,8 @@ namespace CardGameDBSites.API.Controllers
             IUmbracoContextFactory umbracoContextFactory,
             IMemberManager memberManager,
             CardPageService cardPageService,
-            CardKeywordService cardKeywordService)
+            CardKeywordService cardKeywordService,
+            CardFilterLandingService cardFilterLandingService)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
@@ -55,6 +57,7 @@ namespace CardGameDBSites.API.Controllers
             _memberManager = memberManager;
             _cardPageService = cardPageService;
             _cardKeywordService = cardKeywordService;
+            _cardFilterLandingService = cardFilterLandingService;
         }
 
         [HttpGet("all")]
@@ -198,23 +201,20 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(CardFilterCollectionApiModel[]), 200)]
         public IActionResult GetFilterLandings()
         {
-            var collections = _siteService.GetCardOverview().Children<SkytearHorde.Entities.Generated.CardFilterCollection>() ?? [];
-            return Ok(collections
-                .Where(it => it.CardAttribute is not null)
+            return Ok(_cardFilterLandingService.GetCollections()
                 .Select(collection => new CardFilterCollectionApiModel
                 {
-                    Name = collection.Name,
-                    Url = collection.Url(mode: Umbraco.Cms.Core.Models.PublishedContent.UrlMode.Relative).TrimEnd('/'),
-                    Attribute = collection.CardAttribute!.Name,
-                    Landings = [.. (collection.Children<SkytearHorde.Entities.Generated.CardFilterLanding>() ?? [])
-                        .Where(it => !string.IsNullOrWhiteSpace(it.FilterValue))
-                        .Select(landing => new CardFilterLandingApiModel
-                        {
-                            Name = landing.Name,
-                            Url = landing.Url(mode: Umbraco.Cms.Core.Models.PublishedContent.UrlMode.Relative).TrimEnd('/'),
-                            Value = landing.FilterValue!,
-                            CardCount = _cardService.CountByValue(collection.CardAttribute!.Name, landing.FilterValue!)
-                        })]
+                    Name = collection.Content.Name,
+                    Url = collection.Url,
+                    Attribute = collection.Attribute,
+                    Landings = [.. collection.Landings.Select(landing => new CardFilterLandingApiModel
+                    {
+                        Name = landing.Name,
+                        Url = landing.Url,
+                        Value = landing.Value,
+                        CardCount = landing.CardCount,
+                        IsGenerated = landing.IsGenerated
+                    })]
                 })
                 .ToArray());
         }

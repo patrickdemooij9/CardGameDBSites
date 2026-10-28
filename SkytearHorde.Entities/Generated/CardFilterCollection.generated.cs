@@ -50,6 +50,13 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
+		/// Auto Generate Landings
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[ImplementPropertyType("autoGenerateLandings")]
+		public virtual bool AutoGenerateLandings => this.Value<bool>(_publishedValueFallback, "autoGenerateLandings");
+
+		///<summary>
 		/// Card Attribute
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

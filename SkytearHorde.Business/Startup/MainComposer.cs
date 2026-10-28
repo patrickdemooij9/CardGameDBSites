@@ -50,6 +50,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<BlockListJsonService>();
             builder.Services.AddSingleton<CardService>();
             builder.Services.AddSingleton<CardPageService>();
+            builder.Services.AddSingleton<CardFilterLandingService>();
             builder.Services.AddSingleton<MetaCardPageService>();
             builder.Services.AddSingleton<SettingsService>();
             builder.Services.AddSingleton<DeckService>();

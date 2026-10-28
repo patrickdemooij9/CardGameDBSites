@@ -7,5 +7,6 @@ export type CardFilterLandingApiModel = {
     url: string;
     value: string;
     cardCount: number;
+    isGenerated: boolean;
 };
 

@@ -17,8 +17,9 @@ namespace SkytearHorde.EventHandlers
         private readonly SettingsService _settingsService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly ISiteService _siteService;
+        private readonly CardFilterLandingService _cardFilterLandingService;
 
-        public DynamicPagesSitemapNotificationHandler(CardService cardService, CardPageService cardPageService, MetaCardPageService metaCardPageService, SettingsService settingsService, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService)
+        public DynamicPagesSitemapNotificationHandler(CardService cardService, CardPageService cardPageService, MetaCardPageService metaCardPageService, SettingsService settingsService, IUmbracoContextFactory umbracoContextFactory, ISiteService siteService, CardFilterLandingService cardFilterLandingService)
         {
             _cardService = cardService;
             _cardPageService = cardPageService;
@@ -26,6 +27,7 @@ namespace SkytearHorde.EventHandlers
             _settingsService = settingsService;
             _umbracoContextFactory = umbracoContextFactory;
             _siteService = siteService;
+            _cardFilterLandingService = cardFilterLandingService;
         }
 
         public Task HandleAsync(GenerateSitemapNotification notification, CancellationToken cancellationToken)
@@ -37,12 +39,12 @@ namespace SkytearHorde.EventHandlers
             }
 
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
-            foreach (var collection in _siteService.GetCardOverview().Children<CardFilterCollection>() ?? [])
+            foreach (var collection in _cardFilterLandingService.GetCollections())
             {
-                notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + collection.Url(mode: UrlMode.Relative).TrimEnd('/')));
-                foreach (var landing in collection.Children<CardFilterLanding>() ?? [])
+                notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + collection.Url));
+                foreach (var landing in collection.Landings)
                 {
-                    notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + landing.Url(mode: UrlMode.Relative).TrimEnd('/')));
+                    notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + landing.Url));
                 }
             }
 

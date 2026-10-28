@@ -1,5 +1,6 @@
 using SkytearHorde.Business.Extensions;
 using SkytearHorde.Business.Helpers;
+using SkytearHorde.Business.Keywords;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using Umbraco.Cms.Core;
@@ -28,6 +29,7 @@ namespace SkytearHorde.Business.Services
         private readonly ISiteService _siteService;
         private readonly IContentTypeBaseServiceProvider _contentTypeBaseServiceProvider;
         private readonly BlockListJsonService _blockListJsonService;
+        private readonly CardKeywordService _cardKeywordService;
 
         public CardImporterService(
             IUmbracoContextFactory umbracoContextFactory,
@@ -38,7 +40,8 @@ namespace SkytearHorde.Business.Services
             IShortStringHelper shortStringHelper,
             ISiteService siteService,
             IContentTypeBaseServiceProvider contentTypeBaseServiceProvider,
-            BlockListJsonService blockListJsonService)
+            BlockListJsonService blockListJsonService,
+            CardKeywordService cardKeywordService)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _contentService = contentService;
@@ -49,6 +52,7 @@ namespace SkytearHorde.Business.Services
             _siteService = siteService;
             _contentTypeBaseServiceProvider = contentTypeBaseServiceProvider;
             _blockListJsonService = blockListJsonService;
+            _cardKeywordService = cardKeywordService;
         }
 
         /// <summary>
@@ -155,6 +159,8 @@ namespace SkytearHorde.Business.Services
             var abilityCache = new Dictionary<string, Guid>();
             foreach (var model in models)
             {
+                _cardKeywordService.AddDetectedKeywords(model);
+
                 var set = dataContainer.FirstChild<Set>(it => it.Name.Equals(model.SetName));
                 var setId = set?.Id;
                 if (set is null)

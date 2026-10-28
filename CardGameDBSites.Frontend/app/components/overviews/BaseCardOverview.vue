@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Overview from "./Overview.vue";
-import type { OverviewFilterModel } from "./OverviewFilterModel";
+import { OverviewFilterType, type OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
 import {
   CardSearchCollectionMode,
@@ -9,6 +9,7 @@ import {
   type CardsQueryPostApiModel,
   type PagedResultCardDetailApiModel,
 } from "~/api/default";
+import { ToKeywordItems } from "~/helpers/KeywordFilterHelper";
 
 const props = defineProps<{
   filters: OverviewFilterModel[];
@@ -46,7 +47,7 @@ const queryModel = computed<CardsQueryPostApiModel>(() => {
       return;
     }
     if (key.ToFiltersHandler) {
-      filters.push(...key.ToFiltersHandler(values));
+      filters.push(...key.ToFiltersHandler(values, overviewState.getMatchMode(key)));
       return;
     }
 
@@ -140,6 +141,10 @@ watch(
 async function loadLazyFilter(filter: OverviewFilterModel) {
   filter.Loading = true;
   try {
+    if (filter.Type === OverviewFilterType.KEYWORD) {
+      filter.Items = ToKeywordItems(await useCards().getKeywordValues());
+      return;
+    }
     const values = await useCards().getAbilityValues(filter.Alias);
     filter.Items = values.map((item) => {
       return {

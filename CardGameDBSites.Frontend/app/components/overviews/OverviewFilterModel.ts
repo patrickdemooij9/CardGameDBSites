@@ -9,6 +9,7 @@ export enum OverviewFilterType {
     TEXT_INPUT = "TEXT_INPUT",
     RANGE = "RANGE",
     SINGLE_SELECT = "SINGLE_SELECT",
+    KEYWORD = "KEYWORD",
 }
 
 export interface OverviewFilterModel {
@@ -23,7 +24,8 @@ export interface OverviewFilterModel {
     /** Transient UI flag: true while AutoFillValues options are being fetched. */
     Loading?: boolean;
 
-    ToFiltersHandler?: (values: string[]) => CardsQueryFilterClauseApiModel[];
+    ToFiltersHandler?: (values: string[], matchMode: "any" | "all") => CardsQueryFilterClauseApiModel[];
+    FormatValue?: (value: string) => string;
     ApplyToQuery?: (values: string[], query: CardsQueryPostApiModel) => void;
 }
 
@@ -31,4 +33,5 @@ export interface OverviewFilterItemModel {
     DisplayName: string;
     Value: string;
     IconUrl?: string;
+    Group?: string;
 }

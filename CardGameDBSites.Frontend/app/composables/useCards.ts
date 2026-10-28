@@ -2,6 +2,7 @@ import type {
   CardDetailApiModel,
   CardVariantTypeApiModel,
   CardsQueryPostApiModel,
+  KeywordValuesApiModel,
   PagedResultCardDetailApiModel,
 } from "~/api/default";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
@@ -82,12 +83,18 @@ export function useCards() {
     return data ?? [];
   };
 
+  const getKeywordValues = async () => {
+    const data = await $api<KeywordValuesApiModel>("/api/cards/keywordValues");
+    return data ?? { triggeredAbilities: [], keywords: [] };
+  };
+
   return {
     loadCardsByIds,
     loadCardById,
     loadVariantTypes,
     queryCards,
     getAbilityValues,
+    getKeywordValues,
     getCard: store.getCard,
   };
 }

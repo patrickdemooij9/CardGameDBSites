@@ -4,6 +4,7 @@ using CardGameDBSites.API.Models.Cards;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Extensions;
+using SkytearHorde.Business.Keywords;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Search;
@@ -31,6 +32,7 @@ namespace CardGameDBSites.API.Controllers
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly IMemberManager _memberManager;
         private readonly CardPageService _cardPageService;
+        private readonly CardKeywordService _cardKeywordService;
 
         public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
@@ -40,7 +42,8 @@ namespace CardGameDBSites.API.Controllers
             ISiteService siteService,
             IUmbracoContextFactory umbracoContextFactory,
             IMemberManager memberManager,
-            CardPageService cardPageService)
+            CardPageService cardPageService,
+            CardKeywordService cardKeywordService)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
@@ -51,6 +54,7 @@ namespace CardGameDBSites.API.Controllers
             _umbracoContextFactory = umbracoContextFactory;
             _memberManager = memberManager;
             _cardPageService = cardPageService;
+            _cardKeywordService = cardKeywordService;
         }
 
         [HttpGet("all")]
@@ -176,6 +180,18 @@ namespace CardGameDBSites.API.Controllers
         public IActionResult GetAllValues(string abilityName)
         {
             return Ok(_cardService.GetCardValues(abilityName).Order());
+        }
+
+        [HttpGet("keywordValues")]
+        [ProducesResponseType(typeof(KeywordValuesApiModel), 200)]
+        public IActionResult GetKeywordValues()
+        {
+            var vocabulary = _cardKeywordService.GetUsedVocabulary();
+            return Ok(new KeywordValuesApiModel
+            {
+                TriggeredAbilities = vocabulary.TriggeredAbilities,
+                Keywords = vocabulary.Keywords
+            });
         }
 
         [HttpGet("variantTypes")]

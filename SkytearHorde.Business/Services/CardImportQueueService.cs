@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SkytearHorde.Business.Detection;
 using SkytearHorde.Business.Extraction;
+using SkytearHorde.Business.Keywords;
 using SkytearHorde.Business.Repositories;
 using SkytearHorde.Business.Services.Search;
 using SkytearHorde.Entities.Models.Database;
@@ -450,6 +451,8 @@ namespace SkytearHorde.Business.Services
             return LoadDefaultGameConfig().Types.FirstOrDefault(t => t.Type.Equals(cardType, StringComparison.OrdinalIgnoreCase));
         }
 
+        public KeywordDetectionConfig? GetKeywordDetectionConfig() => LoadDefaultGameConfig().KeywordDetection;
+
         private GameConfig LoadDefaultGameConfig()
         {
             var promptsRoot = ResolveContentPath(_configuration["CardImport:PromptsPath"] ?? "prompts");
@@ -700,6 +703,7 @@ namespace SkytearHorde.Business.Services
             public string CardDetectionPrompt { get; set; } = string.Empty;
             public List<CardTypeConfig> Types { get; set; } = [];
             public List<PresetConfig> Presets { get; set; } = [];
+            public KeywordDetectionConfig? KeywordDetection { get; set; }
         }
 
         private class PresetConfig

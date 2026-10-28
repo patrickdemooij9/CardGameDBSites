@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Exports;
 using SkytearHorde.Business.Extensions;
+using SkytearHorde.Business.Keywords;
 using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
@@ -30,15 +31,18 @@ namespace CardGameDBSites.API.Controllers
         private readonly SettingsService _settingsService;
         private readonly ISiteService _siteService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
+        private readonly CardKeywordService _cardKeywordService;
 
         public SettingsController(
             SettingsService settingsService,
             ISiteService siteService,
-            IUmbracoContextFactory umbracoContextFactory)
+            IUmbracoContextFactory umbracoContextFactory,
+            CardKeywordService cardKeywordService)
         {
             _settingsService = settingsService;
             _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
+            _cardKeywordService = cardKeywordService;
         }
 
         [HttpGet("site")]
@@ -79,6 +83,12 @@ namespace CardGameDBSites.API.Controllers
                 {
                     Keyword = it.Keyword,
                     ImageUrl = it.Image ?? "#",
+                })],
+                KeywordAttributes = [.. _cardKeywordService.GetRelationAttributes().Select(it => new KeywordAttributeApiModel
+                {
+                    Relation = it.Key.ToString(),
+                    Alias = it.Value.Name,
+                    DisplayName = it.Value.DisplayName.IfNullOrWhiteSpace(it.Value.Name)
                 })],
                 CardOverviewIdentifier = settings.CardOverviewIdentifier,
                 Collection = new CollectionSettingsApiModel

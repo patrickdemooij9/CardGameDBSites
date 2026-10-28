@@ -115,6 +115,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool IsMultiValue => this.Value<bool>(_publishedValueFallback, "isMultiValue");
 
 		///<summary>
+		/// Keyword relation
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("keywordRelation")]
+		public virtual string KeywordRelation => this.Value<string>(_publishedValueFallback, "keywordRelation");
+
+		///<summary>
 		/// Search alias
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

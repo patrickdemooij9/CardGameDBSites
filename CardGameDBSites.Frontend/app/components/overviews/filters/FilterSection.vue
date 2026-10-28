@@ -8,6 +8,7 @@ import type { CardDetailApiModel } from "~/api/default";
 import CardSearchInput from "~/components/shared/CardSearchInput.vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import FilterIconGroup from "./FilterIconGroup.vue";
+import FilterKeywordGrid from "./FilterKeywordGrid.vue";
 import FilterRange from "./FilterRange.vue";
 
 const props = defineProps<{
@@ -171,6 +172,12 @@ function onCardSelect(card: CardDetailApiModel) {
           </p>
         </div>
       </div>
+
+      <FilterKeywordGrid
+        v-else-if="filter.Type === OverviewFilterType.KEYWORD"
+        :overview-state="overviewState"
+        :filter="filter"
+      />
 
       <FilterRange
         v-else-if="filter.Type === OverviewFilterType.RANGE"

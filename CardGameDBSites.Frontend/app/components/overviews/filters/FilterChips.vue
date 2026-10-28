@@ -7,6 +7,7 @@ const props = defineProps<{
 }>();
 
 function displayValue(filter: OverviewFilterModel, value: string) {
+  if (filter.FormatValue) return filter.FormatValue(value);
   const item = filter.Items.find((i) => i.Value === value);
   return item?.DisplayName ?? value;
 }

@@ -87,6 +87,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool IsInline => this.Value<bool>(_publishedValueFallback, "isInline");
 
 		///<summary>
+		/// Is keyword filter
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[ImplementPropertyType("isKeywordFilter")]
+		public virtual bool IsKeywordFilter => this.Value<bool>(_publishedValueFallback, "isKeywordFilter");
+
+		///<summary>
 		/// Is Range: Is displayed as a range slider
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

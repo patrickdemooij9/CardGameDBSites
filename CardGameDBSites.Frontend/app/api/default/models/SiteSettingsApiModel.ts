@@ -5,6 +5,7 @@
 import type { CardSectionApiModel } from './CardSectionApiModel';
 import type { CollectionSettingsApiModel } from './CollectionSettingsApiModel';
 import type { DeckRenderConfigApiModel } from './DeckRenderConfigApiModel';
+import type { KeywordAttributeApiModel } from './KeywordAttributeApiModel';
 import type { KeywordImageApiModel } from './KeywordImageApiModel';
 import type { LinkApiModel } from './LinkApiModel';
 import type { NavigationItemApiModel } from './NavigationItemApiModel';
@@ -25,6 +26,7 @@ export type SiteSettingsApiModel = {
     footerLinks: Array<LinkApiModel>;
     cardSections: Array<CardSectionApiModel>;
     keywordImages: Array<KeywordImageApiModel>;
+    keywordAttributes: Array<KeywordAttributeApiModel>;
     cardOverviewIdentifier?: string | null;
     collection: CollectionSettingsApiModel;
     renderConfig: DeckRenderConfigApiModel;

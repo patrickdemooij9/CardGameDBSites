@@ -15,6 +15,7 @@ using SkytearHorde.Business.Discord;
 using SkytearHorde.Business.Facts;
 using SkytearHorde.Business.Facts.Generators;
 using SkytearHorde.Business.Helpers;
+using SkytearHorde.Business.Keywords;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Business.Processors;
 using SkytearHorde.Business.Repositories;
@@ -106,6 +107,7 @@ namespace SkytearHorde.Business.Startup
 
             builder.Services.AddScoped<CardMaker>();
             builder.Services.AddScoped<CardImporterService>();
+            builder.Services.AddScoped<CardKeywordService>();
 
             builder.Services.AddSingleton<ISiteAccessor, SiteAccessor>();
             builder.Services.AddSingleton<ISiteService, SiteService>();

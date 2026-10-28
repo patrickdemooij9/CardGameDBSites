@@ -22,6 +22,7 @@ const clauses = computed(() =>
 
 function displayValue(filter: OverviewFilterModel, value: string) {
   if (filter.Type === OverviewFilterType.RANGE) return FormatRangeValue(value);
+  if (filter.FormatValue) return filter.FormatValue(value);
   const item = filter.Items.find((i) => i.Value === value);
   return item?.DisplayName ?? value;
 }
@@ -35,7 +36,8 @@ function isCheckbox(filter: OverviewFilterModel) {
 function isMultiSelect(filter: OverviewFilterModel) {
   return (
     filter.Type === OverviewFilterType.DROPDOWN ||
-    filter.Type === OverviewFilterType.INLINE
+    filter.Type === OverviewFilterType.INLINE ||
+    filter.Type === OverviewFilterType.KEYWORD
   );
 }
 

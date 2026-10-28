@@ -57,7 +57,7 @@ const accountStore = useAccountStore();
             <ScanVariantSelect
               v-model="entry.variantId"
               :options="optionsFor(entry)"
-              class="flex-1 max-w-none border-gray-300 bg-white"
+              class="min-w-0 flex-1 shrink max-w-none border-gray-300 bg-white"
             />
             <div class="flex items-center rounded-md border border-gray-300">
               <button

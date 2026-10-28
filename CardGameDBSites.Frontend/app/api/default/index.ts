@@ -12,6 +12,8 @@ export type { ApproveRequest } from './models/ApproveRequest';
 export type { ApproveVariant } from './models/ApproveVariant';
 export type { ArtCropApiModel } from './models/ArtCropApiModel';
 export type { CardDetailApiModel } from './models/CardDetailApiModel';
+export type { CardFilterCollectionApiModel } from './models/CardFilterCollectionApiModel';
+export type { CardFilterLandingApiModel } from './models/CardFilterLandingApiModel';
 export type { CardPriceApiModel } from './models/CardPriceApiModel';
 export type { CardPriceChangeApiModel } from './models/CardPriceChangeApiModel';
 export type { CardPriceHistoryItemApiModel } from './models/CardPriceHistoryItemApiModel';

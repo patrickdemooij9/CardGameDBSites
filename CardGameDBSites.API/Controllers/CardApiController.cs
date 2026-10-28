@@ -194,6 +194,31 @@ namespace CardGameDBSites.API.Controllers
             });
         }
 
+        [HttpGet("filterLandings")]
+        [ProducesResponseType(typeof(CardFilterCollectionApiModel[]), 200)]
+        public IActionResult GetFilterLandings()
+        {
+            var collections = _siteService.GetCardOverview().Children<SkytearHorde.Entities.Generated.CardFilterCollection>() ?? [];
+            return Ok(collections
+                .Where(it => it.CardAttribute is not null)
+                .Select(collection => new CardFilterCollectionApiModel
+                {
+                    Name = collection.Name,
+                    Url = collection.Url(mode: Umbraco.Cms.Core.Models.PublishedContent.UrlMode.Relative).TrimEnd('/'),
+                    Attribute = collection.CardAttribute!.Name,
+                    Landings = [.. (collection.Children<SkytearHorde.Entities.Generated.CardFilterLanding>() ?? [])
+                        .Where(it => !string.IsNullOrWhiteSpace(it.FilterValue))
+                        .Select(landing => new CardFilterLandingApiModel
+                        {
+                            Name = landing.Name,
+                            Url = landing.Url(mode: Umbraco.Cms.Core.Models.PublishedContent.UrlMode.Relative).TrimEnd('/'),
+                            Value = landing.FilterValue!,
+                            CardCount = _cardService.CountByValue(collection.CardAttribute!.Name, landing.FilterValue!)
+                        })]
+                })
+                .ToArray());
+        }
+
         [HttpGet("variantTypes")]
         [ProducesResponseType(typeof(CardVariantTypeApiModel[]), 200)]
         public IActionResult GetVariantTypes()

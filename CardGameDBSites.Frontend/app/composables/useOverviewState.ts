@@ -8,13 +8,21 @@ export interface OverviewQueryState {
   sortBy?: string;
 }
 
+export interface OverviewUrlOptions {
+  basePath: string;
+  initialFilters?: Record<string, string[]>;
+  resolveLandingPath?: (alias: string, value: string) => string | undefined;
+  onLandingChange?: (landingPath: string | undefined) => void;
+}
+
 export function useOverviewState(
   filters: Ref<OverviewFilterModel[]>,
   sortings?: Ref<OverviewSortModel[] | undefined>,
   views?: Ref<string[] | undefined>,
-  options?: { enableQueryStringSync?: boolean },
+  options?: { enableQueryStringSync?: boolean; urlOptions?: OverviewUrlOptions },
 ) {
   const route = useRoute();
+  const basePath = options?.urlOptions?.basePath ?? route.path;
 
   const defaultSortBy = sortings?.value?.[0]?.Value ?? "";
   const defaultViewMode = views?.value?.[0] ?? 'images';
@@ -38,7 +46,7 @@ export function useOverviewState(
     );
     state.matchAll = new Map();
     filters.value.forEach((filter) => {
-      const values = route.query[filter.Alias];
+      const values = route.query[filter.Alias] ?? options?.urlOptions?.initialFilters?.[filter.Alias];
       if (values) {
         state.selectedFilters.set(
           filter,
@@ -59,20 +67,45 @@ export function useOverviewState(
     () => initFromRoute(),
   );
 
-  function syncUrl() {
-    if (!import.meta.client || !options?.enableQueryStringSync) return;
-    const url = new URL(window.location.href.split("?")[0]!);
-    if (state.page !== 1) url.searchParams.append("page", String(state.page));
-    if (state.search) url.searchParams.append("search", state.search);
-    if (state.sortBy && state.sortBy != defaultSortBy) url.searchParams.append("sortBy", state.sortBy);
-    if (state.viewMode && state.viewMode != defaultViewMode) url.searchParams.append("view", state.viewMode);
+  function isDefaultFilterState(filter: OverviewFilterModel, values: string[]) {
+    return filter.DefaultEnabled && values.length === 1 && values[0] === "true";
+  }
+
+  const activeLanding = computed(() => {
+    const resolve = options?.urlOptions?.resolveLandingPath;
+    if (!resolve) return undefined;
+    const active = [...state.selectedFilters].filter(
+      ([filter, values]) => values.length > 0 && !isDefaultFilterState(filter, values),
+    );
+    if (active.length !== 1) return undefined;
+    const [filter, values] = active[0]!;
+    if (values.length !== 1) return undefined;
+    const path = resolve(filter.Alias, values[0]!);
+    return path ? { path, filter } : undefined;
+  });
+
+  function buildUrl(page = state.page) {
+    const landing = activeLanding.value;
+    const params = new URLSearchParams();
+    if (page !== 1) params.append("page", String(page));
+    if (state.search) params.append("search", state.search);
+    if (state.sortBy && state.sortBy != defaultSortBy) params.append("sortBy", state.sortBy);
+    if (state.viewMode && state.viewMode != defaultViewMode) params.append("view", state.viewMode);
     state.selectedFilters.forEach((values, filter) => {
-      values.forEach((v) => v && url.searchParams.append(filter.Alias, v));
+      if (filter === landing?.filter) return;
+      values.forEach((v) => v && params.append(filter.Alias, v));
       if (state.matchAll.get(filter.Alias) && values.length > 0) {
-        url.searchParams.append("matchAll", filter.Alias);
+        params.append("matchAll", filter.Alias);
       }
     });
-    history.replaceState(history.state, "", url);
+    const query = params.toString();
+    return `${landing?.path ?? basePath}${query ? `?${query}` : ""}`;
+  }
+
+  function syncUrl() {
+    if (!import.meta.client || !options?.enableQueryStringSync) return;
+    history.replaceState(history.state, "", buildUrl());
+    options.urlOptions?.onLandingChange?.(activeLanding.value?.path);
   }
 
   function getMatchMode(filter: OverviewFilterModel): "any" | "all" {
@@ -136,12 +169,7 @@ export function useOverviewState(
   const activeFilterCount = computed(() => {
     let count = 0;
     state.selectedFilters.forEach((values, filter) => {
-      // Ignore a default-enabled filter that is still in its default state.
-      if (
-        filter.DefaultEnabled &&
-        values.length === 1 &&
-        values[0] === "true"
-      ) {
+      if (isDefaultFilterState(filter, values)) {
         return;
       }
       count += values.length;
@@ -170,6 +198,8 @@ export function useOverviewState(
     state,
     queryState,
     activeFilterCount,
+    activeLanding,
+    buildUrl,
     selectFilter,
     setFilter,
     clearFilter,

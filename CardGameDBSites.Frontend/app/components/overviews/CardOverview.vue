@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { OverviewFilterType, type OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
+import type { OverviewUrlOptions } from "~/composables/useOverviewState";
 import {
   CardSearchCollectionMode,
   CardSearchFilterClauseType,
@@ -53,6 +54,7 @@ const props = defineProps<{
   pageSize?: number;
   collectionMode?: CardSearchCollectionMode;
   variantTypeIds?: number[];
+  urlOptions?: OverviewUrlOptions;
 }>();
 
 const emit = defineEmits<{
@@ -311,6 +313,7 @@ function getCardIdentifier(card: CardDetailApiModel) {
     :page-size="pageSize"
     :collection-mode="collectionMode"
     :variant-type-ids="variantTypeIds"
+    :url-options="urlOptions"
     v-slot="{ cards, viewMode }"
     @reloaded="loadCollectionCards"
   >

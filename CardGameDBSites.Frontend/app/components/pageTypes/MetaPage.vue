@@ -123,9 +123,7 @@ const canonicalUrl = computed(() => `${origin}${route.path}`);
 useHead(() => ({
   title: heading.value,
   meta: [
-    { name: "description", content: metaDescription.value },
-    // A non-default period is a near-duplicate of the canonical page.
-    ...(isDefaultPeriod.value ? [] : [{ name: "robots", content: "noindex,follow" }]),
+    { name: "description", content: metaDescription.value }
   ],
   link: [{ rel: "canonical", href: canonicalUrl.value }],
 }));

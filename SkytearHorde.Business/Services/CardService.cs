@@ -98,6 +98,25 @@ namespace SkytearHorde.Business.Services
             })!.ToArray();
         }
 
+        public int CountByValue(string attribute, string value)
+        {
+            var siteId = _siteAccessor.GetSiteId();
+            // Prefixed with GetCardValues_ so ClearCache also drops it when cards change.
+            return _cache.GetCacheItem($"GetCardValues_Count_{siteId}_{attribute}_{value}", () =>
+            {
+                _cardSearchService.Search(new CardSearchQuery(1, siteId)
+                {
+                    FilterClauses = [new CardSearchFilterClause
+                    {
+                        ClauseType = CardSearchFilterClauseType.AND,
+                        Filters = [new CardSearchFilter { Alias = attribute, Values = [value] }]
+                    }],
+                    VariantTypeIds = [0]
+                }, out var totalItems);
+                return totalItems;
+            });
+        }
+
         public Card[] Search(CardSearchQuery query, out int totalItems)
         {
             var ids = _cardSearchService.Search(query, out totalItems);

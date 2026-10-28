@@ -2,6 +2,7 @@
 import Overview from "./Overview.vue";
 import { OverviewFilterType, type OverviewFilterModel } from "./OverviewFilterModel";
 import type { OverviewSortModel } from "./OverviewSortModel";
+import type { OverviewUrlOptions } from "~/composables/useOverviewState";
 import {
   CardSearchCollectionMode,
   CardSearchFilterClauseType,
@@ -24,6 +25,7 @@ const props = defineProps<{
   pageSize?: number;
   variantTypeIds?: number[];
   hideInlineFilters: boolean;
+  urlOptions?: OverviewUrlOptions;
 }>();
 
 const emit = defineEmits<{
@@ -38,6 +40,7 @@ const overviewState = useOverviewState(
   toRef(props, "availableViews"),
   {
     enableQueryStringSync: props.enableQueryStringSync,
+    urlOptions: props.urlOptions,
   },
 );
 const queryModel = computed<CardsQueryPostApiModel>(() => {
@@ -184,7 +187,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
         >
           <a
             v-if="page > 1"
-            :href="'?page=' + (page - 1)"
+            :href="overviewState.buildUrl(page - 1)"
             class="pointer px-4 py-2 hover:bg-gray-400 no-underline"
             @click.prevent="overviewState.setPage(page - 1)"
             >Previous</a
@@ -193,7 +196,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
           <template v-for="i in page + 4">
             <a
               v-if="i - 2 <= (pagedCards.totalPages ?? 0) && i - 2 > 0"
-              :href="'?page=' + (i - 2)"
+              :href="overviewState.buildUrl(i - 2)"
               :class="[
                 i - 2 === page
                   ? 'bg-main-color text-white'
@@ -207,7 +210,7 @@ async function loadLazyFilter(filter: OverviewFilterModel) {
 
           <a
             v-if="page < (pagedCards.totalPages ?? 0)"
-            :href="'?page=' + (page + 1)"
+            :href="overviewState.buildUrl(page + 1)"
             class="pointer px-4 py-2 border-l border-gray-400 hover:bg-gray-100 no-underline"
             @click.prevent="overviewState.setPage(page + 1)"
             >Next</a

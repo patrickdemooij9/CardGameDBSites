@@ -34,6 +34,8 @@ namespace SkytearHorde.Business.EventHandlers
             }
 
             var siteSettings = _settingsService.GetSiteSettings();
+            if (string.IsNullOrWhiteSpace(notification.MetaTags.Title) && currentItem is CardFilterLanding)
+                notification.MetaTags.Title = $"{currentItem.Name} cards | {siteSettings.SiteName}";
             if (string.IsNullOrWhiteSpace(notification.MetaTags.Title))
                 notification.MetaTags.Title = $"{currentItem.Name} | {siteSettings.SiteName}";
             if (!string.IsNullOrWhiteSpace(notification.MetaTags.OpenGraphImage))

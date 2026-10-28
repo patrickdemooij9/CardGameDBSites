@@ -8,6 +8,7 @@ const props = defineProps<{
 }>();
 
 const abilityValue = props.card.attributes![props.section.ability!];
+const { findLanding } = await useCardFilterLandings();
 
 // Bit ugly. Should eventually replace with something like sitesettings
 function trimUrlDomain(url: string) {
@@ -17,6 +18,12 @@ function trimUrlDomain(url: string) {
   } catch (e) {
     return url;
   }
+}
+
+function getTagLink(item: string) {
+  const landingUrl = findLanding(props.section.ability!, item)?.landing.url;
+  if (landingUrl) return landingUrl;
+  return { path: trimUrlDomain(props.section.overviewPageUrl!), query: { [props.section.ability!]: item } };
 }
 </script>
 
@@ -49,7 +56,7 @@ function trimUrlDomain(url: string) {
             v-for="(item, abilityIndex) in abilityValue"
             v-else
             :key="abilityIndex"
-            :to="`${trimUrlDomain(section.overviewPageUrl!)}?${section.ability}=${encodeURIComponent(item)}`"
+            :to="getTagLink(item)"
             class="p-1 rounded bg-main-color text-white inline-block text-xs no-underline"
           >
             {{ item }}

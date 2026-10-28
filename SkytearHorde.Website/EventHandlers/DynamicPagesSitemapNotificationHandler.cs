@@ -37,6 +37,15 @@ namespace SkytearHorde.EventHandlers
             }
 
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            foreach (var collection in _siteService.GetCardOverview().Children<CardFilterCollection>() ?? [])
+            {
+                notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + collection.Url(mode: UrlMode.Relative).TrimEnd('/')));
+                foreach (var landing in collection.Children<CardFilterLanding>() ?? [])
+                {
+                    notification.Nodes.Add(new SitemapNodeItem(siteSettings.BaseUrl + landing.Url(mode: UrlMode.Relative).TrimEnd('/')));
+                }
+            }
+
             var rootNode = _siteService.GetRoot();
             foreach (var node in rootNode.Children<MetaPage>() ?? [])
             {

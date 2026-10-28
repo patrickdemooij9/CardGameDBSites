@@ -2,24 +2,53 @@
 import type {
   CardAttributeContentModel,
   CardOverviewContentModel,
-  IApiContentModel,
-  OverviewFilterElementModel,
-  OverviewFilterItemPropertiesModel,
   SortingItemElementModel,
 } from "~/api/umbraco";
 import CardOverview, { type CardOverviewTableColumn } from "../overviews/CardOverview.vue";
-import {
-  OverviewFilterType,
-  type OverviewFilterItemModel,
-  type OverviewFilterModel,
-} from "../overviews/OverviewFilterModel";
 import type { OverviewSortModel } from "../overviews/OverviewSortModel";
-import { GetAbsoluteUrl } from "~/helpers/CropUrlHelper";
+import type { OverviewUrlOptions } from "~/composables/useOverviewState";
+import type { CardFilterPageContentModel } from "~/models/CardFilterPageContentModel";
+import { NormalizePath } from "~/composables/useCardFilterLandings";
 import { ToOverviewModel } from "~/helpers/OverviewHelper";
+
+const PASSTHROUGH_PARAMS = ["search", "page", "sortBy", "view"];
 
 const props = defineProps<{
   content: CardOverviewContentModel;
+  landingContent?: CardFilterPageContentModel;
 }>();
+
+const route = useRoute();
+const { collections, findLanding, findByUrl } = await useCardFilterLandings();
+const overviewPath = NormalizePath(props.content.route.path);
+const initialLanding = props.landingContent ? findByUrl(props.landingContent.route.path) : undefined;
+
+const activeLandingPath = ref(initialLanding?.landing.url);
+const landingContents = shallowReactive(new Map<string, CardFilterPageContentModel>());
+if (initialLanding && props.landingContent) {
+  landingContents.set(NormalizePath(initialLanding.landing.url), props.landingContent);
+}
+const displayedLanding = computed(() =>
+  activeLandingPath.value ? landingContents.get(NormalizePath(activeLandingPath.value)) : undefined,
+);
+
+async function onLandingChange(path: string | undefined) {
+  activeLandingPath.value = path;
+  if (!path || landingContents.has(NormalizePath(path))) return;
+  const content = await useCmsPage().loadContent(path);
+  landingContents.set(NormalizePath(path), content as CardFilterPageContentModel);
+}
+
+const urlOptions: OverviewUrlOptions = {
+  basePath: overviewPath,
+  initialFilters: initialLanding
+    ? { [initialLanding.collection.attribute]: [initialLanding.landing.value] }
+    : undefined,
+  resolveLandingPath: (alias, value) => findLanding(alias, value)?.landing.url,
+  onLandingChange,
+};
+
+const browseCollections = computed(() => collections.value.filter((it) => it.landings.length > 0));
 
 const filters = useCollectionFilter(
   ToOverviewModel(props.content.properties?.filters?.items ?? []),
@@ -48,11 +77,45 @@ const tableColumns: CardOverviewTableColumn[] =
 
 <template>
   <div class="container px-4 pt-8 md:px-8 mb-6">
-    <h1>{{ content.properties?.title ?? "Cards" }}</h1>
-    <span
-      v-if="content.properties?.description"
-      v-html="content.properties?.description.markup"
-    ></span>
+    <template v-if="displayedLanding">
+      <h1>{{ displayedLanding.properties?.title || `${displayedLanding.name} cards` }}</h1>
+      <span
+        v-if="displayedLanding.properties?.description"
+        v-html="displayedLanding.properties.description.markup"
+      ></span>
+    </template>
+    <template v-else>
+      <h1>{{ content.properties?.title ?? "Cards" }}</h1>
+      <span
+        v-if="content.properties?.description"
+        v-html="content.properties?.description.markup"
+      ></span>
+    </template>
   </div>
-  <CardOverview :filters="filters" :sortings="sortings" :table-columns="tableColumns"></CardOverview>
+  <CardOverview
+    :filters="filters"
+    :sortings="sortings"
+    :table-columns="tableColumns"
+    :url-options="urlOptions"
+  ></CardOverview>
+  <div class="container px-4 md:px-8 my-8">
+    <div
+      v-if="displayedLanding?.properties?.content"
+      class="prose max-w-3xl text-gray-800"
+      v-html="displayedLanding.properties.content.markup"
+    ></div>
+    <nav v-else-if="!activeLandingPath && browseCollections.length > 0">
+      <h2 class="mb-4 text-xl">Browse cards by</h2>
+      <ul class="flex flex-wrap gap-2 list-none m-0">
+        <li v-for="collection in browseCollections" :key="collection.url">
+          <NuxtLink
+            :to="collection.url"
+            class="px-3 py-1 rounded bg-main-color text-white inline-block no-underline"
+          >
+            {{ collection.name }}
+          </NuxtLink>
+        </li>
+      </ul>
+    </nav>
+  </div>
 </template>

@@ -4,6 +4,8 @@ import type { ApiContentModel } from "~/models/ApiContentModel";
 
 const pageComponents: { [key: string]: Component } = {
   cardOverview: defineAsyncComponent(() => import("~/components/pageTypes/CardOverviewPage.vue")),
+  cardFilterCollection: defineAsyncComponent(() => import("~/components/pageTypes/CardFilterCollectionPage.vue")),
+  cardFilterLanding: defineAsyncComponent(() => import("~/components/pageTypes/CardFilterLandingPage.vue")),
   contentPage: defineAsyncComponent(() => import("~/components/pageTypes/contentPage.vue")),
   deckDetail: defineAsyncComponent(() => import("~/components/pageTypes/DeckDetail.vue")),
   deckOverview: defineAsyncComponent(() => import("~/components/pageTypes/DeckOverviewPage.vue")),

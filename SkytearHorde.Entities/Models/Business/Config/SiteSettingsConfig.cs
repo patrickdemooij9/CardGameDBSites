@@ -24,6 +24,7 @@ namespace SkytearHorde.Entities.Models.Business.Config
         public string BaseUrl { get; set; }
         public string? AIPromptFolder { get; set; }
         public required DeckRenderConfig DeckRenderConfig { get; set; }
+        public bool ApiOnly { get; set; }
 
         public SiteSettingsConfig()
         {

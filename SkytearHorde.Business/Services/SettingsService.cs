@@ -86,7 +86,8 @@ namespace SkytearHorde.Business.Services
                     CardOverviewIdentifier = settings.CardOverviewIdentifier,
                     BaseUrl = settings.BaseUrl,
                     AIPromptFolder = settings.PromptFolder,
-                    DeckRenderConfig = deckRenderConfig
+                    DeckRenderConfig = deckRenderConfig,
+                    ApiOnly = settings.ApiOnly
                 };
             }, TimeSpan.FromMinutes(10))!;
         }

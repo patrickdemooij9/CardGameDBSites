@@ -64,6 +64,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool AllowRedditIntegration => this.Value<bool>(_publishedValueFallback, "allowRedditIntegration");
 
 		///<summary>
+		/// API Only: When used, doesn't render the razor paths
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[ImplementPropertyType("apiOnly")]
+		public virtual bool ApiOnly => this.Value<bool>(_publishedValueFallback, "apiOnly");
+
+		///<summary>
 		/// Art Crops
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

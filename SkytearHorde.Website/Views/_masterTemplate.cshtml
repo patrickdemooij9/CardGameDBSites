@@ -3,6 +3,13 @@
 @inherits UmbracoViewPage
 @{
     var siteSettings = _settingsService.GetSiteSettings();
+
+    if (siteSettings.ApiOnly)
+    {
+        IgnoreBody();
+        Context.Response.StatusCode = 404;
+        return;
+    }
 }
 <!DOCTYPE html>
 <html lang="en">

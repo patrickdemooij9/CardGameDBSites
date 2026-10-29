@@ -96,6 +96,8 @@ namespace SkytearHorde.Business.BackgroundRunners
                 if (latestProcessedDate == null || comment.CreatedAt > latestProcessedDate.Value)
                     latestProcessedDate = comment.CreatedAt;
 
+                if (IsOwnContent(comment.Author, settings.RedditSettings.Username)) continue;
+
                 await TryReplyWithCardsAsync(redditClient, comment.FullName, comment.Body, baseUrl);
             }
 
@@ -106,7 +108,7 @@ namespace SkytearHorde.Business.BackgroundRunners
                 if (latestProcessedDate == null || post.CreatedAt > latestProcessedDate.Value)
                     latestProcessedDate = post.CreatedAt;
 
-                if (!post.IsSelf) continue;
+                if (!post.IsSelf || IsOwnContent(post.Author, settings.RedditSettings.Username)) continue;
 
                 await TryReplyWithCardsAsync(redditClient, post.FullName, post.SelfText, baseUrl);
             }
@@ -116,6 +118,9 @@ namespace SkytearHorde.Business.BackgroundRunners
                 _redditBotCommentRepository.UpdateLastProcessedDate(latestProcessedDate.Value);
             }
         }
+
+        private static bool IsOwnContent(string author, string botUsername)
+            => author.Equals(botUsername, StringComparison.OrdinalIgnoreCase);
 
         private async Task TryReplyWithCardsAsync(RedditApiClient redditClient, string parentFullName, string? rawText, string baseUrl)
         {

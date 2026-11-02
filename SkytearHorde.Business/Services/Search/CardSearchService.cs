@@ -46,7 +46,7 @@ namespace SkytearHorde.Business.Services.Search
                         query.CollectionMode == CardSearchCollectionMode.Ignore ||
                         query.CollectionMode == CardSearchCollectionMode.InCollection ||
                         query.CollectionMode == CardSearchCollectionMode.NoCopies ||
-                        (query.CollectionMode == CardSearchCollectionMode.MissingCopies && it.Sum(c => c.Amount) < 3)) //TODO: make the 3 configurable
+                        (query.CollectionMode == CardSearchCollectionMode.MissingCopies && it.Sum(c => c.Amount) < query.MissingCopiesThreshold))
                     .ToDictionary(it => it.Key, it => it.ToArray());
             }
 

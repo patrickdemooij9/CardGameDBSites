@@ -44,6 +44,8 @@ namespace CardGameDBSites.API.Controllers
     [ApiExplorerSettings(GroupName = "Account")]
     public class AccountApiController : Controller
     {
+        private const int MaxMissingCopiesThreshold = 99;
+
         private readonly ISiteAccessor _siteAccessor;
         private readonly IMemberSignInManager _memberSignInManager;
         private readonly MemberInfoService _memberInfoService;
@@ -54,8 +56,9 @@ namespace CardGameDBSites.API.Controllers
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _globalConfig;
         private readonly CardGameSettingsConfig _config;
+        private readonly MemberSettingsService _memberSettingsService;
 
-        public AccountApiController(ISiteAccessor siteAccessor, IMemberSignInManager memberSignInManager, MemberInfoService memberInfoService, IOptions<CardGameSettingsConfig> config, IMemberManager memberManager, IMemberService memberService, ILogger<AccountApiController> logger, ISiteService siteService, IEmailSender emailSender, IConfiguration globalConfig)
+        public AccountApiController(ISiteAccessor siteAccessor, IMemberSignInManager memberSignInManager, MemberInfoService memberInfoService, IOptions<CardGameSettingsConfig> config, IMemberManager memberManager, IMemberService memberService, ILogger<AccountApiController> logger, ISiteService siteService, IEmailSender emailSender, IConfiguration globalConfig, MemberSettingsService memberSettingsService)
         {
             _siteAccessor = siteAccessor;
             _memberSignInManager = memberSignInManager;
@@ -67,6 +70,7 @@ namespace CardGameDBSites.API.Controllers
             _emailSender = emailSender;
             _globalConfig = globalConfig;
             _config = config.Value;
+            _memberSettingsService = memberSettingsService;
         }
 
         /*[HttpPost("Login")]
@@ -247,8 +251,29 @@ namespace CardGameDBSites.API.Controllers
                 DisplayName = member.DisplayName,
                 LikedDecks = member.LikedDecks,
                 IsAdmin = isAdmin,
-                ImpersonatedBy = impersonatedBy
+                ImpersonatedBy = impersonatedBy,
+                Settings = new MemberSettingsApiModel
+                {
+                    MissingCopiesThreshold = _memberSettingsService.Get(member.Id).MissingCopiesThreshold
+                }
             });
+        }
+
+        [HttpPut("settings")]
+        [JwtAuthorization]
+        public async Task<IActionResult> UpdateSettings([FromBody] MemberSettingsPostModel model)
+        {
+            var currentUser = await _memberManager.GetCurrentMemberAsync();
+            if (currentUser is null) return Unauthorized();
+
+            if (model.MissingCopiesThreshold is < 1 or > MaxMissingCopiesThreshold)
+                return BadRequest($"Missing copies threshold must be between 1 and {MaxMissingCopiesThreshold}");
+
+            var settings = _memberSettingsService.Get(int.Parse(currentUser.Id));
+            settings.MissingCopiesThreshold = model.MissingCopiesThreshold;
+            _memberSettingsService.Save(settings);
+
+            return Ok();
         }
 
         [HttpPost("impersonate/{memberId}")]

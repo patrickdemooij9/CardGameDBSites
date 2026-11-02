@@ -6,6 +6,7 @@ import type { CurrentMemberApiModel } from '../models/CurrentMemberApiModel';
 import type { ForgotPasswordPostModel } from '../models/ForgotPasswordPostModel';
 import type { ForgotPasswordResetPostModel } from '../models/ForgotPasswordResetPostModel';
 import type { LoginPostModel } from '../models/LoginPostModel';
+import type { MemberSettingsPostModel } from '../models/MemberSettingsPostModel';
 import type { RegisterPostModel } from '../models/RegisterPostModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -108,6 +109,22 @@ export class AccountResource {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/account/ResetPassword',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any OK
+     * @throws ApiError
+     */
+    public static putApiAccountSettings({
+        requestBody,
+    }: {
+        requestBody?: MemberSettingsPostModel,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/account/settings',
             body: requestBody,
             mediaType: 'application/json',
         });

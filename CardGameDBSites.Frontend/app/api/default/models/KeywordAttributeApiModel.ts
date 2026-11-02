@@ -7,3 +7,4 @@ export type KeywordAttributeApiModel = {
     alias: string;
     displayName: string;
 };
+

@@ -80,6 +80,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.Blocks.BlockListModel Mapping => this.Value<global::Umbraco.Cms.Core.Models.Blocks.BlockListModel>(_publishedValueFallback, "mapping");
 
 		///<summary>
+		/// Missing Copies Threshold
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[ImplementPropertyType("missingCopiesThreshold")]
+		public virtual int MissingCopiesThreshold => this.Value<int>(_publishedValueFallback, "missingCopiesThreshold");
+
+		///<summary>
 		/// Show progress bar
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

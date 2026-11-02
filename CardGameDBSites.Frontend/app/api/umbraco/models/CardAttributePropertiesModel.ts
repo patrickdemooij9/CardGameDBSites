@@ -14,5 +14,6 @@ export type CardAttributePropertiesModel = {
     countValues?: Array<string> | null;
     generalSearchable?: boolean | null;
     searchAlias?: string | null;
+    keywordRelation?: string | null;
 };
 

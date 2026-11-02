@@ -34,6 +34,7 @@ namespace CardGameDBSites.API.Controllers
         private readonly CardPageService _cardPageService;
         private readonly CardKeywordService _cardKeywordService;
         private readonly CardFilterLandingService _cardFilterLandingService;
+        private readonly MemberSettingsService _memberSettingsService;
 
         public CardApiController(ISiteAccessor siteAccessor,
             CardService cardService,
@@ -45,7 +46,8 @@ namespace CardGameDBSites.API.Controllers
             IMemberManager memberManager,
             CardPageService cardPageService,
             CardKeywordService cardKeywordService,
-            CardFilterLandingService cardFilterLandingService)
+            CardFilterLandingService cardFilterLandingService,
+            MemberSettingsService memberSettingsService)
         {
             _siteAccessor = siteAccessor;
             _cardService = cardService;
@@ -58,6 +60,7 @@ namespace CardGameDBSites.API.Controllers
             _cardPageService = cardPageService;
             _cardKeywordService = cardKeywordService;
             _cardFilterLandingService = cardFilterLandingService;
+            _memberSettingsService = memberSettingsService;
         }
 
         [HttpGet("all")]
@@ -169,6 +172,7 @@ namespace CardGameDBSites.API.Controllers
                 VariantTypeIds = model.VariantTypeIds,
                 CollectionMode = model.CollectionMode,
                 MemberId = memberId,
+                MissingCopiesThreshold = memberId.HasValue ? _memberSettingsService.GetMissingCopiesThreshold(memberId.Value) : _memberSettingsService.GetDefaultMissingCopiesThreshold(),
                 IncludeReprintedCards = model.IncludeReprintedCards,
                 LegalForDeckTypeId = model.LegalForDeckTypeId
             }, out var totalItems).ToArray();

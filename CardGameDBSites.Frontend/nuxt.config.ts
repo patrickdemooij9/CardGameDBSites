@@ -76,7 +76,8 @@ export default defineNuxtConfig({
     }
   },
   routeRules: isNativeBuild ? {} : {
-    '/': { swr: 3600 }
+    // Nitro strips request headers when rendering for the cache, so useRequestURL() falls back to http://localhost.
+    '/': { swr: 3600, cache: { varies: ['host', 'x-forwarded-host', 'x-forwarded-proto'] } }
   },
   nitro: {
     prerender: {

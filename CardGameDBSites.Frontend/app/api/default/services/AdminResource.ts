@@ -3,11 +3,86 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ApproveRequest } from '../models/ApproveRequest';
+import type { KeywordBackfillResult } from '../models/KeywordBackfillResult';
 import type { ManualSubmitRequest } from '../models/ManualSubmitRequest';
+import type { PriceSyncStatusApiModel } from '../models/PriceSyncStatusApiModel';
+import type { PricingCardApiModel } from '../models/PricingCardApiModel';
+import type { PricingOverviewApiModel } from '../models/PricingOverviewApiModel';
+import type { SetTcgPlayerIdRequest } from '../models/SetTcgPlayerIdRequest';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AdminResource {
+    /**
+     * @returns KeywordBackfillResult OK
+     * @throws ApiError
+     */
+    public static postApiAdminKeywordsBackfill({
+        dryRun = true,
+    }: {
+        dryRun?: boolean,
+    }): CancelablePromise<KeywordBackfillResult> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/admin/keywords/backfill',
+            query: {
+                'dryRun': dryRun,
+            },
+        });
+    }
+    /**
+     * @returns PricingOverviewApiModel OK
+     * @throws ApiError
+     */
+    public static getApiAdminPricingOverview(): CancelablePromise<PricingOverviewApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/admin/pricing/overview',
+        });
+    }
+    /**
+     * @returns PriceSyncStatusApiModel OK
+     * @throws ApiError
+     */
+    public static getApiAdminPricingSync(): CancelablePromise<PriceSyncStatusApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/admin/pricing/sync',
+        });
+    }
+    /**
+     * @returns PriceSyncStatusApiModel OK
+     * @throws ApiError
+     */
+    public static postApiAdminPricingSync(): CancelablePromise<PriceSyncStatusApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/admin/pricing/sync',
+            errors: {
+                409: `Conflict`,
+            },
+        });
+    }
+    /**
+     * @returns PricingCardApiModel OK
+     * @throws ApiError
+     */
+    public static postApiAdminPricingTcgplayerid({
+        requestBody,
+    }: {
+        requestBody?: SetTcgPlayerIdRequest,
+    }): CancelablePromise<PricingCardApiModel> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/admin/pricing/tcgplayerid',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                409: `Conflict`,
+            },
+        });
+    }
     /**
      * @returns any OK
      * @throws ApiError

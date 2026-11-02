@@ -6,5 +6,6 @@ export type CollectionSettingsApiModel = {
     allowSetCollecting: boolean;
     allowCardCollecting: boolean;
     showProgressBar: boolean;
+    missingCopiesThreshold: number;
 };
 

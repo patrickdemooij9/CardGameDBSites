@@ -1,4 +1,8 @@
-import type { CurrentMemberApiModel, RegisterPostModel } from "~/api/default";
+import type {
+  CurrentMemberApiModel,
+  MemberSettingsPostModel,
+  RegisterPostModel,
+} from "~/api/default";
 import { isNativeApp } from "~/helpers/NativeApp";
 import {
   GetNativeAdminToken,
@@ -30,7 +34,17 @@ export const useAccountStore = defineStore("accountStore", {
         likedDecks: result.likedDecks || [],
         isAdmin: result.isAdmin ?? false,
         impersonatedBy: result.impersonatedBy,
+        settings: result.settings ?? {},
       };
+    },
+    async updateSettings(settings: MemberSettingsPostModel) {
+      await DoServerFetch("/api/account/settings", true, {
+        method: "PUT",
+        body: settings,
+      });
+      if (this.member) {
+        this.member.settings = { ...this.member.settings, ...settings };
+      }
     },
     async login(email: string, password: string, rememberMe: boolean) {
       try {

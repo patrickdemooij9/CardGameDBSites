@@ -32,17 +32,20 @@ namespace CardGameDBSites.API.Controllers
         private readonly ISiteService _siteService;
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly CardKeywordService _cardKeywordService;
+        private readonly MemberSettingsService _memberSettingsService;
 
         public SettingsController(
             SettingsService settingsService,
             ISiteService siteService,
             IUmbracoContextFactory umbracoContextFactory,
-            CardKeywordService cardKeywordService)
+            CardKeywordService cardKeywordService,
+            MemberSettingsService memberSettingsService)
         {
             _settingsService = settingsService;
             _siteService = siteService;
             _umbracoContextFactory = umbracoContextFactory;
             _cardKeywordService = cardKeywordService;
+            _memberSettingsService = memberSettingsService;
         }
 
         [HttpGet("site")]
@@ -95,7 +98,8 @@ namespace CardGameDBSites.API.Controllers
                 {
                     AllowSetCollecting = collectionSettings.AllowSetCollecting,
                     AllowCardCollecting = collectionSettings.AllowCardCollecting,
-                    ShowProgressBar = collectionSettings.ShowProgressBar
+                    ShowProgressBar = collectionSettings.ShowProgressBar,
+                    MissingCopiesThreshold = _memberSettingsService.GetDefaultMissingCopiesThreshold()
                 },
                 RenderConfig = new DeckRenderConfigApiModel(settings.DeckRenderConfig)
             });

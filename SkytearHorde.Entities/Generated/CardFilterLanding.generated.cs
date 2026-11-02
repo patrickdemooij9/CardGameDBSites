@@ -20,7 +20,7 @@ namespace SkytearHorde.Entities.Generated
 {
 	/// <summary>Card Filter Landing</summary>
 	[PublishedModel("cardFilterLanding")]
-	public partial class CardFilterLanding : PublishedContentModel
+	public partial class CardFilterLanding : PublishedContentModel, IIntroductionComposition
 	{
 		// helpers
 #pragma warning disable 0109 // new is redundant
@@ -64,5 +64,21 @@ namespace SkytearHorde.Entities.Generated
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("filterValue")]
 		public virtual string FilterValue => this.Value<string>(_publishedValueFallback, "filterValue");
+
+		///<summary>
+		/// Description
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("description")]
+		public virtual global::Umbraco.Cms.Core.Strings.IHtmlEncodedString Description => global::SkytearHorde.Entities.Generated.IntroductionComposition.GetDescription(this, _publishedValueFallback);
+
+		///<summary>
+		/// Title
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("title")]
+		public virtual string Title => global::SkytearHorde.Entities.Generated.IntroductionComposition.GetTitle(this, _publishedValueFallback);
 	}
 }

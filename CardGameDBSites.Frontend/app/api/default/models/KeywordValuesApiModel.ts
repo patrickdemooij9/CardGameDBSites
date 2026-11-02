@@ -6,3 +6,4 @@ export type KeywordValuesApiModel = {
     triggeredAbilities: Array<string>;
     keywords: Array<string>;
 };
+

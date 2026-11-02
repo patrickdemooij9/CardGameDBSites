@@ -7,5 +7,6 @@
         public int[] LikedDecks { get; set; }
         public bool IsAdmin { get; set; }
         public int? ImpersonatedBy { get; set; }
+        public required MemberSettingsApiModel Settings { get; set; }
     }
 }

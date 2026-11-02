@@ -21,6 +21,9 @@ export type { AccountListsPropertiesModel } from './models/AccountListsPropertie
 export type { AccountPageContentModel } from './models/AccountPageContentModel';
 export type { AccountPageContentResponseModel } from './models/AccountPageContentResponseModel';
 export type { AccountPagePropertiesModel } from './models/AccountPagePropertiesModel';
+export type { AccountSettingsContentModel } from './models/AccountSettingsContentModel';
+export type { AccountSettingsContentResponseModel } from './models/AccountSettingsContentResponseModel';
+export type { AccountSettingsPropertiesModel } from './models/AccountSettingsPropertiesModel';
 export type { AdServerAdContentModel } from './models/AdServerAdContentModel';
 export type { AdServerAdContentResponseModel } from './models/AdServerAdContentResponseModel';
 export type { AdServerAdPropertiesModel } from './models/AdServerAdPropertiesModel';
@@ -72,6 +75,12 @@ export type { CardDetailContentResponseModel } from './models/CardDetailContentR
 export type { CardDetailDividerDisplayElementModel } from './models/CardDetailDividerDisplayElementModel';
 export type { CardDetailDividerDisplayPropertiesModel } from './models/CardDetailDividerDisplayPropertiesModel';
 export type { CardDetailPropertiesModel } from './models/CardDetailPropertiesModel';
+export type { CardFilterCollectionContentModel } from './models/CardFilterCollectionContentModel';
+export type { CardFilterCollectionContentResponseModel } from './models/CardFilterCollectionContentResponseModel';
+export type { CardFilterCollectionPropertiesModel } from './models/CardFilterCollectionPropertiesModel';
+export type { CardFilterLandingContentModel } from './models/CardFilterLandingContentModel';
+export type { CardFilterLandingContentResponseModel } from './models/CardFilterLandingContentResponseModel';
+export type { CardFilterLandingPropertiesModel } from './models/CardFilterLandingPropertiesModel';
 export type { CardImageElementModel } from './models/CardImageElementModel';
 export type { CardImagePropertiesModel } from './models/CardImagePropertiesModel';
 export type { CardOverviewContentModel } from './models/CardOverviewContentModel';

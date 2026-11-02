@@ -25,6 +25,7 @@ const pageComponents: { [key: string]: Component } = {
   dailyGame: defineAsyncComponent(() => import("~/components/pageTypes/DailyGamePage.vue")),
   proxyCards: defineAsyncComponent(() => import("~/components/pageTypes/ProxyCardsPage.vue")),
   accountCards: defineAsyncComponent(() => import("~/components/pageTypes/AccountCards.vue")),
+  accountSettings: defineAsyncComponent(() => import("~/components/pageTypes/AccountSettings.vue")),
   metaPage: defineAsyncComponent(() => import("~/components/pageTypes/MetaPage.vue")),
   metaCardOverview: defineAsyncComponent(() => import("~/components/pageTypes/MetaCardOverviewPage.vue")),
   metaCardDetail: defineAsyncComponent(() => import("~/components/pageTypes/MetaCardDetailPage.vue")),

@@ -57,6 +57,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<ICardSearchService, CardSearchService>();
             builder.Services.AddSingleton<DeckListService>();
             builder.Services.AddSingleton<DeckFolderService>();
+            builder.Services.AddSingleton<MemberSettingsService>();
             builder.Services.AddSingleton<ContentCreatorService>();
             builder.Services.AddSingleton<DeckTrackingProcessor>();
             builder.Services.AddSingleton<SkillSetService>();
@@ -79,6 +80,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<DeckViewRepository>();
             builder.Services.AddSingleton<DeckListRepository>();
             builder.Services.AddSingleton<DeckFolderRepository>();
+            builder.Services.AddSingleton<MemberSettingsRepository>();
             builder.Services.AddSingleton<ContentCreatorBlogPostRepository>();
             builder.Services.AddSingleton<DeckLikeRepository>();
             builder.Services.AddSingleton<DeckCalculateScoreRepository>();

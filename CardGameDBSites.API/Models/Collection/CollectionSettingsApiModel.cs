@@ -5,5 +5,6 @@ namespace CardGameDBSites.API.Models.Collection
         public bool AllowSetCollecting { get; set; }
         public bool AllowCardCollecting { get; set; }
         public bool ShowProgressBar { get; set; }
+        public int MissingCopiesThreshold { get; set; }
     }
 }

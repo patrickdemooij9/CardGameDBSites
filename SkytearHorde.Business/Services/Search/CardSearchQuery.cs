@@ -13,6 +13,7 @@
         public bool IncludeHideFromDeck { get; set; } = true;
         public CardSearchCollectionMode CollectionMode { get; set; }
         public int? MemberId { get; set; }
+        public int MissingCopiesThreshold { get; set; } = 3;
         public bool IncludeReprintedCards { get; set; } = true;
         public int? LegalForDeckTypeId { get; set; }
 

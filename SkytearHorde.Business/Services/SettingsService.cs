@@ -174,6 +174,7 @@ namespace SkytearHorde.Business.Services
                 AllowSetCollecting = settings.AllowSetCollecting,
                 MainIdentifier = settings.MainIdentifier?.Name!,
                 ShowProgressBar = settings.ShowProgressBar,
+                MissingCopiesThreshold = settings.MissingCopiesThreshold,
                 ImportMappings = settings.Mapping.ToItems<ImportMapping>().ToArray()
             };
         }

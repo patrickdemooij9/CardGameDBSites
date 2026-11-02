@@ -3,10 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CardDetailApiModel } from '../models/CardDetailApiModel';
+import type { CardFilterCollectionApiModel } from '../models/CardFilterCollectionApiModel';
 import type { CardPriceChangeApiModel } from '../models/CardPriceChangeApiModel';
 import type { CardPriceHistoryItemApiModel } from '../models/CardPriceHistoryItemApiModel';
 import type { CardsQueryPostApiModel } from '../models/CardsQueryPostApiModel';
 import type { CardVariantTypeApiModel } from '../models/CardVariantTypeApiModel';
+import type { KeywordValuesApiModel } from '../models/KeywordValuesApiModel';
 import type { PagedResultCardDetailApiModel } from '../models/PagedResultCardDetailApiModel';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -66,6 +68,16 @@ export class CardsResource {
         });
     }
     /**
+     * @returns CardFilterCollectionApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCardsFilterLandings(): CancelablePromise<Array<CardFilterCollectionApiModel>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/cards/filterLandings',
+        });
+    }
+    /**
      * @returns string OK
      * @throws ApiError
      */
@@ -80,6 +92,16 @@ export class CardsResource {
             query: {
                 'abilityName': abilityName,
             },
+        });
+    }
+    /**
+     * @returns KeywordValuesApiModel OK
+     * @throws ApiError
+     */
+    public static getApiCardsKeywordValues(): CancelablePromise<KeywordValuesApiModel> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/cards/keywordValues',
         });
     }
     /**

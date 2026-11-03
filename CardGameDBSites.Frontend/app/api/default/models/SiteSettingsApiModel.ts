@@ -28,6 +28,7 @@ export type SiteSettingsApiModel = {
     keywordImages: Array<KeywordImageApiModel>;
     keywordAttributes: Array<KeywordAttributeApiModel>;
     cardOverviewIdentifier?: string | null;
+    showReprintFilter?: boolean;
     collection: CollectionSettingsApiModel;
     renderConfig: DeckRenderConfigApiModel;
 };

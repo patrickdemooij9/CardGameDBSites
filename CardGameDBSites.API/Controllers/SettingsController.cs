@@ -94,6 +94,7 @@ namespace CardGameDBSites.API.Controllers
                     DisplayName = it.Value.DisplayName.IfNullOrWhiteSpace(it.Value.Name)
                 })],
                 CardOverviewIdentifier = settings.CardOverviewIdentifier,
+                ShowReprintFilter = settings.ShowReprintFilter,
                 Collection = new CollectionSettingsApiModel
                 {
                     AllowSetCollecting = collectionSettings.AllowSetCollecting,

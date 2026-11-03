@@ -310,6 +310,13 @@ namespace SkytearHorde.Entities.Generated
 		public virtual bool ShowLogin => this.Value<bool>(_publishedValueFallback, "showLogin");
 
 		///<summary>
+		/// Show reprint filter
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[ImplementPropertyType("showReprintFilter")]
+		public virtual bool ShowReprintFilter => this.Value<bool>(_publishedValueFallback, "showReprintFilter");
+
+		///<summary>
 		/// Site Id
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

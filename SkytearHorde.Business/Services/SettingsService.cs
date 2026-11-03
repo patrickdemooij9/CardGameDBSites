@@ -84,6 +84,7 @@ namespace SkytearHorde.Business.Services
                     },
                     SortOptions = settings.SortOptions.ToItems<SortOption>().ToArray(),
                     CardOverviewIdentifier = settings.CardOverviewIdentifier,
+                    ShowReprintFilter = settings.ShowReprintFilter,
                     BaseUrl = settings.BaseUrl,
                     AIPromptFolder = settings.PromptFolder,
                     DeckRenderConfig = deckRenderConfig,

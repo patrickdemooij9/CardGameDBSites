@@ -120,9 +120,23 @@ const variantFilter: OverviewFilterModel | undefined =
         },
       }
     : undefined;
-const overviewFilters = computed(() =>
-  variantFilter ? [variantFilter, ...props.filters] : props.filters,
-);
+const reprintFilter: OverviewFilterModel | undefined = siteSettings.showReprintFilter
+  ? {
+      Alias: "reprints",
+      DisplayName: "Reprints",
+      Type: OverviewFilterType.CHECKBOX,
+      AutoFillValues: false,
+      Items: [{ DisplayName: "Hide reprints", Value: "hide" }],
+      ApplyToQuery: (_, query) => {
+        query.includeReprintedCards = false;
+      },
+    }
+  : undefined;
+const overviewFilters = computed(() => [
+  ...(variantFilter ? [variantFilter] : []),
+  ...props.filters,
+  ...(reprintFilter ? [reprintFilter] : []),
+]);
 const currentCards = ref<PagedResultCardDetailApiModel | null>(null);
 const collectionColumns = computed<CollectionColumn[]>(() => [
   {

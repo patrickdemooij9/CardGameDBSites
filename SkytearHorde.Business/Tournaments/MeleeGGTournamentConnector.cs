@@ -72,15 +72,18 @@ namespace SkytearHorde.Business.Tournaments
 
             Dictionary<int, MeleeRoundStanding> standings = [];
             _matchesIds.Reverse();
-            foreach (var matchId in _matchesIds)
+            var standingsRoundIndex = 0;
+            for (; standingsRoundIndex < _matchesIds.Count; standingsRoundIndex++)
             {
-                standings = await GetRoundStandings(matchId);
+                standings = await GetRoundStandings(_matchesIds[standingsRoundIndex]);
                 if (standings.Count > 0) break;
             }
             if (standings.Count == 0)
             {
                 throw new ApplicationException($"Could not find standings for tournament {tournament.Id}");
             }
+            // Melee publishes no standings for the Finals, so the snapshot we use predates it.
+            var roundIdsAfterStandings = _matchesIds.Take(standingsRoundIndex).Select(int.Parse).ToHashSet();
 
             foreach (var matchId in _matchesIds)
             {
@@ -149,17 +152,16 @@ namespace SkytearHorde.Business.Tournaments
                                 Draws = standing?.GameDraws ?? 0
                             };
                             data.EntrantsByExternalId[player.ID] = entrant;
+                        }
 
-                            // Load the entrant's deck from Melee if available
-                            if (competitor.Decklists != null && competitor.Decklists.Length > 0)
+                        // Melee leaves a player's Decklists empty in some rounds, so keep trying until one round has it.
+                        if (!data.DeckDataByEntrantExternalId.ContainsKey(player.ID) && competitor.Decklists.Length > 0)
+                        {
+                            var deckData = await LoadDeckFromMelee(competitor.Decklists[0].DeckListId.ToString());
+                            if (deckData != null)
                             {
-                                var firstDecklistGuid = competitor.Decklists[0].DeckListId;
-                                var deckData = await LoadDeckFromMelee(firstDecklistGuid.ToString());
-                                if (deckData != null)
-                                {
-                                    data.DeckData.Add(deckData);
-                                    data.DeckDataByEntrantExternalId[player.ID] = deckData;
-                                }
+                                data.DeckData.Add(deckData);
+                                data.DeckDataByEntrantExternalId[player.ID] = deckData;
                             }
                         }
 
@@ -194,7 +196,28 @@ namespace SkytearHorde.Business.Tournaments
                 }
             }
 
+            ApplyResultsAfterStandings(data, roundIdsAfterStandings);
+
             return data;
+        }
+
+        private static void ApplyResultsAfterStandings(TournamentConnectorData data, HashSet<int> roundIds)
+        {
+            var matches = data.Matches
+                .Where(m => roundIds.Contains(m.RoundId) && m.GamesWonP1 != m.GamesWonP2)
+                .OrderBy(m => data.RoundsByExternalId[m.RoundId].RoundNumber);
+
+            foreach (var match in matches)
+            {
+                if (!match.Entrant1Id.HasValue || !match.Entrant2Id.HasValue) continue;
+
+                var entrant1 = data.EntrantsByExternalId[match.Entrant1Id.Value];
+                var entrant2 = data.EntrantsByExternalId[match.Entrant2Id.Value];
+                var (winner, loser) = match.GamesWonP1 > match.GamesWonP2 ? (entrant1, entrant2) : (entrant2, entrant1);
+
+                if (winner.Placement > loser.Placement)
+                    (winner.Placement, loser.Placement) = (loser.Placement, winner.Placement);
+            }
         }
 
         public async Task<IReadOnlyList<DiscoveredTournament>> DiscoverTournaments(TournamentDiscoveryConfig config)

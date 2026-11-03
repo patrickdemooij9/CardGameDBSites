@@ -444,7 +444,6 @@ namespace SkytearHorde.Business.Services
 
                 foreach (var card in deckData.Cards)
                 {
-                    // Search for the card by name
                     var searchQuery = card.Subtitle != null
                         ? $"{card.Name} {card.Subtitle}"
                         : card.Name;
@@ -457,10 +456,12 @@ namespace SkytearHorde.Business.Services
                             {
                                 Query = searchQuery,
                                 VariantTypeIds = [0],
-                                Amount = 1
-                            }, out var _);
+                                Amount = 10
+                            }, out var _).ToArray();
 
-                        resolvedCard = results.FirstOrDefault();
+                        // The search is a per-word prefix match, so "Otoh Gunga" ranks "Boss Nass, Otoh Gunga Boss" above the base itself.
+                        var expectedName = NormalizeCardName(card.Subtitle != null ? $"{card.Name}, {card.Subtitle}" : card.Name);
+                        resolvedCard = results.FirstOrDefault(it => NormalizeCardName(it.DisplayName) == expectedName) ?? results.FirstOrDefault();
                         resolvedCards[searchQuery] = resolvedCard;
                         if (resolvedCard is null)
                         {
@@ -486,6 +487,9 @@ namespace SkytearHorde.Business.Services
             }
             return decks;
         }
+
+        private static string NormalizeCardName(string name) =>
+            new(name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
 
         private int GetSlotForCard(SquadConfig config, Entities.Models.Business.Card card)
         {

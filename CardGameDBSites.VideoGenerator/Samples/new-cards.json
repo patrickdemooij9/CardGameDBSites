@@ -1,0 +1,13 @@
+{
+  "title": "NEW CARDS REVEALED",
+  "subtitle": "Icons 2027",
+  "footer": "SW-UNLIMITED-DB.COM",
+  "cards": [
+    { "name": "Han Solo", "subtitle": "Scruffy-Looking Nerf Herder", "imageUrl": "https://api.sw-unlimited-db.com/media/l2sja2ne/han-solo-scruffy-looking-nerf-herder.png" },
+    { "name": "Luke Skywalker", "subtitle": "Do You Read Me?", "imageUrl": "https://api.sw-unlimited-db.com/media/uu1hcxyo/luke-skywalker-do-you-read-me.png" },
+    { "name": "Millennium Falcon", "subtitle": "Bucket Of Bolts", "imageUrl": "https://api.sw-unlimited-db.com/media/aurhe4ia/millennium-falcon-bucket-of-bolts.png" },
+    { "name": "Admiral Piett", "subtitle": "In Command Now", "imageUrl": "https://api.sw-unlimited-db.com/media/cu2hsg4a/admiral-piett-in-command-now.png" },
+    { "name": "Rey", "subtitle": "In Balance", "imageUrl": "https://api.sw-unlimited-db.com/media/2pgfw5nh/rey-in-balance.png" },
+    { "name": "Grand Admiral Thrawn", "subtitle": "Listen To Me Carefully", "imageUrl": "https://api.sw-unlimited-db.com/media/rpintdas/grand-admiral-thrawn-listen-to-me-carefully.png" }
+  ]
+}

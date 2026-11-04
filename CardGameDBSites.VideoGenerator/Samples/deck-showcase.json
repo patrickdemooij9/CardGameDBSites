@@ -1,0 +1,245 @@
+{
+  "footer": "SW-UNLIMITED-DB.COM", 
+  "hook": {
+    "text": "Want to see the deck that just won a planetary qualifier?", 
+    "imageUrl": "https://api.sw-unlimited-db.com/media/l43d2vww/obi-wan-kenobi-courage-makes-heroes-unit.png"
+  }, 
+  "subtitle": "Obi-Wan Kenobi + Vergence Temple", 
+  "title": "DECK SPOTLIGHT", 
+  "finale": {
+    "cards": [
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/l43d2vww/obi-wan-kenobi-courage-makes-heroes-unit.png", 
+        "subtitle": "Courage makes heroes", 
+        "name": "Obi-Wan Kenobi", 
+        "quantity": 1
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/tk2dmzl4/vergence-temple.png", 
+        "subtitle": null, 
+        "name": "Vergence Temple", 
+        "quantity": 1
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/fssligit/lifetree-caravan.png", 
+        "subtitle": null, 
+        "name": "Lifetree Caravan", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/d5iljrsw/paz-vizsla-for-a-brighter-future.png", 
+        "subtitle": "For A Brighter Future", 
+        "name": "Paz Vizsla", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/w30fdbii/huyang-your-aptitude-falls-short.png", 
+        "subtitle": "Your Aptitude Falls Short", 
+        "name": "Huyang", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/tcedi4j4/luke-skywalker-answering-the-call.png", 
+        "subtitle": "Answering The Call", 
+        "name": "Luke Skywalker", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/f4nb3gl4/anakin-skywalker-you-were-right-about-me.png", 
+        "subtitle": "You Were Right About Me", 
+        "name": "Anakin Skywalker", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/zope2i11/cinta-kaz-stone-cold-and-fearless.png", 
+        "subtitle": "Stone Cold And Fearless", 
+        "name": "Cinta Kaz", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/1mphl1gg/captain-rex-into-the-firefight.png", 
+        "subtitle": "Into The Firefight", 
+        "name": "Captain Rex", 
+        "quantity": 1
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/n5vphldx/bo-katan-kryze-alone.png", 
+        "subtitle": "Alone", 
+        "name": "Bo-Katan Kryze", 
+        "quantity": 1
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/qfkfg2im/ahsoka-tano-i-learned-it-from-you.png", 
+        "subtitle": "I Learned It From You", 
+        "name": "Ahsoka Tano", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/3lokovlg/captain-typho-all-necesarry-precautions.png", 
+        "subtitle": "All Necessary Precautions", 
+        "name": "Captain Typho", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/wofff0vx/mina-bonteri-stop-this-war.png", 
+        "subtitle": "Stop This War", 
+        "name": "Mina Bonteri", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/ogifl0hl/queen-amidala-championing-her-people.png", 
+        "subtitle": "Championing Her People", 
+        "name": "Queen Amidala", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/czhd2xcm/gungi-finding-himself.png", 
+        "subtitle": "Finding Himself", 
+        "name": "Gungi", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/cw3euh4n/jedi-consular.png", 
+        "subtitle": null, 
+        "name": "Jedi Consular", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/hvgdugny/kelleran-beq-the-sabered-hand.png", 
+        "subtitle": "The Sabered Hand", 
+        "name": "Kelleran Beq", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/woibf2gb/luke-skywalker-a-heros-beginning.png", 
+        "subtitle": "A Hero's Beginning", 
+        "name": "Luke Skywalker", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/emgduen3/t-6-shuttle-1974-with-a-mentors-dedication.png", 
+        "subtitle": "With A Mentor's Dedication", 
+        "name": "T-6 Shuttle 1974", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/f20ozi2q/blue-leader-scarif-air-support.png", 
+        "subtitle": "Scarif Air Support", 
+        "name": "Blue Leader", 
+        "quantity": 3
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/vcoknlde/the-tree-remembers.png", 
+        "subtitle": null, 
+        "name": "The Tree Remembers", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/jqkgp3y3/lukes-jedi-lightsaber.png", 
+        "subtitle": "Constructed by Hand", 
+        "name": "Luke's Jedi Lightsaber", 
+        "quantity": 2
+      }, 
+      {
+        "imageUrl": "https://api.sw-unlimited-db.com/media/n5cc2jkf/yodas-lightsaber.png", 
+        "subtitle": null, 
+        "name": "Yoda's Lightsaber", 
+        "quantity": 2
+      }
+    ], 
+    "title": "The full deck"
+  }, 
+  "groups": [
+    {
+      "cards": [
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/l43d2vww/obi-wan-kenobi-courage-makes-heroes-unit.png", 
+          "subtitle": "Courage makes heroes", 
+          "name": "Obi-Wan Kenobi", 
+          "quantity": 1
+        }, 
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/tk2dmzl4/vergence-temple.png", 
+          "subtitle": null, 
+          "name": "Vergence Temple", 
+          "quantity": 1
+        }
+      ], 
+      "name": "Leader & Base"
+    }, 
+    {
+      "cards": [
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/w30fdbii/huyang-your-aptitude-falls-short.png", 
+          "subtitle": "Your Aptitude Falls Short", 
+          "name": "Huyang", 
+          "quantity": 1
+        }, 
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/wofff0vx/mina-bonteri-stop-this-war.png", 
+          "subtitle": "Stop This War", 
+          "name": "Mina Bonteri", 
+          "quantity": 1
+        }, 
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/cw3euh4n/jedi-consular.png", 
+          "subtitle": null, 
+          "name": "Jedi Consular", 
+          "quantity": 1
+        }
+      ], 
+      "name": "Early game"
+    }, 
+    {
+      "cards": [
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/f20ozi2q/blue-leader-scarif-air-support.png", 
+          "subtitle": "Scarif Air Support", 
+          "name": "Blue Leader", 
+          "quantity": 1
+        }, 
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/emgduen3/t-6-shuttle-1974-with-a-mentors-dedication.png", 
+          "subtitle": "With A Mentor's Dedication", 
+          "name": "T-6 Shuttle 1974", 
+          "quantity": 1
+        }
+      ], 
+      "name": "Flyers"
+    }, 
+    {
+      "cards": [
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/tcedi4j4/luke-skywalker-answering-the-call.png", 
+          "subtitle": "Answering The Call", 
+          "name": "Luke Skywalker", 
+          "quantity": 1
+        }, 
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/1mphl1gg/captain-rex-into-the-firefight.png", 
+          "subtitle": "Into The Firefight", 
+          "name": "Captain Rex", 
+          "quantity": 1
+        }, 
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/hvgdugny/kelleran-beq-the-sabered-hand.png", 
+          "subtitle": "The Sabered Hand", 
+          "name": "Kelleran Beq", 
+          "quantity": 1
+        }
+      ], 
+      "name": "Heavy hitters"
+    }, 
+    {
+      "cards": [
+        {
+          "imageUrl": "https://api.sw-unlimited-db.com/media/n5vphldx/bo-katan-kryze-alone.png", 
+          "subtitle": "Alone", 
+          "name": "Bo-Katan Kryze", 
+          "quantity": 1
+        }
+      ], 
+      "name": "Endgame"
+    }
+  ]
+}

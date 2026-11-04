@@ -10,17 +10,21 @@ jobs:
         shell: cmd
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
+    - uses: actions/checkout@v4
+    - name: Publish Release
+      run: |
+        if exist "%RUNNER_TEMP%\cardgamedb" rmdir /s /q "%RUNNER_TEMP%\cardgamedb"
+        dotnet publish SkytearHorde.Website\SkytearHorde.csproj --configuration Release -o "%RUNNER_TEMP%\cardgamedb"
     - name: Stop site
       run: c:\windows\system32\inetsrv\appcmd.exe stop sites "cardgamedb"
     - name: Stop apppool
       run: c:\windows\system32\inetsrv\appcmd.exe stop apppool "cardgamedb"
-    - name: Publish Release
-      run: dotnet publish SkytearHorde.Website\SkytearHorde.csproj --configuration Release -o C:\inetpub\cardgamedb
+    - name: Copy to site
+      # robocopy exit codes below 8 mean success
+      run: |
+        robocopy "%RUNNER_TEMP%\cardgamedb" C:\inetpub\cardgamedb /E /NFL /NDL /NP
+        if %ERRORLEVEL% LSS 8 exit /b 0
+        exit /b %ERRORLEVEL%
     - name: Start apppool
       run: c:\windows\system32\inetsrv\appcmd.exe start apppool "cardgamedb"
     - name: Start site

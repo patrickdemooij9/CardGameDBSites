@@ -123,10 +123,10 @@ const variantFilter: OverviewFilterModel | undefined =
 const reprintFilter: OverviewFilterModel | undefined = siteSettings.showReprintFilter
   ? {
       Alias: "reprints",
-      DisplayName: "Reprints",
+      DisplayName: "Hide reprints",
       Type: OverviewFilterType.CHECKBOX,
       AutoFillValues: false,
-      Items: [{ DisplayName: "Hide reprints", Value: "hide" }],
+      Items: [],
       ApplyToQuery: (_, query) => {
         query.includeReprintedCards = false;
       },

@@ -3,7 +3,8 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace CardGameDBSites.VideoGenerator.Rendering;
 
-public sealed class CardImageLoader : IDisposable
+/// <param name="cache">Keep originals for reuse; turn off when loading a whole set, which would hold gigabytes.</param>
+public sealed class CardImageLoader(bool cache = true) : IDisposable
 {
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(20) };
 
@@ -12,6 +13,8 @@ public sealed class CardImageLoader : IDisposable
     /// <summary>Returns a copy the caller owns, or null when the image can't be loaded.</summary>
     public async Task<Image<Rgba32>?> Load(string imageUrl)
     {
+        if (!cache) return await Fetch(imageUrl);
+
         if (!_cache.TryGetValue(imageUrl, out var image))
         {
             image = await Fetch(imageUrl);

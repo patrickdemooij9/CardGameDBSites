@@ -35,7 +35,7 @@ public class SlideFactory(Fonts fonts, CardImageLoader imageLoader)
         return entries;
     }
 
-    private async Task<HookSlide> BuildHook(RevealHook hook)
+    public async Task<HookSlide> BuildHook(RevealHook hook)
     {
         const int textTop = 240;
         const int textWidth = Layout.Width - 120;

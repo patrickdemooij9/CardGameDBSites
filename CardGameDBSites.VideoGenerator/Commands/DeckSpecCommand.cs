@@ -6,8 +6,6 @@ namespace CardGameDBSites.VideoGenerator.Commands;
 
 public static class DeckSpecCommand
 {
-    private const string DefaultApiUrl = "https://api.sw-unlimited-db.com";
-
     public static async Task<int> Run(string[] args)
     {
         if (!int.TryParse(args[1], out var deckId))
@@ -16,7 +14,7 @@ public static class DeckSpecCommand
             return 1;
         }
         var outputPath = args[2];
-        var api = new SiteApiClient(CommandArgs.Option(args, "--api") ?? DefaultApiUrl);
+        var api = new SiteApiClient(CommandArgs.Option(args, "--api") ?? CommandArgs.DefaultApiUrl);
 
         var deck = await api.GetDeck(deckId);
         var cards = await api.GetCards(deck.Cards.Select(c => c.CardId));

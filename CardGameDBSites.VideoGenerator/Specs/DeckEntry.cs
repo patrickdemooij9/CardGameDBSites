@@ -13,7 +13,7 @@ public record DeckEntry(CardDto Card, int Amount)
 
     public RevealCard ToRevealCard(bool withQuantity)
     {
-        var parts = Card.DisplayName.Split(", ", 2);
-        return new RevealCard(parts[0], parts.ElementAtOrDefault(1), Card.ImageUrl?.Url ?? "", withQuantity ? Amount : 1);
+        var (name, subtitle) = CardName.Split(Card.DisplayName);
+        return new RevealCard(name, subtitle, Card.ImageUrl?.Url ?? "", withQuantity ? Amount : 1);
     }
 }

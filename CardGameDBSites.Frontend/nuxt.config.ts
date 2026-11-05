@@ -77,7 +77,8 @@ export default defineNuxtConfig({
   },
   routeRules: isNativeBuild ? {} : {
     // Nitro strips request headers when rendering for the cache, so useRequestURL() falls back to http://localhost.
-    '/': { swr: 3600, cache: { varies: ['host', 'x-forwarded-host', 'x-forwarded-proto'] } }
+    '/': { swr: 3600, cache: { varies: ['host', 'x-forwarded-host', 'x-forwarded-proto'] } },
+    '/sets': { swr: 3600, cache: { varies: ['host', 'x-forwarded-host', 'x-forwarded-proto'] } }
   },
   nitro: {
     prerender: {
@@ -108,5 +109,13 @@ export default defineNuxtConfig({
         'chart.js'
       ]
     }
+    },
+    devServer: {
+        https: {
+            key: readFileSync(resolve(__dirname, 'AidalonDB+2-key.pem'), 'utf8'),
+            cert: readFileSync(resolve(__dirname, 'AidalonDB+2.pem'), 'utf8')
+        },
+        port: 3000,
+        host: 'aidalon.local'
     }
 })

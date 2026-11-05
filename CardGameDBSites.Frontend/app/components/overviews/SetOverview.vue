@@ -1,177 +1,63 @@
 <script setup lang="ts">
-import { PhChartBar } from "@phosphor-icons/vue";
-import SetService from "~/services/SetService";
-import ProgressBar from "../shared/ProgressBar.vue";
-import { DoServerFetch } from "~/helpers/RequestsHelper";
-import type { SetProgressApiModel } from "~/api/default";
-import { useAccountStore } from "~/stores/AccountStore";
-import Button from "~/components/shared/Button.vue";
-import ButtonType from "~/components/shared/ButtonType";
-import CmsImage from "~/components/shared/CmsImage.vue";
+import type { SetViewModel } from "~/api/default";
+import { useAllSets } from "~/composables/useAllSets";
+import { useCollection } from "~/composables/useCollection";
+import { GetLatestSet } from "~/helpers/SetHelper";
+import SetCard from "~/components/sets/SetCard.vue";
+import SetHighlight from "~/components/sets/SetHighlight.vue";
 
-const sets = await new SetService().getAllSets();
-const siteSettings = await useSite().getSettings();
-const setsProgress = ref<SetProgressApiModel[]>([]);
-const collectionSetIds = ref<number[]>([]);
-const collectionSettings = computed(() => ({
-  allowSetCollecting: siteSettings.collection?.allowSetCollecting ?? false,
-  allowCardCollecting: siteSettings.collection?.allowCardCollecting ?? false,
-  showProgressBar: siteSettings.collection?.showProgressBar ?? false,
-}));
-const processingSetIds = ref<number[]>([]);
-const isLoading = ref(true);
+const props = withDefaults(
+  defineProps<{
+    highlightLatest?: boolean;
+  }>(),
+  {
+    highlightLatest: true,
+  },
+);
+
 const emit = defineEmits<{
   collectionUpdated: [];
 }>();
 
-const accountStore = useAccountStore();
-const isLoggedIn = await accountStore.checkLogin();
-const uncategorizedLabel = "";
+const { data: sets } = await useAllSets();
+const { loadSetCollection } = useCollection();
+
+const highlightedSet = computed(() => (props.highlightLatest ? GetLatestSet(sets.value) : undefined));
 
 const groupedSets = computed(() => {
-  const groups = new Map<string, typeof sets>();
-  sets.forEach((set) => {
-    const category = set.category?.trim() || uncategorizedLabel;
-    const current = groups.get(category) ?? [];
-    current.push(set);
-    groups.set(category, current);
-  });
-
-  return [...groups.entries()].map(([category, sets]) => ({
-    category,
-    sets,
-  }));
-});
-
-function getProgress(setId: number): SetProgressApiModel | undefined {
-  return setsProgress.value.find((sp) => sp.setId === setId);
-}
-
-function calculateProgressFilled(setId: number): number {
-  const progress = getProgress(setId);
-  if (!progress || progress.totalCards === 0) {
-    return 0;
-  }
-  return (progress.ownedCards! / progress.totalCards!) * 100;
-}
-
-function isSetInCollection(setId: number): boolean {
-  return collectionSetIds.value.includes(setId);
-}
-
-async function updateSetCollection(setId: number) {
-  if (!isLoggedIn || processingSetIds.value.includes(setId)) {
-    return;
-  }
-
-  processingSetIds.value = [...processingSetIds.value, setId];
-  const isInCollection = isSetInCollection(setId);
-  const endpoint = isInCollection ? "removeSet" : "addSet";
-
-  try {
-    await DoServerFetch(`/api/collection/${endpoint}?setId=${setId}`, true, {
-      method: "POST",
+  const groups = new Map<string, SetViewModel[]>();
+  sets.value
+    .filter((set) => set.id !== highlightedSet.value?.id)
+    .forEach((set) => {
+      const category = set.category?.trim() ?? "";
+      groups.set(category, [...(groups.get(category) ?? []), set]);
     });
 
-    collectionSetIds.value = isInCollection
-      ? collectionSetIds.value.filter((id) => id !== setId)
-      : [...collectionSetIds.value, setId];
-    emit("collectionUpdated");
-  } finally {
-    processingSetIds.value = processingSetIds.value.filter((id) => id !== setId);
-  }
-}
-
-onMounted(async () => {
-  try {
-    if (isLoggedIn) {
-      if (collectionSettings.value.allowSetCollecting) {
-        collectionSetIds.value = await DoServerFetch<number[]>("/api/collection/sets");
-      } else if (
-        collectionSettings.value.allowCardCollecting &&
-        collectionSettings.value.showProgressBar
-      ) {
-        setsProgress.value = await DoServerFetch<SetProgressApiModel[]>(
-          "/api/collection/setsProgress"
-        );
-      }
-    }
-  } catch {
-    // The sets still render without collection data; an expired session is handled by DoFetch.
-  } finally {
-    isLoading.value = false;
-  }
+  return [...groups.entries()].map(([category, sets]) => ({ category, sets }));
 });
+
+onMounted(loadSetCollection);
 </script>
 
 <template>
-  <div v-if="isLoading" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-  </div>
-  <div v-else class="flex flex-col gap-8">
-    <div v-for="group in groupedSets" :key="group.category" class="flex flex-col gap-4">
-      <h3 class="text-lg font-bold">{{ group.category }}</h3>
-      <div class="grid md:grid-cols-5 sm:grid-cols-2 grid-cols-1 gap-6">
-        <div
+  <div class="flex flex-col gap-10">
+    <SetHighlight
+      v-if="highlightedSet"
+      :set="highlightedSet"
+      @collection-updated="emit('collectionUpdated')"
+    />
+    <section v-for="group in groupedSets" :key="group.category" class="flex flex-col gap-4">
+      <h2 v-if="group.category" class="border-b border-gray-200 pb-2 text-xl font-bold">
+        {{ group.category }}
+      </h2>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SetCard
           v-for="set in group.sets"
           :key="set.id"
-          class="flex flex-col gap-2 rounded-md border-2 border-gray-300 bg-white p-4"
-        >
-          <NuxtLink
-            :to="set.urlSegment"
-            class="flex gap-2 items-baseline text-base no-underline"
-          >
-            <h2 class="text-base font-bold">{{ set.displayName }}</h2>
-            <i v-if="set.code" class="text-xs">{{ set.code }}</i>
-            <p
-              v-if="
-                accountStore.isLoggedIn &&
-                collectionSettings.allowSetCollecting &&
-                isSetInCollection(set.id)
-              "
-              class="ml-auto text-xs text-green-600 font-bold"
-            >
-              Owned
-            </p>
-          </NuxtLink>
-          <div class="flex justify-between">
-            <CmsImage class="h-16" v-if="set.imageUrl" :src="set.imageUrl" :alt="set.displayName" />
-          </div>
-          <div class="flex justify-between gap-4">
-            <div class="grow self-center">
-              <div v-if="accountStore.isLoggedIn">
-                <Button
-                :button-type="ButtonType.Outline"
-                v-if="collectionSettings.allowSetCollecting"
-                  :disabled="processingSetIds.includes(set.id)"
-                  @click="updateSetCollection(set.id)">
-                  {{
-                    isSetInCollection(set.id)
-                      ? "Remove from collection"
-                      : "Add to collection"
-                  }}
-                </Button>
-                <ProgressBar
-                  v-else-if="
-                    collectionSettings.allowCardCollecting &&
-                    collectionSettings.showProgressBar
-                  "
-                  :percent-filled="calculateProgressFilled(set.id)"
-                  :description="`${getProgress(set.id)?.ownedCards}/${getProgress(set.id)?.totalCards}`"
-                ></ProgressBar>
-              </div>
-            </div>
-            <NuxtLink
-            v-if="!collectionSettings.allowSetCollecting"
-              :to="set.urlSegment"
-              class="border border-solid flex gap-2 rounded items-center px-2 py-1 bg-white"
-            >
-              <PhChartBar />
-              <span>Details</span>
-            </NuxtLink>
-          </div>
-        </div>
+          :set="set"
+          @collection-updated="emit('collectionUpdated')"
+        />
       </div>
-    </div>
+    </section>
   </div>
 </template>

@@ -13,6 +13,7 @@ import { ToRangeFilterClauses } from "~/helpers/RangeFilterHelper";
 import SetPriceHistoryChart from "../cards/SetPriceHistoryChart.vue";
 import FaqSection from "~/components/shared/FaqSection.vue";
 import { buildFaqSchema } from "~/components/shared/faq";
+import { FormatReleaseDate } from "~/helpers/SetHelper";
 import {
   PhCalendar,
   PhCards,
@@ -34,16 +35,8 @@ const currentPrice =
   priceHistory && priceHistory.length > 0
     ? priceHistory[priceHistory.length - 1]!.price
     : null;
-const cardAmount = await setService.getCardAmount(set.id);
-const releaseDate = computed(() => {
-  const parsedReleaseDate = set.releaseDate
-    ? new Date(set.releaseDate)
-    : undefined;
-  if (!parsedReleaseDate || parsedReleaseDate.getUTCMilliseconds() == 0) {
-    return undefined;
-  }
-  return parsedReleaseDate;
-});
+const cardAmount = set.cardCount;
+const releaseDate = FormatReleaseDate(set);
 
 const settings = await useSite().getSetOverviewSettings();
 const filters = useCollectionFilter(
@@ -187,13 +180,7 @@ useHead(() => ({
             class="flex gap-1 items-center px-2 py-1 border bg-white rounded"
           >
             <PhCalendar />
-            {{
-              releaseDate.toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })
-            }}
+            {{ releaseDate }}
           </div>
           <div
             class="flex gap-1 items-center px-2 py-1 border bg-white rounded cursor-pointer"

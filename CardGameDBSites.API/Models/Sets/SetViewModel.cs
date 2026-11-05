@@ -10,6 +10,8 @@
         public string? Category { get; set; }
         public int[]? MainVariants { get; set; }
         public DateTime? ReleaseDate { get; set; }
+        public int CardCount { get; set; }
+        public string? BannerColor { get; set; }
 
         public string? SubHeading { get; set; }
         public string? Description { get; set; }

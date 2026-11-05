@@ -1,11 +1,23 @@
-import type { AddCollectionCardsApiModel, CardDetailApiModel, CollectionCardApiModel, DeckProgressApiModel } from "~/api/default";
+import type {
+  AddCollectionCardsApiModel,
+  CardDetailApiModel,
+  CollectionCardApiModel,
+  CollectionSummaryApiModel,
+  DeckProgressApiModel,
+  SetProgressApiModel,
+  SetViewModel,
+} from "~/api/default";
 import { DoServerFetch } from "~/helpers/RequestsHelper";
 import type { PackPostApiModel, PackVerifySuccessApiModel, PackVerifyErrorApiModel } from "~/models/PackApiModel";
 import type { PresetApiModel } from "~/models/PresetApiModel";
+import { useAccountStore } from "~/stores/AccountStore";
 import { useCollectionStore } from "~/stores/CollectionStore";
+
+let setCollectionPromise: Promise<void> | undefined;
 
 export function useCollection() {
   const store = useCollectionStore();
+  const accountStore = useAccountStore();
 
   const loadCards = async (cardIds: number[], options: { refresh?: boolean } = {}) => {
     if (cardIds.length === 0) return {};
@@ -133,6 +145,66 @@ export function useCollection() {
   };
   const getAmount = (cardId: number) => store.amount(cardId);
 
+  const getSummary = () => DoServerFetch<CollectionSummaryApiModel>("/api/collection/summary");
+
+  const importCollection = async (file: File, overwrite: boolean) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    await DoServerFetch("/api/collection/import", true, {
+      method: "POST",
+      body: formData,
+      query: { overwrite },
+    });
+  };
+
+  const fetchSetCollection = async (site: ReturnType<typeof useSite>) => {
+    if (!(await accountStore.checkLogin())) {
+      store.setCollectionMode = undefined;
+      return;
+    }
+
+    const settings = (await site.getSettings()).collection;
+    if (settings?.allowSetCollecting) {
+      store.ownedSetIds = await DoServerFetch<number[]>("/api/collection/sets");
+      store.setCollectionMode = "sets";
+    } else if (settings?.allowCardCollecting && settings.showProgressBar) {
+      store.setsProgress = await DoServerFetch<SetProgressApiModel[]>("/api/collection/setsProgress");
+      store.setCollectionMode = "cards";
+    }
+  };
+
+  const loadSetCollection = () => {
+    setCollectionPromise ??= fetchSetCollection(useSite())
+      .catch(() => {})
+      .finally(() => (setCollectionPromise = undefined));
+    return setCollectionPromise;
+  };
+
+  const toggleSet = async (setId: number) => {
+    const owned = store.isSetOwned(setId);
+    await DoServerFetch(`/api/collection/${owned ? "removeSet" : "addSet"}`, true, {
+      method: "POST",
+      query: { setId },
+    });
+    store.ownedSetIds = owned
+      ? store.ownedSetIds.filter((id) => id !== setId)
+      : [...store.ownedSetIds, setId];
+  };
+
+  const getSetsSummary = (sets: SetViewModel[]) => {
+    if (store.setCollectionMode === "sets") {
+      return { owned: sets.filter((set) => store.isSetOwned(set.id)).length, total: sets.length, unit: "sets" };
+    }
+    if (store.setCollectionMode === "cards") {
+      return {
+        owned: store.setsProgress.reduce((sum, it) => sum + (it.ownedCards ?? 0), 0),
+        total: store.setsProgress.reduce((sum, it) => sum + (it.totalCards ?? 0), 0),
+        unit: "cards",
+      };
+    }
+    return undefined;
+  };
+
   return {
     loadCards,
     loadDecksProgress,
@@ -145,6 +217,14 @@ export function useCollection() {
     createPresetFromDeck,
     getCards,
     getAmountForSet,
-    getAmount
+    getAmount,
+    getSummary,
+    importCollection,
+    loadSetCollection,
+    toggleSet,
+    getSetsSummary,
+    setCollectionMode: computed(() => store.setCollectionMode),
+    getSetProgress: (setId: number) => store.getSetProgress(setId),
+    isSetOwned: (setId: number) => store.isSetOwned(setId),
   };
 }

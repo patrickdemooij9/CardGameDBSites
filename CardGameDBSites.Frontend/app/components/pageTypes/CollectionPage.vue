@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import {
   type CollectionSummaryApiModel,
-  type SetViewModel,
   type CardVariantTypeApiModel,
 } from "~/api/default";
-import { DoServerFetch } from "~/helpers/RequestsHelper";
 import { useAppToast } from "~/composables/useAppToast";
 import SetOverview from "../overviews/SetOverview.vue";
 import ProgressBar from "../shared/ProgressBar.vue";
@@ -16,6 +14,8 @@ import Button from "../shared/Button.vue";
 import ButtonType from "../shared/ButtonType";
 import type { PresetApiModel } from "~/models/PresetApiModel";
 import { useCollection } from "~/composables/useCollection";
+import { useAllSets } from "~/composables/useAllSets";
+import { useCards } from "~/composables/useCards";
 import { useAccountStore } from "~/stores/AccountStore";
 import { computed } from "vue";
 
@@ -23,6 +23,7 @@ const accountStore = useAccountStore();
 const isLoggedIn = await accountStore.checkLogin();
 const appToast = useAppToast();
 const collectionComposable = useCollection();
+const { loadVariantTypes } = useCards();
 const showProgressBar = true;
 const progressPercent = computed(() => summaryData.value.collectionProgress ?? 0);
 const isLoading = ref(true);
@@ -35,7 +36,7 @@ const importError = ref("");
 const selectedFile = ref<File | null>(null);
 const overwriteCollection = ref(false);
 
-const sets = ref<SetViewModel[]>([]);
+const { data: sets } = await useAllSets();
 const variantTypes = ref<CardVariantTypeApiModel[]>([]);
 const presets = ref<PresetApiModel[]>([]);
 
@@ -83,26 +84,14 @@ async function handleImport() {
   importError.value = "";
 
   try {
-    const formData = new FormData();
-    formData.append("file", selectedFile.value);
-
-    await DoServerFetch(
-      `/api/collection/import?overwrite=${overwriteCollection.value}`,
-      true,
-      {
-        method: "POST",
-        body: formData,
-      },
-    );
+    await collectionComposable.importCollection(selectedFile.value, overwriteCollection.value);
 
     appToast.success("Collection imported successfully!");
     showImportPopup.value = false;
     selectedFile.value = null;
     overwriteCollection.value = false;
 
-    summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
-      "/api/collection/summary",
-    );
+    await handleCollectionUpdated();
   } catch (error: any) {
     importError.value = error.data || "An error occurred during import";
   } finally {
@@ -113,15 +102,10 @@ async function handleImport() {
 onMounted(async () => {
   try {
     if (isLoggedIn) {
-      summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
-        "/api/collection/summary",
-      );
-      sets.value = await DoServerFetch<SetViewModel[]>("/api/sets/getAll");
+      summaryData.value = await collectionComposable.getSummary();
       presets.value = await collectionComposable.getPresets();
     }
-    variantTypes.value = await DoServerFetch<CardVariantTypeApiModel[]>(
-      "/api/cards/variantTypes",
-    );
+    variantTypes.value = await loadVariantTypes();
     isLoading.value = false;
   } catch {
     isLoading.value = false;
@@ -129,9 +113,8 @@ onMounted(async () => {
 });
 
 async function handleCollectionUpdated() {
-  summaryData.value = await DoServerFetch<CollectionSummaryApiModel>(
-    "/api/collection/summary",
-  );
+  summaryData.value = await collectionComposable.getSummary();
+  await collectionComposable.loadSetCollection();
 }
 </script>
 
@@ -195,7 +178,7 @@ async function handleCollectionUpdated() {
       <div class="mt-12">
         <div v-if="accountStore.isLoggedIn">
           <h2 class="text-lg font-bold">All sets</h2>
-          <SetOverview @collection-updated="handleCollectionUpdated" />
+          <SetOverview :highlight-latest="false" @collection-updated="handleCollectionUpdated" />
         </div>
         <div v-else>
           <p class="text-lg font-bold text-center">

@@ -79,13 +79,6 @@ namespace CardGameDBSites.API.Controllers
             return Ok(result);
         }
 
-        
-        [HttpGet("cardCount")]
-        [ProducesResponseType(typeof(int), 200)]
-        public IActionResult GetCardCount(int setId)
-        {
-            return Ok(_cardService.GetAllBaseBySet(setId).Count());
-        }
 
         private SetViewModel CreateSetViewModel(Set set)
         {
@@ -100,6 +93,8 @@ namespace CardGameDBSites.API.Controllers
                 Category = set.CategoryName,
                 MainVariants = set.MainVariantType?.OfType<Variant>().Select(it => it.InternalID).ToArray(),
                 ReleaseDate = set.ReleaseDate,
+                CardCount = _cardService.GetMainBySet(set).Count(),
+                BannerColor = set.BannerColor,
 
                 SubHeading = set.Subheading?.ToString(),
                 Description = set.Description?.ToString(),

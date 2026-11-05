@@ -18,6 +18,7 @@ namespace SkytearHorde.Business.Services
         private readonly MemberInfoService _memberInfoService;
         private readonly SettingsService _settingsService;
         private readonly CardRepository _cardRepository;
+        private readonly CardService _cardService;
         private readonly ISiteService _siteService;
 
         public CollectionService(CollectionSetRepository collectionSetRepository,
@@ -26,8 +27,10 @@ namespace SkytearHorde.Business.Services
             MemberInfoService memberInfoService,
             SettingsService settingsService,
             CardRepository cardRepository,
+            CardService cardService,
             ISiteService siteService)
         {
+            _cardService = cardService;
             _collectionSetRepository = collectionSetRepository;
             _collectionCardRepository = collectionCardRepository;
             _collectionPackRepository = collectionPackRepository;
@@ -359,13 +362,18 @@ namespace SkytearHorde.Business.Services
 
         public int CalculateCollectionProgressBySet(int setId, out int totalCards, out int collectionCards)
         {
-            var allCards = _cardRepository.GetAllBySet(setId).ToArray();
-            var allCardsInCollection = GetCards().Select(it => it.CardId).ToArray();
+            var set = _cardRepository.GetAllSets().FirstOrDefault(it => it.Id == setId);
+            var allCards = set is null ? [] : _cardService.GetMainBySet(set).ToArray();
+            var collection = GetCards().ToArray();
+            var ownedCardIds = collection.Select(it => it.CardId).ToHashSet();
+            var ownedVariants = collection.Select(it => (it.CardId, it.VariantId)).ToHashSet();
 
             totalCards = allCards.Length;
-            collectionCards = (allCards.Where(it => allCardsInCollection.Contains(it.BaseId)).Count());
+            collectionCards = allCards.Count(card => card.VariantTypeId is null
+                ? ownedCardIds.Contains(card.BaseId)
+                : ownedVariants.Contains((card.BaseId, card.VariantId)));
 
-            return (int)(collectionCards / (double)allCards.Length * 100);
+            return totalCards == 0 ? 0 : (int)(collectionCards / (double)totalCards * 100);
         }
 
         private int CalculateProgressBasedOnSets()

@@ -12,6 +12,8 @@ export type SetViewModel = {
     category?: string | null;
     mainVariants?: Array<number> | null;
     releaseDate?: string | null;
+    cardCount: number;
+    bannerColor?: string | null;
     subHeading?: string | null;
     description?: string | null;
     frequentlyAskedQuestions: Array<FrequentlyAskedQuestionApiModel>;

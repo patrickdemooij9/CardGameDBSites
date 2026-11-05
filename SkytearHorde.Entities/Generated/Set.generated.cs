@@ -50,6 +50,14 @@ namespace SkytearHorde.Entities.Generated
 		// properties
 
 		///<summary>
+		/// Banner color
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("bannerColor")]
+		public virtual string BannerColor => this.Value<string>(_publishedValueFallback, "bannerColor");
+
+		///<summary>
 		/// Cards
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

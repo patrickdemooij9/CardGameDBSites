@@ -85,6 +85,14 @@ namespace SkytearHorde.Business.Services
             return GetAllBySet(setId, true).Where(it => it.VariantTypeId is null && it.VariantId > 0);
         }
 
+        public IEnumerable<Card> GetMainBySet(Set set)
+        {
+            var mainVariantTypeIds = set.MainVariantType?.OfType<Variant>().Select(it => it.InternalID).ToArray() ?? [];
+            if (mainVariantTypeIds.Length == 0) return GetAllBaseBySet(set.Id);
+
+            return GetAllBySet(set.Id, true).Where(it => mainVariantTypeIds.Contains(it.VariantTypeId ?? 0));
+        }
+
         public IEnumerable<Set> GetAllSets()
         {
             return _cardRepository.GetAllSets();

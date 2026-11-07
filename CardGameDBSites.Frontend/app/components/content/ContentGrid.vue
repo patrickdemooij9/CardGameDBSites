@@ -5,6 +5,7 @@ import Header from './Header.vue';
 
 const props = defineProps<{
     content: ApiBlockGridModel
+    banded?: boolean
 }>();
 
 const componentMap: {[key: string]: Component} = {
@@ -15,6 +16,6 @@ const componentMap: {[key: string]: Component} = {
 
 <template>
     <template v-for="item in props.content.items">
-        <component :is="componentMap[item.content!.contentType]" :content="item.content?.properties" :areas="item.areas"></component>
+        <component :is="componentMap[item.content!.contentType]" :content="item.content?.properties" :areas="item.areas" :banded="banded"></component>
     </template>
 </template>

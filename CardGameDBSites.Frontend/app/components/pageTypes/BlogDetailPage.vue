@@ -117,7 +117,7 @@ useHead({
     </header>
 
     <article class="relative z-10 mx-auto -mt-16 mb-16 max-w-5xl px-4">
-        <div class="article-body rounded-lg bg-white px-5 py-8 shadow-sm ring-1 ring-gray-200 md:px-10 md:py-10">
+        <div class="article-body rounded-lg bg-surface px-5 py-8 shadow-sm ring-1 ring-gray-200 md:px-10 md:py-10">
             <ContentGrid v-if="properties?.grid" :content="properties.grid" />
         </div>
     </article>

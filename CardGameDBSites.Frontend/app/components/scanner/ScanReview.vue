@@ -22,7 +22,7 @@ const accountStore = useAccountStore();
 
 <template>
   <div class="pb-28">
-    <div class="flex items-start gap-3 bg-white border-b border-gray-200 px-4 py-4">
+    <div class="flex items-start gap-3 bg-surface border-b border-gray-200 px-4 py-4">
       <div class="flex-1">
         <h1 class="text-lg font-semibold">Scanned cards</h1>
         <p class="text-sm text-gray-500">
@@ -39,7 +39,7 @@ const accountStore = useAccountStore();
 
     <p v-if="!entries.length" class="px-4 py-8 text-center text-gray-500">No cards scanned yet.</p>
 
-    <ul v-else class="bg-white border-b border-gray-200 divide-y divide-gray-100">
+    <ul v-else class="bg-surface border-b border-gray-200 divide-y divide-gray-100">
       <li v-for="entry in entries" :key="entry.id" class="flex items-center gap-3 px-4 py-3">
         <CmsImage :src="entry.imageUrl" width="48" class="w-12 shrink-0 rounded" />
         <div class="min-w-0 flex-1 space-y-2">
@@ -57,7 +57,7 @@ const accountStore = useAccountStore();
             <ScanVariantSelect
               v-model="entry.variantId"
               :options="optionsFor(entry)"
-              class="min-w-0 flex-1 shrink max-w-none border-gray-300 bg-white"
+              class="min-w-0 flex-1 shrink max-w-none border-gray-300 bg-surface"
             />
             <div class="flex items-center rounded-md border border-gray-300">
               <button
@@ -81,7 +81,7 @@ const accountStore = useAccountStore();
       </li>
     </ul>
 
-    <div class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-gray-200 bg-white px-4 pt-3 pb-safe-bottom">
+    <div class="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-gray-200 bg-surface px-4 pt-3 pb-safe-bottom">
       <button
         class="mb-3 flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 px-3 py-2.5 font-semibold"
         @click="emit('resume')"

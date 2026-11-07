@@ -113,12 +113,12 @@ const totalCards = computed(() =>
       >
     </p>
 
-    <div class="bg-white rounded p-4 mb-6">
+    <div class="bg-surface rounded p-4 mb-6">
       <h2 class="text-lg font-semibold mb-3">Add Cards</h2>
       <CardSearchInput @select="addCard" />
     </div>
 
-    <div class="bg-white rounded p-4">
+    <div class="bg-surface rounded p-4">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold">
           Selected Cards
@@ -171,7 +171,7 @@ const totalCards = computed(() =>
             >
               <template #fallback>
                 <div
-                  class="w-full aspect-[2/3] bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs text-center p-2"
+                  class="w-full aspect-[2/3] bg-canvas rounded flex items-center justify-center text-gray-400 text-xs text-center p-2"
                 >
                   {{ entry.card.displayName }}
                 </div>
@@ -192,7 +192,7 @@ const totalCards = computed(() =>
 
           <div class="flex items-center gap-1">
             <button
-              class="border rounded px-1.5 py-0.5 hover:bg-gray-100"
+              class="border rounded px-1.5 py-0.5 hover:bg-canvas"
               :aria-label="`Decrease amount for ${entry.card.displayName}`"
               @click="decreaseAmount(entry.card.baseId!)"
             >
@@ -202,7 +202,7 @@ const totalCards = computed(() =>
               entry.amount
             }}</span>
             <button
-              class="border rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:bg-gray-300"
+              class="border rounded px-1.5 py-0.5 hover:bg-canvas disabled:bg-gray-300"
               :aria-label="`Increase amount for ${entry.card.displayName}`"
               :disabled="entry.amount >= maxAmountPerCard"
               @click="increaseAmount(entry.card.baseId!)"

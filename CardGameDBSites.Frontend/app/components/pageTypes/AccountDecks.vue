@@ -316,14 +316,14 @@ onMounted(async () => {
         v-for="folder in folders"
         :key="folder.id"
         type="button"
-        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-gray-100"
+        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-canvas"
         @click="moveTo(folder.id!)"
       >
         <PhFolder :size="18" /> {{ folder.name }}
       </button>
       <button
         type="button"
-        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-gray-100 text-gray-600"
+        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-canvas text-gray-600"
         @click="moveTo(null)"
       >
         <PhTray :size="18" /> Remove from folder

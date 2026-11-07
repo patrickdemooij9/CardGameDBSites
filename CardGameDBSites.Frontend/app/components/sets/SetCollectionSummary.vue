@@ -13,7 +13,7 @@ const summary = computed(() => getSetsSummary(props.sets));
 </script>
 
 <template>
-  <div v-if="summary" class="flex w-full flex-col gap-1 rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:w-80">
+  <div v-if="summary" class="flex w-full flex-col gap-1 rounded-lg border border-gray-200 bg-surface p-4 shadow-sm md:w-80">
     <span class="text-xs font-medium text-gray-700">Your collection</span>
     <ProgressBar
       :percent-filled="GetProgressPercent(summary.owned, summary.total)"

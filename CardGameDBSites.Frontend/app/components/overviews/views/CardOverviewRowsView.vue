@@ -26,22 +26,22 @@ const emit = defineEmits<{
     <table class="w-full text-left border-collapse">
       <thead>
         <tr class="border-b-2 border-gray-300">
-          <th class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10">Name</th>
+          <th class="py-2 pr-4 font-semibold sticky top-0 bg-surface z-10">Name</th>
           <th
             v-for="col in tableColumns"
             :key="col.alias"
-            class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10"
+            class="py-2 pr-4 font-semibold sticky top-0 bg-surface z-10"
           >
             {{ col.displayName }}
           </th>
-          <th v-if="showCollection" class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10">Collection</th>
+          <th v-if="showCollection" class="py-2 pr-4 font-semibold sticky top-0 bg-surface z-10">Collection</th>
         </tr>
       </thead>
       <tbody>
         <tr
           v-for="card in cards"
           :key="card.baseId"
-          class="border-b border-gray-200 hover:bg-gray-50"
+          class="border-b border-gray-200 hover:bg-canvas"
         >
           <td class="py-2 pr-4">
             <NuxtLink

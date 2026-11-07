@@ -10,7 +10,7 @@ const props = defineProps<{
 function getClasses(){
     const buttonType = props.buttonType ?? ButtonType.Primary;
     if (buttonType === ButtonType.Primary) {
-        return "bg-white text-black";
+        return "bg-surface text-ink";
     } else if (buttonType === ButtonType.Success) {
         return "bg-green-500 text-white hover:bg-green-600";
     } else if (buttonType === ButtonType.Danger){

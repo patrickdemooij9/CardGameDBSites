@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import MobileTabBar from "~/components/navigation/MobileTabBar.vue";
 import Navigation from "~/components/navigation/Navigation.vue";
+import SiteFooter from "~/components/navigation/SiteFooter.vue";
 import ImpersonationBanner from "~/components/shared/ImpersonationBanner.vue";
 import { useSite } from "~/composables/useSite";
 import { isNativeApp } from "~/helpers/NativeApp";
 
-const { getSettings, getNavigation } = useSite();
+const { getSettings, getNavigation, getNavigationUrl } = useSite();
 const siteSettings = await getSettings();
 const navigationViewModel = await getNavigation();
+const collectionUrl = await getNavigationUrl("/collection");
 
 const isNative = isNativeApp();
-const navUrl = (prefix: string) =>
-  siteSettings.navigation?.find((item) => item.url.startsWith(prefix))?.url;
+const route = useRoute();
+const isHomepage = computed(() => route.path === "/");
 
 onMounted(async () => {
   if (!isNative) {
@@ -30,47 +32,20 @@ onMounted(async () => {
 <template>
   <div
     :style="{
-      '--main-color': siteSettings.mainColor,
-      '--main-color-hover': siteSettings.hoverMainColor,
-      '--nav-border-color': siteSettings.mainColor,
+      '--site-main-color': siteSettings.mainColor,
+      '--site-main-color-hover': siteSettings.hoverMainColor,
     }"
     :class="{ 'has-tab-bar': isNative }"
     class="min-h-screen flex flex-col"
     id="root"
   >
-    <div v-if="isNative" class="sticky top-0 z-20 bg-white pt-safe-top"></div>
+    <div v-if="isNative" class="sticky top-0 z-20 bg-surface pt-safe-top"></div>
     <ImpersonationBanner />
-    <Navigation v-if="!isNative" :content="navigationViewModel"> </Navigation>
+    <Navigation v-if="!isNative" :content="navigationViewModel" :transparent="isHomepage" />
     <div class="grow">
       <slot />
     </div>
-    <footer
-      v-if="!isNative"
-      :class="{
-        'text-white': siteSettings.textColorWhite,
-        'text-black': !siteSettings.textColorWhite,
-      }"
-      class="mt-auto md:flex px-4 md:px-8 bg-main-color"
-    >
-      <div class="py-4 md:w-2/3 text-sm">
-        <p>{{ siteSettings.footerText }}</p>
-      </div>
-      <nav class="pl-4 py-4" aria-label="Other sites">
-        <p class="font-bold">Other sites</p>
-        <ul>
-          <li v-for="link in siteSettings.footerLinks ?? []" :key="`${link.name}-${link.url}`">
-            <a
-              :href="link.url"
-              :target="link.target ?? undefined"
-              :rel="link.target === '_blank' ? 'noopener noreferrer' : undefined"
-              class="no-underline"
-            >
-              {{ link.name }}
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </footer>
-    <MobileTabBar v-if="isNative" :collection-url="navUrl('/collection')" />
+    <SiteFooter v-if="!isNative" :settings="siteSettings" />
+    <MobileTabBar v-if="isNative" :collection-url="collectionUrl" />
   </div>
 </template>

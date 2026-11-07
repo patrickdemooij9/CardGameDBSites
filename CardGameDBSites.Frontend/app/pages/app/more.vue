@@ -29,7 +29,7 @@ async function logout() {
 
 <template>
   <div class="pb-8">
-    <div class="bg-white border-b border-gray-200 px-4 py-4">
+    <div class="bg-surface border-b border-gray-200 px-4 py-4">
       <template v-if="accountStore.isLoggedIn">
         <p class="flex items-center gap-2 font-semibold">
           <PhUser :size="20" />
@@ -62,7 +62,7 @@ async function logout() {
       </NuxtLink>
     </div>
 
-    <div v-for="section in sections" :key="section.url" class="mt-4 bg-white border-y border-gray-200">
+    <div v-for="section in sections" :key="section.url" class="mt-4 bg-surface border-y border-gray-200">
       <template v-if="section.children.length > 0">
         <p class="px-4 pt-3 text-xs uppercase tracking-wide text-gray-500">
           {{ section.name }}
@@ -87,14 +87,14 @@ async function logout() {
       </NuxtLink>
     </div>
 
-    <div class="mt-4 bg-white border-y border-gray-200">
+    <div class="mt-4 bg-surface border-y border-gray-200">
       <NuxtLink to="/app/scanner" class="flex items-center justify-between px-4 py-3 no-underline">
         Card scanner
         <PhCaretRight :size="16" class="text-gray-400" />
       </NuxtLink>
     </div>
 
-    <div class="mt-4 bg-white border-y border-gray-200">
+    <div class="mt-4 bg-surface border-y border-gray-200">
       <NuxtLink to="/app/about" class="flex items-center justify-between px-4 py-3 no-underline">
         About
         <PhCaretRight :size="16" class="text-gray-400" />

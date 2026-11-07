@@ -2,31 +2,45 @@
 import { DeckStatus } from "~/api/default";
 import type { CardsPropertiesModel } from "~/api/umbraco";
 import DeckCardCollection from "../cards/deckCards/DeckCardCollection.vue";
+import SectionHeader from "../shared/SectionHeader.vue";
+import SegmentedControl from "../shared/SegmentedControl.vue";
+
+type DeckOrder = "recent" | "popular";
 
 const props = defineProps<{
   content: CardsPropertiesModel;
 }>();
 
+const orderOptions: { value: DeckOrder; label: string }[] = [
+  { value: "recent", label: "Recent" },
+  { value: "popular", label: "Most popular" },
+];
+
+const order = ref<DeckOrder>(props.content.type === "MostPopular" ? "popular" : "recent");
+
 const decks = useDecks();
-const request = {
+const request = computed(() => ({
   typeId: props.content.typeId,
   page: 1,
   take: props.content.amount ?? 4,
   status: DeckStatus.PUBLISHED,
-  orderBy: props.content.type === "MostPopular" ? "popular" : undefined
-};
+  orderBy: order.value === "popular" ? "popular" : undefined,
+}));
 
-const { data } = await useAsyncData(decks.toUniqueKey(request), () => decks.query(request));
+const { data } = await useAsyncData(
+  () => decks.toUniqueKey(request.value),
+  () => decks.query(request.value),
+);
+
+const decksUrl = await useSite().getNavigationUrl("/decks");
 </script>
 
 <template>
-  <div
-    :class="{ 'text-white': content.hasLightTitle }"
-    class="flex mb-4 z-10 w-full"
-  >
-    <h2>
-      {{ content.title }}
-    </h2>
-  </div>
+  <SectionHeader :title="content.title ?? 'Decks'">
+    <SegmentedControl v-model="order" :options="orderOptions" label="Sort decks" />
+  </SectionHeader>
   <DeckCardCollection :decks="data?.items ?? []" :decks-per-row="props.content.amountPerRow ?? 4"></DeckCardCollection>
+  <div v-if="decksUrl" class="mt-6 flex justify-center">
+    <NuxtLink :to="decksUrl" class="btn-secondary no-underline">All decks</NuxtLink>
+  </div>
 </template>

@@ -131,11 +131,11 @@ function onCardSelect(card: CardDetailApiModel) {
             v-for="item in visibleItems"
             :key="item.Value"
             :for="`section-${filter.Alias}-${item.Value}`"
-            class="flex items-center gap-2 px-1 py-1.5 cursor-pointer rounded hover:bg-gray-100"
+            class="flex items-center gap-2 px-1 py-1.5 cursor-pointer rounded hover:bg-canvas"
           >
             <input
               type="checkbox"
-              class="h-4 w-4 bg-white rounded appearance-none border border-gray-300 checked:bg-checked checked:bg-black"
+              class="h-4 w-4 bg-surface rounded appearance-none border border-gray-300 checked:bg-checked checked:bg-black"
               :id="`section-${filter.Alias}-${item.Value}`"
               :value="item.Value"
               :checked="isSelected(item.Value)"
@@ -192,7 +192,7 @@ function onCardSelect(card: CardDetailApiModel) {
         <label
           v-for="item in filter.Items"
           :key="item.Value"
-          class="flex items-center gap-2 px-1 py-1.5 cursor-pointer rounded hover:bg-gray-100"
+          class="flex items-center gap-2 px-1 py-1.5 cursor-pointer rounded hover:bg-canvas"
         >
           <input
             type="radio"
@@ -223,7 +223,7 @@ function onCardSelect(card: CardDetailApiModel) {
         :class="
           isSelected('true')
             ? 'bg-main-color text-white border-main-color'
-            : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
+            : 'bg-surface text-gray-600 border-gray-300 hover:border-gray-500'
         "
         @click="() => toggle('true')"
       >

@@ -11,14 +11,14 @@ useHead({ title: "About" });
 
 <template>
   <div class="pb-8">
-    <div class="bg-white border-b border-gray-200 px-4 py-4">
+    <div class="bg-surface border-b border-gray-200 px-4 py-4">
       <h1 class="text-xl">About</h1>
       <p class="mt-3 text-sm text-gray-600">{{ siteSettings.footerText }}</p>
     </div>
 
     <div
       v-if="siteSettings.footerLinks?.length"
-      class="mt-4 bg-white border-y border-gray-200"
+      class="mt-4 bg-surface border-y border-gray-200"
     >
       <p class="px-4 pt-3 text-xs uppercase tracking-wide text-gray-500">Other sites</p>
       <a

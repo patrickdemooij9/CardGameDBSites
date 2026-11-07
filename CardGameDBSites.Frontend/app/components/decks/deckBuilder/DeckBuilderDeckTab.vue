@@ -123,7 +123,7 @@ const hasPassiveRequirements = computed(() => {
 
 <template>
   <div
-    class="md:flex md:flex-col md:w-1/3 w-full shrink-0 bg-white"
+    class="md:flex md:flex-col md:w-1/3 w-full shrink-0 bg-surface"
     :class="currentTab !== DeckBuilderTab.Deck ? 'hidden' : 'block'"
   >
     <div class="md:sticky md:top-0">

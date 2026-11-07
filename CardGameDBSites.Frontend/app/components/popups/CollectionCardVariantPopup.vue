@@ -86,7 +86,7 @@ async function save() {
     <Transition name="sheet-slide" appear @after-leave="emit('close')">
       <div
         v-if="open"
-        class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl bg-white shadow-xl md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[28rem] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg"
+        class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl bg-surface shadow-xl md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[28rem] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="collection-sheet-title"

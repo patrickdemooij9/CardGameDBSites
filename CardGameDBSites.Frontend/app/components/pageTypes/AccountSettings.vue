@@ -70,7 +70,7 @@ async function save() {
 
   <div v-else-if="isLoggedIn" class="container px-4 md:px-8 pb-8">
     <form class="max-w-xl space-y-6" @submit.prevent="save">
-      <section class="rounded border border-gray-300 bg-white p-4">
+      <section class="rounded border border-gray-300 bg-surface p-4">
         <h2 class="text-lg font-bold mb-3">Collection</h2>
         <label for="missing-copies-threshold" class="block font-semibold">
           Copies needed for a full playset

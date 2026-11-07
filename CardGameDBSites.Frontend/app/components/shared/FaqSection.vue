@@ -18,7 +18,7 @@ withDefaults(
       <details
         v-for="entry in entries"
         :key="entry.question"
-        class="group border border-gray-200 rounded-lg bg-white px-4 py-3"
+        class="group border border-gray-200 rounded-lg bg-surface px-4 py-3"
       >
         <summary
           class="cursor-pointer list-none marker:content-none font-semibold text-gray-900 flex items-start justify-between gap-4"

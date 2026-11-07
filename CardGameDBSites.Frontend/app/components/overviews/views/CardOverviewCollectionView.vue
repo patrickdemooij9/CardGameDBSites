@@ -29,11 +29,11 @@ const emit = defineEmits<{
     <table class="w-full relative border-collapse">
       <thead>
         <tr class="border-b-2 border-gray-300">
-          <th class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10">Name</th>
+          <th class="py-2 pr-4 font-semibold sticky top-0 bg-surface z-10">Name</th>
           <th
             v-for="collectionColumn in columns"
             :key="collectionColumn.variantTypeId ?? 'normal'"
-            class="py-2 pr-4 font-semibold sticky top-0 bg-white z-10"
+            class="py-2 pr-4 font-semibold sticky top-0 bg-surface z-10"
           >
             {{ collectionColumn.displayName }}
           </th>
@@ -43,7 +43,7 @@ const emit = defineEmits<{
         <tr
           v-for="card in cards"
           :key="card.baseId"
-          class="border-b border-gray-200 hover:bg-gray-50"
+          class="border-b border-gray-200 hover:bg-canvas"
         >
           <td class="py-2 pr-4">
             <NuxtLink
@@ -65,7 +65,7 @@ const emit = defineEmits<{
             >
               <button
                 type="button"
-                class="border rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400"
+                class="border rounded px-1.5 py-0.5 hover:bg-canvas disabled:bg-gray-100 disabled:text-gray-400"
                 :aria-label="`Decrease ${collectionCell.displayName} amount for ${card.displayName}`"
                 :disabled="
                   collectionCell.isUpdating ||
@@ -80,7 +80,7 @@ const emit = defineEmits<{
               </span>
               <button
                 type="button"
-                class="border rounded px-1.5 py-0.5 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-400"
+                class="border rounded px-1.5 py-0.5 hover:bg-canvas disabled:bg-gray-100 disabled:text-gray-400"
                 :aria-label="`Increase ${collectionCell.displayName} amount for ${card.displayName}`"
                 :disabled="collectionCell.isUpdating"
                 @click="emit('updateCollectionAmount', card, collectionCell.variantTypeId, 1)"

@@ -54,7 +54,7 @@ watch(
     <Transition name="drawer-slide">
       <aside
         v-if="open"
-        class="fixed inset-y-0 right-0 z-50 flex flex-col w-screen md:w-[420px] bg-white shadow-xl pt-safe-top pb-safe-bottom"
+        class="fixed inset-y-0 right-0 z-50 flex flex-col w-screen md:w-[420px] bg-surface shadow-xl pt-safe-top pb-safe-bottom"
         role="dialog"
         aria-modal="true"
         aria-label="Filters"
@@ -108,7 +108,7 @@ watch(
         <div class="flex gap-2 px-4 py-3 border-t border-gray-200">
           <button
             type="button"
-            class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-40"
+            class="flex-1 rounded-md border border-gray-300 bg-surface px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-canvas disabled:opacity-40"
             :disabled="overviewState.activeFilterCount.value === 0"
             @click="overviewState.clearAllFilters"
           >

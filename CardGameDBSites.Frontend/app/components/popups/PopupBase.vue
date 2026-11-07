@@ -4,7 +4,7 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 pt-safe-top pb-safe-bottom"
     >
       <div
-        class="relative bg-white rounded-lg shadow-lg w-screen mx-4 max-h-safe-screen overflow-auto"
+        class="relative bg-surface rounded-lg shadow-lg w-screen mx-4 max-h-safe-screen overflow-auto"
         :class="[getWidthClass()]"
       >
         <button
@@ -17,14 +17,14 @@
           <slot></slot>
         </div>
         <div
-          class="bg-gray-50 px-4 py-3 gap-2 sm:flex sm:flex-row-reverse sm:px-6"
+          class="bg-canvas px-4 py-3 gap-2 sm:flex sm:flex-row-reverse sm:px-6"
         >
           <slot name="actions"></slot>
           <button
             formmethod="dialog"
             type="button"
             @click="emit('close')"
-            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+            class="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-canvas sm:mt-0 sm:w-auto"
           >
             Cancel
           </button>

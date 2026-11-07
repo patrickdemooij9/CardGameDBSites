@@ -29,7 +29,7 @@ const emit = defineEmits<{ close: [] }>();
       @click.self="emit('close')"
     >
       <div
-        class="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 p-6"
+        class="relative bg-surface rounded-lg shadow-lg w-full max-w-md mx-4 p-6"
       >
         <button
           class="absolute top-3 right-3 text-gray-400 hover:text-gray-700"

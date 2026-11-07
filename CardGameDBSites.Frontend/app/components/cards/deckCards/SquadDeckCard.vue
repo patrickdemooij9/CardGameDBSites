@@ -33,7 +33,7 @@ const groupsOf = computed(() => (props.settings.deckDisplay as SquadDeckDisplayA
     class="no-underline"
   >
     <div
-      class="flex flex-col justify-between border border-main-color rounded-md px-4 py-3 bg-white h-full"
+      class="flex flex-col justify-between border border-main-color rounded-md px-4 py-3 bg-surface h-full"
     >
       <div class="border-b border-gray-300">
         <div class="flex justify-between align-center pb-1">

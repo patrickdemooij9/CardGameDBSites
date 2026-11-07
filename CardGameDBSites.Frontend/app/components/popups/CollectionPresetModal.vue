@@ -10,7 +10,7 @@
         :class="
           selectedPresetId === preset.id
             ? 'border-blue-500 bg-blue-50'
-            : 'hover:border-blue-300 hover:bg-gray-50'
+            : 'hover:border-blue-300 hover:bg-canvas'
         "
         @click="selectedPresetId = preset.id"
       >

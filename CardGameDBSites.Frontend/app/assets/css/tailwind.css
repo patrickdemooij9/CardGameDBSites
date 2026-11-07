@@ -3,6 +3,39 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --color-canvas: 244 243 241;
+    --color-surface: 255 255 255;
+    --color-line: 228 226 223;
+    --color-ink: 28 27 26;
+    --color-ink-muted: 112 108 104;
+    --color-positive: 21 128 61;
+    --color-negative: 185 28 28;
+}
+
+.dark {
+    --color-canvas: 24 23 22;
+    --color-surface: 34 33 32;
+    --color-line: 52 50 48;
+    --color-ink: 241 240 238;
+    --color-ink-muted: 163 158 153;
+    --color-positive: 74 222 128;
+    --color-negative: 248 113 113;
+    color-scheme: dark;
+}
+
+#root {
+    --main-color: var(--site-main-color);
+    --main-color-hover: var(--site-main-color-hover);
+    --nav-border-color: var(--site-main-color);
+}
+
+/* The CMS main colors are picked for light backgrounds, so lighten them for contrast on dark. */
+.dark #root {
+    --main-color: color-mix(in srgb, var(--site-main-color) 70%, white);
+    --main-color-hover: color-mix(in srgb, var(--site-main-color-hover) 70%, white);
+}
+
 h1 {
     @apply text-4xl;
     @apply font-bold;
@@ -38,6 +71,10 @@ a:hover{
     @apply border-solid;
 }
 
+.dark a:not(.no-underline) {
+    @apply border-current;
+}
+
 ul {
     @apply list-disc;
     margin-left: 18px;
@@ -60,10 +97,10 @@ ul {
 
 .hamburger div {
     position: relative;
-    width: 2em;
-    height: 5px;
+    width: 1.75em;
+    height: 3px;
     border-radius: 3px;
-    background-color: #fff;
+    background-color: currentColor;
     transition: all 0.3s ease-in-out;
 }
 
@@ -74,13 +111,13 @@ ul {
 
 .meat {
     transition: transform 0.2s ease-in-out;
-    margin-top: 8px;
+    margin-top: 5px;
 }
 
 .bottom-bun {
     transform-origin: 0% 100%;
     transition: transform 0.4s ease-in-out;
-    margin-top: 8px;
+    margin-top: 5px;
 }
 
 nav + .container{
@@ -106,6 +143,9 @@ nav + .container{
 }
 
 @layer components {
+    .btn-secondary {
+        @apply inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 font-medium text-ink hover:bg-canvas;
+    }
     .bg-main-color {
         background-color: var(--main-color);
     }
@@ -158,7 +198,11 @@ body {
   line-height: 1.4;
   color: #000;
 
-  @apply bg-gray-100;
+  @apply bg-canvas;
+}
+
+.dark body {
+  @apply text-ink;
 }
 
 .scrollbar::-webkit-scrollbar {

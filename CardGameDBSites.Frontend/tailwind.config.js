@@ -1,8 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [],
+  darkMode: 'selector',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        canvas: 'rgb(var(--color-canvas) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        line: 'rgb(var(--color-line) / <alpha-value>)',
+        ink: {
+          DEFAULT: 'rgb(var(--color-ink) / <alpha-value>)',
+          muted: 'rgb(var(--color-ink-muted) / <alpha-value>)',
+        },
+        positive: 'rgb(var(--color-positive) / <alpha-value>)',
+        negative: 'rgb(var(--color-negative) / <alpha-value>)',
+      },
+    },
     container: {
         center: true,
         screens: {

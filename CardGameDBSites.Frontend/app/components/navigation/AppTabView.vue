@@ -64,7 +64,7 @@ watch(
   <div>
     <div
       v-if="segments.length > 1"
-      class="sticky top-safe-top z-10 flex overflow-x-auto bg-white border-b border-gray-200"
+      class="sticky top-safe-top z-10 flex overflow-x-auto bg-surface border-b border-gray-200"
       role="tablist"
     >
       <button

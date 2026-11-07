@@ -147,7 +147,7 @@ async function toggleMarkdownPreview() {
 
 <template>
   <div
-    class="md:block px-4 md:px-8 py-4 grow bg-gray-100"
+    class="md:block px-4 md:px-8 py-4 grow bg-canvas"
     :class="currentTab === DeckBuilderTab.Deck ? 'hidden' : ''"
   >
     <div class="gap-2 hidden md:flex">
@@ -158,7 +158,7 @@ async function toggleMarkdownPreview() {
           currentTab === DeckBuilderTab.Cards ||
           currentTab === DeckBuilderTab.Deck
             ? 'bg-main-color text-white border-main-color'
-            : 'bg-white text-gray-600 border-gray-300 hover:border-main-color hover:text-gray-900'
+            : 'bg-surface text-gray-600 border-gray-300 hover:border-main-color hover:text-gray-900'
         "
         v-on:click="emit('update:currentTab', DeckBuilderTab.Cards)"
       >
@@ -170,7 +170,7 @@ async function toggleMarkdownPreview() {
         :class="
           currentTab === DeckBuilderTab.Details
             ? 'bg-main-color text-white border-main-color'
-            : 'bg-white text-gray-600 border-gray-300 hover:border-main-color hover:text-gray-900'
+            : 'bg-surface text-gray-600 border-gray-300 hover:border-main-color hover:text-gray-900'
         "
         v-on:click="emit('update:currentTab', DeckBuilderTab.Details)"
       >
@@ -251,7 +251,7 @@ async function toggleMarkdownPreview() {
                             removeFromSquad(location, character)
                           "
                           type="button"
-                          class="pointer rounded-lg bg-white text-black border-none w-fit px-4 py-3"
+                          class="pointer rounded-lg bg-surface text-ink border-none w-fit px-4 py-3"
                         >
                           <span>Remove</span>
                         </button>
@@ -261,7 +261,7 @@ async function toggleMarkdownPreview() {
                             removeFromSquad(location, character)
                           "
                           type="button"
-                          class="pointer rounded-lg bg-white text-black border-none w-fit px-4 py-3"
+                          class="pointer rounded-lg bg-surface text-ink border-none w-fit px-4 py-3"
                         >
                           <span>-</span>
                         </button>
@@ -275,7 +275,7 @@ async function toggleMarkdownPreview() {
                             addToSquad(location, character)
                           "
                           type="button"
-                          class="pointer rounded-lg bg-white text-black border-none w-fit px-4 py-3"
+                          class="pointer rounded-lg bg-surface text-ink border-none w-fit px-4 py-3"
                         >
                           <span>Add to {{ location.label }}</span>
                         </button>
@@ -285,7 +285,7 @@ async function toggleMarkdownPreview() {
                             addToSquad(location, character)
                           "
                           type="button"
-                          class="pointer rounded-lg bg-white text-black border-none w-fit px-4 py-3"
+                          class="pointer rounded-lg bg-surface text-ink border-none w-fit px-4 py-3"
                         >
                           <span>+</span>
                         </button>
@@ -311,7 +311,7 @@ async function toggleMarkdownPreview() {
                     type="button"
                     v-if="!location.disableRemoval"
                     :disabled="!location.isCardAllowedToRemove(character)"
-                    class="pointer rounded-lg bg-white text-black border-none w-fit px-4 py-2 disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-gray-200"
+                    class="pointer rounded-lg bg-surface text-ink border-none w-fit px-4 py-2 disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-gray-200"
                   >
                     <span v-if="!location.numberMode">Remove</span>
                     <span v-else-if="location.numberMode">-</span>

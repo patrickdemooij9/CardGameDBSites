@@ -241,7 +241,7 @@ function getFirstSlotForCard(card: CardDetailApiModel): CreateDeckSlot | undefin
           </div>
           <div
             v-if="!childSlot.isFull()"
-            class="flex items-center justify-center border border-dashed border-gray-300 bg-gray-100 hover:bg-gray-300 cursor-pointer ml-4 px-4 rounded"
+            class="flex items-center justify-center border border-dashed border-gray-300 bg-canvas hover:bg-gray-300 cursor-pointer ml-4 px-4 rounded"
             v-on:click="emit('clickSlot', props.group, childSlot, true)"
           >
             <span>{{ childSlot.label }}</span>
@@ -252,7 +252,7 @@ function getFirstSlotForCard(card: CardDetailApiModel): CreateDeckSlot | undefin
   </div>
   <div
     v-if="!slot.isFull()"
-    class="flex items-center justify-center w-full h-12 border bg-gray-100 hover:bg-gray-300 cursor-pointer px-4 py-2 rounded"
+    class="flex items-center justify-center w-full h-12 border bg-canvas hover:bg-gray-300 cursor-pointer px-4 py-2 rounded"
     :class="[
       selectedArea?.slot === slot
         ? 'bg-gray-200 border-gray-500'

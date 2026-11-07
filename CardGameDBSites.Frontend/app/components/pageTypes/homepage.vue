@@ -8,5 +8,8 @@ const props = defineProps<{
 </script>
 
 <template>
-    <ContentGrid :content="props.content.properties!.grid!"></ContentGrid>
+    <!-- Own wrapper so the layout's loading indicator doesn't shift the even/odd band colors -->
+    <div>
+        <ContentGrid :content="props.content.properties!.grid!" banded></ContentGrid>
+    </div>
 </template>

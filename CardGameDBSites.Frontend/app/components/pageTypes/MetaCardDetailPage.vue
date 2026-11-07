@@ -97,10 +97,10 @@ function formatPercent(value: number | undefined): string {
 </script>
 
 <template>
-  <div class="bg-gray-100">
+  <div>
     <!-- Card summary -->
     <section class="container px-4 md:px-8 py-8">
-      <div class="bg-white rounded-xl shadow-md p-6 flex flex-col sm:flex-row gap-6">
+      <div class="bg-surface rounded-xl shadow-md p-6 flex flex-col sm:flex-row gap-6">
         <NuxtLink :href="leader.urlSegment" class="no-underline sm:w-48 shrink-0">
           <CmsImage
             :src="leader.imageUrl"

@@ -185,7 +185,7 @@ function formatDate(dateUtc: string | undefined) {
 </script>
 
 <template>
-  <div class="bg-gray-100">
+  <div>
     <MetaTierHeader v-if="tierList" :tier-list="tierList" :heading="heading" />
 
     <section v-if="tierError" class="container px-4 md:px-8 py-12">
@@ -210,7 +210,7 @@ function formatDate(dateUtc: string | undefined) {
             <select
               id="period-select"
               :value="selectedPeriodId"
-              class="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+              class="border border-gray-300 rounded px-3 py-2 text-sm bg-surface"
               @change="
                 navigateTo({
                   query: {
@@ -245,7 +245,7 @@ function formatDate(dateUtc: string | undefined) {
         </p>
       </section>
 
-      <section v-if="content.properties?.analysis" class="bg-white py-10">
+      <section v-if="content.properties?.analysis" class="bg-surface py-10">
         <div class="container px-4 md:px-8">
           <h2 class="mb-6">What changed and why</h2>
           <div class="prose max-w-3xl text-gray-800" v-html="content.properties?.analysis.markup" />
@@ -259,7 +259,7 @@ function formatDate(dateUtc: string | undefined) {
 
     <section
       v-if="recentTournaments.length > 0 || recentWinners.length > 0"
-      class="bg-white border-t border-gray-200 py-10"
+      class="bg-surface border-t border-gray-200 py-10"
     >
       <div class="container px-4 md:px-8 grid gap-10 lg:grid-cols-2">
         <!-- min-w-0: grid items default to min-width:auto, so the nowrap names below overflow. -->

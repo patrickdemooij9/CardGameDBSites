@@ -125,7 +125,7 @@ function formatPercent(value: number | undefined): string {
       <select
         id="period-select"
         v-model="selectedPeriodId"
-        class="border border-gray-300 rounded px-3 py-2 text-sm bg-white"
+        class="border border-gray-300 rounded px-3 py-2 text-sm bg-surface"
       >
         <option v-for="period in periods" :key="period.id" :value="period.id">
           {{ period.name }}

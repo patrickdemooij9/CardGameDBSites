@@ -18,7 +18,7 @@ const meta = computed(() => FormatSetMeta(props.set, true, setCollectionMode.val
 </script>
 
 <template>
-  <div class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+  <div class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-surface shadow-sm transition-shadow hover:shadow-md">
     <NuxtLink :to="set.urlSegment" class="no-underline">
       <SetBanner :set="set" class="h-24" />
     </NuxtLink>
@@ -27,7 +27,7 @@ const meta = computed(() => FormatSetMeta(props.set, true, setCollectionMode.val
         <NuxtLink :to="set.urlSegment" class="no-underline font-semibold text-gray-900 hover:text-gray-600">
           {{ set.displayName }}
         </NuxtLink>
-        <span v-if="set.code" class="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-bold uppercase text-gray-600">
+        <span v-if="set.code" class="shrink-0 rounded bg-canvas px-1.5 py-0.5 text-xs font-bold uppercase text-gray-600">
           {{ set.code }}
         </span>
       </div>

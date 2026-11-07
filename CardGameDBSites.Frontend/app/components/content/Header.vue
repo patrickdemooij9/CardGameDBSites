@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { PhArrowRight, PhMagnifyingGlass } from "@phosphor-icons/vue";
+import { PhMagnifyingGlass } from "@phosphor-icons/vue";
 import type { HeaderPropertiesModel } from "~/api/umbraco";
 
 const props = defineProps<{
   content: HeaderPropertiesModel;
 }>();
+
+const siteSettings = await useSite().getSettings();
 
 const search = ref("");
 const tagLines = props.content.subtitles ?? [
@@ -14,12 +16,11 @@ const tagLines = props.content.subtitles ?? [
   "Card Data at Your Fingertips",
 ];
 
-const selectedTagLine = ref(tagLines[0]);
-
-onMounted(() => {
-  const randomIndex = Math.floor(Math.random() * tagLines.length);
-  selectedTagLine.value = tagLines[randomIndex];
-});
+// useState carries the server's pick to the client, so hydration keeps the same tagline.
+const selectedTagLine = useState(
+  `header-tagline-${props.content.title}`,
+  () => tagLines[Math.floor(Math.random() * tagLines.length)],
+);
 
 function submitSearch(event: Event) {
   event.preventDefault();
@@ -29,46 +30,45 @@ function submitSearch(event: Event) {
 </script>
 
 <template>
-  <div
-    class="relative mb-16 full-without-header bg-gradient-to-b from-gray-500 to-gray-100"
-  >
-    <div
-      class="flex flex-col gap-4 items-center justify-center h-full z-10 relative"
-    >
-      <div class="pb-6 text-center">
-        <h1 class="text-6xl pb-2">{{ content.title }}</h1>
-        <h2 class="text-2xl">{{ selectedTagLine }}</h2>
+  <section class="flex min-h-[80svh] items-center justify-center bg-canvas px-4 py-10 text-ink">
+    <div class="flex w-full flex-col items-center gap-6 text-center">
+      <div>
+        <h1 class="mb-2 text-4xl tracking-tight md:text-5xl">{{ content.title }}</h1>
+        <p class="text-base text-ink-muted">{{ selectedTagLine }}</p>
       </div>
       <form
-        class="flex overflow-hidden rounded border border-solid border-gray-300 sm:w-1/2 bg-white shadow-sm"
+        class="flex w-full max-w-xl items-center gap-2 rounded-lg border border-line bg-surface p-1.5 pl-4 shadow-sm focus-within:border-ink-muted"
+        role="search"
         @submit="submitSearch"
       >
         <input
-          class="pl-4 py-4 grow"
+          v-model="search"
+          class="min-w-0 grow bg-transparent py-1.5 text-ink outline-none placeholder:text-ink-muted"
           name="search"
           type="text"
           enterkeyhint="search"
+          aria-label="Search cards"
           placeholder="Search cards..."
-          v-model="search"
         />
         <button
-          class="flex justify-center items-center w-8 text-lg px-1 bg-transparent"
+          :class="siteSettings.textColorWhite ? 'text-white' : 'text-black'"
+          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-main-color hover:bg-main-color-hover"
           type="submit"
+          aria-label="Search"
         >
-          <PhMagnifyingGlass> </PhMagnifyingGlass>
+          <PhMagnifyingGlass :size="18" weight="bold" />
         </button>
       </form>
-      <div class="flex gap-2" v-if="props.content.searchLinks">
+      <div v-if="content.searchLinks?.length" class="flex flex-wrap justify-center gap-2">
         <NuxtLink
-          :to="link.route?.path ?? link.url!"
-          v-for="link in props.content.searchLinks"
+          v-for="link in content.searchLinks"
           :key="link.route?.path ?? link.url!"
-          class="flex gap-1 items-center no-underline pointer"
+          :to="link.route?.path ?? link.url!"
+          class="btn-secondary no-underline text-sm"
         >
-          <PhArrowRight/>
-          <p class="no-underline">{{ link.title }}</p>
+          {{ link.title }}
         </NuxtLink>
       </div>
     </div>
-  </div>
+  </section>
 </template>

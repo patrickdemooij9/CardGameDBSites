@@ -145,7 +145,7 @@ const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);
         @click.prevent="emit('toggleSelect', deck.id!)"
       >
         <span
-          class="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded border bg-white"
+          class="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded border bg-surface"
           :class="
             selectedSet.has(deck.id!)
               ? 'bg-main-color border-main-color text-white'
@@ -162,21 +162,21 @@ const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);
       >
         <button
           type="button"
-          class="flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:border-main-color"
+          class="flex items-center gap-1 rounded border border-gray-300 bg-surface px-2 py-1 text-xs hover:border-main-color"
           @click.stop.prevent="emit('move', deck.id!)"
         >
           <PhFolderSimplePlus :size="16" /> Move
         </button>
         <button
           type="button"
-          class="flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:border-main-color"
+          class="flex items-center gap-1 rounded border border-gray-300 bg-surface px-2 py-1 text-xs hover:border-main-color"
           @click.stop.prevent="emit('edit', deck.id!)"
         >
           <PhPencilSimple :size="16" /> Edit
         </button>
         <button
           type="button"
-          class="flex items-center gap-1 rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-600 hover:border-red-500"
+          class="flex items-center gap-1 rounded border border-red-300 bg-surface px-2 py-1 text-xs text-red-600 hover:border-red-500"
           @click.stop.prevent="emit('delete', deck.id!)"
         >
           <PhTrash :size="16" /> Delete

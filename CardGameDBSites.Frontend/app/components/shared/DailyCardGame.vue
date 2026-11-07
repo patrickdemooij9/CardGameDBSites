@@ -101,7 +101,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="border border-gray-200 rounded-lg p-4 bg-white shadow-sm max-w-4xl mx-auto">
+  <div class="border border-gray-200 rounded-lg p-4 bg-surface shadow-sm max-w-4xl mx-auto">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-bold">Daily Card Guess</h2>
       <p class="text-sm text-gray-600">Time: {{ formatSeconds(elapsedSeconds) }}</p>
@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
                 'bg-green-100': attribute.matchType === 'exact',
                 'bg-yellow-100': attribute.matchType === 'partial',
                 'bg-blue-100': attribute.matchType === 'higher' || attribute.matchType === 'lower',
-                'bg-gray-100': ['no', 'unknown'].includes(attribute.matchType)
+                'bg-canvas': ['no', 'unknown'].includes(attribute.matchType)
               }"
             >
               <span class="font-medium">{{ attribute.name }}:</span>

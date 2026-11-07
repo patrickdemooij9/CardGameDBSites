@@ -22,7 +22,7 @@ const siteSettings = await useSite().getSettings();
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
     >
       <div
-        class="relative bg-white rounded-lg shadow-lg md:w-[70vw] w-screen mx-4 max-h-screen overflow-auto"
+        class="relative bg-surface rounded-lg shadow-lg md:w-[70vw] w-screen mx-4 max-h-screen overflow-auto"
       >
         <button
           class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors"
@@ -34,7 +34,7 @@ const siteSettings = await useSite().getSettings();
         <div class="flex md:flex-row flex-col gap-4 p-6 md:mt-0 mt-4">
           <div class="flex flex-col">
             <div
-              class="md:w-72 mb-4 flex items-center justify-center bg-gray-100 rounded shadow-inner"
+              class="md:w-72 mb-4 flex items-center justify-center bg-canvas rounded shadow-inner"
             >
               <CmsImage :src="selectedCard.imageUrl" :alt="selectedCard.displayName" />
             </div>

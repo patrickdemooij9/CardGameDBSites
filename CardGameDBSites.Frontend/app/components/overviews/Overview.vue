@@ -68,7 +68,7 @@ function handleSubmit(event: Event) {
           />
 
           <button
-            class="flex justify-center items-center w-8 text-lg px-2 bg-white"
+            class="flex justify-center items-center w-8 text-lg px-2 bg-surface"
             type="submit"
             aria-label="Search"
           >
@@ -194,7 +194,7 @@ function handleSubmit(event: Event) {
       @loadLazyFilter="(filter) => emit('loadLazyFilter', filter)"
     />
 
-    <div :class="{ 'bg-white': whiteBackground }" class="py-4 relative min-h-20">
+    <div :class="{ 'bg-surface': whiteBackground }" class="py-4 relative min-h-20">
       <div id="card-overview" :aria-busy="isLoading" :class="{ 'opacity-40': isLoading }">
         <slot :viewMode="overviewState.state.viewMode"></slot>
       </div>

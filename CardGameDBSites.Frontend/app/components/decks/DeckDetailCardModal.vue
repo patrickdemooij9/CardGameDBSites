@@ -28,7 +28,7 @@ const siteSettings = await useSite().getSettings();
       aria-modal="true"
     >
       <div
-        class="relative bg-white rounded-lg shadow-lg md:w-[70vw] w-screen mx-4 max-h-screen overflow-auto"
+        class="relative bg-surface rounded-lg shadow-lg md:w-[70vw] w-screen mx-4 max-h-screen overflow-auto"
       >
         <button
           class="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition-colors"
@@ -40,7 +40,7 @@ const siteSettings = await useSite().getSettings();
 
         <div class="flex md:flex-row flex-col gap-4 p-6 md:mt-0 mt-4">
           <div
-            class="md:w-72 mb-4 flex items-center justify-center bg-gray-100 rounded shadow-inner"
+            class="md:w-72 mb-4 flex items-center justify-center bg-canvas rounded shadow-inner"
           >
             <CmsImage
               :src="selectedCard.imageUrl"
@@ -70,7 +70,7 @@ const siteSettings = await useSite().getSettings();
         </div>
 
         <div
-          class="bg-gray-50 px-4 py-3 gap-2 sm:flex sm:flex-row-reverse sm:px-6"
+          class="bg-canvas px-4 py-3 gap-2 sm:flex sm:flex-row-reverse sm:px-6"
         >
           <button
             type="button"
@@ -91,7 +91,7 @@ const siteSettings = await useSite().getSettings();
           <button
             type="button"
             @click="emit('close')"
-            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+            class="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-canvas sm:mt-0 sm:w-auto"
           >
             Close
           </button>

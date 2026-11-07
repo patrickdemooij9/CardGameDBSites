@@ -163,27 +163,27 @@ useHead(() => ({
         <div class="flex gap-2">
           <div
             v-if="set.code"
-            class="flex gap-1 items-center px-2 py-1 border bg-white rounded"
+            class="flex gap-1 items-center px-2 py-1 border bg-surface rounded"
           >
             <PhHash />
             {{ set.code }}
           </div>
           <div
             v-if="cardAmount > 0"
-            class="flex gap-1 items-center px-2 py-1 border bg-white rounded"
+            class="flex gap-1 items-center px-2 py-1 border bg-surface rounded"
           >
             <PhCards />
             {{ cardAmount }} cards
           </div>
           <div
             v-if="releaseDate"
-            class="flex gap-1 items-center px-2 py-1 border bg-white rounded"
+            class="flex gap-1 items-center px-2 py-1 border bg-surface rounded"
           >
             <PhCalendar />
             {{ releaseDate }}
           </div>
           <div
-            class="flex gap-1 items-center px-2 py-1 border bg-white rounded cursor-pointer"
+            class="flex gap-1 items-center px-2 py-1 border bg-surface rounded cursor-pointer"
             @click="showPriceGraph = !showPriceGraph"
           >
             <PhMoney />

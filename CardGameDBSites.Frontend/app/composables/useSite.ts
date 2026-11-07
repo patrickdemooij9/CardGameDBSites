@@ -46,7 +46,7 @@ export function useSite() {
     return {
       textColorIsWhite: settings.textColorWhite,
       createDeckMode: false,
-      homepageMode: false,
+      siteName: settings.siteName,
       navigationLogoUrl: settings.navigationLogoUrl,
       loginPageUrl: settings.loginPageUrl!,
       accountItems:
@@ -68,6 +68,9 @@ export function useSite() {
         })) ?? [],
     } as NavigationModel;
   };
+
+  const getNavigationUrl = async (prefix: string) =>
+    (await getSettings()).navigation?.find((item) => item.url.startsWith(prefix))?.url;
 
   const getDeckTypeSettings = async (typeId: number) => {
     const cached = store.deckTypeSettings[typeId] ?? null;
@@ -264,6 +267,7 @@ export function useSite() {
   return {
     getSettings,
     getNavigation,
+    getNavigationUrl,
     getDeckTypeSettings,
     getSetOverviewSettings,
     getDeckBuilderSettings,

@@ -331,7 +331,7 @@ console.timeEnd("page-render");
 
 <template>
   <div class="container px-4 py-4 md:px-8">
-    <div class="p-4 bg-white rounded">
+    <div class="p-4 bg-surface rounded">
       <div class="flex">
         <div class="grow">
           <h1 class="text-lg pb-0">{{ deck.name }}</h1>
@@ -349,7 +349,7 @@ console.timeEnd("page-render");
         <div class="shrink-0 flex gap-2 items-start">
           <button
             v-if="isAdmin"
-            class="border rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
+            class="border rounded px-2 py-1 hover:bg-canvas disabled:opacity-60 disabled:cursor-not-allowed"
             :disabled="isCreatingPreset"
             @click="handleCreatePresetFromDeck"
           >
@@ -357,17 +357,17 @@ console.timeEnd("page-render");
           </button>
           <div v-if="isOwner" class="relative actions-dropdown">
             <button
-              class="border rounded px-2 py-1 hover:bg-gray-100"
+              class="border rounded px-2 py-1 hover:bg-canvas"
               @click="showActionsDropdown = !showActionsDropdown"
             >
               <PhDotsThree :size="20" />
             </button>
             <div
               v-if="showActionsDropdown"
-              class="absolute right-0 mt-1 bg-white border rounded shadow-lg z-10 min-w-32"
+              class="absolute right-0 mt-1 bg-surface border rounded shadow-lg z-10 min-w-32"
             >
               <button
-                class="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                class="block w-full text-left px-4 py-2 hover:bg-canvas"
                 @click="
                   router.push(getEditDeckUrl(siteSettings.createDeckUrl, deck.id!));
                   showActionsDropdown = false;
@@ -376,7 +376,7 @@ console.timeEnd("page-render");
                 Edit
               </button>
               <button
-                class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                class="block w-full text-left px-4 py-2 text-red-600 hover:bg-canvas"
                 @click="
                   showActionsDropdown = false;
                   handleDeleteDeck();
@@ -420,7 +420,7 @@ console.timeEnd("page-render");
               v-for="childCard in mainCardWithChildren.children"
               :key="childCard.baseId"
               v-cursor-image="childCard.imageUrl"
-              class="rounded-full border border-gray-300 bg-gray-50 px-2 py-1 text-xs"
+              class="rounded-full border border-gray-300 bg-canvas px-2 py-1 text-xs"
             >
               <span>{{ childCard.displayName }}</span>
             </div>

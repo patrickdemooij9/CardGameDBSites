@@ -81,7 +81,7 @@ const chartOptions = {
 </script>
 
 <template>
-  <div class="mt-4 rounded border border-gray-200 bg-white p-2" style="height: 240px;">
+  <div class="mt-4 rounded border border-gray-200 bg-surface p-2" style="height: 240px;">
     <ClientOnly>
       <Bar :data="chartData" :options="chartOptions" />
     </ClientOnly>

@@ -51,7 +51,7 @@ function toggle(item: OverviewFilterItemModel, relation: string) {
 
 <template>
   <div class="flex flex-col gap-4">
-    <ul class="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+    <ul class="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-gray-200 bg-canvas p-3 text-sm text-gray-700">
       <li v-for="column in columns" :key="column.relation" class="flex items-center gap-2">
         <component :is="column.icon" :weight="column.weight" class="shrink-0" />
         {{ column.label }}
@@ -70,7 +70,7 @@ function toggle(item: OverviewFilterItemModel, relation: string) {
       <div
         v-for="item in group.items"
         :key="item.Value"
-        class="-mx-2 flex items-center justify-between gap-2 rounded-lg px-2 py-1 hover:bg-gray-100"
+        class="-mx-2 flex items-center justify-between gap-2 rounded-lg px-2 py-1 hover:bg-canvas"
       >
         <span :class="{ 'font-bold': hasSelection(item) }">{{ item.DisplayName }}</span>
         <div class="flex gap-1.5">

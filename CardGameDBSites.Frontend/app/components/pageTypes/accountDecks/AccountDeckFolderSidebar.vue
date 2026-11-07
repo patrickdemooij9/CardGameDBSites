@@ -36,16 +36,16 @@ function isActiveFolder(folder: DeckFolderApiModel) {
     <nav class="flex flex-col gap-1">
       <button
         type="button"
-        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-gray-100"
-        :class="activeScope.type === 'all' ? 'bg-gray-100 font-semibold' : ''"
+        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-canvas"
+        :class="activeScope.type === 'all' ? 'bg-canvas font-semibold' : ''"
         @click="emit('select', { type: 'all' })"
       >
         <PhStack :size="18" /> All decks
       </button>
       <button
         type="button"
-        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-gray-100"
-        :class="activeScope.type === 'unfiled' ? 'bg-gray-100 font-semibold' : ''"
+        class="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-canvas"
+        :class="activeScope.type === 'unfiled' ? 'bg-canvas font-semibold' : ''"
         @click="emit('select', { type: 'unfiled' })"
       >
         <PhTray :size="18" /> Unfiled
@@ -71,8 +71,8 @@ function isActiveFolder(folder: DeckFolderApiModel) {
       <div
         v-for="folder in folders"
         :key="folder.id"
-        class="group flex items-center rounded hover:bg-gray-100"
-        :class="isActiveFolder(folder) ? 'bg-gray-100 font-semibold' : ''"
+        class="group flex items-center rounded hover:bg-canvas"
+        :class="isActiveFolder(folder) ? 'bg-canvas font-semibold' : ''"
       >
         <button
           type="button"

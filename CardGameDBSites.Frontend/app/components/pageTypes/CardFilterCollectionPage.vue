@@ -36,7 +36,7 @@ const generatedLandingContent = generatedLanding?.isGenerated
         <li v-for="landing in landings" :key="landing.url">
           <NuxtLink
             :to="landing.url"
-            class="flex items-center justify-between gap-2 p-4 rounded border border-gray-300 bg-white no-underline hover:border-main-color"
+            class="flex items-center justify-between gap-2 p-4 rounded border border-gray-300 bg-surface no-underline hover:border-main-color"
           >
             <span class="font-bold">{{ landing.name }}</span>
             <span class="text-sm text-gray-600">{{ landing.cardCount }} cards</span>

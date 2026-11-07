@@ -29,7 +29,7 @@ function isActive(url: string) {
 
 <template>
   <nav
-    class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 pb-safe-bottom"
+    class="fixed bottom-0 inset-x-0 z-30 bg-surface border-t border-gray-200 pb-safe-bottom"
     aria-label="Main"
   >
     <div class="flex h-14">

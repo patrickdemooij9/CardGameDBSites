@@ -35,7 +35,7 @@ const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
   <div class="flex flex-col">
     <NuxtLink
       :to="settings.overviewUrl + deck.id"
-      class="block px-2 py-2 border rounded bg-white no-underline hover:border-main-color"
+      class="block px-2 py-2 border rounded bg-surface no-underline hover:border-main-color dark:border-line dark:hover:border-main-color"
     >
       <div class="flex items-center justify-between">
         <p class="font-bold">{{ deck.name }}</p>

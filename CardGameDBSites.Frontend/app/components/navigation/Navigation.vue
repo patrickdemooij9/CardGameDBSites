@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { PhCaretDown, PhSignIn, PhUser } from "@phosphor-icons/vue";
 import type NavigationModel from "./NavigationModel";
+import NavigationDropdown from "./NavigationDropdown.vue";
 import { useAccountStore } from "~/stores/AccountStore";
 import CmsImage from "~/components/shared/CmsImage.vue";
 
-defineProps<{
+const props = defineProps<{
   content: NavigationModel;
+  transparent?: boolean;
 }>();
 
 const isOpen = ref(false);
-const isAccountsOpen = ref(false);
 const accountStore = useAccountStore();
+
+const isTransparent = computed(() => props.transparent && !isOpen.value);
 
 function closeMenu() {
   isOpen.value = false;
-  isAccountsOpen.value = false;
 }
 
 function logout() {
@@ -25,115 +26,92 @@ function logout() {
 
 <template>
   <nav
-    :class="{
-      'md:text-white': content.textColorIsWhite,
-      'md:text-black': !content.textColorIsWhite,
-      active: isOpen,
-      'bg-gray-500': content.homepageMode,
-      'bg-main-color border-b border-nav-color': !content.homepageMode,
-    }"
-    class="h-14 text-base z-20"
+    :class="[
+      isTransparent
+        ? 'bg-transparent text-ink'
+        : ['bg-main-color', content.textColorIsWhite ? 'text-white' : 'text-black'],
+      { 'border-b border-nav-color': !transparent },
+    ]"
+    class="z-30 h-14 text-sm transition-colors duration-200"
   >
-    <div class="container md:px-8">
-      <div class="flex justify-between overflow-auto items-center">
-        <NuxtLink to="/" class="ml-2 no-underline" @click="closeMenu">
-          <CmsImage :src="content.navigationLogoUrl" class="h-14 py-2 pr-8" loading="eager" alt="Logo" />
+    <div class="container h-full px-4 md:px-8">
+      <div class="flex h-full items-center justify-between gap-6">
+        <NuxtLink to="/" class="shrink-0 no-underline" @click="closeMenu">
+          <CmsImage
+            v-if="content.navigationLogoUrl"
+            :src="content.navigationLogoUrl"
+            class="h-14 py-2"
+            loading="eager"
+            :alt="content.siteName"
+          />
+          <span v-else class="text-base font-bold">{{ content.siteName }}</span>
         </NuxtLink>
 
         <div
-          :class="{
-            'fixed top-14 bg-slate-50 h-full w-full z-20 flex-col': isOpen,
-            hidden: !isOpen || content.createDeckMode,
-          }"
-          class="grow md:justify-between md:flex"
+          :class="
+            isOpen && !content.createDeckMode
+              ? 'fixed inset-x-0 bottom-0 top-14 flex flex-col overflow-y-auto bg-surface p-4 text-ink'
+              : 'hidden'
+          "
+          class="md:static md:flex md:grow md:flex-row md:items-center md:justify-between md:overflow-visible md:bg-transparent md:p-0 md:text-inherit"
         >
-          <div
-            class="flex flex-col mt-4 mx-2 md:gap-8 md:h-full md:flex-row md:mt-0"
-          >
-            <div
+          <div class="flex flex-col md:flex-row md:items-center md:gap-1">
+            <NavigationDropdown
               v-for="item in content.items"
-              :class="{ group: item.children.length > 0 }"
-            >
-              <p
-                class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0"
-              >
-                <NuxtLink
-                  :to="item.url"
-                  class="no-underline"
-                  @click="closeMenu"
-                >
-                  {{ item.name }}
-                </NuxtLink>
-                <PhCaretDown v-if="item.children.length > 0" />
-              </p>
-              <div
-                v-if="item.children.length > 0"
-                class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 hidden"
-              >
-                <NuxtLink
-                  v-for="child in item.children"
-                  :to="child.url"
-                  class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
-                  @click="closeMenu"
-                >
-                  {{ child.name }}
-                </NuxtLink>
-              </div>
-            </div>
+              :key="item.url"
+              :label="item.name"
+              :url="item.url"
+              :items="item.children"
+              @navigate="closeMenu"
+            />
           </div>
-          <div v-if="content.loginPageUrl" class="group mt-4 mx-2 md:mt-0">
-            <p
-              class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0"
+
+          <div
+            v-if="content.loginPageUrl"
+            class="mt-2 border-t border-line pt-4 md:mt-0 md:border-0 md:pt-0"
+          >
+            <NuxtLink
               v-if="!accountStore.isLoggedIn"
+              :to="content.loginPageUrl"
+              class="btn-secondary no-underline px-3 py-1.5"
+              @click="closeMenu"
             >
-              <NuxtLink
-                :to="content.loginPageUrl"
-                class="no-underline"
-                @click="closeMenu"
-              >
-                Login
-              </NuxtLink>
-              <PhSignIn />
-            </p>
-            <p
-              class="flex items-center hover:text-slate-400 md:h-full gap-2 py-3 md:py-0"
-              v-if="accountStore.isLoggedIn"
+              Log in
+            </NuxtLink>
+            <NavigationDropdown
+              v-else
+              :label="`Hello ${accountStore.member!.name}`"
+              :items="content.accountItems"
+              align-right
+              @navigate="closeMenu"
             >
-              Hello {{ accountStore.member!.name }}
-              <PhUser />
-            </p>
-            <div
-              v-if="accountStore.isLoggedIn && content.accountItems.length > 0"
-              class="group-hover:flex flex-col rounded-md z-20 md:bg-main-color md:absolute md:shadow-lg md:ring-black md:ring-1 md:hidden"
-            >
-              <NuxtLink
-                v-for="child in content.accountItems"
-                :to="child.url"
-                class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
-                @click="closeMenu"
-              >
-                {{ child.name }}
-              </NuxtLink>
-              <button
-                class="px-6 py-3 rounded-md no-underline hover:text-slate-400"
-                @click="logout"
-              >
-                Logout
-              </button>
-            </div>
+              <template #append>
+                <button
+                  type="button"
+                  class="rounded-md py-2 text-left text-ink-muted hover:text-ink md:px-3 md:hover:bg-canvas"
+                  @click="logout"
+                >
+                  Log out
+                </button>
+              </template>
+            </NavigationDropdown>
           </div>
         </div>
-        <div
-          @click="isOpen = !isOpen"
+
+        <button
+          type="button"
           :class="{ hidden: content.createDeckMode }"
-          class="md:hidden w-8 mobile-content flex center-items mr-2"
+          class="flex w-8 md:hidden"
+          :aria-expanded="isOpen"
+          aria-label="Show navigation"
+          @click="isOpen = !isOpen"
         >
-          <div id="hamburger" class="hamburger" aria-label="Show navigation">
+          <div class="hamburger">
             <div class="top-bun" :class="{ 'rotate-45': isOpen }"></div>
             <div class="meat" :class="{ 'scale-y-0': isOpen }"></div>
-            <div class="bottom-bun" :class="{ 'rotate-45': isOpen }"></div>
+            <div class="bottom-bun" :class="{ '-rotate-45': isOpen }"></div>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   </nav>

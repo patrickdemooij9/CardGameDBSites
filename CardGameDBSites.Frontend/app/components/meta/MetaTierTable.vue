@@ -93,7 +93,7 @@ function sampleTitle(leader: MetaTierLeaderApiModel): string {
 
     <div class="md:overflow-x-auto">
       <table
-        class="block md:table w-full md:border-collapse md:bg-white md:rounded-lg md:shadow-sm"
+        class="block md:table w-full md:border-collapse md:bg-surface md:rounded-lg md:shadow-sm"
       >
         <caption class="sr-only">
           {{ meta.label }} — {{ meta.blurb }}
@@ -117,7 +117,7 @@ function sampleTitle(leader: MetaTierLeaderApiModel): string {
           <tr
             v-for="leader in leaders"
             :key="leader.cardId"
-            class="block md:table-row bg-white rounded-lg shadow-sm mb-3 p-3 md:p-0 md:mb-0 md:rounded-none md:shadow-none border border-gray-200 md:border-0 md:border-b md:border-gray-100 md:last:border-0 md:hover:bg-gray-50"
+            class="block md:table-row bg-surface rounded-lg shadow-sm mb-3 p-3 md:p-0 md:mb-0 md:rounded-none md:shadow-none border border-gray-200 md:border-0 md:border-b md:border-gray-100 md:last:border-0 md:hover:bg-canvas"
           >
             <th scope="row" class="block md:table-cell md:px-4 md:py-3 font-normal text-left">
               <div class="flex items-center gap-3">

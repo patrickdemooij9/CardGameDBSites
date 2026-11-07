@@ -147,7 +147,7 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <div class="bg-white rounded p-4">
+    <div class="bg-surface rounded p-4">
         <h2 class="text-xl font-bold mb-4">Set Value History</h2>
         <ClientOnly>
             <template #fallback>

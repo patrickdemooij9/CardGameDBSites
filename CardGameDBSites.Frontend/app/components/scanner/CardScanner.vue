@@ -101,7 +101,7 @@ async function importCards() {
                 <template v-if="priceFor(latest) !== undefined"> · {{ formatPrice(priceFor(latest)!) }}</template>
               </p>
             </div>
-            <ScanVariantSelect v-model="latest.variantId" :options="optionsFor(latest)" class="border-gray-300 bg-white" />
+            <ScanVariantSelect v-model="latest.variantId" :options="optionsFor(latest)" class="border-gray-300 bg-surface" />
           </div>
           <p v-else class="mb-3 rounded-xl bg-black/60 p-3 text-center text-sm text-white">
             Hold a card in front of the camera

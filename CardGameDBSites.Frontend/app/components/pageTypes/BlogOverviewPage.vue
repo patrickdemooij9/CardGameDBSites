@@ -57,7 +57,7 @@ await loadPosts();
         v-for="post in posts"
         :key="post.id"
         :href="post.url"
-        class="bg-white rounded hover:shadow-md transition-shadow no-underline"
+        class="bg-surface rounded hover:shadow-md transition-shadow no-underline"
       >
         <CmsImage
           v-if="post.imageUrl"
@@ -67,7 +67,7 @@ await loadPosts();
         />
         <div class="p-4">
           <span
-            class="text-sm font-medium px-2 py-1 rounded bg-gray-100 mb-2 inline-block"
+            class="text-sm font-medium px-2 py-1 rounded bg-canvas mb-2 inline-block"
           >
             {{ post.tagType }}
           </span>

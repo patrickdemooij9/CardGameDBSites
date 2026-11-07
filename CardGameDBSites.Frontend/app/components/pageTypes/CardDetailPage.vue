@@ -67,7 +67,7 @@ function handleCommentDeleted(comment: CommentViewModel) {
               </div>
             </div>
 
-            <div class="bg-white rounded">
+            <div class="bg-surface rounded">
               <div class="p-4">
                 <h1 class="text-lg">{{ card.displayName }}</h1>
                 <div v-for="(element, index) in siteSettings.cardSections" :key="index" class="mb-2">
@@ -86,7 +86,7 @@ function handleCommentDeleted(comment: CommentViewModel) {
               </div>
             </div>-->
 
-            <div class="bg-white rounded mt-8">
+            <div class="bg-surface rounded mt-8">
               <div class="p-4">
                 <CommentSection :comments="comments" @add-comment="handleCommentAdded" @delete-comment="handleCommentDeleted" />
               </div>
@@ -94,7 +94,7 @@ function handleCommentDeleted(comment: CommentViewModel) {
 
             <PriceHistoryChart v-if="siteSettings.showPrices && card.baseId" :card-id="card.baseId" :variant-id="card.variantId" />
   
-            <!--<div v-if="faqItems.length > 0" class="bg-white rounded mt-8">
+            <!--<div v-if="faqItems.length > 0" class="bg-surface rounded mt-8">
               <div class="p-4">
                 <h2 class="text-lg">Frequently asked questions</h2>
                 <p>These answers are taken from official FAQ or responses from the discord.</p>

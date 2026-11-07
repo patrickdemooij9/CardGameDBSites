@@ -14,7 +14,7 @@ using Card = SkytearHorde.Entities.Models.Business.Card;
 
 namespace SkytearHorde.Business.Startup.Indexes
 {
-    internal class CardIndexValueSetBuilder : IValueSetBuilder<Card>
+    public class CardIndexValueSetBuilder : IValueSetBuilder<Card>
     {
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly CardPriceService _cardPriceService;

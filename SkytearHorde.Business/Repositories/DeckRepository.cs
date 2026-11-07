@@ -97,7 +97,16 @@ namespace SkytearHorde.Business.Repositories
 
             deckDB.Source = (int)deck.Source;
             deckDB.Score = deck.Score;
-            deckDB.IsLegal = deck.IsLegal;
+
+            // A private draft must not change the legality of the version the public sees.
+            var hasPublishedVersion = scope.Database.FirstOrDefault<DeckVersionDBModel>(scope.SqlContext.Sql()
+                .SelectAll()
+                .From<DeckVersionDBModel>()
+                .Where<DeckVersionDBModel>(it => it.DeckId == deck.Id && it.Published && it.IsCurrent)) != null;
+            if (deck.IsPublished || !hasPublishedVersion)
+            {
+                deckDB.IsLegal = deck.IsLegal;
+            }
 
             scope.Database.Update(deckDB);
 
@@ -147,6 +156,50 @@ namespace SkytearHorde.Business.Repositories
             scope.Complete();
 
             ClearCache(deckId);
+        }
+
+        public DeckLegalityVersion[] GetCurrentVersionsForLegality(int siteId, int deckType)
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            const string currentVersions = """
+                INNER JOIN DeckVersion dv ON dv.Id = c.VersionId AND dv.IsCurrent = 1
+                INNER JOIN Deck d ON d.Id = dv.DeckId
+                WHERE d.SiteId = @0 AND d.DeckType = @1 AND d.IsDeleted = 0
+                """;
+
+            var versions = scope.Database.Fetch<DeckLegalityVersion>("""
+                SELECT d.Id AS DeckId, dv.Id AS VersionId, dv.Published, d.IsLegal
+                FROM Deck d
+                INNER JOIN DeckVersion dv ON dv.DeckId = d.Id AND dv.IsCurrent = 1
+                WHERE d.SiteId = @0 AND d.DeckType = @1 AND d.IsDeleted = 0
+                """, siteId, deckType);
+
+            var cards = scope.Database.Fetch<DeckVersionCardRow>(
+                $"SELECT c.VersionId, c.CardId FROM DeckCard c {currentVersions}" +
+                $" UNION SELECT c.VersionId, c.CardId FROM DeckCardChild c {currentVersions}",
+                siteId, deckType).ToLookup(it => it.VersionId, it => it.CardId);
+
+            scope.Complete();
+
+            foreach (var version in versions)
+            {
+                version.CardIds = [.. cards[version.VersionId]];
+            }
+
+            return [.. versions];
+        }
+
+        public void SetLegal(IEnumerable<int> deckIds, bool isLegal)
+        {
+            using var scope = _scopeProvider.CreateScope();
+
+            foreach (var group in deckIds.InGroupsOf(2000))
+            {
+                scope.Database.Execute($"UPDATE Deck SET IsLegal = @0 WHERE Id IN ({string.Join(',', group)})", isLegal);
+            }
+
+            scope.Complete();
         }
 
         public void DeleteDeck(int deckId)
@@ -530,6 +583,12 @@ namespace SkytearHorde.Business.Repositories
         {
             _publishedCachePolicy.ClearCache(id);
             _unpublishedCachePolicy.ClearCache(id);
+        }
+
+        public void ClearAllCache()
+        {
+            _publishedCachePolicy.ClearAll();
+            _unpublishedCachePolicy.ClearAll();
         }
 
         public void ClearPagedCache()

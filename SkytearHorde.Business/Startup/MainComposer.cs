@@ -54,6 +54,7 @@ namespace SkytearHorde.Business.Startup
             builder.Services.AddSingleton<MetaCardPageService>();
             builder.Services.AddSingleton<SettingsService>();
             builder.Services.AddSingleton<DeckService>();
+            builder.Services.AddSingleton<DeckLegalityService>();
             builder.Services.AddSingleton<ICardSearchService, CardSearchService>();
             builder.Services.AddSingleton<DeckListService>();
             builder.Services.AddSingleton<DeckFolderService>();

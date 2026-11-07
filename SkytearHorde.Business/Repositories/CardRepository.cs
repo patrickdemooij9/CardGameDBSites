@@ -1,10 +1,12 @@
 ﻿using SkytearHorde.Business.Extensions;
+using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Entities.Models.Business;
 using System.Diagnostics.CodeAnalysis;
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Models.Blocks;
+using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 using Card = SkytearHorde.Entities.Models.Business.Card;
@@ -236,35 +238,24 @@ namespace SkytearHorde.Business.Repositories
                 VariantReferences = card.Children<CardVariant>()?
                     .Select(it => new CardVariantReference((it.VariantType as Variant)?.InternalID, it.Id, it.Set!.Id))
                     .ToArray() ?? [],
-                NonLegalDeckTypes = ComputeNonLegalDeckTypes(card, card.NonLegalDeckTypes?.OfType<SquadSettings>().Select(it => it.TypeID).ToArray() ?? []),
+                NonLegalDeckTypes = DeckLegalityService.ComputeNonLegalDeckTypes(GetDeckTypeIds(card.NonLegalDeckTypes), GetBasePrintingNonLegalDeckTypes(card)),
                 IsReprint = false
             };
         }
 
-        private static int[] ComputeNonLegalDeckTypes(UmbracoCard parentCard, int[] cardOwnNonLegalDeckTypes)
+        private static int[][] GetBasePrintingNonLegalDeckTypes(UmbracoCard card)
         {
-            var baseVariants = parentCard.Children<CardVariant>()?.Where(it => it.VariantType is null).ToArray() ?? [];
-            var actualCardSets = baseVariants
+            var baseVariants = card.Children<CardVariant>()?.Where(it => it.VariantType is null).ToArray() ?? [];
+            return [.. baseVariants
                 .Select(it => it.Set as Set)
                 .WhereNotNull()
                 .DistinctBy(it => it.Id)
-                .ToArray();
+                .Select(it => GetDeckTypeIds(it.NonLegalDeckTypes))];
+        }
 
-            var nonLegalDeckTypes = new List<int>(cardOwnNonLegalDeckTypes);
-            var nonLegalDeckTypesFromSets = actualCardSets
-                .SelectMany(it => it.NonLegalDeckTypes?.OfType<SquadSettings>().Select(n => n.TypeID) ?? [])
-                .Distinct()
-                .ToArray();
-
-            foreach (var nonLegalDeckType in nonLegalDeckTypesFromSets)
-            {
-                if (actualCardSets.All(it => it.NonLegalDeckTypes?.OfType<SquadSettings>().Select(c => c.TypeID).Contains(nonLegalDeckType) is true))
-                {
-                    nonLegalDeckTypes.Add(nonLegalDeckType);
-                }
-            }
-
-            return [.. nonLegalDeckTypes];
+        private static int[] GetDeckTypeIds(IEnumerable<IPublishedContent>? squadSettings)
+        {
+            return squadSettings?.OfType<SquadSettings>().Select(it => it.TypeID).ToArray() ?? [];
         }
 
         [return: NotNullIfNotNull(nameof(variant))]

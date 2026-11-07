@@ -1,5 +1,6 @@
 ﻿using Examine;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Entities.Generated;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Services.Changes;
 using Umbraco.Cms.Core.Sync;
+using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Infrastructure;
 using Umbraco.Cms.Infrastructure.Search;
 using Umbraco.Extensions;
@@ -27,6 +29,8 @@ namespace SkytearHorde.Business.Startup.Indexes
         private readonly IContentService _contentService;
         private readonly CardIndexValueSetBuilder _cardIndexValueSetBuilder;
         private readonly CardService _cardService;
+        private readonly DeckLegalityService _deckLegalityService;
+        private readonly IUmbracoContextFactory _umbracoContextFactory;
 
         public CardIndexNotificationHandler(
             IRuntimeState runtimeState,
@@ -34,7 +38,9 @@ namespace SkytearHorde.Business.Startup.Indexes
             IExamineManager examineManager,
             IContentService contentService,
             CardIndexValueSetBuilder cardIndexValueSetBuilder,
-            CardService cardService)
+            CardService cardService,
+            DeckLegalityService deckLegalityService,
+            IUmbracoContextFactory umbracoContextFactory)
         {
             _runtimeState = runtimeState;
             _umbracoIndexingHandler = umbracoIndexingHandler;
@@ -42,6 +48,8 @@ namespace SkytearHorde.Business.Startup.Indexes
             _contentService = contentService;
             _cardIndexValueSetBuilder = cardIndexValueSetBuilder;
             _cardService = cardService;
+            _deckLegalityService = deckLegalityService;
+            _umbracoContextFactory = umbracoContextFactory;
         }
 
         /// <summary>
@@ -82,11 +90,21 @@ namespace SkytearHorde.Business.Startup.Indexes
                     if (card is null)
                     {
                         index.DeleteFromIndex(payload.Id.ToString());
+                        ReindexCardsWhenSetLegalityChanged(payload.Id);
                         continue;
                     }
 
                     index.IndexItems(_cardIndexValueSetBuilder.GetValueSets(card));
                 }
+            }
+        }
+
+        private void ReindexCardsWhenSetLegalityChanged(int contentId)
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            if (ctx.UmbracoContext.Content?.GetById(contentId) is Set set)
+            {
+                _deckLegalityService.ReindexCardsWhenSetLegalityChanged(set);
             }
         }
 

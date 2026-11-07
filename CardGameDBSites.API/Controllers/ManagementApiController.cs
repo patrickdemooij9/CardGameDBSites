@@ -6,11 +6,13 @@ using SkytearHorde.Business.Services;
 using SkytearHorde.Business.Services.Site;
 using SkytearHorde.Entities.Enums;
 using SkytearHorde.Entities.Generated;
+using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Tournament;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
+using Card = SkytearHorde.Entities.Generated.Card;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -32,8 +34,9 @@ namespace CardGameDBSites.API.Controllers
         private readonly MetaSnapshotService _metaSnapshotService;
         private readonly PeriodRepository _periodRepository;
         private readonly BlockListJsonService _blockListJsonService;
+        private readonly DeckLegalityService _deckLegalityService;
 
-        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, MetaSnapshotService metaSnapshotService, PeriodRepository periodRepository, BlockListJsonService blockListJsonService)
+        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, MetaSnapshotService metaSnapshotService, PeriodRepository periodRepository, BlockListJsonService blockListJsonService, DeckLegalityService deckLegalityService)
         {
             _deckService = deckService;
             _siteService = siteService;
@@ -43,6 +46,19 @@ namespace CardGameDBSites.API.Controllers
             _metaSnapshotService = metaSnapshotService;
             _periodRepository = periodRepository;
             _blockListJsonService = blockListJsonService;
+            _deckLegalityService = deckLegalityService;
+        }
+
+        [HttpPost("decks/recalculateLegality")]
+        [ProducesResponseType(typeof(DeckTypeLegalityResult[]), 200)]
+        [ProducesResponseType(403)]
+        public IActionResult RecalculateDeckLegality()
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            return Ok(_deckLegalityService.Recalculate());
         }
 
         [HttpPost("decks/{deckId}/createPreset")]

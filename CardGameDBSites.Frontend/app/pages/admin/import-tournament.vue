@@ -16,6 +16,17 @@ const successMessage = ref<string | null>(null);
 const errorMessage = ref<string | null>(null);
 const missingCards = ref<any[]>([]);
 
+interface DeckTypeLegalityResult {
+  typeId: number;
+  illegalCards: number;
+  becameLegal: number;
+  becameIllegal: number;
+  illegalDecks: number;
+}
+
+const isRecalculating = ref(false);
+const legalityResult = ref<DeckTypeLegalityResult[] | null>(null);
+
 async function importTournament() {
   if (!formatId.value || !type.value || !source.value || !externalId.value)
     return;
@@ -67,6 +78,24 @@ async function backfillSnapshots(){
   });
 }
 
+async function recalculateLegality() {
+  isRecalculating.value = true;
+  legalityResult.value = null;
+  errorMessage.value = null;
+
+  try {
+    legalityResult.value = await DoServerFetch<DeckTypeLegalityResult[]>(
+      "/api/management/decks/recalculateLegality",
+      true,
+      { method: "POST" },
+    );
+  } catch (error) {
+    errorMessage.value = "Failed to recalculate legality.";
+  } finally {
+    isRecalculating.value = false;
+  }
+}
+
 onMounted(async () => {
   await accountStore.checkLogin();
 
@@ -81,6 +110,17 @@ onMounted(async () => {
     <h1 class="text-2xl font-bold mb-6">Import Tournament</h1>
     <Button @click="recomputeSnapshot">Recompute snapshot</Button>
     <Button @click="backfillSnapshots">Backfill snapshot</Button>
+    <Button :disabled="isRecalculating" @click="recalculateLegality">
+      {{ isRecalculating ? "Recalculating…" : "Recalculate legality" }}
+    </Button>
+
+    <div v-if="legalityResult" class="my-4 text-sm">
+      <p v-for="deckType in legalityResult" :key="deckType.typeId">
+        Deck type {{ deckType.typeId }}: {{ deckType.illegalCards }} illegal cards,
+        {{ deckType.illegalDecks }} illegal decks
+        (+{{ deckType.becameIllegal }} illegal, +{{ deckType.becameLegal }} legal).
+      </p>
+    </div>
 
     <div class="bg-white rounded shadow p-6">
       <div class="mb-4">

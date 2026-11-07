@@ -357,7 +357,8 @@ namespace SkytearHorde.Business.Services
 
             // Check if all selected cards in the squad are valid
             if (postCharacters.Any(it => !allCards.ContainsKey(it))) throw new InvalidOperationException("Could not find card.");
-            if (postCharacters.Any(it => allCards[it].NonLegalDeckTypes.Contains(typeId)))
+            var postChildren = postSquad.Slots.SelectMany(it => it.Cards.SelectMany(c => c.Children));
+            if (DeckLegalityService.ContainsIllegalCard(postCharacters.Concat(postChildren), allCards, typeId))
             {
                 isLegal = false;
             }

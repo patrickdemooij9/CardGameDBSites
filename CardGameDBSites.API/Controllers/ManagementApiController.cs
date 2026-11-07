@@ -145,14 +145,29 @@ namespace CardGameDBSites.API.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ImportTournamentResult), 200)]
         [ProducesResponseType(typeof(ImportTournamentResult), 400)]
+        [ProducesResponseType(403)]
         public IActionResult ImportTournament(ImportTournament model)
         {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
             var result = _tournamentService.QueueImport(model);
             if (!result.Success)
             {
                 return BadRequest(result);
             }
             return Ok(result);
+        }
+
+        [HttpPost("tournaments/reimport")]
+        [ProducesResponseType(typeof(ImportTournamentResult), 200)]
+        [ProducesResponseType(403)]
+        public IActionResult ReimportTournaments()
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            return Ok(_tournamentService.QueueReimportAll());
         }
 
         [HttpPost("meta/recreate")]

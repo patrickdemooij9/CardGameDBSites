@@ -2,7 +2,6 @@
 using SkytearHorde.Business.Tournaments;
 using SkytearHorde.Entities.Models.Business;
 using SkytearHorde.Entities.Models.Business.Tournament;
-using SkytearHorde.Business.Services.Search;
 using SkytearHorde.Business.Middleware;
 using SkytearHorde.Entities.Generated;
 using SkytearHorde.Business.Extensions;
@@ -63,6 +62,21 @@ namespace SkytearHorde.Business.Services
             });
 
             return new ImportTournamentResult { Success = true, Message = "Tournament import queued. It will be processed shortly." };
+        }
+
+        public ImportTournamentResult QueueReimportAll()
+        {
+            var results = _tournamentRepository.GetBySite(_siteAccessor.GetSiteId())
+                .Select(it => QueueImport(new ImportTournament
+                {
+                    FormatId = it.FormatId,
+                    Type = it.Type,
+                    Source = it.Source,
+                    ExternalId = it.ExternalId
+                }))
+                .ToArray();
+
+            return new ImportTournamentResult { Success = true, Message = $"Queued {results.Count(it => it.Success)} of {results.Length} tournaments for re-import." };
         }
 
         public IEnumerable<Tournament> GetRecent(int periodId, int count = 6) =>
@@ -416,7 +430,7 @@ namespace SkytearHorde.Business.Services
             var decks = new Dictionary<int, Deck>();
             missingCards = [];
 
-            var resolvedCards = new Dictionary<string, Entities.Models.Business.Card?>();
+            var cardMatcher = new TournamentCardMatcher(_cardService.GetAll().Where(it => !it.HideFromDecks), deckSettings.TypeID);
 
             foreach (var (entrantId, deckData) in data.DeckDataByEntrantExternalId)
             {
@@ -432,45 +446,25 @@ namespace SkytearHorde.Business.Services
                     CreatedDate = DateTime.UtcNow,
                     Cards = [],
                     Sideboard = [],
-                    IsLegal = false // TODO: Do we need to check this?
+                    IsLegal = true
                 };
 
                 if (deckData.Cards == null || deckData.Cards.Count == 0)
                     continue;
 
-                // TODO: Implement card lookup by name + optional subtitle
-                // For now, cards will not be populated; decks are created as placeholders
-                // Each MeleeDeckCard has: Lookup, Name, Subtitle, Quantity, Component (0=main, 99=sideboard), Type
-
                 foreach (var card in deckData.Cards)
                 {
-                    var searchQuery = card.Subtitle != null
-                        ? $"{card.Name} {card.Subtitle}"
-                        : card.Name;
-
-                    resolvedCards.TryGetValue(searchQuery, out var resolvedCard);
-                    if (!resolvedCards.ContainsKey(searchQuery))
+                    var resolvedCard = cardMatcher.Find(card.Name, card.Subtitle);
+                    if (resolvedCard is null)
                     {
-                        var results = _cardService.Search(
-                            new CardSearchQuery(int.MaxValue, _siteAccessor.GetSiteId())
-                            {
-                                Query = searchQuery,
-                                VariantTypeIds = [0],
-                                Amount = 10
-                            }, out var _).ToArray();
-
-                        // The search is a per-word prefix match, so "Otoh Gunga" ranks "Boss Nass, Otoh Gunga Boss" above the base itself.
-                        var expectedName = NormalizeCardName(card.Subtitle != null ? $"{card.Name}, {card.Subtitle}" : card.Name);
-                        resolvedCard = results.FirstOrDefault(it => NormalizeCardName(it.DisplayName) == expectedName) ?? results.FirstOrDefault();
-                        resolvedCards[searchQuery] = resolvedCard;
-                        if (resolvedCard is null)
-                        {
-                            // Card not found in local database; skip with silent warning
-                            missingCards.Add($"{searchQuery} from {deckData.Name}");
-                            continue;
-                        }
+                        missingCards.Add($"{card.Name} ({card.Subtitle}) from {deckData.Name}");
+                        continue;
                     }
-                    if (resolvedCard is null) continue;
+
+                    if (!resolvedCard.IsLegalFor(deckSettings.TypeID))
+                    {
+                        deck.IsLegal = false;
+                    }
 
                     var isMainDeck = card.Component < 99;
                     var target = isMainDeck ? deck.Cards : deck.Sideboard;
@@ -487,9 +481,6 @@ namespace SkytearHorde.Business.Services
             }
             return decks;
         }
-
-        private static string NormalizeCardName(string name) =>
-            new(name.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
 
         private int GetSlotForCard(SquadConfig config, Entities.Models.Business.Card card)
         {

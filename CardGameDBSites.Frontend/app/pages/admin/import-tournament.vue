@@ -78,6 +78,22 @@ async function backfillSnapshots(){
   });
 }
 
+async function reimportAllTournaments() {
+  if (!confirm("Queue every tournament for re-import? This sends a lot of requests to melee.gg.")) return;
+
+  successMessage.value = null;
+  errorMessage.value = null;
+
+  try {
+    const response = await DoServerFetch<ImportTournamentResult>("/api/management/tournaments/reimport", true, {
+      method: "POST",
+    });
+    successMessage.value = response.message ?? null;
+  } catch (error) {
+    errorMessage.value = "Failed to queue the re-import.";
+  }
+}
+
 async function recalculateLegality() {
   isRecalculating.value = true;
   legalityResult.value = null;
@@ -113,6 +129,7 @@ onMounted(async () => {
     <Button :disabled="isRecalculating" @click="recalculateLegality">
       {{ isRecalculating ? "Recalculating…" : "Recalculate legality" }}
     </Button>
+    <Button @click="reimportAllTournaments">Re-import all tournaments</Button>
 
     <div v-if="legalityResult" class="my-4 text-sm">
       <p v-for="deckType in legalityResult" :key="deckType.typeId">

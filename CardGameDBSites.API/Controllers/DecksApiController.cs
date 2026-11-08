@@ -123,7 +123,8 @@ namespace CardGameDBSites.API.Controllers
                 DateTo = query.DateTo,
                 UseUserCollectionId = useUserCollection,
                 FolderId = folderId,
-                Unfiled = unfiled
+                Unfiled = unfiled,
+                IsLegal = query.IsLegal
             });
 
             var allowPricing = _settingsService.GetSiteSettings().AllowPricing;

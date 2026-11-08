@@ -350,6 +350,11 @@ namespace SkytearHorde.Business.Repositories
                 sql = sql.Where<DeckDBModel>(it => it.Source == (int)request.Source, "d");
             }
 
+            if (request.IsLegal.HasValue)
+            {
+                sql = sql.Where<DeckDBModel>(it => it.IsLegal == request.IsLegal.Value, "d");
+            }
+
             if (request.DateFrom.HasValue)
             {
                 sql = sql.Where<DeckDBModel>(it => it.CreatedDate >= request.DateFrom.Value, "d");

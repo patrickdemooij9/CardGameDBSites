@@ -12,6 +12,7 @@ namespace SkytearHorde.Entities.Models.ViewModels
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
         public bool IsPublished { get; set; }
+        public bool IsLegal { get; set; }
         public int TypeId { get; set; }
         public int AmountOfLikes { get; set; }
         public int Score { get; set; }
@@ -29,6 +30,7 @@ namespace SkytearHorde.Entities.Models.ViewModels
             CreatedDate = deck.CreatedDate;
             UpdatedDate = deck.UpdatedDate;
             IsPublished = deck.IsPublished;
+            IsLegal = deck.IsLegal;
             TypeId = deck.TypeId;
             AmountOfLikes = deck.AmountOfLikes;
             Score = deck.Score;

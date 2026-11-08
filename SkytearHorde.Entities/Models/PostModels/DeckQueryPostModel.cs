@@ -38,6 +38,9 @@ namespace SkytearHorde.Entities.Models.PostModels
         [JsonPropertyName("unfiled")]
         public bool? Unfiled { get; set; }
 
+        [JsonPropertyName("isLegal")]
+        public bool? IsLegal { get; set; }
+
         public DeckQueryPostModel()
         {
             Cards = Array.Empty<int>();

@@ -23,6 +23,7 @@ import CommentSection from "../comments/CommentSection.vue";
 import { PhDotsThree } from "@phosphor-icons/vue";
 import DeckDetailCardModal from "../decks/DeckDetailCardModal.vue";
 import DeckCardGroup from "../decks/DeckCardGroup.vue";
+import NotLegalIcon from "../decks/NotLegalIcon.vue";
 import { useAccountStore } from "~/stores/AccountStore";
 import { getEditDeckUrl } from "~/helpers/DeckUrlHelper";
 
@@ -96,6 +97,11 @@ const mainCardsWithChildren = computed(() =>
             child !== undefined,
         ) ?? [],
   })),
+);
+
+// Judged from the cards, so an owner viewing an unpublished draft sees the draft's state.
+const hasRotatedCards = [...cards, ...sideboardCards, ...childCards].some(
+  (card) => card.nonLegalDeckTypes?.includes(deck.typeId),
 );
 
 const sets = ref<SetViewModel[]>([]);
@@ -337,8 +343,9 @@ console.timeEnd("page-render");
           <h1 class="text-lg pb-0">{{ deck.name }}</h1>
           <p class="text-xs">By {{ createdBy }}</p>
           <div class="flex align-center gap-2 mt-2">
-            <p class="border rounded py-1 px-2">
+            <p class="flex items-center gap-1 border rounded py-1 px-2">
               {{ deckSettings?.displayName }}
+              <NotLegalIcon v-if="hasRotatedCards" />
             </p>
             <div id="deck-like-@deck.Id">
               <DeckLike :deck="deck"></DeckLike>
@@ -486,6 +493,7 @@ console.timeEnd("page-render");
                 :collection-mode="collectionMode"
                 :cost-image-url="deckSettings?.costImageUrl"
                 :render-cost-on-image="deckSettings?.renderCostOnImage"
+                :deck-type-id="deck.typeId"
                 @card-click="openCardPopup"
               />
             </template>
@@ -508,6 +516,7 @@ console.timeEnd("page-render");
                   :collection-mode="collectionMode"
                   :cost-image-url="deckSettings?.costImageUrl"
                   :render-cost-on-image="deckSettings?.renderCostOnImage"
+                  :deck-type-id="deck.typeId"
                   @card-click="openCardPopup"
                 />
               </template>

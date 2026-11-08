@@ -15,5 +15,6 @@ export type DeckQueryPostModel = {
     dateTo?: string | null;
     folderId?: number | null;
     unfiled?: boolean | null;
+    isLegal?: boolean | null;
 };
 

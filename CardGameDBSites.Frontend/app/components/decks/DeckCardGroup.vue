@@ -3,6 +3,7 @@ import type { CardDetailApiModel, DeckCardGroupApiModel, DeckTypeSettingsApiMode
 import { GetCardValue } from "~/helpers/CardHelper";
 import { GetWebpUrl } from "~/helpers/CropUrlHelper";
 import CmsImage from "~/components/shared/CmsImage.vue";
+import NotLegalIcon from "./NotLegalIcon.vue";
 import { GetValidCards } from "~/services/requirements/RequirementService";
 
 const props = defineProps<{
@@ -20,7 +21,12 @@ const props = defineProps<{
   collectionMode: boolean;
   costImageUrl?: string | null;
   renderCostOnImage?: boolean;
+  deckTypeId?: number;
 }>();
+
+function isRotated(card: CardDetailApiModel) {
+  return props.deckTypeId !== undefined && card.nonLegalDeckTypes?.includes(props.deckTypeId);
+}
 
 const emit = defineEmits<{
   cardClick: [card: CardDetailApiModel];
@@ -153,7 +159,10 @@ function handleCardClick(card: CardDetailApiModel) {
               />
             </div>
           </div>
-          <span>{{ card.displayName }}</span>
+          <span class="flex items-center gap-2">
+            {{ card.displayName }}
+            <NotLegalIcon v-if="isRotated(card)" title="This card's sets rotated out of this format" />
+          </span>
         </div>
       </div>
       <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -169,23 +178,26 @@ function handleCardClick(card: CardDetailApiModel) {
             :src="card.imageUrl"
             :alt="card.displayName ?? ''"
           />
-          <span
-            v-if="collectionMode"
-            class="flex gap-0.5 text-xs font-semibold js-collection-info"
-          >
+          <div class="flex items-center gap-1">
             <span
-              :class="[
-                getCollectionCount(card.baseId!) >= getDeckCardAmount(card.baseId!)
-                  ? 'text-green-600'
-                  : 'text-red-600',
-              ]"
-            >{{ getCollectionCount(card.baseId!) }}</span>
-            <span>/</span>
-            <span>{{ getDeckCardAmount(card.baseId!) }}</span>
-          </span>
-          <span v-else-if="!group.hideAmount" class="text-xs font-semibold js-collection-info">
-            {{ getDeckCardAmount(card.baseId!) }} x
-          </span>
+              v-if="collectionMode"
+              class="flex gap-0.5 text-xs font-semibold js-collection-info"
+            >
+              <span
+                :class="[
+                  getCollectionCount(card.baseId!) >= getDeckCardAmount(card.baseId!)
+                    ? 'text-green-600'
+                    : 'text-red-600',
+                ]"
+              >{{ getCollectionCount(card.baseId!) }}</span>
+              <span>/</span>
+              <span>{{ getDeckCardAmount(card.baseId!) }}</span>
+            </span>
+            <span v-else-if="!group.hideAmount" class="text-xs font-semibold js-collection-info">
+              {{ getDeckCardAmount(card.baseId!) }} x
+            </span>
+            <NotLegalIcon v-if="isRotated(card)" title="This card's sets rotated out of this format" />
+          </div>
         </div>
       </div>
     </div>

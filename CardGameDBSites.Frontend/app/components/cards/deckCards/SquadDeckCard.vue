@@ -2,6 +2,7 @@
 import { PhNotepad } from "@phosphor-icons/vue";
 import type { DeckTypeSettingsApiModel, DeckApiModel, MemberApiModel, CardDetailApiModel, SquadDeckDisplayApiModel } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
+import NotLegalIcon from "~/components/decks/NotLegalIcon.vue";
 import { useCards } from "~/composables/useCards";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
@@ -39,6 +40,7 @@ const groupsOf = computed(() => (props.settings.deckDisplay as SquadDeckDisplayA
         <div class="flex justify-between align-center pb-1">
           <h5>{{ deck.name }}</h5>
           <div class="flex gap-2 shrink-0">
+            <NotLegalIcon v-if="deck.isLegal === false" />
             <DeckLike :deck="deck"></DeckLike>
             <p
               v-if="deck.description"

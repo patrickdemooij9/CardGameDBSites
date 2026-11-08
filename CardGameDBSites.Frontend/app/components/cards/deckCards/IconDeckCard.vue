@@ -7,6 +7,7 @@ import type {
   MemberApiModel,
 } from "~/api/default";
 import DeckLike from "~/components/decks/DeckLike.vue";
+import NotLegalIcon from "~/components/decks/NotLegalIcon.vue";
 import CmsImage from "~/components/shared/CmsImage.vue";
 import { ParseToHumanReadableText } from "~/helpers/DateHelper";
 import { GetValidCards } from "~/services/requirements/RequirementService";
@@ -52,8 +53,9 @@ const createdBy = computed(() => props.member?.displayName ?? "Anonymous");
           </p>
         </div>
       </div>
-      <p class="text-xs">
+      <p class="flex items-center gap-2 text-xs">
         <i>{{ settings.displayName }}</i>
+        <NotLegalIcon v-if="deck.isLegal === false" />
       </p>
       <div class="flex items-center justify-between mt-4">
         <div class="flex gap-2">

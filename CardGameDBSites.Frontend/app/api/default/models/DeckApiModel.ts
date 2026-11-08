@@ -12,6 +12,7 @@ export type DeckApiModel = {
     createdDate: string;
     updatedDate: string;
     isPublished: boolean;
+    isLegal: boolean;
     typeId: number;
     amountOfLikes: number;
     score: number;

@@ -56,6 +56,16 @@ const filters: OverviewFilterModel[] = [
       ]
     : []),
   {
+    Alias: "legality",
+    DisplayName: "Legality",
+    Type: OverviewFilterType.DROPDOWN,
+    Items: [
+      { DisplayName: "Legal", Value: "legal" },
+      { DisplayName: "Not legal", Value: "notLegal" },
+    ],
+    AutoFillValues: false,
+  },
+  {
     Alias: "card",
     DisplayName: "Contains card",
     Type: OverviewFilterType.TEXT_INPUT,
@@ -80,6 +90,7 @@ const filters: OverviewFilterModel[] = [
 
 const cardFilterRef = filters.find((f) => f.Alias === "card")!;
 const formatFilterRef = filters.find((f) => f.Alias === "typeId");
+const legalityFilterRef = filters.find((f) => f.Alias === "legality")!;
 
 const overviewState = useOverviewState(
   toRef(filters),
@@ -113,6 +124,9 @@ const queryModel = computed<DeckQueryPostModel>(() => {
   const typeId =
     props.typeId ?? (selectedType ? parseInt(selectedType) : undefined);
 
+  const legality = overviewState.getFilterValue(legalityFilterRef);
+  const isLegal = legality ? legality === "legal" : null;
+
   return {
     page: page.value,
     take: 20,
@@ -125,6 +139,7 @@ const queryModel = computed<DeckQueryPostModel>(() => {
     cards: cardIds,
     folderId: props.folderId ?? null,
     unfiled: props.unfiled ?? null,
+    isLegal,
   };
 });
 

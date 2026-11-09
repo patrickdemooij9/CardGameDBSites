@@ -24,6 +24,7 @@ const request = computed(() => ({
   page: 1,
   take: props.content.amount ?? 4,
   status: DeckStatus.PUBLISHED,
+  isLegal: true,
   orderBy: order.value === "popular" ? "popular" : undefined,
 }));
 

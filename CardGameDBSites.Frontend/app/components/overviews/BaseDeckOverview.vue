@@ -23,6 +23,7 @@ const props = defineProps<{
   unfiled?: boolean;
   /** Bump this value from the parent to force a refetch (e.g. after deleting/moving a deck). */
   refreshKey?: number;
+  hideRotatedByDefault?: boolean;
 }>();
 
 const deckService = new DeckService();
@@ -40,6 +41,40 @@ const formatOptions =
     ? await useSite().getSquadSettingsOptions()
     : [];
 
+const { data: rotatedDecks } = await useAsyncData(
+  `deck-overview-rotated-${props.typeId}`,
+  () =>
+    props.hideRotatedByDefault
+      ? deckService.query({
+          typeId: props.typeId,
+          status: DeckStatus.PUBLISHED,
+          isLegal: false,
+          page: 1,
+          take: 1,
+        })
+      : Promise.resolve(null),
+);
+const hasRotatedDecks = (rotatedDecks.value?.totalItems ?? 0) > 0;
+
+const legalityFilter: OverviewFilterModel = props.hideRotatedByDefault
+  ? {
+      Alias: "showRotated",
+      DisplayName: "Legality",
+      Type: OverviewFilterType.INLINE,
+      Items: [{ DisplayName: "Show rotated decks", Value: "true" }],
+      AutoFillValues: false,
+    }
+  : {
+      Alias: "legality",
+      DisplayName: "Legality",
+      Type: OverviewFilterType.DROPDOWN,
+      Items: [
+        { DisplayName: "Legal", Value: "legal" },
+        { DisplayName: "Not legal", Value: "notLegal" },
+      ],
+      AutoFillValues: false,
+    };
+
 const filters: OverviewFilterModel[] = [
   ...(formatOptions.length > 0
     ? [
@@ -55,16 +90,7 @@ const filters: OverviewFilterModel[] = [
         } as OverviewFilterModel,
       ]
     : []),
-  {
-    Alias: "legality",
-    DisplayName: "Legality",
-    Type: OverviewFilterType.DROPDOWN,
-    Items: [
-      { DisplayName: "Legal", Value: "legal" },
-      { DisplayName: "Not legal", Value: "notLegal" },
-    ],
-    AutoFillValues: false,
-  },
+  ...(!props.hideRotatedByDefault || hasRotatedDecks ? [legalityFilter] : []),
   {
     Alias: "card",
     DisplayName: "Contains card",
@@ -90,7 +116,6 @@ const filters: OverviewFilterModel[] = [
 
 const cardFilterRef = filters.find((f) => f.Alias === "card")!;
 const formatFilterRef = filters.find((f) => f.Alias === "typeId");
-const legalityFilterRef = filters.find((f) => f.Alias === "legality")!;
 
 const overviewState = useOverviewState(
   toRef(filters),
@@ -124,8 +149,11 @@ const queryModel = computed<DeckQueryPostModel>(() => {
   const typeId =
     props.typeId ?? (selectedType ? parseInt(selectedType) : undefined);
 
-  const legality = overviewState.getFilterValue(legalityFilterRef);
-  const isLegal = legality ? legality === "legal" : null;
+  const legality = overviewState.getFilterValue(legalityFilter);
+  let isLegal = legality ? legality === "legal" : null;
+  if (props.hideRotatedByDefault) {
+    isLegal = legality === "true" ? null : true;
+  }
 
   return {
     page: page.value,
@@ -185,6 +213,7 @@ onMounted(() => {
     :hide-filters="false"
     :hide-inline-filters="false"
     :white-background="false"
+    flush
     :enable-query-string-sync="true"
     :sortings="effectiveSortings"
     :filters="filters"

@@ -38,7 +38,7 @@ function toggle(value: string) {
         />
         <label
           :for="inputId(item.Value)"
-          class="p-0.5 rounded cursor-pointer overflow-hidden hover:bg-main-color peer-checked:bg-main-color"
+          class="p-0.5 rounded cursor-pointer overflow-hidden hover:bg-main-color hover:text-white peer-checked:bg-main-color peer-checked:text-white"
           :title="item.DisplayName"
         >
           <CmsImage v-if="item.IconUrl" class="w-12" :src="item.IconUrl" :alt="item.DisplayName" />

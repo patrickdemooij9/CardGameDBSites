@@ -83,7 +83,7 @@ const { data: popularDecks } = await useAsyncData(
   `meta-detail-popular-decks:${leader.baseId}`,
   () =>
     deckService
-      .query({ page: 1, take: DECK_COUNT, cards: [leader.baseId], orderBy: "popular" })
+      .query({ page: 1, take: DECK_COUNT, cards: [leader.baseId], orderBy: "popular", isLegal: true })
       .then((r) => r.items ?? [])
       .catch(() => []),
   { default: () => [] as DeckApiModel[] }

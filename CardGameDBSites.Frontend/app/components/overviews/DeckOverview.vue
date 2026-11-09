@@ -8,5 +8,5 @@ defineProps<{
 </script>
 
 <template>
-  <BaseDeckOverview :decks-per-row="decksPerRow" :type-id="typeId"></BaseDeckOverview>
+  <BaseDeckOverview :decks-per-row="decksPerRow" :type-id="typeId" hide-rotated-by-default></BaseDeckOverview>
 </template>

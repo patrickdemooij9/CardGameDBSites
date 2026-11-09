@@ -26,6 +26,7 @@ const props = defineProps<{
   availableViews?: string[];
   isLoading: boolean;
   entityName?: string;
+  flush?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -52,7 +53,7 @@ function handleSubmit(event: Event) {
 
 <template>
   <div>
-    <form class="container px-4 md:px-8 mb-4" @submit="handleSubmit">
+    <form :class="{ 'container px-4 md:px-8': !flush }" class="mb-4" @submit="handleSubmit">
       <div :class="{ 'justify-end': hideSearch }" class="flex gap-4">
         <div
           v-if="!hideSearch"

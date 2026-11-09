@@ -19,7 +19,7 @@ function useDecks() {
   };
 
   const toUniqueKey = (model: DeckQueryPostModel) => {
-    return `decks-${model.typeId}-${model.page}-${model.take}-${model.status}-${model.orderBy}-{${model.cards?.join(",")}}-${model.userId}-${model.dateFrom}-${model.dateTo}`;
+    return `decks-${model.typeId}-${model.page}-${model.take}-${model.status}-${model.orderBy}-{${model.cards?.join(",")}}-${model.userId}-${model.dateFrom}-${model.dateTo}-${model.isLegal}`;
   };
 
   return {

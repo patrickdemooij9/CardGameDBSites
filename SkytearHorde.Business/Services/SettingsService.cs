@@ -144,6 +144,12 @@ namespace SkytearHorde.Business.Services
             return _siteService.GetRoot().FirstChild<Settings>().FirstChild<SquadSettings>(it => it.TypeID == typeId);
         }
 
+        public SquadSettings[] GetConvertibleSquadSettings(SquadSettings squadSettings)
+        {
+            using var ctx = _umbracoContextFactory.EnsureUmbracoContext();
+            return squadSettings.Value<IEnumerable<IPublishedContent>>("convertibleTo")?.OfType<SquadSettings>().ToArray() ?? [];
+        }
+
         public IEnumerable<SquadSettings> GetAllSquadSettings()
         {
             using var ctx = _umbracoContextFactory.EnsureUmbracoContext();

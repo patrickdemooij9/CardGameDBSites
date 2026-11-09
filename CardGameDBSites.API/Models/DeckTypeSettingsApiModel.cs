@@ -21,5 +21,6 @@ namespace CardGameDBSites.API.Models
         public bool HideHeader { get; set; }
         public string[] AllowedDisplays { get; set; } = [];
         public int OverviewPaginationCards { get; set; } = 30;
+        public SquadSettingsOptionApiModel[] ConvertibleFormats { get; set; } = [];
     }
 }

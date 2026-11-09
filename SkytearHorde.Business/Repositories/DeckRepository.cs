@@ -103,10 +103,11 @@ namespace SkytearHorde.Business.Repositories
                 .SelectAll()
                 .From<DeckVersionDBModel>()
                 .Where<DeckVersionDBModel>(it => it.DeckId == deck.Id && it.Published && it.IsCurrent)) != null;
-            if (deck.IsPublished || !hasPublishedVersion)
+            if (deck.IsPublished || !hasPublishedVersion || deckDB.DeckType != deck.TypeId)
             {
                 deckDB.IsLegal = deck.IsLegal;
             }
+            deckDB.DeckType = deck.TypeId;
 
             scope.Database.Update(deckDB);
 

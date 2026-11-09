@@ -368,3 +368,54 @@ describe("CreateDeckModel", () => {
     });
   });
 });
+
+describe("CreateDeckModel conversion", () => {
+  function makeDeck(typeId: number, cards: { card: CardDetailApiModel; amount: number }[] = []) {
+    const deck = new CreateDeckModel();
+    deck.typeId = typeId;
+    const group = makeGroupWithSlot(1, cards);
+    group.id = 5;
+    deck.groups = [group];
+    return deck;
+  }
+
+  it("getIllegalCards can judge the deck against another format", () => {
+    const rotated = makeCard(1, {}, [1]);
+    const deck = makeDeck(1, [{ card: rotated, amount: 3 }, { card: makeCard(2), amount: 2 }]);
+
+    expect(deck.getIllegalCards().map((card) => card.baseId)).toEqual([1]);
+    expect(deck.getIllegalCards(3)).toEqual([]);
+  });
+
+  it("copyFrom keeps the deck identity and its cards", () => {
+    const source = makeDeck(1, [{ card: makeCard(1, {}, [1]), amount: 3 }]);
+    source.id = 42;
+    source.name = "Vader aggro";
+    source.description = "Fast";
+    const target = makeDeck(3);
+
+    target.copyFrom(source);
+
+    expect(target.typeId).toBe(3);
+    expect(target.id).toBe(42);
+    expect(target.name).toBe("Vader aggro");
+    expect(target.description).toBe("Fast");
+    expect(target.getCards().map((card) => [card.card.baseId, card.amount])).toEqual([[1, 3]]);
+    expect(target.isLegalDeck()).toBe(true);
+  });
+
+  it("copyFrom copies the sideboard", () => {
+    const source = makeDeck(1);
+    const sideboard = makeGroupWithSlot(2, [{ card: makeCard(7), amount: 2 }]);
+    sideboard.id = 99;
+    source.sideboardGroups = [sideboard];
+    const target = makeDeck(3);
+    const targetSideboard = makeGroupWithSlot(2);
+    targetSideboard.id = 99;
+    target.sideboardGroups = [targetSideboard];
+
+    target.copyFrom(source);
+
+    expect(target.getSideboardAmount()).toBe(2);
+  });
+});

@@ -52,6 +52,7 @@ namespace SkytearHorde.Business.Services
         public int ProcessDeck(CreateSquadPostModel postModel, bool publish, int? userId)
         {
             var createdDate = DateTime.UtcNow;
+            var isConversion = false;
 
             // If existing deck, check if user has access.
             if (postModel.Id.HasValue && postModel.Id != 0)
@@ -60,6 +61,9 @@ namespace SkytearHorde.Business.Services
                 if (existingDeck is null || existingDeck.CreatedBy is null || existingDeck.CreatedBy != userId) throw new InvalidOperationException("User should have no access to this deck");
 
                 createdDate = existingDeck.CreatedDate;
+
+                isConversion = existingDeck.TypeId != postModel.TypeId;
+                if (isConversion && !CanConvert(existingDeck.TypeId, postModel.TypeId)) throw new InvalidOperationException("Deck can't be converted to the given format");
             }
 
             var allCards = _cardService.GetAll().Where(it => !it.HideFromDecks).ToDictionary(it => it.BaseId, it => it);
@@ -164,10 +168,18 @@ namespace SkytearHorde.Business.Services
 
                 _deckRepository.Update(deck);
                 deckId = deck.Id;
+
+                // The format lives on the deck itself, so a saved draft also moves the cached published version.
+                if (isConversion) _deckRepository.ClearEntityCache(deckId);
             }
 
             _deckCalculateScoreRepository.ScheduleDeckCalculate(deckId, DateTime.UtcNow.AddDays(1));
             return deckId;
+        }
+
+        private bool CanConvert(int fromTypeId, int toTypeId)
+        {
+            return _settingsService.GetConvertibleSquadSettings(_settingsService.GetSquadSettings(fromTypeId)).Any(it => it.TypeID == toTypeId);
         }
 
         public Deck? Get(int id, DeckStatus status = DeckStatus.Published)

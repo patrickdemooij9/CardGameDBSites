@@ -11,6 +11,7 @@ import DeckService from "~/services/DeckService";
 import type { CreateDeckSelectedArea } from "./models/CreateDeckSelectedArea";
 import type { OverviewFilterModel } from "~/components/overviews/OverviewFilterModel";
 import { getDeckDetailUrl } from "~/helpers/DeckUrlHelper";
+import { useAppToast } from "~/composables/useAppToast";
 
 const props = defineProps<{
   typeId: number
@@ -19,6 +20,7 @@ const props = defineProps<{
 
 const route = useRoute();
 const router = useRouter();
+const appToast = useAppToast();
 const isLoading = ref(true);
 let deckId: number | undefined = undefined;
 if (route.query["id"]) {
@@ -45,24 +47,21 @@ const ignorePassiveFilters = ref(false);
 const collectionOnlyMode = ref(false);
 const isSubmitting = ref(false);
 
-// Preselect the first slot that still has room; fall back to the very first slot.
-let selectedGroup = deckSettings.groups[0]!;
-let selectedSlot = selectedGroup.slots[0]!;
-
-outerLoop: for (const group of deckSettings.groups) {
-  for (const slot of group.slots) {
-    if (!slot.isFull()) {
-      selectedGroup = group;
-      selectedSlot = slot;
-      break outerLoop;
+function selectFirstOpenSlot() {
+  for (const group of deck.value.groups) {
+    for (const slot of group.slots) {
+      if (!slot.isFull()) {
+        selectedArea.value = { group, slot };
+        return;
+      }
     }
   }
+
+  const firstGroup = deck.value.groups[0]!;
+  selectedArea.value = { group: firstGroup, slot: firstGroup.slots[0]! };
 }
 
-selectedArea.value = {
-  group: selectedGroup,
-  slot: selectedSlot,
-};
+selectFirstOpenSlot();
 
 function clickTab(tab: DeckBuilderTab) {
   currentTab.value = tab;
@@ -83,6 +82,26 @@ async function submitForm(publish: boolean) {
   isSubmitting.value = true;
   const result = await new DeckService().post(deck.value, publish);
   router.push(getDeckDetailUrl(deckTypeSettings.value?.overviewUrl, result));
+}
+
+async function convertDeck(typeId: number) {
+  const site = useSite();
+  try {
+    const [convertedDeck, settings] = await Promise.all([
+      site.convertDeckBuilderModel(deck.value, typeId),
+      site.getDeckTypeSettings(typeId),
+    ]);
+    deck.value = convertedDeck;
+    deckTypeSettings.value = settings;
+  } catch {
+    appToast.error("Could not convert this deck.");
+    return;
+  }
+
+  selectFirstOpenSlot();
+  appToast.success(
+    `Deck converted to ${deckTypeSettings.value?.displayName}. Save or publish to keep it.`,
+  );
 }
 
 function handleScroll() {
@@ -186,6 +205,7 @@ onUnmounted(() => {
           @collection-only-mode="collectionOnlyMode = $event"
           @select-card="selectCard"
           @select-slot="selectSlot"
+          @convert-deck="convertDeck"
         />
         <DeckBuilderCardsTab
           v-model:current-tab="currentTab"

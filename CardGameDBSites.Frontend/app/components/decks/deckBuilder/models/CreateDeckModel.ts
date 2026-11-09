@@ -6,6 +6,27 @@ import CreateDeckValidation from "./CreateDeckValidation";
 import type { CreateDeckValidationItem } from "./CreateDeckValidationItem";
 import type { DeckCard } from "../DeckBuilderModels";
 
+function copyGroupCards(from: CreateDeckGroup[], to: CreateDeckGroup[]) {
+  from.forEach((group) => {
+    const targetGroup = to.find((target) => target.id === group.id);
+    group.slots.forEach((slot) => {
+      const targetSlot = targetGroup?.slots.find(
+        (target) => target.id === slot.id,
+      );
+      slot.cardGroups
+        .flatMap((cardGroup) => cardGroup.cards)
+        .forEach((deckCard) => {
+          const copied = targetSlot?.addCard(deckCard.card, deckCard.amount);
+          copied?.children.forEach((childSlot, index) => {
+            deckCard.children[index]?.cardGroups
+              .flatMap((cardGroup) => cardGroup.cards)
+              .forEach((child) => childSlot.addCard(child.card, child.amount));
+          });
+        });
+    });
+  });
+}
+
 export class CreateDeckModel {
   id?: number;
   name?: string;
@@ -129,10 +150,10 @@ export class CreateDeckModel {
     return maxAmount;
   }
 
-  isLegalCard(card: CardDetailApiModel): boolean {
-    if (!this.typeId) return true;
+  isLegalCard(card: CardDetailApiModel, typeId = this.typeId): boolean {
+    if (!typeId) return true;
     const nonLegalDeckTypes = card.nonLegalDeckTypes ?? [];
-    return !nonLegalDeckTypes.includes(this.typeId);
+    return !nonLegalDeckTypes.includes(typeId);
   }
 
   getCards(): DeckCard[] {
@@ -158,10 +179,18 @@ export class CreateDeckModel {
     return allCards;
   }
 
-  getIllegalCards(): CardDetailApiModel[] {
+  getIllegalCards(typeId = this.typeId): CardDetailApiModel[] {
     return this.getCards()
       .map((card) => card.card)
-      .filter((card) => !this.isLegalCard(card));
+      .filter((card) => !this.isLegalCard(card, typeId));
+  }
+
+  copyFrom(source: CreateDeckModel) {
+    this.id = source.id;
+    this.name = source.name;
+    this.description = source.description;
+    copyGroupCards(source.groups, this.groups);
+    copyGroupCards(source.sideboardGroups, this.sideboardGroups);
   }
 
   isLegalDeck(): boolean {

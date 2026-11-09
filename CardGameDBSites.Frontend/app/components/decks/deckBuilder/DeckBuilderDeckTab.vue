@@ -9,6 +9,7 @@ import {
   PhCaretRight,
   PhCheckCircle,
   PhGear,
+  PhSwap,
   PhWarning,
 } from "@phosphor-icons/vue";
 import DeckBuilderTab from "./DeckBuilderTab";
@@ -20,6 +21,7 @@ import { GetValidCards } from "~/services/requirements/RequirementService";
 import { useCollection } from "~/composables/useCollection";
 import { useAccountStore } from "~/stores/AccountStore";
 import DeckBuilderSlot from "./DeckBuilderSlot.vue";
+import DeckBuilderConvertDialog from "./DeckBuilderConvertDialog.vue";
 
 const name = defineModel<string>("name");
 
@@ -29,6 +31,7 @@ const emit = defineEmits<{
   (e: "collectionOnlyMode", enabled: boolean): void;
   (e: "selectCard", value: CardDetailApiModel): void;
   (e: "selectSlot", value: CreateDeckSelectedArea): void;
+  (e: "convertDeck", typeId: number): void;
 }>();
 
 const props = defineProps<{
@@ -56,6 +59,15 @@ function clickSlot(
 
 const collectionService = useCollection();
 const isSideboardOpen = ref(false);
+const showConvertDialog = ref(false);
+const convertibleFormats = computed(
+  () => props.deckTypeSettings?.convertibleFormats ?? [],
+);
+
+function convertDeck(typeId: number) {
+  showConvertDialog.value = false;
+  emit("convertDeck", typeId);
+}
 
 function getAllDeckCardIds(): number[] {
   const cardIds = new Set<number>();
@@ -308,8 +320,8 @@ const hasPassiveRequirements = computed(() => {
           </div>
         </div>
 
-        <div class="flex justify-between mt-4">
-          <div class="flex gap-2">
+        <div class="flex flex-wrap justify-between gap-2 mt-4">
+          <div class="flex flex-wrap gap-2">
             <Button
               v-if="accountStore.isLoggedIn"
               v-on:click="$emit('submitForm', false)"
@@ -327,6 +339,33 @@ const hasPassiveRequirements = computed(() => {
             >
               Publish
             </Button>
+            <VDropdown
+              v-if="convertibleFormats.length > 0"
+              :distance="6"
+              :placement="'top'"
+            >
+              <Button class="border border-black">
+                <p class="flex items-center gap-2">
+                  Actions
+                  <PhCaretDown />
+                </p>
+              </Button>
+              <template #popper="{ hide }">
+                <div class="p-1">
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-2 whitespace-nowrap rounded px-3 py-2 text-left hover:bg-canvas"
+                    @click="
+                      hide();
+                      showConvertDialog = true;
+                    "
+                  >
+                    <PhSwap />
+                    Convert deck to format
+                  </button>
+                </div>
+              </template>
+            </VDropdown>
           </div>
           <VDropdown
             v-if="
@@ -365,5 +404,13 @@ const hasPassiveRequirements = computed(() => {
         </div>
       </div>
     </div>
+    <DeckBuilderConvertDialog
+      v-if="showConvertDialog"
+      :deck="deck"
+      :current-format-name="deckTypeSettings?.displayName"
+      :formats="convertibleFormats"
+      @close="showConvertDialog = false"
+      @convert="convertDeck"
+    />
   </div>
 </template>

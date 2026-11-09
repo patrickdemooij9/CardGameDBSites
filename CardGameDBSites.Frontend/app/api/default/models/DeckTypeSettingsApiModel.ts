@@ -8,6 +8,7 @@ import type { DeckCardImageRuleApiModel } from './DeckCardImageRuleApiModel';
 import type { IconDeckDisplayApiModel } from './IconDeckDisplayApiModel';
 import type { RequirementApiModel } from './RequirementApiModel';
 import type { SquadDeckDisplayApiModel } from './SquadDeckDisplayApiModel';
+import type { SquadSettingsOptionApiModel } from './SquadSettingsOptionApiModel';
 export type DeckTypeSettingsApiModel = {
     overviewUrl: string;
     displayName: string;
@@ -22,5 +23,6 @@ export type DeckTypeSettingsApiModel = {
     hideHeader: boolean;
     allowedDisplays: Array<string>;
     overviewPaginationCards: number;
+    convertibleFormats: Array<SquadSettingsOptionApiModel>;
 };
 

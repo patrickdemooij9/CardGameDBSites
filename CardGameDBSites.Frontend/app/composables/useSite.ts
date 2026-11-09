@@ -101,6 +101,15 @@ export function useSite() {
     return data;
   };
 
+  const convertDeckBuilderModel = async (
+    deck: CreateDeckModel,
+    typeId: number,
+  ): Promise<CreateDeckModel> => {
+    const model = await getDeckBuilderSettings(typeId);
+    model.copyFrom(deck);
+    return model;
+  };
+
   const getDeckBuilderSettings = async (
     typeId: number,
     deckId?: number,
@@ -271,6 +280,7 @@ export function useSite() {
     getDeckTypeSettings,
     getSetOverviewSettings,
     getDeckBuilderSettings,
+    convertDeckBuilderModel,
     getSquadSettingsOptions,
   };
 }

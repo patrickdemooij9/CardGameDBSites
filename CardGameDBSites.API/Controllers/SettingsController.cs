@@ -162,6 +162,7 @@ namespace CardGameDBSites.API.Controllers
                 OverviewUrl = deckOverview.Url(mode: UrlMode.Relative),
                 DisplayName = deckTypeSettings.TypeDisplayName.IfNullOrWhiteSpace("Standard deck"),
                 AmountOfSquadCards = deckTypeSettings.AmountOfSquadCards,
+                ConvertibleFormats = [.. _settingsService.GetConvertibleSquadSettings(deckTypeSettings).Select(ToSquadSettingsOption)],
                 Actions = [.. actions],
                 Groupings = [.. deckDetail.Groups.ToItems<DeckCardGroup>()
                     .Select(it => new DeckCardGroupApiModel
@@ -243,16 +244,19 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<SquadSettingsOptionApiModel>), 200)]
         public IActionResult GetSquadSettingsOptions()
         {
-            var allSettings = _settingsService.GetAllSquadSettings();
-            var options = allSettings.Select(it => new SquadSettingsOptionApiModel
+            return Ok(_settingsService.GetAllSquadSettings().Select(ToSquadSettingsOption));
+        }
+
+        private static SquadSettingsOptionApiModel ToSquadSettingsOption(SquadSettings settings)
+        {
+            return new SquadSettingsOptionApiModel
             {
-                Id = it.Key,
-                TypeId = it.TypeID,
-                Name = it.TypeDisplayName.IfNullOrWhiteSpace(it.Name!),
-                Description = it.TypeDescription,
-                ImageUrl = it.TypeImage?.GetCropUrl("icon", urlMode: UrlMode.Absolute)
-            });
-            return Ok(options);
+                Id = settings.Key,
+                TypeId = settings.TypeID,
+                Name = settings.TypeDisplayName.IfNullOrWhiteSpace(settings.Name!),
+                Description = settings.TypeDescription,
+                ImageUrl = settings.TypeImage?.GetCropUrl("icon", urlMode: UrlMode.Absolute)
+            };
         }
 
         private NavigationItemApiModel MapNavigationItem(NavigationItem item)

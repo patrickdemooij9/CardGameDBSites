@@ -33,17 +33,9 @@ const { data: periods } = await useAsyncData(
   { default: () => [] as PeriodApiModel[] }
 );
 
-// In the query string so the choice is linkable and useAsyncData can watch it.
-const selectedPeriodId = computed<number | undefined>(() => {
-  const fromQuery = Number(route.query.period);
-  if (fromQuery && periods.value.some((p) => p.id === fromQuery)) return fromQuery;
-  return periods.value.find((p) => p.isCurrent)?.id ?? periods.value[0]?.id;
-});
-
-const defaultPeriodId = computed(
+const selectedPeriodId = computed<number | undefined>(
   () => periods.value.find((p) => p.isCurrent)?.id ?? periods.value[0]?.id
 );
-const isDefaultPeriod = computed(() => selectedPeriodId.value === defaultPeriodId.value);
 
 // Each call catches separately so one bad endpoint can't blank the page.
 const { data: tierList, error: tierError } = await useAsyncData<MetaTierListApiModel | null>(
@@ -199,33 +191,11 @@ function formatDate(dateUtc: string | undefined) {
 
     <template v-else-if="tierList">
       <section class="container px-4 md:px-8 pt-8">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div
-            v-if="content.properties?.intro"
-            class="prose max-w-2xl text-gray-700"
-            v-html="content.properties?.intro.markup"
-          />
-          <div v-if="periods.length > 1" class="flex items-center gap-3 ml-auto">
-            <label for="period-select" class="text-sm text-gray-600 font-medium">Set</label>
-            <select
-              id="period-select"
-              :value="selectedPeriodId"
-              class="border border-gray-300 rounded px-3 py-2 text-sm bg-surface"
-              @change="
-                navigateTo({
-                  query: {
-                    ...route.query,
-                    period: ($event.target as HTMLSelectElement).value,
-                  },
-                })
-              "
-            >
-              <option v-for="period in periods" :key="period.id" :value="period.id">
-                {{ period.name }}
-              </option>
-            </select>
-          </div>
-        </div>
+        <div
+          v-if="content.properties?.intro"
+          class="prose max-w-2xl text-gray-700"
+          v-html="content.properties?.intro.markup"
+        />
       </section>
 
       <section class="container px-4 md:px-8 py-8">

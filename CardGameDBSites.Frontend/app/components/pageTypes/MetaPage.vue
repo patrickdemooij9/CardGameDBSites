@@ -97,7 +97,7 @@ const updatedLabel = computed(() => formatMonthYear(tierList.value?.lastUpdatedU
 const periodName = computed(() => tierList.value?.periodName?.trim() ?? "");
 
 const heading = computed(() => {
-  const parts = ["Star Wars Unlimited Meta Tier List"];
+  const parts = ["Star Wars Unlimited Meta: Best & Top Decks, Tier List"];
   if (periodName.value) parts.push(periodName.value);
   if (updatedLabel.value) parts.push(updatedLabel.value);
   return parts.length > 1 ? `${parts[0]} — ${parts.slice(1).join(", ")}` : parts[0]!;

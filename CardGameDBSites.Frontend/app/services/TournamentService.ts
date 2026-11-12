@@ -1,4 +1,4 @@
-import type { ImageCropsApiModel, TournamentEntrantApiModel, TournamentSummaryApiModel } from '~/api/default';
+import type { DeckApiModel, ImageCropsApiModel, TournamentEntrantApiModel, TournamentSummaryApiModel } from '~/api/default';
 import { DoFetch } from '~/helpers/RequestsHelper';
 
 export type MetaWinningDeckApiModel = {
@@ -10,6 +10,15 @@ export type MetaWinningDeckApiModel = {
   deckId: number;
   deckName?: string;
   leaderName?: string;
+};
+
+export type TournamentWinningDeckApiModel = {
+  tournamentId: number;
+  tournamentName: string;
+  tournamentDateUtc: string;
+  externalUrl?: string;
+  playerName?: string;
+  deck: DeckApiModel;
 };
 
 export type MetaLeaderApiModel = {
@@ -58,6 +67,10 @@ export default class TournamentService {
     return DoFetch<MetaWinningDeckApiModel[]>(
       `/api/tournaments/meta/recent-winners?periodId=${periodId}&count=${count}&leaderGroupId=${leaderGroupId}&leaderSlotId=${leaderSlotId}`
     );
+  }
+
+  async getWinningDecks(count: number): Promise<TournamentWinningDeckApiModel[]> {
+    return DoFetch<TournamentWinningDeckApiModel[]>(`/api/tournaments/winning-decks?count=${count}`);
   }
 
   async getTopLeaders(

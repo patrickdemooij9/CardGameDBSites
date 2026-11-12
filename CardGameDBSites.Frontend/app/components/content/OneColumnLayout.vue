@@ -8,6 +8,7 @@ import DeckEmbed from "./DeckEmbed.vue";
 import Form from "./Form.vue";
 import PriceChanges from "./PriceChanges.vue";
 import Text from "./Text.vue";
+import WinningDecks from "./WinningDecks.vue";
 
 const props = defineProps<{
   content: OneColumnLayoutElementModel;
@@ -21,6 +22,7 @@ const componentMap: { [key: string]: Component } = {
   form: Form,
   'priceChanges': PriceChanges,
   text: Text,
+  winningDecks: WinningDecks,
 };
 
 const items = computed(() =>

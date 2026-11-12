@@ -69,6 +69,7 @@ export interface MatchOptions {
     minMargin: number;
     minSharpness: number;
 }
+export type EmbedderBackend = 'webgpu' | 'wasm';
 export declare const DEFAULT_MATCH_OPTIONS: MatchOptions;
 export declare class CardMatcher {
     private session;
@@ -79,11 +80,18 @@ export declare class CardMatcher {
     private pcaMean;
     private pcaComponents;
     private pcaScale;
+    private landscape;
+    private crop;
+    private planar;
+    private centred;
     cards: IndexCard[];
     config: IndexConfig | null;
+    backend: EmbedderBackend | null;
     lastMatchMs: number;
     get ready(): boolean;
     load(base: string, fetchFile?: (url: string) => Promise<Response>): Promise<void>;
+    private openSession;
+    private pickSession;
     dispose(): Promise<void>;
     /** Build the raw (pre-PCA) descriptor for one un-warped crop. */
     private describe;

@@ -209,6 +209,19 @@ namespace SkytearHorde.Business.Services
             }).ToArray();
         }
 
+        public IEnumerable<MetaWinningDeck> GetLatestWinningDecks(int count) =>
+            _tournamentRepository.GetLatestWinningDecks(_siteAccessor.GetSiteId(), count)
+                .Select(r => new MetaWinningDeck
+                {
+                    TournamentId = r.TournamentId,
+                    TournamentName = r.TournamentName,
+                    TournamentDateUtc = r.TournamentDateUtc,
+                    ExternalUrl = r.ExternalUrl,
+                    PlayerName = r.PlayerName,
+                    DeckId = r.DeckId
+                })
+                .ToArray();
+
         public IEnumerable<MetaLeaderStat> GetTopLeaders(int periodId, int take, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
         {
             var rows = _tournamentRepository.GetTopLeaders(_siteAccessor.GetSiteId(), periodId, leaderGroupId, leaderSlotId, tournamentId).ToArray();

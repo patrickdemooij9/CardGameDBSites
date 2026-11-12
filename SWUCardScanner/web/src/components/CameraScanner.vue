@@ -439,8 +439,9 @@ watch(paused, (isPaused) => {
 })
 
 onMounted(() => {
-  loadDefaultModel()
-  loadIndex()
+  // In order: onnxruntime rejects two backends initialising at once, and the matcher times
+  // its embedder against a GPU the detector has already warmed up.
+  loadDefaultModel().then(loadIndex)
   refreshDevices()
 })
 

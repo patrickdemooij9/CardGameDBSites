@@ -34,6 +34,8 @@ export const DEFAULT_OPTIONS: DetectOptions = {
 /** Grey used by YOLO's letterbox padding; the model was trained against it. */
 const PAD_VALUE = 114
 
+const UNIT = Float32Array.from({ length: 256 }, (_, value) => value / 255)
+
 /** Which onnxruntime backend actually ended up running the model. */
 export type Backend = 'webgpu' | 'wasm (worker)' | 'wasm'
 
@@ -172,11 +174,10 @@ export class CardDetector {
     const out = this.buffer
 
     // RGBA interleaved -> planar RGB, scaled to [0,1].
-    for (let i = 0; i < pixels; i++) {
-      const j = i * 4
-      out[i] = data[j] / 255
-      out[pixels + i] = data[j + 1] / 255
-      out[pixels * 2 + i] = data[j + 2] / 255
+    for (let i = 0, j = 0; i < pixels; i++, j += 4) {
+      out[i] = UNIT[data[j]]
+      out[pixels + i] = UNIT[data[j + 1]]
+      out[pixels * 2 + i] = UNIT[data[j + 2]]
     }
 
     return { data: out, scale, padX, padY }

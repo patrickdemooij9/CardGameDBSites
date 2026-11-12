@@ -1,8 +1,11 @@
 using CardGameDBSites.API.Helpers;
+using CardGameDBSites.API.Models.Decks;
 using CardGameDBSites.API.Models.Tournaments;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Services;
+using SkytearHorde.Entities.Enums;
+using SkytearHorde.Entities.Models.ViewModels;
 
 namespace CardGameDBSites.API.Controllers
 {
@@ -14,11 +17,17 @@ namespace CardGameDBSites.API.Controllers
     {
         private readonly TournamentService _tournamentService;
         private readonly CardService _cardService;
+        private readonly DeckService _deckService;
+        private readonly CardPriceService _cardPriceService;
+        private readonly SettingsService _settingsService;
 
-        public TournamentApiController(TournamentService tournamentService, CardService cardService)
+        public TournamentApiController(TournamentService tournamentService, CardService cardService, DeckService deckService, CardPriceService cardPriceService, SettingsService settingsService)
         {
             _tournamentService = tournamentService;
             _cardService = cardService;
+            _deckService = deckService;
+            _cardPriceService = cardPriceService;
+            _settingsService = settingsService;
         }
 
         [HttpGet("periods")]
@@ -89,6 +98,35 @@ namespace CardGameDBSites.API.Controllers
                     DeckId = d.DeckId,
                     DeckName = d.DeckName,
                     LeaderName = d.LeaderName
+                })
+                .ToArray();
+
+            return Ok(result);
+        }
+
+        [HttpGet("winning-decks")]
+        [ProducesResponseType(typeof(TournamentWinningDeckApiModel[]), 200)]
+        public IActionResult GetWinningDecks([FromQuery] int count = 4)
+        {
+            var winners = _tournamentService.GetLatestWinningDecks(Math.Clamp(count, 1, 12)).ToArray();
+            var decksById = _deckService.Get(winners.Select(w => w.DeckId).Distinct(), DeckStatus.Published).ToDictionary(d => d.Id);
+            var allowPricing = _settingsService.GetSiteSettings().AllowPricing;
+
+            var result = winners
+                .Where(w => decksById.ContainsKey(w.DeckId))
+                .Select(w =>
+                {
+                    var deck = decksById[w.DeckId];
+                    var price = allowPricing ? new DeckPriceApiModel { MarketPrice = _cardPriceService.GetPriceByDeck(deck) } : null;
+                    return new TournamentWinningDeckApiModel
+                    {
+                        TournamentId = w.TournamentId,
+                        TournamentName = w.TournamentName,
+                        TournamentDateUtc = w.TournamentDateUtc,
+                        ExternalUrl = w.ExternalUrl,
+                        PlayerName = w.PlayerName,
+                        Deck = new DeckApiModel(deck, price)
+                    };
                 })
                 .ToArray();
 

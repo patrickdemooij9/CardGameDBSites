@@ -16,7 +16,7 @@
  *
  * Returns RGB bytes (3 per pixel, no alpha) of a `size` x `size` image.
  */
-export declare function unwarpCard(source: ImageData, corners: [number, number][], size: number): Uint8ClampedArray;
+export declare function unwarpCard(source: ImageData, corners: [number, number][], size: number, into?: Uint8ClampedArray): Uint8ClampedArray;
 /** Aspect ratio of a detected quad, used to tell portrait cards from landscape ones. */
 export declare function quadOrientation(corners: [number, number][]): 'portrait' | 'landscape';
 /**

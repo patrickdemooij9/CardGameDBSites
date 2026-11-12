@@ -374,6 +374,20 @@ namespace SkytearHorde.Business.Repositories
                 count, leaderGroupId, leaderSlotId, siteId, periodId);
         }
 
+        public IEnumerable<MetaWinningDeckRow> GetLatestWinningDecks(int siteId, int count)
+        {
+            using var scope = _scopeProvider.CreateScope(autoComplete: true);
+            return scope.Database.Fetch<MetaWinningDeckRow>(
+                "SELECT TOP(@0) " +
+                "  t.Id AS TournamentId, t.Name AS TournamentName, t.DateUtc AS TournamentDateUtc, t.ExternalUrl AS ExternalUrl, " +
+                "  te.PlayerName AS PlayerName, te.TournamentDeckId AS DeckId " +
+                "FROM TournamentEntrants te " +
+                "INNER JOIN Tournaments t ON t.Id = te.TournamentId " +
+                "WHERE te.Placement = 1 AND te.TournamentDeckId IS NOT NULL AND t.SiteId = @1 " +
+                "ORDER BY t.DateUtc DESC, t.Id DESC",
+                count, siteId);
+        }
+
         public IEnumerable<MetaLeaderRow> GetTopLeaders(int siteId, int periodId, int leaderGroupId, int leaderSlotId, int? tournamentId = null)
         {
             using var scope = _scopeProvider.CreateScope(autoComplete: true);

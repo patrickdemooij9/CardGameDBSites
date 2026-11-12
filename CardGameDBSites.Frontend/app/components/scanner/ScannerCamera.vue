@@ -272,7 +272,7 @@ onBeforeUnmount(stopCamera);
       v-if="loadState === 'ready' && cameraState === 'live'"
       class="absolute left-3 top-safe-top mt-3 rounded bg-black/60 px-2 py-1 text-[11px] text-white/80 tabular-nums"
     >
-      {{ detector?.backend }} · {{ detectMs.toFixed(0) }} + {{ identifyMs.toFixed(0) }} ms
+      {{ detector?.backend }} / {{ matcher?.backend }} · {{ detectMs.toFixed(0) }} + {{ identifyMs.toFixed(0) }} ms
     </p>
 
     <slot />

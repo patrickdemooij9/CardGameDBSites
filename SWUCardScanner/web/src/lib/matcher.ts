@@ -84,6 +84,16 @@ export interface MatchOptions {
   minSharpness: number
 }
 
+export type EmbedderBackend = 'webgpu' | 'wasm'
+
+interface TimedSession {
+  session: ort.InferenceSession
+  backend: EmbedderBackend
+  ms: number
+}
+
+const WASM_FAST_ENOUGH_MS = 25
+
 export const DEFAULT_MATCH_OPTIONS: MatchOptions = {
   // Calibrated from eval_matcher.py: correct matches average a margin near 0.30 while
   // wrong ones sit near 0.02, so rejecting on margin costs very few true positives.
@@ -156,6 +166,22 @@ function l2Normalise(v: Float32Array): Float32Array {
   return v
 }
 
+// Four running sums instead of one: a single accumulator is limited by float-add latency, not memory.
+function dotInt8(a: Float32Array, b: Int8Array, offset: number, length: number): number {
+  let s0 = 0, s1 = 0, s2 = 0, s3 = 0
+  const whole = length & ~3
+  let i = 0
+  for (; i < whole; i += 4) {
+    const at = offset + i
+    s0 += a[i] * b[at]
+    s1 += a[i + 1] * b[at + 1]
+    s2 += a[i + 2] * b[at + 2]
+    s3 += a[i + 3] * b[at + 3]
+  }
+  for (; i < length; i++) s0 += a[i] * b[offset + i]
+  return s0 + s1 + (s2 + s3)
+}
+
 export class CardMatcher {
   private session: ort.InferenceSession | null = null
   private inputName = 'images'
@@ -166,9 +192,16 @@ export class CardMatcher {
   private pcaMean: Float32Array | null = null
   private pcaComponents: Int8Array | null = null
   private pcaScale: Float32Array | null = null
+  private landscape: Uint8Array | null = null
+
+  // Scratch reused across identify() calls, which therefore must not overlap.
+  private crop: Uint8ClampedArray | null = null
+  private planar: Float32Array | null = null
+  private centred: Float32Array | null = null
 
   cards: IndexCard[] = []
   config: IndexConfig | null = null
+  backend: EmbedderBackend | null = null
   lastMatchMs = 0
 
   get ready(): boolean {
@@ -184,6 +217,7 @@ export class CardMatcher {
     this.config = meta.config as IndexConfig
     if (this.config.storage !== 'int8') throw new Error(`Index at ${base} is not int8 (rebuild with build_index.py)`)
     this.cards = meta.cards as IndexCard[]
+    this.landscape = Uint8Array.from(this.cards, (card) => (card.orientation === 'landscape' ? 1 : 0))
 
     const [indexBuf, pcaBuf, embedderBuf] = await Promise.all([
       fetchFile(`${base}/card-index.bin`).then((r) => r.arrayBuffer()),
@@ -206,27 +240,53 @@ export class CardMatcher {
     this.pcaScale = pcaFloats.subarray(rawDim)
     this.pcaComponents = new Int8Array(pcaBuf, (rawDim + pcaDim) * 4)
 
-    this.session = await ort.InferenceSession.create(new Uint8Array(embedderBuf), {
-      executionProviders: ['webgpu', 'wasm'],
+    const picked = await this.pickSession(embedderBuf)
+    this.session = picked.session
+    this.backend = picked.backend
+    this.inputName = this.session.inputNames[0] ?? 'images'
+  }
+
+  // The first run is a warm-up: WebGPU compiles a shader per operator on first use.
+  private async openSession(model: ArrayBuffer, backend: EmbedderBackend): Promise<TimedSession> {
+    const session = await ort.InferenceSession.create(new Uint8Array(model.slice(0)), {
+      executionProviders: [backend],
       graphOptimizationLevel: 'all',
     })
-    this.inputName = this.session.inputNames[0] ?? 'images'
-
-    // WebGPU compiles a shader per operator on first use - about 2.8 seconds here.
-    // Paying it now rather than on the first identified card keeps the scanner from
-    // appearing to freeze the moment it sees something.
-    const { embedSize } = this.config
-    try {
-      await this.session.run({
-        [this.inputName]: new ort.Tensor(
-          'float32',
-          new Float32Array(3 * embedSize * embedSize).fill(0.5),
-          [1, 3, embedSize, embedSize],
-        ),
-      })
-    } catch {
-      // Not fatal; the first real crop will surface any genuine problem.
+    const { embedSize } = this.config!
+    const name = session.inputNames[0] ?? 'images'
+    const times: number[] = []
+    for (let i = 0; i < 4; i++) {
+      const blank = new Float32Array(3 * embedSize * embedSize).fill(0.5)
+      const started = performance.now()
+      await session.run({ [name]: new ort.Tensor('float32', blank, [1, 3, embedSize, embedSize]) })
+      times.push(performance.now() - started)
     }
+    return { session, backend, ms: Math.min(...times.slice(1)) }
+  }
+
+  // The embedder is tiny, so on WebGPU it is all per-run overhead: sharing a device with the
+  // detector cost ~160 ms a card where wasm took ~10. Measured per device rather than assumed.
+  private async pickSession(model: ArrayBuffer): Promise<TimedSession> {
+    const failures: string[] = []
+    const open = (backend: EmbedderBackend) =>
+      this.openSession(model, backend).catch((err) => {
+        failures.push(`${backend}: ${err instanceof Error ? err.message : String(err)}`)
+        return null
+      })
+
+    const wasm = await open('wasm')
+    const hasGpu = typeof navigator !== 'undefined' && 'gpu' in navigator
+    if (wasm && (wasm.ms <= WASM_FAST_ENOUGH_MS || !hasGpu)) return wasm
+
+    const gpu = hasGpu ? await open('webgpu') : null
+    if (!wasm || !gpu) {
+      const only = wasm ?? gpu
+      if (!only) throw new Error(`No usable backend for the card embedder.\n${failures.join('\n')}`)
+      return only
+    }
+    const [keep, drop] = gpu.ms < wasm.ms * 0.75 ? [gpu, wasm] : [wasm, gpu]
+    await drop.session.release()
+    return keep
   }
 
   async dispose(): Promise<void> {
@@ -234,6 +294,8 @@ export class CardMatcher {
     this.session = null
     this.index = null
     this.indexScale = null
+    this.backend = null
+    this.crop = this.planar = this.centred = null
   }
 
   /** Build the raw (pre-PCA) descriptor for one un-warped crop. */
@@ -276,8 +338,10 @@ export class CardMatcher {
     if (embedSize !== unwarpSize) {
       throw new Error(`embedder wants ${embedSize}px but crops are ${unwarpSize}px`)
     }
-    const planar = new Float32Array(3 * embedSize * embedSize)
     const pixels = embedSize * embedSize
+    // A proxied wasm run transfers the buffer away, leaving it with length 0.
+    if (this.planar?.length !== pixels * 3) this.planar = new Float32Array(pixels * 3)
+    const planar = this.planar
     for (let i = 0; i < pixels; i++) {
       planar[i] = rgb[i * 3] / 255
       planar[pixels + i] = rgb[i * 3 + 1] / 255
@@ -301,13 +365,12 @@ export class CardMatcher {
     const scale = this.pcaScale!
     const rawDim = raw.length
 
+    if (this.centred?.length !== rawDim) this.centred = new Float32Array(rawDim)
+    const centred = this.centred
+    for (let i = 0; i < rawDim; i++) centred[i] = raw[i] - mean[i]
+
     const out = new Float32Array(pcaDim)
-    for (let k = 0; k < pcaDim; k++) {
-      let acc = 0
-      const row = k * rawDim
-      for (let i = 0; i < rawDim; i++) acc += (raw[i] - mean[i]) * comps[row + i]
-      out[k] = acc * scale[k]
-    }
+    for (let k = 0; k < pcaDim; k++) out[k] = dotInt8(centred, comps, k * rawDim, rawDim) * scale[k]
     return l2Normalise(out)
   }
 
@@ -333,7 +396,9 @@ export class CardMatcher {
     const started = performance.now()
 
     const { unwarpSize, pcaDim, count } = this.config!
-    const crop = unwarpCard(frame, corners, unwarpSize)
+    // A debug crop is handed to the caller, so it cannot be the shared scratch buffer.
+    const reuse = debug ? undefined : (this.crop ??= new Uint8ClampedArray(unwarpSize * unwarpSize * 3))
+    const crop = unwarpCard(frame, corners, unwarpSize, reuse)
     const focus = sharpness(crop, unwarpSize)
     const extras = debug ? { crop, cropSize: unwarpSize } : {}
 
@@ -344,7 +409,8 @@ export class CardMatcher {
     }
 
     const query = this.project(await this.describe(crop))
-    const want = quadOrientation(corners)
+    const want = quadOrientation(corners) === 'landscape' ? 1 : 0
+    const landscape = this.landscape!
 
     // Keep the best few rows. TOP_K must exceed the largest number of index rows any
     // single card owns (currently 7), so that the list is guaranteed to contain at
@@ -358,12 +424,9 @@ export class CardMatcher {
     for (let row = 0; row < count; row++) {
       // A landscape card can never be a portrait one; skipping the impossible half of
       // the index removes a whole category of confusion for free.
-      if (this.cards[row].orientation !== want) continue
+      if (landscape[row] !== want) continue
 
-      let dot = 0
-      const at = row * pcaDim
-      for (let k = 0; k < pcaDim; k++) dot += query[k] * index[at + k]
-      dot *= indexScale[row]
+      const dot = dotInt8(query, index, row * pcaDim, pcaDim) * indexScale[row]
 
       if (dot <= topScores[TOP_K - 1]) continue
       let slot = TOP_K - 1

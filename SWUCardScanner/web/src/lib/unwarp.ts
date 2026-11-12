@@ -69,22 +69,27 @@ export function unwarpCard(
   source: ImageData,
   corners: [number, number][],
   size: number,
+  into?: Uint8ClampedArray,
 ): Uint8ClampedArray {
   // Invert by solving destination -> source directly; no matrix inversion needed.
   const dst: [number, number][] = [[0, 0], [size, 0], [size, size], [0, size]]
   const inverse = homography(dst, corners)
 
-  const out = new Uint8ClampedArray(size * size * 3)
+  const out = into?.length === size * size * 3 ? into : new Uint8ClampedArray(size * size * 3)
   const { data, width: sw, height: sh } = source
+  const [h0, h1, h2, h3, h4, h5, h6, h7, h8] = inverse
 
   for (let v = 0; v < size; v++) {
+    // Sample at pixel centres, matching OpenCV's convention.
+    const sv = v + 0.5
+    const rowX = h1 * sv
+    const rowY = h4 * sv
+    const rowW = h7 * sv
     for (let u = 0; u < size; u++) {
-      // Sample at pixel centres, matching OpenCV's convention.
       const su = u + 0.5
-      const sv = v + 0.5
-      const w = inverse[6] * su + inverse[7] * sv + inverse[8]
-      const x = (inverse[0] * su + inverse[1] * sv + inverse[2]) / w - 0.5
-      const y = (inverse[3] * su + inverse[4] * sv + inverse[5]) / w - 0.5
+      const w = h6 * su + rowW + h8
+      const x = (h0 * su + rowX + h2) / w - 0.5
+      const y = (h3 * su + rowY + h5) / w - 0.5
 
       const o = (v * size + u) * 3
 
@@ -112,10 +117,11 @@ export function unwarpCard(
       const w01 = (1 - fx) * fy
       const w11 = fx * fy
 
-      for (let c = 0; c < 3; c++) {
-        out[o + c] =
-          data[i00 + c] * w00 + data[i10 + c] * w10 + data[i01 + c] * w01 + data[i11 + c] * w11
-      }
+      out[o] = data[i00] * w00 + data[i10] * w10 + data[i01] * w01 + data[i11] * w11
+      out[o + 1] =
+        data[i00 + 1] * w00 + data[i10 + 1] * w10 + data[i01 + 1] * w01 + data[i11 + 1] * w11
+      out[o + 2] =
+        data[i00 + 2] * w00 + data[i10 + 2] * w10 + data[i01 + 2] * w01 + data[i11 + 2] * w11
     }
   }
 
@@ -132,6 +138,8 @@ export function quadOrientation(corners: [number, number][]): 'portrait' | 'land
   return width > height ? 'landscape' : 'portrait'
 }
 
+let luma = new Float64Array(0)
+
 /**
  * Variance of the Laplacian, as a focus measure.
  *
@@ -140,23 +148,24 @@ export function quadOrientation(corners: [number, number][]): 'portrait' | 'land
  * ever reach the index.
  */
 export function sharpness(rgb: Uint8ClampedArray, size: number): number {
+  if (luma.length !== size * size) luma = new Float64Array(size * size)
+  for (let i = 0, p = 0; i < luma.length; i++, p += 3) {
+    luma[i] = (rgb[p] * 299 + rgb[p + 1] * 587 + rgb[p + 2] * 114) / 1000
+  }
+
   let sum = 0
   let sumSq = 0
-  let count = 0
-
   for (let y = 1; y < size - 1; y++) {
+    const row = y * size
     for (let x = 1; x < size - 1; x++) {
-      const at = (yy: number, xx: number) => {
-        const i = (yy * size + xx) * 3
-        return (rgb[i] * 299 + rgb[i + 1] * 587 + rgb[i + 2] * 114) / 1000
-      }
-      const lap = at(y - 1, x) + at(y + 1, x) + at(y, x - 1) + at(y, x + 1) - 4 * at(y, x)
+      const i = row + x
+      const lap = luma[i - size] + luma[i + size] + luma[i - 1] + luma[i + 1] - 4 * luma[i]
       sum += lap
       sumSq += lap * lap
-      count++
     }
   }
 
+  const count = (size - 2) * (size - 2)
   const mean = sum / count
   return sumSq / count - mean * mean
 }

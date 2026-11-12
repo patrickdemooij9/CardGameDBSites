@@ -150,8 +150,13 @@ The Nuxt frontend imports `web/src/lib` directly for its admin-only scanner page
 
 - Backends are tried **WebGPU → wasm worker → wasm**. On an Intel Iris Xe, WebGPU runs
   detection at ~130 ms/frame against ~2,000 ms for single-precision wasm — 15× faster at
-  full precision, which makes the int8 export unnecessary. Identification adds ~55 ms per
-  card, capped at four cards per frame.
+  full precision, which makes the int8 export unnecessary.
+- The embedder picks its own backend, and usually lands on **wasm**. It is small enough
+  that WebGPU is all per-run overhead, and once the detector has run on the same GPU
+  device every readback slows down: ~160 ms per card on WebGPU against ~10 ms on wasm.
+  `CardMatcher.load()` times wasm first and only tries WebGPU if wasm is slower than
+  25 ms, so load the detector before the matcher. Identification is capped at four cards
+  per frame.
 - Both models are **warmed up on load**. WebGPU compiles a shader per operator on first
   use, about 2.8 s; without a warm-up pass that lands on the first real frame and looks
   like a hang.

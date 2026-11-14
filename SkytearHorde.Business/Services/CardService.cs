@@ -17,7 +17,9 @@ namespace SkytearHorde.Business.Services
         private readonly ISiteAccessor _siteAccessor;
         private readonly ICardSearchService _cardSearchService;
         private readonly CardRepository _cardRepository;
-        private readonly IAppCache _cache;
+        private const string MainCountBySetCachePrefix = "MainCountBySet_";
+
+        private readonly IAppPolicyCache _cache;
 
         public CardService(AppCaches appCaches, ISiteAccessor siteAccessor, ICardSearchService cardSearchService, CardRepository cardRepository)
         {
@@ -93,6 +95,14 @@ namespace SkytearHorde.Business.Services
             return GetAllBySet(set.Id, true).Where(it => mainVariantTypeIds.Contains(it.VariantTypeId ?? 0));
         }
 
+        public int CountMainBySet(Set set)
+        {
+            return _cache.GetCacheItem(
+                $"{MainCountBySetCachePrefix}{_siteAccessor.GetSiteId()}_{set.Id}",
+                () => GetMainBySet(set).Count(),
+                TimeSpan.FromHours(1));
+        }
+
         public IEnumerable<Set> GetAllSets()
         {
             return _cardRepository.GetAllSets();
@@ -134,6 +144,7 @@ namespace SkytearHorde.Business.Services
         public void ClearCache()
         {
             _cache.ClearByKey("GetCardValues_");
+            _cache.ClearByKey(MainCountBySetCachePrefix);
         }
     }
 }

@@ -45,7 +45,7 @@ onMounted(async () => {
     <div class="grow">
       <slot />
     </div>
-    <SiteFooter v-if="!isNative" :settings="siteSettings" />
+    <SiteFooter v-if="!isNative" :settings="siteSettings" class="[.hide-footer_&]:hidden" />
     <MobileTabBar v-if="isNative" :collection-url="collectionUrl" />
   </div>
 </template>

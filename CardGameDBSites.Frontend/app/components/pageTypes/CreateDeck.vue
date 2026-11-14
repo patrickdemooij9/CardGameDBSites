@@ -12,6 +12,9 @@ const props = defineProps<{
 
 const route = useRoute();
 
+// Set on <body> via useHead so it's in the SSR output; the layout renders before this page's setup runs.
+useHead({ bodyAttrs: { class: "hide-footer" } });
+
 const filters = ToOverviewModel(props.content.properties?.filters?.items ?? []);
 
 // Determine if we are editing an existing deck

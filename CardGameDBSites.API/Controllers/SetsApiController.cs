@@ -93,7 +93,7 @@ namespace CardGameDBSites.API.Controllers
                 Category = set.CategoryName,
                 MainVariants = set.MainVariantType?.OfType<Variant>().Select(it => it.InternalID).ToArray(),
                 ReleaseDate = set.ReleaseDate,
-                CardCount = _cardService.GetMainBySet(set).Count(),
+                CardCount = _cardService.CountMainBySet(set),
                 BannerColor = set.BannerColor,
 
                 SubHeading = set.Subheading?.ToString(),

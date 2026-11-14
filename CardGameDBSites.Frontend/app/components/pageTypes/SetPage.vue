@@ -28,9 +28,12 @@ const props = defineProps<{
 
 const showPriceGraph = ref(false);
 
+const siteSettings = await useSite().getSettings();
 const setService = new SetService();
 const set = await setService.get(props.content.id!);
-const priceHistory = await setService.getPriceHistory(set.id);
+const priceHistory = siteSettings.showPrices
+  ? await setService.getPriceHistory(set.id)
+  : null;
 const currentPrice =
   priceHistory && priceHistory.length > 0
     ? priceHistory[priceHistory.length - 1]!.price
@@ -183,6 +186,7 @@ useHead(() => ({
             {{ releaseDate }}
           </div>
           <div
+            v-if="siteSettings.showPrices"
             class="flex gap-1 items-center px-2 py-1 border bg-surface rounded cursor-pointer"
             @click="showPriceGraph = !showPriceGraph"
           >

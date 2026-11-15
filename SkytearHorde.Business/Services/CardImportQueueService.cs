@@ -320,7 +320,7 @@ namespace SkytearHorde.Business.Services
             var model = googleAI.GenerativeModel(model: Model.GeminiFlashLiteLatest);
             var generationConfig = new GenerationConfig { ResponseMimeType = "application/json" };
 
-            var promptTemplate = File.ReadAllText(Path.Combine(promptsRoot, "StarWarsUnlimited", promptFile));
+            var promptTemplate = File.ReadAllText(Path.Combine(promptsRoot, _settingsService.GetSiteSettings().AIPromptFolder, promptFile));
             var propertiesBuilder = new StringBuilder();
             foreach (var prop in props.Where(p => p.Constant == null && p.CropRegion == null && string.IsNullOrEmpty(p.Templated)))
                 propertiesBuilder.AppendLine($"- {prop.Alias} ({prop.Description})");

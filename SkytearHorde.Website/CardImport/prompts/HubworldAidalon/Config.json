@@ -42,7 +42,7 @@
           "toTitleCase": false
         },
         {
-          "alias": "Pip Source_multiple",
+          "alias": "Pip Requirement_multiple",
           "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
           "toTitleCase": false
         },
@@ -62,7 +62,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Only return the [card number] part, without leading zeros.",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Always return the [card number] part, with leading zeros.",
           "toTitleCase": false
         }
       ]
@@ -116,7 +116,7 @@
           "toTitleCase": false
         },
         {
-          "alias": "Pip Requirement_multiple",
+          "alias": "Pip Source_multiple",
           "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
           "toTitleCase": false
         },
@@ -136,7 +136,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRCO - 030/164. Only return the [card number] part, without leading zeros.",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRCO - 030/164. Always return the [card number] part, with leading zeros.",
           "toTitleCase": false
         }
       ]
@@ -205,7 +205,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 055/164. Only return the [card number] part, without leading zeros.",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 055/164. Always return the [card number] part, with leading zeros.",
           "toTitleCase": false
         }
       ]
@@ -274,7 +274,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 089/164. Only return the [card number] part, without leading zeros.",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 089/164. Always return the [card number] part, with leading zeros.",
           "toTitleCase": false
         }
       ]
@@ -328,7 +328,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 144/164. Only return the [card number] part, without leading zeros.",
+          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 144/164. Always return the [card number] part, with leading zeros.",
           "toTitleCase": false
         }
       ]

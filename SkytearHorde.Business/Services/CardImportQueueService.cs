@@ -15,6 +15,7 @@ using SkytearHorde.Entities.Models.Database;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace SkytearHorde.Business.Services
@@ -321,7 +322,7 @@ namespace SkytearHorde.Business.Services
             var aiProps = props.Where(p => p.Constant == null && p.CropRegion == null && string.IsNullOrEmpty(p.Templated)).ToList();
             var generationConfig = new GenerationConfig { ResponseMimeType = "application/json" };
             if (aiProps.Count > 0)
-                generationConfig.ResponseSchema = BuildResponseSchema(aiProps);
+                generationConfig.ResponseJsonSchema = BuildResponseSchema(aiProps);
 
             var promptTemplate = File.ReadAllText(Path.Combine(promptsRoot, _settingsService.GetSiteSettings().AIPromptFolder, promptFile));
             var propertiesBuilder = new StringBuilder();
@@ -681,13 +682,20 @@ namespace SkytearHorde.Business.Services
             return hash.ToString("x16");
         }
 
-        private static Schema BuildResponseSchema(IReadOnlyList<CardPropertyConfig> props) => new()
+        // A raw JsonObject, because the SDK camelCases the keys of Schema.Properties ("Name" -> "name").
+        private static JsonObject BuildResponseSchema(IReadOnlyList<CardPropertyConfig> props)
         {
-            Type = ParameterType.Object,
-            Properties = props.ToDictionary(p => p.Alias, p => new Schema { Type = ParameterType.String, Description = p.Description }),
-            Required = props.Select(p => p.Alias).ToList(),
-            PropertyOrdering = props.Select(p => p.Alias).ToList()
-        };
+            var properties = new JsonObject();
+            foreach (var prop in props)
+                properties[prop.Alias] = new JsonObject { ["type"] = "string", ["description"] = prop.Description ?? string.Empty };
+
+            return new JsonObject
+            {
+                ["type"] = "object",
+                ["properties"] = properties,
+                ["required"] = new JsonArray(props.Select(p => (JsonNode)JsonValue.Create(p.Alias)).ToArray())
+            };
+        }
 
         private static string CropImageToBase64(string base64Image, CropRegionConfig region)
         {

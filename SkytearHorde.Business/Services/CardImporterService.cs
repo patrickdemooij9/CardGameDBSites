@@ -250,7 +250,7 @@ namespace SkytearHorde.Business.Services
                     }
                     else if (isMultipleText)
                     {
-                        values.Add("valueList", cardAttribute.Value.Replace(",", Environment.NewLine));
+                        values.Add("valueList", string.Join(Environment.NewLine, cardAttribute.Value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)));
                     }
                     else
                     {

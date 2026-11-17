@@ -52,6 +52,11 @@
           "toTitleCase": false
         },
         {
+          "alias": "Collection Icons_multiple",
+          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "toTitleCase": false
+        },
+        {
           "alias": "Amount",
           "constant": 1
         },
@@ -127,7 +132,7 @@
         },
         {
           "alias": "Amount",
-          "constant": 3
+          "constant": 1
         },
         {
           "alias": "Artist",

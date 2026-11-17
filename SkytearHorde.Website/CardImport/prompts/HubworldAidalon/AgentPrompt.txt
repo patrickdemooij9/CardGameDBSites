@@ -1,4 +1,4 @@
-Please use the attached image and read various elements of the card. The card is an Agent from the game Hubworld: Aidalon. An Agent has a shard cost in the top left, a name and a subname, a red barrier bar, a presence value in the purple box in the bottom right and optionally collection icons on the left edge.
+Please use the attached image and read various elements of the card. The card is an Agent from the game Hubworld: Aidalon. An Agent has a shard cost in the top left, a name and a subname, a red barrier bar, a presence value in the purple box in the bottom right and optionally collection icons on the left edge. Its pips are pip sources.
 
 When you read ability text, follow these rules:
 - Surround bold text with the | character. Example: |After you complete a breach on a player's district, exhaust this card:| Steal 1 [shard] from their pool.

@@ -318,12 +318,16 @@ namespace SkytearHorde.Business.Services
         {
             var googleAI = new GoogleAI(apiKey: apiKey);
             var model = googleAI.GenerativeModel(model: Model.GeminiFlashLiteLatest);
+            var aiProps = props.Where(p => p.Constant == null && p.CropRegion == null && string.IsNullOrEmpty(p.Templated)).ToList();
             var generationConfig = new GenerationConfig { ResponseMimeType = "application/json" };
+            if (aiProps.Count > 0)
+                generationConfig.ResponseSchema = BuildResponseSchema(aiProps);
 
             var promptTemplate = File.ReadAllText(Path.Combine(promptsRoot, _settingsService.GetSiteSettings().AIPromptFolder, promptFile));
             var propertiesBuilder = new StringBuilder();
-            foreach (var prop in props.Where(p => p.Constant == null && p.CropRegion == null && string.IsNullOrEmpty(p.Templated)))
-                propertiesBuilder.AppendLine($"- {prop.Alias} ({prop.Description})");
+            foreach (var prop in aiProps)
+                propertiesBuilder.AppendLine($"- \"{prop.Alias}\": {prop.Description}");
+            propertiesBuilder.AppendLine("Use every quoted key exactly as written, including spaces and any _multiple suffix.");
             var prompt = promptTemplate.Replace("{properties}", propertiesBuilder.ToString());
 
             var request = new GenerateContentRequest(prompt);
@@ -331,7 +335,17 @@ namespace SkytearHorde.Business.Services
             request.AddPart(new InlineData { Data = imageBase64, MimeType = "image/png" });
             var response = await model.GenerateContent(request);
 
-            var result = JsonSerializer.Deserialize<Dictionary<string, string>>(response?.Text ?? "{}") ?? [];
+            var aiOutput = JsonSerializer.Deserialize<Dictionary<string, string>>(response?.Text ?? "{}") ?? [];
+            var aliases = props.Select(p => p.Alias).ToList();
+            var result = new Dictionary<string, string>();
+            foreach (var (key, value) in aiOutput)
+            {
+                var alias = AiPropertyKeyMatcher.FindAlias(key, aliases);
+                if (alias is null)
+                    _logger.LogWarning("Ignoring AI property '{Key}' that matches no configured alias", key);
+                else
+                    result[alias] = value;
+            }
 
             // Apply value mappings to the AI output (case-insensitive exact match on "from").
             foreach (var prop in props.Where(p => p.Mapping is { Count: > 0 }))
@@ -666,6 +680,14 @@ namespace SkytearHorde.Business.Services
             }
             return hash.ToString("x16");
         }
+
+        private static Schema BuildResponseSchema(IReadOnlyList<CardPropertyConfig> props) => new()
+        {
+            Type = ParameterType.Object,
+            Properties = props.ToDictionary(p => p.Alias, p => new Schema { Type = ParameterType.String, Description = p.Description }),
+            Required = props.Select(p => p.Alias).ToList(),
+            PropertyOrdering = props.Select(p => p.Alias).ToList()
+        };
 
         private static string CropImageToBase64(string base64Image, CropRegionConfig region)
         {

@@ -15,6 +15,8 @@ namespace SkytearHorde.Business.Extraction
         private const double MinFillRatio = 0.80;      // contour area / bounding-rect area — rejects thin edges / art blobs
         private const double MinAspect = 0.55;         // allow portrait (~0.71) ...
         private const double MaxAspect = 1.85;         // ... and landscape (~1.4) cards, with tolerance
+        private const double CardShortToLongRatio = (double)CardExtractor.TargetWidth / CardExtractor.TargetHeight;
+        private const double CardShapeTolerance = 0.05;
 
         /// <summary>
         /// When set to a folder path, each detection run also writes debug images there: the edge/morphology
@@ -82,6 +84,10 @@ namespace SkytearHorde.Business.Extraction
                 if (!inner) deduped.Add(kept[i]);
             }
 
+            // A lone card filling the frame has light regions Otsu mistakes for background, which crops it.
+            if (deduped.Count <= 1 && IsCardShaped(src.Width, src.Height))
+                deduped = [new Rect(0, 0, src.Width, src.Height)];
+
             if (!string.IsNullOrWhiteSpace(DebugOutputDirectory))
                 SaveDebug(src, mask, contours, deduped);
 
@@ -115,6 +121,12 @@ namespace SkytearHorde.Business.Extraction
             {
                 // Debug output must never break detection.
             }
+        }
+
+        private static bool IsCardShaped(int width, int height)
+        {
+            var shortToLong = (double)Math.Min(width, height) / Math.Max(width, height);
+            return Math.Abs(shortToLong - CardShortToLongRatio) <= CardShapeTolerance;
         }
 
         private static long Area(Rect r) => (long)r.Width * r.Height;

@@ -1,4 +1,4 @@
-Please use the attached image and read various elements of the card. The card is a Seeker from the game Hubworld: Aidalon. A Seeker has no shard cost in the top left, no red barrier bar, no presence value and no collection icons. Instead it has two stats in the middle right of the card and its pips are pip sources instead of pip requirements.
+Please use the attached image and read various elements of the card. The card is a Seeker from the game Hubworld: Aidalon. A Seeker has no shard cost in the top left, no red barrier bar and no presence value. Instead it has two stats in the middle right of the card, optionally collection icons on the left edge, and its pips are pip requirements.
 
 When you read ability text, follow these rules:
 - Surround bold text with the | character. Example: |After this card is forged during a delve:| This card gets +2 [barrier] until the delve ends.

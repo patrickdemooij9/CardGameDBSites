@@ -1,4 +1,5 @@
 using CardGameDBSites.API.Attributes;
+using CardGameDBSites.API.Models.Admin;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Repositories;
@@ -35,9 +36,11 @@ namespace CardGameDBSites.API.Controllers
         private readonly PeriodRepository _periodRepository;
         private readonly BlockListJsonService _blockListJsonService;
         private readonly DeckLegalityService _deckLegalityService;
+        private readonly CardAttributeUpdateService _cardAttributeUpdateService;
 
-        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, MetaSnapshotService metaSnapshotService, PeriodRepository periodRepository, BlockListJsonService blockListJsonService, DeckLegalityService deckLegalityService)
+        public ManagementApiController(DeckService deckService, ISiteService siteService, IContentService contentService, IUmbracoContextFactory umbracoContextFactory, TournamentService tournamentService, MetaSnapshotService metaSnapshotService, PeriodRepository periodRepository, BlockListJsonService blockListJsonService, DeckLegalityService deckLegalityService, CardAttributeUpdateService cardAttributeUpdateService)
         {
+            _cardAttributeUpdateService = cardAttributeUpdateService;
             _deckService = deckService;
             _siteService = siteService;
             _contentService = contentService;
@@ -201,6 +204,29 @@ namespace CardGameDBSites.API.Controllers
 
             var results = _metaSnapshotService.BackfillForPeriod(period.SiteId, period.FormatId, period.Id);
             return Ok(results);
+        }
+
+        /// <summary>Sets one text attribute on all cards of the given types for the current site. Dry run unless DryRun is false.</summary>
+        [HttpPost("cards/setAttribute")]
+        [ProducesResponseType(typeof(CardAttributeUpdateResult), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(403)]
+        public IActionResult SetCardAttribute([FromBody] SetCardAttributeRequest request)
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            if (string.IsNullOrWhiteSpace(request.Attribute) || request.CardTypes.Count == 0)
+                return BadRequest("Attribute and at least one card type are required.");
+
+            try
+            {
+                return Ok(_cardAttributeUpdateService.SetTextAttribute(request.Attribute, request.Value, request.CardTypes, request.DryRun));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

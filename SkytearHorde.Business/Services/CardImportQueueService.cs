@@ -239,14 +239,48 @@ namespace SkytearHorde.Business.Services
 
             // For a double-sided card with a paired back image, read the back side with its own prompt
             // and property set and merge the result into the same card's data.
-            string? backImagePath = null;
-            if (typeConfig.IsDoubleSided && backBase64 != null)
+            var hasBackSide = typeConfig.IsDoubleSided && backBase64 != null;
+            if (hasBackSide)
             {
                 var backPromptFile = string.IsNullOrWhiteSpace(typeConfig.BackSidePromptFile) ? typeConfig.PromptFile : typeConfig.BackSidePromptFile;
-                var backData = await ExtractProperties(backBase64, apiKey, promptsRoot, backPromptFile!, typeConfig.BackSideProperties);
+                var backData = await ExtractProperties(backBase64!, apiKey, promptsRoot, backPromptFile!, typeConfig.BackSideProperties);
                 foreach (var kv in backData)
                     extractedData[kv.Key] = kv.Value;
+            }
 
+            InsertQueueItem(frontBase64, hasBackSide ? backBase64 : null, imageHash, extractedData, siteId, sourceType, sourceUrl, stagingDir);
+        }
+
+        /// <summary>
+        /// Queues a card whose properties were already read outside the AI pipeline (e.g. by Claude),
+        /// so no detection or extraction call is made. Returns the queue status it landed in.
+        /// </summary>
+        public string QueuePreExtractedCard(
+            string frontBase64,
+            string? backBase64,
+            Dictionary<string, string> extractedData,
+            int siteId,
+            string? sourceUrl)
+        {
+            var stagingDir = ResolveContentPath(_configuration["CardImport:StagingPath"] ?? "card-staging");
+            Directory.CreateDirectory(stagingDir);
+
+            return InsertQueueItem(frontBase64, backBase64, ComputeDHash(frontBase64), extractedData, siteId, CardImportQueueSource.Manual, sourceUrl, stagingDir);
+        }
+
+        private string InsertQueueItem(
+            string frontBase64,
+            string? backBase64,
+            string imageHash,
+            Dictionary<string, string> extractedData,
+            int siteId,
+            string sourceType,
+            string? sourceUrl,
+            string stagingDir)
+        {
+            string? backImagePath = null;
+            if (backBase64 != null)
+            {
                 var backFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}_back.png";
                 backImagePath = Path.Combine(stagingDir, backFileName);
                 File.WriteAllBytes(backImagePath, Convert.FromBase64String(backBase64));
@@ -289,6 +323,7 @@ namespace SkytearHorde.Business.Services
             });
 
             _logger.LogInformation("Queued card '{CardName}' with status {Status}", cardName, status);
+            return status;
         }
 
         /// <summary>Identifies the card type from the image via the initial prompt; null when unrecognized.</summary>

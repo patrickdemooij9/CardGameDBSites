@@ -1,4 +1,5 @@
 ﻿using CardGameDBSites.API.Attributes;
+using CardGameDBSites.API.Models.Admin.CardImport;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SkytearHorde.Business.Middleware;
@@ -408,6 +409,29 @@ namespace CardGameDBSites.API.Controllers.Admin
                 Succeeded = succeeded,
                 Failed = failed
             });
+        }
+
+        /// <summary>
+        /// POST /api/cardimportqueue/submitextracted
+        /// Queues a card whose properties were already read (by Claude), skipping the Gemini pipeline.
+        /// </summary>
+        [HttpPost("submitextracted")]
+        public IActionResult SubmitExtracted([FromBody] ExtractedSubmitRequest request)
+        {
+            if (HttpContext.User.FindFirst("isAdmin")?.Value != "true")
+                return Forbid();
+
+            if (string.IsNullOrWhiteSpace(request?.ImageBase64) || request.ExtractedData.Count == 0)
+                return BadRequest("An image and extracted data are required.");
+
+            var status = _queueService.QueuePreExtractedCard(
+                request.ImageBase64,
+                string.IsNullOrWhiteSpace(request.BackImageBase64) ? null : request.BackImageBase64,
+                request.ExtractedData,
+                _siteAccessor.GetSiteId(),
+                request.SourceUrl);
+
+            return Ok(new { Status = status });
         }
 
         /// <summary>Creates card image media from the item's staged image file(s), returning their ids.</summary>

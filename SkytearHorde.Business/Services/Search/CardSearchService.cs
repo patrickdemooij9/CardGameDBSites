@@ -140,7 +140,8 @@ namespace SkytearHorde.Business.Services.Search
                 var splitQuery = query.Query.ToSearchFriendly().Split(' ');
                 var searchFields = new List<string> { "name" };
                 searchFields.AddRange(_cardSearchFieldsFinder.GetGeneralFieldsToSearch());
-                foreach (var queryItem in splitQuery.Where(it => !string.IsNullOrWhiteSpace(it)))
+                // The analyzer drops symbol-only tokens at index time, so requiring them would match nothing.
+                foreach (var queryItem in splitQuery.Where(it => it.Any(char.IsLetterOrDigit)))
                 {
                     searcher.And().GroupedOr(searchFields, queryItem.MultipleCharacterWildcard());
                 }

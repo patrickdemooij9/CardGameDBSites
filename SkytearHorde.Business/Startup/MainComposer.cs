@@ -111,6 +111,7 @@ namespace SkytearHorde.Business.Startup
 
             builder.Services.AddScoped<CardMaker>();
             builder.Services.AddScoped<CardImporterService>();
+            builder.Services.AddScoped<CardAttributeUpdateService>();
             builder.Services.AddScoped<CardKeywordService>();
 
             builder.Services.AddSingleton<ISiteAccessor, SiteAccessor>();

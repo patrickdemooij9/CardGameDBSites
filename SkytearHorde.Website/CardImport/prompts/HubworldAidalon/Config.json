@@ -22,9 +22,10 @@
           "constant": "Seeker"
         },
         {
-          "alias": "Subtype",
-          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For a Seeker this is a value like Paragon.",
-          "toTitleCase": true
+          "alias": "Subtype_multiple",
+          "description": "The italic word(s) printed directly below the card type on the type line at the bottom of the card. Never include the type itself (Seeker). Several subtypes are separated by a • dot on the card; return them separated by commas, for example Being,Contraption.",
+          "toTitleCase": true,
+          "split": ","
         },
         {
           "alias": "Draw Limit",
@@ -38,12 +39,12 @@
         },
         {
           "alias": "Ability",
-          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token as described above and separate multiple ability paragraphs with \\r. Leave out flavor text and the lilac cipher box.",
           "toTitleCase": false
         },
         {
           "alias": "Pip Requirement_multiple",
-          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "description": "The small pip icons printed on the bottom edge of the card, below the type line. Count every pip and return one value per pip. Each faction has its own pip color and shape: blue bookmark = Collective, green rounded bracket = OldAidalon, orange notched tab = Omniworks, purple bow-tie = Remnants. Use exactly those four values (no spaces, no \"The\") and separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
           "toTitleCase": false
         },
         {
@@ -53,7 +54,7 @@
         },
         {
           "alias": "Collection Icons_multiple",
-          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "description": "The rounded square icons on the left edge of the card, at the top of the art. Return Card for a teal square with a white eight-pointed star in it and Shard for a bronze/orange square with the angular shard symbol in it, separated by commas. Most cards with icons have exactly one; obstacles and moments almost never have one. If there are none, return an empty string.",
           "toTitleCase": false
         },
         {
@@ -67,7 +68,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Always return the [card number] part, with leading zeros.",
+          "description": "The collector line in the bottom left corner, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Return ONLY the three-digit card number before the slash, with leading zeros, so 006. Never include the slash or the total.",
           "toTitleCase": false
         }
       ]
@@ -96,13 +97,19 @@
           "constant": "Agent"
         },
         {
-          "alias": "Subtype",
-          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For an Agent this is a value like Renegade.",
-          "toTitleCase": true
+          "alias": "Subtype_multiple",
+          "description": "The italic word(s) printed directly below the card type on the type line at the bottom of the card. Never include the type itself (Agent). Several subtypes are separated by a • dot on the card; return them separated by commas, for example Being,Contraption.",
+          "toTitleCase": true,
+          "split": ","
         },
         {
           "alias": "Ability",
-          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token as described above and separate multiple ability paragraphs with \\r. Leave out flavor text and the lilac cipher box.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Cipher",
+          "description": "The text inside the lilac box near the bottom of the art, just above the type line. Not every card has one; return an empty string when there is no lilac box. Use the same icon tokens as the ability text.",
           "toTitleCase": false
         },
         {
@@ -117,12 +124,12 @@
         },
         {
           "alias": "Collection Icons_multiple",
-          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "description": "The rounded square icons on the left edge of the card, at the top of the art. Return Card for a teal square with a white eight-pointed star in it and Shard for a bronze/orange square with the angular shard symbol in it, separated by commas. Most cards with icons have exactly one; obstacles and moments almost never have one. If there are none, return an empty string.",
           "toTitleCase": false
         },
         {
           "alias": "Pip Source_multiple",
-          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "description": "The small pip icons printed on the bottom edge of the card, below the type line. Count every pip and return one value per pip. Each faction has its own pip color and shape: blue bookmark = Collective, green rounded bracket = OldAidalon, orange notched tab = Omniworks, purple bow-tie = Remnants. Use exactly those four values (no spaces, no \"The\") and separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
           "toTitleCase": false
         },
         {
@@ -141,7 +148,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRCO - 030/164. Always return the [card number] part, with leading zeros.",
+          "description": "The collector line in the bottom left corner, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Return ONLY the three-digit card number before the slash, with leading zeros, so 006. Never include the slash or the total.",
           "toTitleCase": false
         }
       ]
@@ -165,13 +172,19 @@
           "constant": "Obstacle"
         },
         {
-          "alias": "Subtype",
-          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For an Obstacle this is a value like Location.",
-          "toTitleCase": true
+          "alias": "Subtype_multiple",
+          "description": "The italic word(s) printed directly below the card type on the type line at the bottom of the card. Never include the type itself (Obstacle). Several subtypes are separated by a • dot on the card; return them separated by commas, for example Being,Contraption.",
+          "toTitleCase": true,
+          "split": ","
         },
         {
           "alias": "Ability",
-          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token as described above and separate multiple ability paragraphs with \\r. Leave out flavor text and the lilac cipher box.",
+          "toTitleCase": false
+        },
+        {
+          "alias": "Cipher",
+          "description": "The text inside the lilac box near the bottom of the art, just above the type line. Not every card has one; return an empty string when there is no lilac box. Use the same icon tokens as the ability text.",
           "toTitleCase": false
         },
         {
@@ -186,12 +199,12 @@
         },
         {
           "alias": "Collection Icons_multiple",
-          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "description": "The rounded square icons on the left edge of the card, at the top of the art. Return Card for a teal square with a white eight-pointed star in it and Shard for a bronze/orange square with the angular shard symbol in it, separated by commas. Most cards with icons have exactly one; obstacles and moments almost never have one. If there are none, return an empty string.",
           "toTitleCase": false
         },
         {
           "alias": "Pip Requirement_multiple",
-          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "description": "The small pip icons printed on the bottom edge of the card, below the type line. Count every pip and return one value per pip. Each faction has its own pip color and shape: blue bookmark = Collective, green rounded bracket = OldAidalon, orange notched tab = Omniworks, purple bow-tie = Remnants. Use exactly those four values (no spaces, no \"The\") and separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
           "toTitleCase": false
         },
         {
@@ -201,7 +214,7 @@
         },
         {
           "alias": "Amount",
-          "constant": 3
+          "constant": 2
         },
         {
           "alias": "Artist",
@@ -210,7 +223,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 055/164. Always return the [card number] part, with leading zeros.",
+          "description": "The collector line in the bottom left corner, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Return ONLY the three-digit card number before the slash, with leading zeros, so 006. Never include the slash or the total.",
           "toTitleCase": false
         }
       ]
@@ -234,18 +247,19 @@
           "constant": "Source"
         },
         {
-          "alias": "Subtype",
-          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For a Source this is a value like Persona.",
-          "toTitleCase": true
+          "alias": "Subtype_multiple",
+          "description": "The italic word(s) printed directly below the card type on the type line at the bottom of the card. Never include the type itself (Source). Several subtypes are separated by a • dot on the card; return them separated by commas, for example Being,Contraption.",
+          "toTitleCase": true,
+          "split": ","
         },
         {
           "alias": "Ability",
-          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token as described above and separate multiple ability paragraphs with \\r. Leave out flavor text and the lilac cipher box.",
           "toTitleCase": false
         },
         {
-          "alias": "Barrier Value",
-          "description": "The number at the right end of the red bar that runs across the card, next to the double chevron symbol.",
+          "alias": "Cipher",
+          "description": "The text inside the lilac box near the bottom of the art, just above the type line. Not every card has one; return an empty string when there is no lilac box. Use the same icon tokens as the ability text.",
           "toTitleCase": false
         },
         {
@@ -255,12 +269,12 @@
         },
         {
           "alias": "Collection Icons_multiple",
-          "description": "The square icons on the left edge of the card, next to the art. There can be zero, one or more of them. Return Card for an icon showing a rectangular card symbol and Shard for an icon showing an angular shard (triangle/gem) symbol, separated by commas. If there are none, return an empty string.",
+          "description": "The rounded square icons on the left edge of the card, at the top of the art. Return Card for a teal square with a white eight-pointed star in it and Shard for a bronze/orange square with the angular shard symbol in it, separated by commas. Most cards with icons have exactly one; obstacles and moments almost never have one. If there are none, return an empty string.",
           "toTitleCase": false
         },
         {
           "alias": "Pip Requirement_multiple",
-          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "description": "The small pip icons printed on the bottom edge of the card, below the type line. Count every pip and return one value per pip. Each faction has its own pip color and shape: blue bookmark = Collective, green rounded bracket = OldAidalon, orange notched tab = Omniworks, purple bow-tie = Remnants. Use exactly those four values (no spaces, no \"The\") and separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
           "toTitleCase": false
         },
         {
@@ -270,7 +284,7 @@
         },
         {
           "alias": "Amount",
-          "constant": 3
+          "constant": 2
         },
         {
           "alias": "Artist",
@@ -279,7 +293,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 089/164. Always return the [card number] part, with leading zeros.",
+          "description": "The collector line in the bottom left corner, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Return ONLY the three-digit card number before the slash, with leading zeros, so 006. Never include the slash or the total.",
           "toTitleCase": false
         }
       ]
@@ -303,18 +317,19 @@
           "constant": "Moment"
         },
         {
-          "alias": "Subtype",
-          "description": "Printed on the type line at the bottom of the card, either to the right of the type or directly below it. For a Moment this is a value like Skill.",
-          "toTitleCase": true
+          "alias": "Subtype_multiple",
+          "description": "The italic word(s) printed directly below the card type on the type line at the bottom of the card. Never include the type itself (Moment). Several subtypes are separated by a • dot on the card; return them separated by commas, for example Being,Contraption.",
+          "toTitleCase": true,
+          "split": ","
         },
         {
           "alias": "Ability",
-          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token ([shard], [card], [action], [reaction], [breach], [barrier], [presence]) and separate multiple ability paragraphs with \\r. Leave out flavor text.",
+          "description": "The rules text in the main text box. Surround bold text with the | character, replace inline icons with their token as described above and separate multiple ability paragraphs with \\r. Leave out flavor text and the lilac cipher box.",
           "toTitleCase": false
         },
         {
           "alias": "Pip Requirement_multiple",
-          "description": "The small pip icons printed on the bottom edge of the card, on the frame around the type line. Count every pip and return one value per pip based on its color: purple = Remnants, orange = Omniworks, green = OldAidalon, blue = Collective. Separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
+          "description": "The small pip icons printed on the bottom edge of the card, below the type line. Count every pip and return one value per pip. Each faction has its own pip color and shape: blue bookmark = Collective, green rounded bracket = OldAidalon, orange notched tab = Omniworks, purple bow-tie = Remnants. Use exactly those four values (no spaces, no \"The\") and separate them with commas, so three blue pips become Collective,Collective,Collective. If there are no pips, return an empty string.",
           "toTitleCase": false
         },
         {
@@ -324,7 +339,7 @@
         },
         {
           "alias": "Amount",
-          "constant": 3
+          "constant": 2
         },
         {
           "alias": "Artist",
@@ -333,7 +348,7 @@
         },
         {
           "alias": "Id",
-          "description": "Located in one of the bottom corners of the card in the collector line, written as [set code] - [card number]/[total cards], for example PRC - 144/164. Always return the [card number] part, with leading zeros.",
+          "description": "The collector line in the bottom left corner, written as [set code] - [card number]/[total cards], for example PRC - 006/164. Return ONLY the three-digit card number before the slash, with leading zeros, so 006. Never include the slash or the total.",
           "toTitleCase": false
         }
       ]

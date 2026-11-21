@@ -81,9 +81,11 @@ export declare class CardMatcher {
     private pcaComponents;
     private pcaScale;
     private landscape;
+    private baseIds;
     private crop;
     private planar;
     private centred;
+    private scores;
     cards: IndexCard[];
     config: IndexConfig | null;
     backend: EmbedderBackend | null;

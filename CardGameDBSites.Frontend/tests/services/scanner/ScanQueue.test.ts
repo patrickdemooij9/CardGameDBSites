@@ -32,6 +32,20 @@ describe("defaultVariantId", () => {
   it("falls back to the first matched variant when none is normal", () => {
     expect(defaultVariantId([13, 12], [normal, foil, hyperspace])).toBe(13);
   });
+
+  it("prefers the printing with its own page over its foil when the image has no normal variant", () => {
+    const foilHyperspace: CardVariantReferenceApiModel = { cardVariantId: 14, variantTypeId: 3, setId: 1 };
+    const types = [
+      { id: 2, hasPage: true },
+      { id: 3, hasPage: false },
+    ];
+
+    expect(defaultVariantId([14, 13], [normal, foilHyperspace, hyperspace], types)).toBe(13);
+  });
+
+  it("still prefers the normal printing when variant types are known", () => {
+    expect(defaultVariantId([13, 11], [normal, hyperspace], [{ id: 2, hasPage: true }])).toBe(11);
+  });
 });
 
 describe("variantOptions", () => {

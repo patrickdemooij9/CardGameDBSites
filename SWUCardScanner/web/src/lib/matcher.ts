@@ -1,4 +1,5 @@
 import * as ort from 'onnxruntime-web'
+import { EXCLUDED, rankCards } from './ranking'
 import { quadOrientation, sharpness, unwarpCard } from './unwarp'
 
 /**
@@ -193,11 +194,13 @@ export class CardMatcher {
   private pcaComponents: Int8Array | null = null
   private pcaScale: Float32Array | null = null
   private landscape: Uint8Array | null = null
+  private baseIds: Int32Array | null = null
 
   // Scratch reused across identify() calls, which therefore must not overlap.
   private crop: Uint8ClampedArray | null = null
   private planar: Float32Array | null = null
   private centred: Float32Array | null = null
+  private scores: Float64Array | null = null
 
   cards: IndexCard[] = []
   config: IndexConfig | null = null
@@ -218,6 +221,7 @@ export class CardMatcher {
     if (this.config.storage !== 'int8') throw new Error(`Index at ${base} is not int8 (rebuild with build_index.py)`)
     this.cards = meta.cards as IndexCard[]
     this.landscape = Uint8Array.from(this.cards, (card) => (card.orientation === 'landscape' ? 1 : 0))
+    this.baseIds = Int32Array.from(this.cards, (card) => card.baseId)
 
     const [indexBuf, pcaBuf, embedderBuf] = await Promise.all([
       fetchFile(`${base}/card-index.bin`).then((r) => r.arrayBuffer()),
@@ -295,7 +299,7 @@ export class CardMatcher {
     this.index = null
     this.indexScale = null
     this.backend = null
-    this.crop = this.planar = this.centred = null
+    this.crop = this.planar = this.centred = this.scores = null
   }
 
   /** Build the raw (pre-PCA) descriptor for one un-warped crop. */
@@ -412,65 +416,34 @@ export class CardMatcher {
     const want = quadOrientation(corners) === 'landscape' ? 1 : 0
     const landscape = this.landscape!
 
-    // Keep the best few rows. TOP_K must exceed the largest number of index rows any
-    // single card owns (currently 7), so that the list is guaranteed to contain at
-    // least one genuinely different card to measure the margin against.
-    const TOP_K = 8
-    const topScores = new Array<number>(TOP_K).fill(-Infinity)
-    const topRows = new Array<number>(TOP_K).fill(-1)
+    if (this.scores?.length !== count) this.scores = new Float64Array(count)
+    const scores = this.scores
 
     const index = this.index!
     const indexScale = this.indexScale!
     for (let row = 0; row < count; row++) {
       // A landscape card can never be a portrait one; skipping the impossible half of
       // the index removes a whole category of confusion for free.
-      if (landscape[row] !== want) continue
-
-      const dot = dotInt8(query, index, row * pcaDim, pcaDim) * indexScale[row]
-
-      if (dot <= topScores[TOP_K - 1]) continue
-      let slot = TOP_K - 1
-      while (slot > 0 && topScores[slot - 1] < dot) {
-        topScores[slot] = topScores[slot - 1]
-        topRows[slot] = topRows[slot - 1]
-        slot--
-      }
-      topScores[slot] = dot
-      topRows[slot] = row
+      scores[row] = landscape[row] === want
+        ? dotInt8(query, index, row * pcaDim, pcaDim) * indexScale[row]
+        : EXCLUDED
     }
-
-    this.lastMatchMs = performance.now() - started
-
-    if (topRows[0] < 0) {
-      return { ...NO_MATCH, sharpness: focus, reason: 'no-index', ...extras }
-    }
-
-    const score = topScores[0]
-    const winner = this.cards[topRows[0]]
 
     // Margin is measured against the best *different card*, not the next row. Nearly
     // half the index shares a baseId with another row - alternate printings and promos
     // reuse artwork - so a card that appears twice would otherwise be rejected for
     // being too similar to itself, which is the one case we should be most sure about.
-    let rivalScore = 0
-    for (let i = 1; i < TOP_K; i++) {
-      const row = topRows[i]
-      if (row < 0) continue
-      if (this.cards[row].baseId === winner.baseId) continue
-      rivalScore = topScores[i]
-      break
-    }
-    const margin = score - rivalScore
+    const ranked = rankCards(scores, this.baseIds!, 3)
 
-    // Collapse the candidate list by card too, so the runner-up shown is a real rival.
-    const candidates: Candidate[] = []
-    const seenBase = new Set<number>()
-    for (let i = 0; i < TOP_K && candidates.length < 3; i++) {
-      const row = topRows[i]
-      if (row < 0 || seenBase.has(this.cards[row].baseId)) continue
-      seenBase.add(this.cards[row].baseId)
-      candidates.push({ card: this.cards[row], score: topScores[i] })
+    this.lastMatchMs = performance.now() - started
+
+    if (!ranked.length) {
+      return { ...NO_MATCH, sharpness: focus, reason: 'no-index', ...extras }
     }
+
+    const score = ranked[0].score
+    const margin = score - (ranked[1]?.score ?? 0)
+    const candidates: Candidate[] = ranked.map((it) => ({ card: this.cards[it.row], score: it.score }))
 
     const reason: RejectReason = tooBlurry
       ? 'blurry'
@@ -481,7 +454,7 @@ export class CardMatcher {
           : null
 
     return {
-      card: this.cards[topRows[0]],
+      card: candidates[0].card,
       score,
       margin,
       sharpness: focus,

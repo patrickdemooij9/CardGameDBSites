@@ -26,7 +26,7 @@ export function useScanQueue() {
       // Offline: fall back to the matched image's own variant, which the user can still change later.
     }
 
-    const variantId = defaultVariantId(card.variantIds, variants);
+    const variantId = defaultVariantId(card.variantIds, variants, cardStore.variantTypes.data);
     if (variantId === undefined) {
       return undefined;
     }

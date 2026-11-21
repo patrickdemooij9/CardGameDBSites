@@ -29,12 +29,16 @@ let nextEntryId = 1;
 
 export function defaultVariantId(
   imageVariantIds: number[],
-  variants: CardVariantReferenceApiModel[]
+  variants: CardVariantReferenceApiModel[],
+  variantTypes: Pick<CardVariantTypeApiModel, "id" | "hasPage">[] = []
 ): number | undefined {
-  const normal = variants.find(
-    (variant) => variant.variantTypeId == null && imageVariantIds.includes(variant.cardVariantId!)
+  const matched = variants.filter((variant) => imageVariantIds.includes(variant.cardVariantId!));
+  const normal = matched.find((variant) => variant.variantTypeId == null);
+  // A foil shares its image with the printing it is a foil of, and only that printing has its own page.
+  const printing = matched.find(
+    (variant) => variantTypes.find((type) => type.id === variant.variantTypeId)?.hasPage
   );
-  return normal?.cardVariantId ?? imageVariantIds[0];
+  return (normal ?? printing)?.cardVariantId ?? imageVariantIds[0];
 }
 
 export function variantOptions(

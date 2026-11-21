@@ -341,9 +341,9 @@ Lightsaber, the margin against the next **row** was 0.013, 0.087, 0.164 and 0.00
 of them below the 0.06 threshold. Against the next **different card** it is 0.39 to 0.67.
 
 So margin is measured against the best candidate with a different `baseId`, and the
-displayed candidate list is collapsed by card too. `TOP_K` in `matcher.ts` must stay
-above the largest number of rows any single card owns (currently 7), or the search can
-run out of candidates before finding a genuine rival.
+displayed candidate list is collapsed by card too. `rankCards` in `ranking.ts` keeps
+every row's score and picks the best row per card, so the rival is found however many
+rows one card owns.
 
 `eval_matcher.py` scores by `baseId` for the same reason — counting a promo as a miss
 when the standard printing was the truth measures the wrong thing.

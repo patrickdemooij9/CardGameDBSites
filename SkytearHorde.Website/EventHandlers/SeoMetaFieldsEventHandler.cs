@@ -11,13 +11,20 @@ namespace SkytearHorde.Business.EventHandlers
     {
         private readonly IUmbracoContextFactory _umbracoContextFactory;
         private readonly DeckService _deckService;
+        private readonly CardService _cardService;
         private readonly SettingsService _settingsService;
         private readonly IRequestCache _requestCache;
 
-        public SeoMetaFieldsEventHandler(IUmbracoContextFactory umbracoContextFactory, DeckService deckService, SettingsService settingsService, IRequestCache requestCache)
+        public SeoMetaFieldsEventHandler(
+            IUmbracoContextFactory umbracoContextFactory,
+            DeckService deckService,
+            CardService cardService,
+            SettingsService settingsService, 
+            IRequestCache requestCache)
         {
             _umbracoContextFactory = umbracoContextFactory;
             _deckService = deckService;
+            _cardService = cardService;
             _settingsService = settingsService;
             _requestCache = requestCache;
         }
@@ -28,15 +35,38 @@ namespace SkytearHorde.Business.EventHandlers
             var currentItem = notification.Content;
             if (currentItem is null) return;
 
+            var siteSettings = _settingsService.GetSiteSettings();
             if (currentItem is CardVariant cardVariant)
             {
-                var (title, description) = HandleCardVariant(cardVariant);
-                notification.MetaTags.Title = title;
-                notification.MetaTags.MetaDescription = description;
+                var card = _requestCache.Get(CardPageService.RequestCacheKey) is Entities.Models.Business.Card cachedCard && cachedCard.VariantId == cardVariant.Id
+                    ? cachedCard
+                    : _cardService.GetVariant(cardVariant.Id);
+                if (card is null) return;
+
+                var set = ctx.UmbracoContext.Content?.GetById(card.SetId) as Set;
+                var replacements = new Dictionary<string, string>
+                {
+                    { "{name}", card.DisplayName },
+                    { "{setName}", card.SetName },
+                    { "{setCode}", set?.SetCode?.ToUpperInvariant() ?? "" },
+                    { "{siteName}", siteSettings.SiteName }
+                };
+                foreach (var (attribute, value) in card.Attributes)
+                {
+                    // Ability text stores line breaks as a literal "\r" and keywords as |Keyword|.
+                    var text = string.Join(", ", value.GetValues()).Replace("\\r", " ").Replace("|", "");
+                    replacements.Add($"{{attributes.{attribute}}}", text);
+                }
+
+                notification.MetaTags.Title = string.IsNullOrWhiteSpace(siteSettings.CardMetaTitle)
+                    ? card.DisplayName
+                    : siteSettings.CardMetaTitle.ReplaceMany(replacements);
+                notification.MetaTags.MetaDescription = string.IsNullOrWhiteSpace(siteSettings.CardMetaDescription)
+                    ? $"Discover all the features about the card: {card.DisplayName}"
+                    : siteSettings.CardMetaDescription.ReplaceMany(replacements);
                 return;
             }
 
-            var siteSettings = _settingsService.GetSiteSettings();
             if (currentItem is CardFilterCollection && _requestCache.Get(CardFilterLandingService.RequestCacheKey) is Entities.Models.Business.CardFilterLandingItem generatedLanding)
             {
                 notification.MetaTags.Title = $"{generatedLanding.Name} cards | {siteSettings.SiteName}";
@@ -54,7 +84,7 @@ namespace SkytearHorde.Business.EventHandlers
             {
                 notification.MetaTags.MetaDescription = $"Discover all the features about the card: {currentItem.Name}";
             }
-            if (string.IsNullOrWhiteSpace(notification.MetaTags.MetaDescription) && currentItem.ContentType.Alias == "deckDetail")
+            if (currentItem.ContentType.Alias == "deckDetail")
             {
                 var deckIdString = ctx.UmbracoContext.OriginalRequestUrl.AbsolutePath.Split('/')[^1];
                 if (!int.TryParse(deckIdString, out var deckId)) return;
@@ -62,15 +92,21 @@ namespace SkytearHorde.Business.EventHandlers
                 var deck = _deckService.Get(deckId);
                 if (deck is null) return;
 
-                notification.MetaTags.Title = $"{deck.Name} | {siteSettings.SiteName}";
-                notification.MetaTags.MetaDescription = $"A {siteSettings.SiteName} deck: ${deck.Name}";
-            }
-        }
+                var replacements = new Dictionary<string, string>
+                {
+                    { "{name}", deck.Name },
+                    { "{type}", _settingsService.GetSquadSettings(deck.TypeId).TypeDisplayName! },
+                    { "{siteName}", siteSettings.SiteName }
+                };
+                var mainCards = _deckService.GetMainCards(deck).ToArray();
+                for (var i = 0; i < mainCards.Length; i++)
+                {
+                    replacements.Add($"{{mainCards.{i}.name}}", mainCards[i].DisplayName);
+                }
 
-        private (string title, string description) HandleCardVariant(CardVariant cardVariant)
-        {
-            var card = cardVariant.Parent as Card;
-            return (card!.Name, $"Discover all the features about the card: {card.Name}");
+                notification.MetaTags.Title = notification.MetaTags.Title.ReplaceMany(replacements);
+                notification.MetaTags.MetaDescription = notification.MetaTags.MetaDescription.ReplaceMany(replacements);
+            }
         }
     }
 }

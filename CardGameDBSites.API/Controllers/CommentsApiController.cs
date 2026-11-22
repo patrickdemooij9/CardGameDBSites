@@ -45,8 +45,7 @@ namespace CardGameDBSites.API.Controllers
         [ProducesResponseType(typeof(CommentViewModel[]), 200)]
         public IActionResult GetByDeck(int deckId)
         {
-            var deck = _deckService.Get(deckId);
-            if (deck is null) return NotFound();
+            if (!_deckService.IsPublished(deckId)) return Ok(Array.Empty<CommentViewModel>());
 
             var comments = _commentService.GetByDeck(deckId);
             return Ok(comments.Select(Map).ToArray());

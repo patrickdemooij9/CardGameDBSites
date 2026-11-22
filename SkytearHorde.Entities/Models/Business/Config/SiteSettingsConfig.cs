@@ -27,6 +27,9 @@ namespace SkytearHorde.Entities.Models.Business.Config
         public required DeckRenderConfig DeckRenderConfig { get; set; }
         public bool ApiOnly { get; set; }
 
+        public string? CardMetaTitle { get; set; }
+        public string? CardMetaDescription { get; set; }
+
         public SiteSettingsConfig()
         {
             Keywords = Array.Empty<KeywordImageConfig>();

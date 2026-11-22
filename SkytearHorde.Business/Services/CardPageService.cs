@@ -9,6 +9,8 @@ namespace SkytearHorde.Business.Services
 {
     public class CardPageService
     {
+        public const string RequestCacheKey = "cardPage";
+
         private readonly CardService _cardService;
         private readonly ISiteService _siteService;
 

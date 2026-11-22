@@ -8,6 +8,7 @@ import { useSite } from '~/composables/useSite';
 import type { CommentViewModel } from '~/api/default';
 import CommentSection from '../comments/CommentSection.vue';
 import MetaService from '~/services/MetaService';
+import { buildBreadcrumbSchema, buildWebPageSchema, toAbsoluteUrl } from '~/helpers/StructuredDataHelper';
 
 const props = defineProps<{
   content: CardDetailContentModel;
@@ -15,6 +16,16 @@ const props = defineProps<{
 
 const card = await useCards().loadCardById(props.content.id!);
 const siteSettings = await useSite().getSettings();
+
+const requestUrl = useRequestURL();
+const pageUrl = `${requestUrl.origin}${requestUrl.pathname}`;
+const cardImageUrl = toAbsoluteUrl(card.imageUrl?.url, requestUrl.origin);
+useJsonLd([
+  buildWebPageSchema(pageUrl, card.displayName, cardImageUrl
+    ? { primaryImageOfPage: { "@type": "ImageObject", url: cardImageUrl } }
+    : {}),
+  buildBreadcrumbSchema(requestUrl.origin, requestUrl.pathname, card.displayName),
+]);
 const comments = ref<CommentViewModel[]>(await useComments().loadCommentsByCardId(card.baseId!));
 
 // Leader cards have a meta page; link to it when one exists.

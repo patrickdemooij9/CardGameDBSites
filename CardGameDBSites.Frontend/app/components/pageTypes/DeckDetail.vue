@@ -26,6 +26,11 @@ import DeckCardGroup from "../decks/DeckCardGroup.vue";
 import NotLegalIcon from "../decks/NotLegalIcon.vue";
 import { useAccountStore } from "~/stores/AccountStore";
 import { getEditDeckUrl } from "~/helpers/DeckUrlHelper";
+import {
+  buildBreadcrumbSchema,
+  buildWebPageSchema,
+  toAbsoluteUrl,
+} from "~/helpers/StructuredDataHelper";
 
 console.time("page-render");
 
@@ -128,6 +133,31 @@ if (deck.createdBy) {
     .displayName;
 }
 console.timeEnd("member");
+
+const requestUrl = useRequestURL();
+const pageUrl = `${requestUrl.origin}${requestUrl.pathname}`;
+const deckImageUrl = toAbsoluteUrl(mainCards[0]?.imageUrl?.url, requestUrl.origin);
+useJsonLd([
+  buildWebPageSchema(pageUrl, deck.name, { mainEntity: { "@id": `${pageUrl}#deck` } }),
+  {
+    "@type": "CreativeWork",
+    "@id": `${pageUrl}#deck`,
+    url: pageUrl,
+    name: deck.name,
+    ...(deckSettings?.displayName ? { genre: deckSettings.displayName } : {}),
+    ...(deck.createdBy ? { author: { "@type": "Person", name: createdBy } } : {}),
+    dateCreated: deck.createdDate,
+    dateModified: deck.updatedDate,
+    ...(deckImageUrl ? { image: deckImageUrl } : {}),
+    about: mainCards.map((card) => ({ "@type": "Thing", name: card.displayName })),
+    interactionStatistic: {
+      "@type": "InteractionCounter",
+      interactionType: "https://schema.org/LikeAction",
+      userInteractionCount: deck.amountOfLikes,
+    },
+  },
+  buildBreadcrumbSchema(requestUrl.origin, requestUrl.pathname, deck.name),
+]);
 
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);

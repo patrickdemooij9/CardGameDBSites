@@ -7,7 +7,7 @@ export function useComments() {
   const loadCommentsByDeckId = async (deckId: number) => {
     const data = await $api<CommentViewModel[]>("/api/comments/getByDeck", {
       query: { deckId },
-    });
+    }).catch(() => [] as CommentViewModel[]);
 
     return data ?? [];
   };
@@ -40,7 +40,7 @@ export function useComments() {
   const loadCommentsByCardId = async (cardId: number) => {
     const data = await $api<CommentViewModel[]>("/api/comments/getByCard", {
       query: { cardId },
-    });
+    }).catch(() => []);
 
     return data ?? [];
   };

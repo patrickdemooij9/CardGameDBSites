@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import type { HomepageContentModel } from '~/api/umbraco';
 import ContentGrid from '../content/ContentGrid.vue';
+import type { PageSeoMetaField } from '~/models/PageSeoModel';
+import { buildWebSiteSchema, siteNameFromTitle } from '~/helpers/StructuredDataHelper';
 
 const props = defineProps<{
-    content: HomepageContentModel
+    content: HomepageContentModel & { seoToolkit?: PageSeoMetaField }
 }>();
+
+const requestUrl = useRequestURL();
+useJsonLd([
+    buildWebSiteSchema(requestUrl.origin, siteNameFromTitle(props.content.seoToolkit?.title, requestUrl.hostname)),
+]);
 </script>
 
 <template>

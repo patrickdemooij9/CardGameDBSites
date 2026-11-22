@@ -97,6 +97,7 @@ namespace SkytearHorde.Business.ContentFinders
             if (card is null)
                 return null;
 
+            _requestCache.Set(CardPageService.RequestCacheKey, card);
             return context.UmbracoContext.Content.GetById(card.VariantId);
         }
 

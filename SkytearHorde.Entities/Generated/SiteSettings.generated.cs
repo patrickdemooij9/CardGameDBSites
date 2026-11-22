@@ -127,6 +127,22 @@ namespace SkytearHorde.Entities.Generated
 		public virtual global::Umbraco.Cms.Core.Models.MediaWithCrops CardImageRoot => this.Value<global::Umbraco.Cms.Core.Models.MediaWithCrops>(_publishedValueFallback, "cardImageRoot");
 
 		///<summary>
+		/// Card meta description
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("cardMetaDescription")]
+		public virtual string CardMetaDescription => this.Value<string>(_publishedValueFallback, "cardMetaDescription");
+
+		///<summary>
+		/// Card meta title
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("cardMetaTitle")]
+		public virtual string CardMetaTitle => this.Value<string>(_publishedValueFallback, "cardMetaTitle");
+
+		///<summary>
 		/// Card Overview Identifier
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

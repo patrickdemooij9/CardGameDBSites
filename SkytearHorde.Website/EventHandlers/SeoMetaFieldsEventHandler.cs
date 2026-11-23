@@ -92,20 +92,25 @@ namespace SkytearHorde.Business.EventHandlers
                 var deck = _deckService.Get(deckId);
                 if (deck is null) return;
 
+                var squadSettings = _settingsService.GetSquadSettings(deck.TypeId);
                 var replacements = new Dictionary<string, string>
                 {
                     { "{name}", deck.Name },
-                    { "{type}", _settingsService.GetSquadSettings(deck.TypeId).TypeDisplayName! },
+                    { "{type}", squadSettings?.TypeDisplayName ?? "" },
                     { "{siteName}", siteSettings.SiteName }
                 };
-                var mainCards = _deckService.GetMainCards(deck).ToArray();
+                var mainCards = squadSettings is null ? [] : _deckService.GetMainCards(deck).ToArray();
                 for (var i = 0; i < mainCards.Length; i++)
                 {
                     replacements.Add($"{{mainCards.{i}.name}}", mainCards[i].DisplayName);
                 }
 
-                notification.MetaTags.Title = notification.MetaTags.Title.ReplaceMany(replacements);
-                notification.MetaTags.MetaDescription = notification.MetaTags.MetaDescription.ReplaceMany(replacements);
+                notification.MetaTags.Title = string.IsNullOrWhiteSpace(notification.MetaTags.Title)
+                    ? $"{deck.Name} | {siteSettings.SiteName}"
+                    : notification.MetaTags.Title.ReplaceMany(replacements);
+                notification.MetaTags.MetaDescription = string.IsNullOrWhiteSpace(notification.MetaTags.MetaDescription)
+                    ? $"A {siteSettings.SiteName} deck: {deck.Name}"
+                    : notification.MetaTags.MetaDescription.ReplaceMany(replacements);
             }
         }
     }

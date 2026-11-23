@@ -286,11 +286,6 @@ namespace SkytearHorde.Business.Services
             }, out _);
         }
 
-        public IEnumerable<Card> GetMainCards(Deck deck)
-        {
-            return GetMainCards(deck.Cards);
-        }
-
         public Dictionary<Color, int> GetColorsByDeck(Deck deck)
         {
             var colors = new Dictionary<Guid, int>();
@@ -325,16 +320,16 @@ namespace SkytearHorde.Business.Services
             return colorLogicItems.Where(it => colors[it.Key] > 0).ToDictionary(it => Color.Parse(it.Color!), it => colors[it.Key]);
         }
 
-        public IEnumerable<Card> GetMainCards(IEnumerable<DeckCard> cards)
+        public IEnumerable<Card> GetMainCards(Deck deck)
         {
-            var squadSettings = _settingsService.GetSquadSettings();
+            var squadSettings = _settingsService.GetSquadSettings(deck.TypeId);
             if (squadSettings is null)
             {
-                throw new ApplicationException("No squad settings setup!");
+                throw new ApplicationException($"No squad settings setup for deck type {deck.TypeId}!");
             }
 
             var mainCardRequirements = squadSettings.MainCard.ToItems<ISquadRequirementConfig>().ToArray();
-            return cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().Where(c => mainCardRequirements.All(r => r.GetRequirement().IsValid(new[] { c }))).ToArray();
+            return deck.Cards.Select(it => _cardService.Get(it.CardId)).WhereNotNull().Where(c => mainCardRequirements.All(r => r.GetRequirement().IsValid(new[] { c }))).ToArray();
         }
 
         public IEnumerable<CreateDeckViewModel> GetStartingDecks()

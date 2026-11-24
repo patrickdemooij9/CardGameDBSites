@@ -73,6 +73,14 @@ namespace SkytearHorde.Entities.Generated
 		public virtual string DisplayName => this.Value<string>(_publishedValueFallback, "displayName");
 
 		///<summary>
+		/// Examine Field: Overrides the index field to filter on, without the CustomField. prefix. For example: Pip Requirement.Collective.Amount
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("examineField")]
+		public virtual string ExamineField => this.Value<string>(_publishedValueFallback, "examineField");
+
+		///<summary>
 		/// Is Expansion Filter
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "17.7.1+4b0184a")]

@@ -265,7 +265,7 @@ export function planLayout(
     const spec = gridSpec(tier, body.length, config.cardAspect!);
 
     for (const group of model.groups) {
-      if (model.groups.length > 1 || group.header) {
+      if (model.groups.length > 1) {
         ops.push({ kind: "sectionLabel", text: group.header, meta: null, y });
         y += 38;
       }

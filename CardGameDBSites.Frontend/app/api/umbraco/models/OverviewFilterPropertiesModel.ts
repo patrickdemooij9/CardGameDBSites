@@ -13,5 +13,6 @@ export type OverviewFilterPropertiesModel = {
     isInline?: boolean | null;
     isRange?: boolean | null;
     isKeywordFilter?: boolean | null;
+    examineField?: string | null;
 };
 

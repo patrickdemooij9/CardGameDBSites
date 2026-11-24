@@ -48,7 +48,8 @@ export function ToOverviewModel(items: ApiBlockItemModel[]) {
 
       const alias = castedItem.isExpansionFilter
         ? "Set Name"
-        : ((castedItem.ability as IApiContentModel[])[0]?.name ?? "");
+        : castedItem.examineField ||
+          ((castedItem.ability as IApiContentModel[])[0]?.name ?? "");
       return {
         Alias: alias,
         DisplayName: castedItem?.displayName ?? "",

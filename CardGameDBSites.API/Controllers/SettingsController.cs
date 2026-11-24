@@ -202,7 +202,7 @@ namespace CardGameDBSites.API.Controllers
             {
                 Filters = [.. setOverview.SetFilters.ToItems<OverviewFilter>().Select(it => new OverviewFilterApiModel
                 {
-                    Alias = it.IsExpansionFilter ? "Set Name" : it.Ability!.Name,
+                    Alias = it.GetFilterAlias(),
                     DisplayName = it.DisplayName,
                     IsInline = it.IsInline,
                     IsRange = it.IsRange,

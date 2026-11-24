@@ -181,6 +181,11 @@ describe("planLayout", () => {
     expect(labels).toHaveLength(4);
   });
 
+  it("omits the section label when the flat grid has a single group", () => {
+    const plan = planLayout(stubContext(), flatDeck(20), "fullFace");
+    expect(plan.ops.some((op) => op.kind === "sectionLabel")).toBe(false);
+  });
+
   it("counts squads rather than unique cards in the grouped metadata line", () => {
     const plan = planLayout(stubContext(), squadDeck(3), "fullFace");
     expect(plan.metaText).toContain("3 squads");

@@ -40,7 +40,7 @@ namespace SkytearHorde.Business.DataSources.Overview
 
             foreach (var filter in overview.SetFilters.ToItems<OverviewFilter>())
             {
-                var abilityName = filter.IsExpansionFilter ? "Set Name" : filter.Ability!.Name;
+                var abilityName = filter.GetFilterAlias();
 
                 var filterModel = new FilterViewModel(filter.DisplayName!, abilityName)
                 {

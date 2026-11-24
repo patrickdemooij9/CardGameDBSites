@@ -2,6 +2,7 @@
 import type { RegisterContentModel } from "~/api/umbraco";
 import Button from "../shared/Button.vue";
 import { useAccountStore } from "~/stores/AccountStore";
+import { MinPasswordLength, getApiErrorMessage } from "~/helpers/PasswordRules";
 
 defineProps<{
   content: RegisterContentModel;
@@ -17,6 +18,7 @@ const errorMessage = ref("");
 const isSubmitting = ref(false);
 
 async function submit() {
+  errorMessage.value = "";
   isSubmitting.value = true;
   try {
     const recaptcha = await getRecaptchaToken();
@@ -29,8 +31,7 @@ async function submit() {
     });
     useRouter().push("/");
   } catch (error: any) {
-    console.log(error);
-    errorMessage.value = error || "Register failed. Please try again.";
+    errorMessage.value = getApiErrorMessage(error, "Register failed. Please try again.");
   } finally {
     isSubmitting.value = false;
   }
@@ -110,8 +111,10 @@ onMounted(() => {
           name="password"
           class="px-3 py-1 rounded border border-gray-300 w-full"
           required
+          :minlength="MinPasswordLength"
           v-model="registerModel.password"
         />
+        <span class="text-sm text-gray-500">At least {{ MinPasswordLength }} characters.</span>
       </div>
 
       <div class="mb-4">

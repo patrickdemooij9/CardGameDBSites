@@ -17,7 +17,7 @@ namespace SkytearHorde.Entities.Models.PostModels
 
         [DisplayName("Password")]
         [Required]
-        [MinLength(10, ErrorMessage = "Your password should be 10 characters long")]
+        [MinLength(6, ErrorMessage = "Your password should be at least 6 characters long")]
         public string Password { get; set; }
 
         [DisplayName("TermsAndConditions")]

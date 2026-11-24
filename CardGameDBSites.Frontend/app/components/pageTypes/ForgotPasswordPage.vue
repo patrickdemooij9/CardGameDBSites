@@ -2,6 +2,7 @@
 import type { ForgotPasswordContentModel } from "~/api/umbraco";
 import Button from "../shared/Button.vue";
 import { useAccountStore } from "~/stores/AccountStore";
+import { MinPasswordLength } from "~/helpers/PasswordRules";
 
 defineProps<{
   content: ForgotPasswordContentModel;
@@ -103,8 +104,10 @@ async function submitResetPassword() {
           name="newPassword"
           class="px-3 py-1 rounded border border-gray-300 w-full"
           required
+          :minlength="MinPasswordLength"
           v-model="model.newPassword"
         />
+        <span class="text-sm text-gray-500">At least {{ MinPasswordLength }} characters.</span>
       </div>
 
       <div v-if="errorMessage" class="text-red-500 mb-4">

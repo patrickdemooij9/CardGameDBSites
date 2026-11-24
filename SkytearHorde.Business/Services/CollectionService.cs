@@ -56,7 +56,7 @@ namespace SkytearHorde.Business.Services
             var currentCollectionCards = _collectionCardRepository.Get(memberId);
             foreach (var card in cards)
             {
-                var cardAmount = 1;
+                var cardAmount = CopiesInSet(card) * amount;
                 var cardInCollection = currentCollectionCards.FirstOrDefault(it => it.CardId == card.BaseId && it.VariantId == card.VariantId);
                 if (cardInCollection != null)
                 {
@@ -219,6 +219,7 @@ namespace SkytearHorde.Business.Services
             {
                 _collectionSetRepository.Remove(item.Id);
             }
+            var setAmount = Math.Max(item?.Amount ?? 1, 1);
 
             var setCards = _cardRepository.GetAllBaseBySet(setId);
             var collectionCards = _collectionCardRepository.Get(memberId);
@@ -228,7 +229,7 @@ namespace SkytearHorde.Business.Services
                 var cardInCollection = collectionCards.FirstOrDefault(it => it.CardId == card.BaseId && it.VariantId == card.VariantId);
                 if (cardInCollection != null)
                 {
-                    newAmount = cardInCollection.Amount - 1;
+                    newAmount = Math.Max(cardInCollection.Amount - CopiesInSet(card) * setAmount, 0);
                 }
 
                 UpdateCard(card.BaseId, newAmount, memberId, card.VariantId, cardInCollection);
@@ -266,7 +267,7 @@ namespace SkytearHorde.Business.Services
                     {
                         CardId = it.BaseId,
                         VariantId = 0,
-                        Amount = 1,
+                        Amount = CopiesInSet(it) * Math.Max(set.Amount, 1),
                         UserId = memberId
                     }));
                 }
@@ -391,6 +392,8 @@ namespace SkytearHorde.Business.Services
 
             return (int)(allCards.Where(it => allCardsInCollection.Contains(it.BaseId)).Count() / (double)allCards.Length * 100);
         }
+
+        private static int CopiesInSet(Card card) => Math.Max(card.GetAmount(), 1);
 
         private int AssertLoggedInMember()
         {

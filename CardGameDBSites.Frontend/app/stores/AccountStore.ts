@@ -129,11 +129,12 @@ export const useAccountStore = defineStore("accountStore", {
       }
 
       this.applyMember(
-        await DoFetch<CurrentMemberApiModel>("/api/account/register", {
+        await DoServerFetch<CurrentMemberApiModel>("/api/account/register", false, {
           method: "POST",
           body: model,
         })
       );
+      this.validatedLogin = true;
     },
     async forgotPassword(email: string) {
       return await DoServerFetch("/api/account/forgotpassword", true, {

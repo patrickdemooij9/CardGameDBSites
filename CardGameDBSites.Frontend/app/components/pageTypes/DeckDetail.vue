@@ -159,6 +159,18 @@ useJsonLd([
   buildBreadcrumbSchema(requestUrl.origin, requestUrl.pathname, deck.name),
 ]);
 
+// The CMS meta handler only sees published decks; the deck API returns a draft only to its owner.
+if (!deck.isPublished) {
+  const draftTitle = `${deck.name} | ${siteSettings.siteName}`;
+  const draftDescription = `A ${siteSettings.siteName} deck: ${deck.name}`;
+  useSeoMeta({
+    title: draftTitle,
+    description: draftDescription,
+    ogTitle: draftTitle,
+    ogDescription: draftDescription,
+  });
+}
+
 const isLoggedIn = ref(false);
 const collectionMode = ref(false);
 const deckDisplayMode = ref(deckSettings.allowedDisplays?.[0] ?? 'text');

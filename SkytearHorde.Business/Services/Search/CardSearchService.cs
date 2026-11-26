@@ -91,7 +91,7 @@ namespace SkytearHorde.Business.Services.Search
                     continue;
                 }
 
-                GetQuery(searcher, filterClause.ClauseType).Group(GetFiltersOperation(filters));
+                GetQuery(searcher, filterClause.ClauseType).Group(GetFiltersOperation(filters, index.FieldDefinitions));
 
                 /*foreach (var filter in filters)
                 {
@@ -249,7 +249,7 @@ namespace SkytearHorde.Business.Services.Search
         private const string AnchorField = "__IndexType";
         private const string AnchorValue = "content";
 
-        private Func<INestedQuery, INestedBooleanOperation> GetFiltersOperation(CardSearchFilter[] filters)
+        private Func<INestedQuery, INestedBooleanOperation> GetFiltersOperation(CardSearchFilter[] filters, ReadOnlyFieldDefinitionCollection fieldDefinitions)
         {
             // Filters within a clause are OR'd together. Positive filters are added as plain terms.
             // A negated filter can't just be a MUST_NOT term: in Lucene a purely-negative clause
@@ -267,7 +267,7 @@ namespace SkytearHorde.Business.Services.Search
                 foreach (var filter in positives)
                 {
                     var query = nestedBoolean is null ? it : nestedBoolean.Or();
-                    nestedBoolean = ApplyTerm(query, filter);
+                    nestedBoolean = ApplyTerm(query, filter, fieldDefinitions);
                 }
 
                 if (nestedBoolean is null)
@@ -277,7 +277,7 @@ namespace SkytearHorde.Business.Services.Search
                     nestedBoolean = it.Field(AnchorField, AnchorValue);
                     foreach (var filter in negatives)
                     {
-                        nestedBoolean = ApplyTerm(nestedBoolean.Not(), filter);
+                        nestedBoolean = ApplyTerm(nestedBoolean.Not(), filter, fieldDefinitions);
                     }
                     return nestedBoolean;
                 }
@@ -285,7 +285,7 @@ namespace SkytearHorde.Business.Services.Search
                 foreach (var filter in negatives)
                 {
                     nestedBoolean = nestedBoolean.Or(
-                        inner => ApplyTerm(inner.Field(AnchorField, AnchorValue).Not(), filter),
+                        inner => ApplyTerm(inner.Field(AnchorField, AnchorValue).Not(), filter, fieldDefinitions),
                         BooleanOperation.And);
                 }
 
@@ -293,7 +293,7 @@ namespace SkytearHorde.Business.Services.Search
             };
         }
 
-        private static INestedBooleanOperation ApplyTerm(INestedQuery query, CardSearchFilter filter)
+        private static INestedBooleanOperation ApplyTerm(INestedQuery query, CardSearchFilter filter, ReadOnlyFieldDefinitionCollection fieldDefinitions)
         {
             var field = $"CustomField.{filter.Alias}";
             var actualValue = filter.Values.Select(it => it.Replace(" ", "")).ToArray();
@@ -335,7 +335,34 @@ namespace SkytearHorde.Business.Services.Search
                     return query.RangeQuery<int>([field], minValue, maxValue);
                 case CardSearchFilterMode.Contains:
                 default:
+                    if (fieldDefinitions.TryGetValue(field, out var definition) && definition.Type == FieldDefinitionTypes.Integer)
+                    {
+                        return AnyOfNumbers(query, field, actualValue.Select(int.Parse).ToArray());
+                    }
                     return query.GroupedOr([field], actualValue);
+            }
+        }
+
+        // Numeric fields don't match text terms, so exact values are sent as one range per run of consecutive numbers.
+        private static INestedBooleanOperation AnyOfNumbers(INestedQuery query, string field, int[] values)
+        {
+            INestedBooleanOperation? result = null;
+            foreach (var (min, max) in ToConsecutiveRuns(values))
+            {
+                result = (result is null ? query : result.Or()).RangeQuery<int>([field], min, max);
+            }
+            return result!;
+        }
+
+        private static IEnumerable<(int Min, int Max)> ToConsecutiveRuns(int[] values)
+        {
+            var sorted = values.Distinct().Order().ToArray();
+            var runStart = 0;
+            for (var i = 1; i <= sorted.Length; i++)
+            {
+                if (i < sorted.Length && sorted[i] == sorted[i - 1] + 1) continue;
+                yield return (sorted[runStart], sorted[i - 1]);
+                runStart = i;
             }
         }
     }

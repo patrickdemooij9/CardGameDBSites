@@ -135,7 +135,7 @@ function onCardSelect(card: CardDetailApiModel) {
           >
             <input
               type="checkbox"
-              class="h-4 w-4 bg-surface rounded appearance-none border border-gray-300 checked:bg-checked checked:bg-black"
+              class="h-4 w-4 bg-surface rounded appearance-none border border-gray-300 checked:bg-checked checked:bg-black dark:checked:border-transparent dark:checked:bg-main-color"
               :id="`section-${filter.Alias}-${item.Value}`"
               :value="item.Value"
               :checked="isSelected(item.Value)"

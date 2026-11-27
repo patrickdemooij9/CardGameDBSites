@@ -130,7 +130,7 @@ function commit() {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 9999px;
-  background: white;
+  background: rgb(var(--color-surface));
   border: 2px solid var(--main-color);
   cursor: pointer;
 }
@@ -140,7 +140,7 @@ function commit() {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 9999px;
-  background: white;
+  background: rgb(var(--color-surface));
   border: 2px solid var(--main-color);
   cursor: pointer;
 }

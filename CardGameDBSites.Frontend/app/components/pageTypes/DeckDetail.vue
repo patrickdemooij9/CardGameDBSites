@@ -425,7 +425,7 @@ console.timeEnd("page-render");
                 Edit
               </button>
               <button
-                class="block w-full text-left px-4 py-2 text-red-600 hover:bg-canvas"
+                class="block w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-canvas"
                 @click="
                   showActionsDropdown = false;
                   handleDeleteDeck();

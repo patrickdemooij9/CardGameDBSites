@@ -176,7 +176,7 @@ const gridClass = computed(() => `lg:grid-cols-${props.decksPerRow ?? 4}`);
         </button>
         <button
           type="button"
-          class="flex items-center gap-1 rounded border border-red-300 bg-surface px-2 py-1 text-xs text-red-600 hover:border-red-500"
+          class="flex items-center gap-1 rounded border border-red-300 bg-surface px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:border-red-500"
           @click.stop.prevent="emit('delete', deck.id!)"
         >
           <PhTrash :size="16" /> Delete

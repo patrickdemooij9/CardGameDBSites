@@ -81,7 +81,7 @@ function toggle(item: OverviewFilterItemModel, relation: string) {
             class="flex h-9 w-9 items-center justify-center rounded-lg border"
             :class="
               isSelected(item, column.relation)
-                ? 'border-black bg-black text-white'
+                ? 'border-black bg-black text-white dark:border-ink dark:bg-ink dark:text-canvas'
                 : 'border-gray-200 text-gray-500 hover:border-gray-400'
             "
             :title="`${item.DisplayName}: ${column.label}`"

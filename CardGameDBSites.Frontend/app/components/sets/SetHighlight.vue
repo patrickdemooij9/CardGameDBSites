@@ -28,7 +28,7 @@ const meta = computed(() => FormatSetMeta(props.set, !upcoming.value, setCollect
     </NuxtLink>
     <div class="flex flex-col justify-center gap-3 bg-black/40 p-6 text-white md:px-8">
       <div class="flex flex-wrap items-center gap-2">
-        <span v-if="upcoming" class="rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-gray-900">
+        <span v-if="upcoming" class="rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-neutral-900">
           Coming {{ FormatReleaseDate(set) }}
         </span>
         <span v-if="set.code" class="rounded bg-white/15 px-2 py-0.5 text-xs font-bold uppercase">

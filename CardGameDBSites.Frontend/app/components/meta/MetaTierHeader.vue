@@ -16,7 +16,7 @@ const dateRange = computed(() => {
 </script>
 
 <template>
-  <section class="bg-gray-900 text-white py-12 px-4">
+  <section class="gray-fixed bg-gray-900 text-white py-12 px-4">
     <div class="container md:px-8">
       <h1 class="text-white text-3xl md:text-5xl font-bold mb-3">{{ heading }}</h1>
 

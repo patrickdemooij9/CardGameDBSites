@@ -13,6 +13,7 @@ import {
     Filler,
 } from 'chart.js';
 import { DoServerFetch } from '~/helpers/RequestsHelper';
+import { useChartTheme } from '~/composables/useChartTheme';
 import type { CardPriceHistoryItemApiModel } from '~/api/default/models/CardPriceHistoryItemApiModel';
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler);
@@ -95,6 +96,8 @@ const chartData = computed(() => ({
     ],
 }));
 
+const theme = useChartTheme();
+
 const waypointPlugin = {
     id: 'priceHistoryWaypoints',
     afterDraw(chart: any) {
@@ -110,7 +113,7 @@ const waypointPlugin = {
 
             ctx.save();
             ctx.setLineDash([4, 4]);
-            ctx.strokeStyle = '#94a3b8';
+            ctx.strokeStyle = theme.value.muted;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(x, chartArea.top);
@@ -118,7 +121,7 @@ const waypointPlugin = {
             ctx.stroke();
 
             ctx.setLineDash([]);
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = theme.value.muted;
             ctx.font = 'bold 11px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
@@ -157,8 +160,9 @@ const chartOptions = computed(() => ({
     },
     scales: {
         x: {
-            grid: { color: 'rgba(0,0,0,0.06)' },
+            grid: { color: theme.value.grid },
             ticks: {
+                color: theme.value.text,
                 maxRotation: 0,
                 maxTicksLimit: 13,
                 callback: function (this: any, value: any): string {
@@ -176,9 +180,9 @@ const chartOptions = computed(() => ({
         },
         y: {
             beginAtZero: true,
-            grid: { color: 'rgba(0,0,0,0.06)' },
+            grid: { color: theme.value.grid },
             ticks: {
-                color: '#374151',
+                color: theme.value.text,
                 callback: (value: number | string) => `$${Number(value).toFixed(2)}`,
             },
         },

@@ -3,6 +3,7 @@ import MobileTabBar from "~/components/navigation/MobileTabBar.vue";
 import Navigation from "~/components/navigation/Navigation.vue";
 import SiteFooter from "~/components/navigation/SiteFooter.vue";
 import ImpersonationBanner from "~/components/shared/ImpersonationBanner.vue";
+import { useColorMode } from "~/composables/useColorMode";
 import { useSite } from "~/composables/useSite";
 import { isNativeApp } from "~/helpers/NativeApp";
 
@@ -15,17 +16,25 @@ const isNative = isNativeApp();
 const route = useRoute();
 const isHomepage = computed(() => route.path === "/");
 
-onMounted(async () => {
+const { isDark } = useColorMode();
+
+onMounted(() => {
   if (!isNative) {
     return;
   }
-  try {
-    // No top bar in the app, so the status bar sits over the page background — dark icons.
-    const { StatusBar, Style } = await import("@capacitor/status-bar");
-    await StatusBar.setStyle({ style: Style.Light });
-  } catch {
-    // StatusBar is unavailable on platforms that don't implement it.
-  }
+  watch(
+    isDark,
+    async (dark) => {
+      try {
+        // No top bar in the app, so the status bar icons sit over the page background.
+        const { StatusBar, Style } = await import("@capacitor/status-bar");
+        await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light });
+      } catch {
+        // StatusBar is unavailable on platforms that don't implement it.
+      }
+    },
+    { immediate: true }
+  );
 });
 </script>
 

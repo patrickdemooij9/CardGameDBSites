@@ -17,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "~": resolve(__dirname, "app"),
+      "#card-scanner": resolve(__dirname, "../SWUCardScanner/web/src/lib"),
     },
   },
 });

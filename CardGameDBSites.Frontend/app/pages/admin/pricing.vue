@@ -51,8 +51,8 @@ const reasonLabels: Record<MissingPriceReason, string> = {
 
 const reasonClasses: Record<MissingPriceReason, string> = {
   NoTcgPlayerId: "bg-gray-100 text-gray-700",
-  InvalidTcgPlayerId: "bg-red-100 text-red-800",
-  NoPriceFound: "bg-yellow-100 text-yellow-800",
+  InvalidTcgPlayerId: "bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300",
+  NoPriceFound: "bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-200",
 };
 
 const pageSize = 200;
@@ -236,9 +236,9 @@ onBeforeUnmount(stopPolling);
       </button>
     </div>
 
-    <p v-if="errorMessage" class="text-red-600 mb-4">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="text-red-600 dark:text-red-400 mb-4">{{ errorMessage }}</p>
 
-    <div class="bg-white rounded shadow p-4 mb-6">
+    <div class="bg-surface rounded shadow p-4 mb-6">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 class="text-lg font-semibold mb-2">Price sync</h2>
@@ -247,15 +247,15 @@ onBeforeUnmount(stopPolling);
             <dd>
               <span
                 v-if="syncStatus?.isRunning"
-                class="inline-flex items-center gap-2 text-blue-700 font-medium"
+                class="inline-flex items-center gap-2 text-blue-700 dark:text-blue-300 font-medium"
               >
                 <span class="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></span>
                 Running…
               </span>
-              <span v-else-if="syncStatus?.error" class="text-red-600 font-medium">
+              <span v-else-if="syncStatus?.error" class="text-red-600 dark:text-red-400 font-medium">
                 Failed: {{ syncStatus.error }}
               </span>
-              <span v-else-if="syncStatus?.finishedUtc" class="text-green-700 font-medium">
+              <span v-else-if="syncStatus?.finishedUtc" class="text-green-700 dark:text-green-400 font-medium">
                 Idle
               </span>
               <span v-else class="text-gray-500">Not run since the server started</span>
@@ -279,26 +279,26 @@ onBeforeUnmount(stopPolling);
             {{ syncStatus?.isRunning ? "Sync running…" : "Start price sync" }}
           </button>
           <span class="text-xs text-gray-400">Syncs this site's prices from TCGplayer</span>
-          <span v-if="syncMessage" class="text-red-600 text-sm">{{ syncMessage }}</span>
+          <span v-if="syncMessage" class="text-red-600 dark:text-red-400 text-sm">{{ syncMessage }}</span>
         </div>
       </div>
     </div>
 
     <template v-if="overview">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white rounded shadow p-4">
+        <div class="bg-surface rounded shadow p-4">
           <div class="text-xs font-semibold text-gray-500 uppercase">Priceable cards</div>
           <div class="text-2xl font-bold">{{ overview.priceableCardCount }}</div>
         </div>
-        <div class="bg-white rounded shadow p-4">
+        <div class="bg-surface rounded shadow p-4">
           <div class="text-xs font-semibold text-gray-500 uppercase">Without a price</div>
           <div class="text-2xl font-bold">{{ overview.missingPrices.length }}</div>
         </div>
-        <div class="bg-white rounded shadow p-4">
+        <div class="bg-surface rounded shadow p-4">
           <div class="text-xs font-semibold text-gray-500 uppercase">Conflicting TCGplayer IDs</div>
           <div
             class="text-2xl font-bold"
-            :class="{ 'text-red-600': overview.conflicts.length > 0 }"
+            :class="{ 'text-red-600 dark:text-red-400': overview.conflicts.length > 0 }"
           >
             {{ overview.conflicts.length }}
           </div>
@@ -308,21 +308,21 @@ onBeforeUnmount(stopPolling);
       <div class="flex gap-2 mb-4 border-b border-gray-200">
         <button
           class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
-          :class="activeTab === 'missing' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          :class="activeTab === 'missing' ? 'border-blue-600 text-blue-700 dark:text-blue-300' : 'border-transparent text-gray-500 hover:text-gray-700'"
           @click="activeTab = 'missing'"
         >
           Missing prices ({{ overview.missingPrices.length }})
         </button>
         <button
           class="px-4 py-2 text-sm font-medium -mb-px border-b-2"
-          :class="activeTab === 'conflicts' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          :class="activeTab === 'conflicts' ? 'border-blue-600 text-blue-700 dark:text-blue-300' : 'border-transparent text-gray-500 hover:text-gray-700'"
           @click="activeTab = 'conflicts'"
         >
           Conflicting IDs ({{ overview.conflicts.length }})
         </button>
       </div>
 
-      <div v-if="activeTab === 'missing'" class="bg-white rounded shadow p-4">
+      <div v-if="activeTab === 'missing'" class="bg-surface rounded shadow p-4">
         <div class="flex flex-wrap gap-4 mb-4">
           <div class="flex flex-col w-full max-w-xs">
             <label class="text-xs font-semibold text-gray-500 mb-0.5">Search</label>
@@ -445,7 +445,7 @@ onBeforeUnmount(stopPolling);
         <div
           v-for="conflict in overview.conflicts"
           :key="conflict.tcgPlayerId"
-          class="bg-white rounded shadow p-4 border-l-4 border-red-400"
+          class="bg-surface rounded shadow p-4 border-l-4 border-red-400"
         >
           <div class="flex items-center gap-3 mb-2">
             <span class="text-sm font-semibold">TCGplayer ID {{ conflict.tcgPlayerId }}</span>

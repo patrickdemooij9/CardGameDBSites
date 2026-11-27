@@ -3,7 +3,7 @@
     <h3 class="text-lg font-bold mb-2">Add a card pack</h3>
     <p class="text-gray-600 mb-4">Add the number (bottom-left) of your card to each of the inputs and we'll add them to your collection.</p>
 
-    <div v-if="errorMessage" class="text-red-600 mb-4">
+    <div v-if="errorMessage" class="text-red-600 dark:text-red-400 mb-4">
       {{ errorMessage }}
     </div>
 

@@ -31,7 +31,7 @@ const emit = defineEmits<{
         v-for="option in options"
         :key="option.id"
         type="button"
-        class="group relative text-left rounded-2xl border border-gray-200/80 bg-white/90 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-main-color/50 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-color focus-visible:ring-offset-2"
+        class="group relative text-left rounded-2xl border border-gray-200/80 bg-surface/90 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-main-color/50 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-main-color focus-visible:ring-offset-2"
         @click="emit('select', option)"
       >
         <div class="relative z-10 flex items-start gap-4">

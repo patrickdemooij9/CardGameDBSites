@@ -48,7 +48,7 @@ const selectedTypeId = ref(
         <p v-if="getIllegalCardCount(format.typeId) === 0" class="text-xs">
           All cards legal
         </p>
-        <p v-else class="text-xs text-red-600">
+        <p v-else class="text-xs text-red-600 dark:text-red-400">
           {{ getIllegalCardCount(format.typeId) }}
           {{ getIllegalCardCount(format.typeId) === 1 ? "card" : "cards" }} not
           legal
@@ -56,10 +56,10 @@ const selectedTypeId = ref(
       </div>
     </label>
     <div class="mt-4 flex justify-end gap-2">
-      <Button class="border border-black" @click="emit('close')">Cancel</Button>
+      <Button class="border border-ink" @click="emit('close')">Cancel</Button>
       <Button
         :button-type="ButtonType.Success"
-        class="border border-black"
+        class="border border-ink"
         @click="emit('convert', selectedTypeId!)"
       >
         Convert

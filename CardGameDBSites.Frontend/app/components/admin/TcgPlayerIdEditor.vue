@@ -77,7 +77,7 @@ async function save() {
         Cancel
       </button>
     </div>
-    <span v-if="errorMessage" class="text-red-600 text-xs max-w-xs">{{ errorMessage }}</span>
+    <span v-if="errorMessage" class="text-red-600 dark:text-red-400 text-xs max-w-xs">{{ errorMessage }}</span>
   </div>
   <div v-else class="flex items-center gap-2">
     <slot>

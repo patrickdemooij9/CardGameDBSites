@@ -154,7 +154,7 @@ const totalCards = computed(() =>
         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
       >
         <div v-if="selectedCards.length === maxAmountPerCard">
-          <p class="text-red-600 text-sm text-center">
+          <p class="text-red-600 dark:text-red-400 text-sm text-center">
             Maximum of {{ maxAmountPerCard }} copies per card reached.
           </p>
         </div>

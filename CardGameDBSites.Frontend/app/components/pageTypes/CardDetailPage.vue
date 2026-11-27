@@ -66,12 +66,12 @@ function handleCommentDeleted(comment: CommentViewModel) {
             </div>
           </div>
           <div class="w-full">
-            <div v-if="metaUrl" class="bg-yellow-100 rounded mb-4">
+            <div v-if="metaUrl" class="bg-yellow-100 dark:bg-yellow-500/20 rounded mb-4">
               <div class="p-4 flex flex-wrap items-center justify-between gap-2">
                 <p class="mb-0">See the competitive meta for {{ card.displayName }}: usage, winrate and the best decks.</p>
                 <NuxtLink
                   :href="metaUrl"
-                  class="no-underline inline-block bg-gray-900 text-white hover:bg-gray-700 font-semibold px-4 py-2 rounded transition-colors"
+                  class="no-underline inline-block bg-gray-900 text-white dark:text-neutral-900 hover:bg-gray-700 font-semibold px-4 py-2 rounded transition-colors"
                 >
                   View meta
                 </NuxtLink>

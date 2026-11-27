@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PhCaretRight, PhSignIn, PhSignOut, PhUser } from "@phosphor-icons/vue";
+import ColorModeToggle from "~/components/shared/ColorModeToggle.vue";
 import { AppTabPrefixes } from "~/composables/useAppSection";
 import { useSite } from "~/composables/useSite";
 import { useAccountStore } from "~/stores/AccountStore";
@@ -45,7 +46,7 @@ async function logout() {
             {{ item.name }}
             <PhCaretRight :size="16" class="text-gray-400" />
           </NuxtLink>
-          <button class="flex items-center gap-2 py-3 text-left text-red-600" @click="logout">
+          <button class="flex items-center gap-2 py-3 text-left text-red-600 dark:text-red-400" @click="logout">
             <PhSignOut :size="18" />
             Logout
           </button>
@@ -92,6 +93,12 @@ async function logout() {
         Card scanner
         <PhCaretRight :size="16" class="text-gray-400" />
       </NuxtLink>
+    </div>
+
+    <div class="mt-4 bg-surface border-y border-gray-200">
+      <ColorModeToggle class="flex w-full flex-row-reverse items-center justify-between px-4 py-3 text-left">
+        Dark mode
+      </ColorModeToggle>
     </div>
 
     <div class="mt-4 bg-surface border-y border-gray-200">

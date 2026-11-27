@@ -201,7 +201,7 @@ async function handleCollectionUpdated() {
       <div
         v-for="type in exportTypes"
         :key="type.value"
-        class="border rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+        class="border rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
         @click="handleExport(type.value)"
       >
         <div class="font-semibold">{{ type.label }}</div>
@@ -235,14 +235,14 @@ async function handleCollectionUpdated() {
           id="overwrite"
           type="checkbox"
           v-model="overwriteCollection"
-          class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          class="h-4 w-4 rounded border-gray-300 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
         />
         <label for="overwrite" class="ml-2 block text-sm text-gray-900">
           Overwrite existing collection
         </label>
       </div>
 
-      <div v-if="importError" class="text-red-600 text-sm">
+      <div v-if="importError" class="text-red-600 dark:text-red-400 text-sm">
         {{ importError }}
       </div>
     </div>

@@ -371,7 +371,7 @@ onMounted(async () => {
     </div>
 
     <!-- Manual submit -->
-    <div class="bg-white rounded shadow p-4 mb-6">
+    <div class="bg-surface rounded shadow p-4 mb-6">
       <h2 class="text-lg font-semibold mb-3">Submit reveal images manually</h2>
       <div class="flex flex-col gap-3 max-w-xl">
         <div class="flex flex-col">
@@ -416,19 +416,19 @@ onMounted(async () => {
           >
             {{ isSubmitting ? "Submitting…" : "Submit" }}
           </button>
-          <span v-if="submitMessage" class="text-green-600 text-sm">{{ submitMessage }}</span>
-          <span v-if="submitError" class="text-red-600 text-sm">{{ submitError }}</span>
+          <span v-if="submitMessage" class="text-green-600 dark:text-green-400 text-sm">{{ submitMessage }}</span>
+          <span v-if="submitError" class="text-red-600 dark:text-red-400 text-sm">{{ submitError }}</span>
         </div>
       </div>
     </div>
 
-    <p v-if="errorMessage" class="text-red-600 mb-4">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="text-red-600 dark:text-red-400 mb-4">{{ errorMessage }}</p>
 
     <p v-if="!isLoading && items.length === 0" class="text-gray-500">
       No pending items.
     </p>
 
-    <div v-if="items.length" class="bg-white rounded shadow p-4 mb-6 flex flex-wrap gap-4">
+    <div v-if="items.length" class="bg-surface rounded shadow p-4 mb-6 flex flex-wrap gap-4">
       <div class="flex flex-col w-full max-w-xs">
         <label class="text-xs font-semibold text-gray-500 mb-0.5">Set for all cards</label>
         <select
@@ -461,7 +461,7 @@ onMounted(async () => {
       <div
         v-for="item in items"
         :key="item.id"
-        class="bg-white rounded shadow p-4 flex gap-6"
+        class="bg-surface rounded shadow p-4 flex gap-6"
         :class="{ 'border-l-4 border-yellow-400': item.status === 'PotentialVariant' }"
       >
         <!-- Card image(s) -->
@@ -487,7 +487,7 @@ onMounted(async () => {
           <div class="flex items-center gap-3 mb-3 flex-wrap">
             <span
               v-if="item.matchedCardName"
-              class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded"
+              class="bg-yellow-100 dark:bg-yellow-500/20 text-yellow-800 dark:text-yellow-200 text-xs font-semibold px-2 py-0.5 rounded"
             >
               Possible variant of: {{ item.matchedCardName }} (#{{ item.potentialDuplicateId }})
             </span>

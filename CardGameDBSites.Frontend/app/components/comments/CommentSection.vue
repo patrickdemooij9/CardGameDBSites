@@ -8,7 +8,7 @@
 
       <button
         v-if="comment.createdById === accountStore.member?.id"
-        class="invisible group-hover:visible text-red-500 hover:text-red-700"
+        class="invisible group-hover:visible text-red-500 hover:text-red-700 dark:hover:text-red-300"
         @click="openDeleteModal(comment)"
       >
         <PhTrash />

@@ -139,7 +139,7 @@ onMounted(async () => {
       </p>
     </div>
 
-    <div class="bg-white rounded shadow p-6">
+    <div class="bg-surface rounded shadow p-6">
       <div class="mb-4">
         <label class="block mb-2 font-semibold" for="formatId">Format ID</label>
         <input
@@ -193,24 +193,24 @@ onMounted(async () => {
         {{ isLoading ? "Importing…" : "Import Tournament" }}
       </button>
 
-      <p v-if="successMessage" class="text-green-600 mt-4">{{ successMessage }}</p>
+      <p v-if="successMessage" class="text-green-600 dark:text-green-400 mt-4">{{ successMessage }}</p>
 
       <div v-if="errorMessage" class="mt-4">
-        <p class="text-red-600 mb-4">{{ errorMessage }}</p>
+        <p class="text-red-600 dark:text-red-400 mb-4">{{ errorMessage }}</p>
 
-        <div v-if="missingCards.length > 0" class="bg-red-50 border border-red-200 rounded p-4">
-          <h2 class="font-semibold text-red-800 mb-3">Missing Cards:</h2>
+        <div v-if="missingCards.length > 0" class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/40 rounded p-4">
+          <h2 class="font-semibold text-red-800 dark:text-red-300 mb-3">Missing Cards:</h2>
           <div class="space-y-2 max-h-96 overflow-y-auto">
-            <div v-for="(card, index) in missingCards" :key="index" class="text-sm text-red-700">
+            <div v-for="(card, index) in missingCards" :key="index" class="text-sm text-red-700 dark:text-red-300">
               <span class="font-medium">{{ card.name }}</span>
-              <span v-if="card.subtitle" class="text-red-600">{{ card.subtitle }}</span>
-              <span class="text-red-600 ml-2">(Qty: {{ card.quantity }})</span>
+              <span v-if="card.subtitle" class="text-red-600 dark:text-red-400">{{ card.subtitle }}</span>
+              <span class="text-red-600 dark:text-red-400 ml-2">(Qty: {{ card.quantity }})</span>
               <span v-if="card.entrantName" class="block text-xs text-red-500 ml-2">
                 Deck for: {{ card.entrantName }}
               </span>
             </div>
           </div>
-          <p class="text-xs text-red-600 mt-3">Please add these cards to the database and try again.</p>
+          <p class="text-xs text-red-600 dark:text-red-400 mt-3">Please add these cards to the database and try again.</p>
         </div>
       </div>
     </div>

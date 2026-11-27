@@ -91,7 +91,7 @@ async function importCards() {
           <div
             v-if="latest"
             :key="scanCount"
-            class="mb-3 flex items-center gap-3 rounded-xl bg-white/95 p-2 pr-3 shadow-lg"
+            class="mb-3 flex items-center gap-3 rounded-xl bg-surface/95 p-2 pr-3 shadow-lg"
           >
             <CmsImage :src="latest.imageUrl" width="40" class="w-10 shrink-0 rounded" />
             <div class="min-w-0 flex-1">

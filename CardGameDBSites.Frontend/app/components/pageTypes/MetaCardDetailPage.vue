@@ -138,7 +138,7 @@ function formatPercent(value: number | undefined): string {
           </div>
           <NuxtLink
             :href="leader.urlSegment"
-            class="no-underline inline-block bg-gray-900 text-white hover:bg-gray-700 font-semibold px-5 py-2 rounded transition-colors"
+            class="no-underline inline-block bg-gray-900 text-white dark:text-neutral-900 hover:bg-gray-700 font-semibold px-5 py-2 rounded transition-colors"
           >
             View card details
           </NuxtLink>

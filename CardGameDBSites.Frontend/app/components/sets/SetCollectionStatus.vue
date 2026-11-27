@@ -47,14 +47,14 @@ async function toggle() {
     <span
       v-if="isSetOwned(set.id)"
       class="flex items-center gap-1 font-semibold"
-      :class="dark ? 'text-white' : 'text-green-600'"
+      :class="dark ? 'text-white' : 'text-green-600 dark:text-green-400'"
     >
       <PhCheckCircle weight="fill" /> Owned
     </span>
     <button
       type="button"
       class="ml-auto flex items-center gap-1 font-semibold disabled:opacity-50"
-      :class="dark ? 'text-white hover:text-white/80' : 'text-blue-600 hover:text-blue-800'"
+      :class="dark ? 'text-white hover:text-white/80' : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200'"
       :disabled="isProcessing"
       @click="toggle"
     >

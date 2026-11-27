@@ -16,7 +16,7 @@ const TIER_META: Record<MetaTierName, { label: string; blurb: string; accent: st
   S: {
     label: "S Tier",
     blurb: "Decks that define the format. They have strong results across a large sample.",
-    accent: "bg-yellow-400 text-gray-900",
+    accent: "bg-yellow-400 text-neutral-900",
     startsOpen: true
   },
   A: {

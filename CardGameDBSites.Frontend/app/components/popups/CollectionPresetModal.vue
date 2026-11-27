@@ -9,7 +9,7 @@
         class="border rounded-lg p-4 cursor-pointer transition-colors"
         :class="
           selectedPresetId === preset.id
-            ? 'border-blue-500 bg-blue-50'
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10'
             : 'hover:border-blue-300 hover:bg-canvas'
         "
         @click="selectedPresetId = preset.id"

@@ -137,7 +137,7 @@ function getFirstSlotForCard(card: CardDetailApiModel): CreateDeckSlot | undefin
                 class="shrink-0 font-bold"
                 :class="
                   hasEnoughInCollection(item.card, item.amount)
-                    ? 'text-green-600'
+                    ? 'text-green-600 dark:text-green-400'
                     : 'text-red-500'
                 "
                 v-if="collectionOnlyMode && item.card.baseId"
@@ -214,7 +214,7 @@ function getFirstSlotForCard(card: CardDetailApiModel): CreateDeckSlot | undefin
                       class="shrink-0 font-bold"
                       :class="
                         hasEnoughInCollection(child.card, child.amount)
-                          ? 'text-green-600'
+                          ? 'text-green-600 dark:text-green-400'
                           : 'text-red-500'
                       "
                       v-if="collectionOnlyMode && child.card.baseId"

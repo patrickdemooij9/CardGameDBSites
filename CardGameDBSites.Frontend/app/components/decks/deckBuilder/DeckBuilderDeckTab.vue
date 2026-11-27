@@ -147,7 +147,7 @@ const hasPassiveRequirements = computed(() => {
           <div class="flex gap-2 items-center mb-2">
             <h1 class="text-base">Create deck</h1>
             <PhCheckCircle
-              class="text-green-600"
+              class="text-green-600 dark:text-green-400"
               title="Deck is legal"
               v-if="deck.isLegalDeck()"
             />
@@ -219,7 +219,7 @@ const hasPassiveRequirements = computed(() => {
           <div class="flex items-center justify-between">
             <h3 class="text-base">{{ group.name }}</h3>
             <div class="flex items-center gap-2">
-              <span v-if="!deck.isLegalDeck()" class="text-red-600 text-xs"
+              <span v-if="!deck.isLegalDeck()" class="text-red-600 dark:text-red-400 text-xs"
                 >Illegal cards found</span
               >
               <p>{{ group.getAmount() }} / {{ group.getMaxAmount() }}</p>
@@ -287,7 +287,7 @@ const hasPassiveRequirements = computed(() => {
               >
                 <h3 class="text-base">{{ group.name }}</h3>
                 <div class="flex items-center gap-2">
-                  <span v-if="!deck.isLegalDeck()" class="text-red-600 text-xs"
+                  <span v-if="!deck.isLegalDeck()" class="text-red-600 dark:text-red-400 text-xs"
                     >Illegal cards found</span
                   >
                   <p>{{ group.getAmount() }} / {{ group.getMaxAmount() }}</p>
@@ -326,7 +326,7 @@ const hasPassiveRequirements = computed(() => {
               v-if="accountStore.isLoggedIn"
               v-on:click="$emit('submitForm', false)"
               :loading="isSubmitting"
-              class="border border-black"
+              class="border border-ink"
             >
               Save
             </Button>
@@ -334,7 +334,7 @@ const hasPassiveRequirements = computed(() => {
               :button-type="ButtonType.Success"
               v-on:click="$emit('submitForm', true)"
               :loading="isSubmitting"
-              class="border border-black disabled:border-none"
+              class="border border-ink disabled:border-none"
               v-bind:disabled="!deck.validate().isValid()"
             >
               Publish
@@ -344,7 +344,7 @@ const hasPassiveRequirements = computed(() => {
               :distance="6"
               :placement="'top'"
             >
-              <Button class="border border-black">
+              <Button class="border border-ink">
                 <p class="flex items-center gap-2">
                   Actions
                   <PhCaretDown />
@@ -393,7 +393,7 @@ const hasPassiveRequirements = computed(() => {
                       .validate()
                       .items.filter((item) => item.showMessage)"
                     :key="index"
-                    class="text-red-600"
+                    class="text-red-600 dark:text-red-400"
                   >
                     {{ item.errorMessage }}
                   </li>

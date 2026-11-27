@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
       <p class="text-sm text-gray-600">Time: {{ formatSeconds(elapsedSeconds) }}</p>
     </div>
 
-    <p v-if="error" class="text-red-600 mb-3">{{ error }}</p>
+    <p v-if="error" class="text-red-600 dark:text-red-400 mb-3">{{ error }}</p>
 
     <div v-if="isLoading || !state" class="text-gray-600">Loading game...</div>
 
@@ -147,9 +147,9 @@ onBeforeUnmount(() => {
               :key="`${attempt.attemptNumber}-${attribute.name}`"
               class="rounded px-2 py-1"
               :class="{
-                'bg-green-100': attribute.matchType === 'exact',
-                'bg-yellow-100': attribute.matchType === 'partial',
-                'bg-blue-100': attribute.matchType === 'higher' || attribute.matchType === 'lower',
+                'bg-green-100 dark:bg-green-500/20': attribute.matchType === 'exact',
+                'bg-yellow-100 dark:bg-yellow-500/20': attribute.matchType === 'partial',
+                'bg-blue-100 dark:bg-blue-500/20': attribute.matchType === 'higher' || attribute.matchType === 'lower',
                 'bg-canvas': ['no', 'unknown'].includes(attribute.matchType)
               }"
             >
@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
           </table>
         </div>
 
-        <div v-if="!accountStore.isLoggedIn" class="mt-4 p-3 rounded bg-yellow-50 border border-yellow-200">
+        <div v-if="!accountStore.isLoggedIn" class="mt-4 p-3 rounded bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/40">
           <p class="text-sm mb-2">Want your next result saved permanently?</p>
           <div class="flex gap-2">
             <NuxtLink to="/login" class="px-3 py-1 rounded bg-main-color text-white no-underline">Login</NuxtLink>

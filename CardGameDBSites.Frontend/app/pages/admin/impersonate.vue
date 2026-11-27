@@ -34,7 +34,7 @@ onMounted(async () => {
   <div class="container mx-auto px-4 py-8 max-w-md">
     <h1 class="text-2xl font-bold mb-6">Impersonate Member</h1>
 
-    <div class="bg-white rounded shadow p-6">
+    <div class="bg-surface rounded shadow p-6">
       <p class="text-gray-600 mb-4">
         Enter the numeric ID of the member you want to impersonate. The session
         will expire after 1 hour and can be stopped at any time via the banner
@@ -52,7 +52,7 @@ onMounted(async () => {
         @keyup.enter="startImpersonating"
       />
 
-      <p v-if="errorMessage" class="text-red-600 mb-4">{{ errorMessage }}</p>
+      <p v-if="errorMessage" class="text-red-600 dark:text-red-400 mb-4">{{ errorMessage }}</p>
 
       <button
         :disabled="!memberId || isLoading"

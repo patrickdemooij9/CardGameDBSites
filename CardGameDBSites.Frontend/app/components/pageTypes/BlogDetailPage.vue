@@ -92,7 +92,7 @@ useHead({
 <template>
     <header
         class="relative overflow-hidden"
-        :class="headerImageUrl ? 'bg-black text-white' : 'bg-gradient-to-b from-gray-200 to-transparent'"
+        :class="headerImageUrl ? 'gray-fixed bg-black text-white' : 'bg-gradient-to-b from-gray-200 to-transparent'"
     >
         <template v-if="headerImageUrl">
             <CmsImage class="absolute inset-0 h-full w-full object-cover" :src="headerImageUrl" :alt="properties?.title ?? ''" loading="eager" />
@@ -178,7 +178,7 @@ useHead({
 }
 
 .article-body :deep(.rte a:not(.no-underline)) {
-    @apply border-blue-600 text-blue-700;
+    @apply border-blue-600 text-blue-700 dark:border-blue-400 dark:text-blue-300;
 }
 
 .article-body :deep(.rte img) {

@@ -11,6 +11,7 @@ import {
 } from "chart.js";
 import type { CreateDeckModel } from "./models/CreateDeckModel";
 import { computeCostCurveChart } from "~/helpers/CostCurveHelper";
+import { useChartTheme } from "~/composables/useChartTheme";
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
@@ -49,35 +50,37 @@ const chartData = computed(() => {
   };
 });
 
-const chartOptions = {
+const theme = useChartTheme();
+
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     title: {
       display: true,
       text: "Cost curve",
-      color: "#111827",
+      color: theme.value.title,
       font: { size: 14, weight: "bold" as const },
     },
     legend: {
       display: true,
-      labels: { color: "#374151" },
+      labels: { color: theme.value.text },
     },
   },
   scales: {
     x: {
       stacked: true,
-      grid: { color: "rgba(0,0,0,0.08)" },
-      ticks: { color: "#374151" },
+      grid: { color: theme.value.grid },
+      ticks: { color: theme.value.text },
     },
     y: {
       stacked: true,
       beginAtZero: true,
-      grid: { color: "rgba(0,0,0,0.08)" },
-      ticks: { color: "#374151", stepSize: 1 },
+      grid: { color: theme.value.grid },
+      ticks: { color: theme.value.text, stepSize: 1 },
     },
   },
-};
+}));
 </script>
 
 <template>

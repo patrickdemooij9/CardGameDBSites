@@ -205,7 +205,7 @@ function handleSubmit(event: Event) {
       >
         <div
           role="status"
-          class="flex flex-col gap-4 items-center bg-white/80 rounded-lg px-6 py-4"
+          class="flex flex-col gap-4 items-center bg-surface/80 rounded-lg px-6 py-4"
         >
           <svg
             aria-hidden="true"

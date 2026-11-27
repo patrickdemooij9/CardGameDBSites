@@ -64,8 +64,8 @@ onMounted(render);
         class="px-3 py-1.5 rounded-md text-sm border transition-colors"
         :class="
           tier === option
-            ? 'bg-gray-900 text-white border-gray-900'
-            : 'bg-white text-gray-700 border-gray-300 hover:border-gray-500'
+            ? 'bg-gray-900 text-white dark:text-neutral-900 border-gray-900'
+            : 'bg-surface text-gray-700 border-gray-300 hover:border-gray-500'
         "
         :aria-pressed="tier === option"
         :disabled="isRendering"
@@ -98,7 +98,7 @@ onMounted(render);
 
       <div
         v-if="isRendering && previewUrl"
-        class="absolute inset-0 bg-white/60 flex items-center justify-center"
+        class="absolute inset-0 bg-surface/60 flex items-center justify-center"
       >
         <p class="text-sm font-semibold text-gray-700">Rendering…</p>
       </div>

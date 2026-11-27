@@ -181,8 +181,8 @@ function formatDate(dateUtc: string | undefined) {
     <MetaTierHeader v-if="tierList" :tier-list="tierList" :heading="heading" />
 
     <section v-if="tierError" class="container px-4 md:px-8 py-12">
-      <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg px-5 py-4">
-        <h2 class="text-red-900 text-lg font-bold mb-1">Tier list unavailable</h2>
+      <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/40 text-red-800 dark:text-red-300 rounded-lg px-5 py-4">
+        <h2 class="text-red-900 dark:text-red-200 text-lg font-bold mb-1">Tier list unavailable</h2>
         <p class="mb-0">
           The rankings could not be loaded just now. Please try again shortly.
         </p>

@@ -38,7 +38,7 @@ const label = computed(() => {
 <template>
   <span
     v-if="isNew"
-    class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800"
+    class="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-500/20 px-2 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300"
     :title="label"
   >
     New
@@ -48,8 +48,8 @@ const label = computed(() => {
     v-else
     class="inline-flex items-center gap-1 text-sm font-semibold tabular-nums"
     :class="{
-      'text-green-700': direction === 'up',
-      'text-red-700': direction === 'down',
+      'text-green-700 dark:text-green-400': direction === 'up',
+      'text-red-700 dark:text-red-300': direction === 'down',
       'text-gray-500': direction === 'flat',
       'text-gray-400': direction === 'none',
     }"

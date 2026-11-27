@@ -3,6 +3,7 @@ import type NavigationModel from "./NavigationModel";
 import NavigationDropdown from "./NavigationDropdown.vue";
 import { useAccountStore } from "~/stores/AccountStore";
 import CmsImage from "~/components/shared/CmsImage.vue";
+import ColorModeToggle from "~/components/shared/ColorModeToggle.vue";
 
 const props = defineProps<{
   content: NavigationModel;
@@ -67,11 +68,15 @@ function logout() {
           </div>
 
           <div
-            v-if="content.loginPageUrl"
-            class="mt-2 border-t border-line pt-4 md:mt-0 md:border-0 md:pt-0"
+            class="mt-2 flex flex-col gap-2 border-t border-line pt-4 md:mt-0 md:flex-row md:items-center md:gap-1 md:border-0 md:pt-0"
           >
+            <ColorModeToggle
+              class="flex items-center gap-2 rounded-md py-2 md:p-2 md:hover:bg-black/5 dark:md:hover:bg-white/10"
+            >
+              <span class="md:hidden">Toggle dark mode</span>
+            </ColorModeToggle>
             <NuxtLink
-              v-if="!accountStore.isLoggedIn"
+              v-if="content.loginPageUrl && !accountStore.isLoggedIn"
               :to="content.loginPageUrl"
               class="btn-secondary no-underline px-3 py-1.5"
               @click="closeMenu"
@@ -79,7 +84,7 @@ function logout() {
               Log in
             </NuxtLink>
             <NavigationDropdown
-              v-else
+              v-else-if="content.loginPageUrl"
               :label="`Hello ${accountStore.member!.name}`"
               :items="content.accountItems"
               align-right

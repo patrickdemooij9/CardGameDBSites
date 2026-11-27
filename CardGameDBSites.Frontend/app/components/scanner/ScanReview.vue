@@ -73,7 +73,7 @@ const accountStore = useAccountStore();
                 <PhPlus :size="14" />
               </button>
             </div>
-            <button class="p-2 text-red-600" aria-label="Remove card" @click="remove(entry)">
+            <button class="p-2 text-red-600 dark:text-red-400" aria-label="Remove card" @click="remove(entry)">
               <PhTrash :size="18" />
             </button>
           </div>

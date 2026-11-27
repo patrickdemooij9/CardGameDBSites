@@ -179,7 +179,7 @@ function getImagesForCard(card: CardDetailApiModel) {
                       </div>
                     </div>
                     <div
-                      class="flex h-5 w-[18px] items-center font-bold text-black"
+                      class="flex h-5 w-[18px] items-center font-bold text-ink"
                       v-else
                     >
                       <span>{{ GetCardValue(card, "Shard Cost") }}</span>
@@ -195,7 +195,7 @@ function getImagesForCard(card: CardDetailApiModel) {
                       alt=""
                     />
                   </div>
-                  <span class="truncate text-blue-700">{{ card.displayName }}</span>
+                  <span class="truncate text-blue-700 dark:text-blue-300">{{ card.displayName }}</span>
                 </div>
                 <span v-if="card.price" class="shrink-0 text-right">${{ card.price.marketPrice.toFixed(2) }}</span>
               </div>

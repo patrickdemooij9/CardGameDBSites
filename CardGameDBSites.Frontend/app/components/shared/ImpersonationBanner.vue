@@ -18,7 +18,7 @@ async function stopImpersonating() {
       You are impersonating <strong>{{ accountStore.member?.name }}</strong>
     </span>
     <button
-      class="bg-white text-black px-3 py-1 rounded hover:bg-gray-100 font-semibold"
+      class="bg-white text-black px-3 py-1 rounded hover:bg-neutral-100 font-semibold"
       @click="stopImpersonating"
     >
       Stop Impersonating

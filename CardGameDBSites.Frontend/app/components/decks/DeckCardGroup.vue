@@ -125,8 +125,8 @@ function handleCardClick(card: CardDetailApiModel) {
               <span
                 :class="[
                   getCollectionCount(card.baseId!) >= getDeckCardAmount(card.baseId!)
-                    ? 'text-green-600'
-                    : 'text-red-600',
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400',
                 ]"
               >{{ getCollectionCount(card.baseId!) }}</span>
               <span>/</span>
@@ -144,7 +144,7 @@ function handleCardClick(card: CardDetailApiModel) {
                   <span>{{ GetCardValue(card, "Cost") }}</span>
                 </div>
               </div>
-              <div v-else class="flex items-center h-5 w-[18px] text-black font-bold">
+              <div v-else class="flex items-center h-5 w-[18px] text-ink font-bold">
                 <span>{{ GetCardValue(card, "Shard Cost") }}</span>
                 <CmsImage :src="costImageUrl" alt="Cost" />
               </div>
@@ -186,8 +186,8 @@ function handleCardClick(card: CardDetailApiModel) {
               <span
                 :class="[
                   getCollectionCount(card.baseId!) >= getDeckCardAmount(card.baseId!)
-                    ? 'text-green-600'
-                    : 'text-red-600',
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400',
                 ]"
               >{{ getCollectionCount(card.baseId!) }}</span>
               <span>/</span>
